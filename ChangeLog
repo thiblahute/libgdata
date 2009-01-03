@@ -1,0 +1,5 @@
+2009-01-03  Philip Withnall  <philip@tecnocode.co.uk>
+
+	Initial commit, with basic functional queries for YouTube and the
+	generic GData API. No async support, and limited support for lots
+	of the XML elements.

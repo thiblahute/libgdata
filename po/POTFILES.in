@@ -1,0 +1,9 @@
+# List of source files containing translatable strings.
+# Please keep this file sorted alphabetically.
+[encoding: UTF-8]
+gdata/gdata-entry.c
+gdata/gdata-feed.c
+gdata/gdata-service.c
+gdata/services/gdata-youtube-service.c
+gdata/services/gdata-youtube-video-feed.c
+gdata/services/gdata-youtube-video.c
