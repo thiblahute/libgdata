@@ -1,21 +1,46 @@
 SUBDIRS = services . tests
 DIST_SUBDIRS = services tests
 
+# Marshalling
+GDATA_MARSHAL_FILES = \
+	gdata-marshal.c	\
+	gdata-marshal.h
+
+GLIB_GENMARSHAL = `pkg-config --variable=glib_genmarshal glib-2.0`
+
+gdata-marshal.h: gdata-marshal.list Makefile
+	( $(GLIB_GENMARSHAL) --prefix=gdata_marshal $(srcdir)/gdata-marshal.list --header > gdata-marshal.h )
+gdata-marshal.c: gdata-marshal.h Makefile
+	( $(GLIB_GENMARSHAL) --prefix=gdata_marshal $(srcdir)/gdata-marshal.list --header --body > gdata-marshal.c )
+
+# libgdata library
 lib_LTLIBRARIES = libgdata.la
 
 gdataincludedir = $(pkgincludedir)/gdata
 gdatainclude_HEADERS = \
-	gdata.h		\
-	gdata-entry.h	\
-	gdata-feed.h	\
-	gdata-service.h	\
-	gdata-types.h
+	gdata.h			\
+	gdata-entry.h		\
+	gdata-feed.h		\
+	gdata-service.h		\
+	gdata-types.h		\
+	gdata-query.h		\
+	gdata-marshal.h		\
+	gdata-atom.h		\
+	gdata-media-group.h	\
+	gdata-media-rss.h	\
+	gdata-gdata.h
 
 libgdata_la_SOURCES = \
-	gdata-entry.c	\
-	gdata-feed.c	\
-	gdata-service.c	\
-	gdata-types.c	\
+	$(GDATA_MARSHAL_FILES)	\
+	gdata-entry.c		\
+	gdata-feed.c		\
+	gdata-service.c		\
+	gdata-types.c		\
+	gdata-query.c		\
+	gdata-atom.c		\
+	gdata-media-group.c	\
+	gdata-media-rss.c	\
+	gdata-gdata.c		\
 	gdata-private.h
 
 libgdata_la_CPPFLAGS = \
@@ -40,5 +65,8 @@ libgdata_la_LDFLAGS = \
 	-no-undefined				\
 	$(AM_LDFLAGS)
 
+# General cleanup
+CLEANFILES = $(GDATA_MARSHAL_FILES)
 EXTRA_DIST = \
-	gdata.symbols
+	gdata.symbols	\
+	gdata-marshal.list

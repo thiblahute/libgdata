@@ -1,7 +1,7 @@
 /* -*- Mode: C; indent-tabs-mode: t; c-basic-offset: 8; tab-width: 8 -*- */
 /*
  * GData Client
- * Copyright (C) Philip Withnall 2008 <philip@tecnocode.co.uk>
+ * Copyright (C) Philip Withnall 2008-2009 <philip@tecnocode.co.uk>
  * 
  * GData Client is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,6 +25,7 @@
 
 #include "gdata-service.h"
 #include "gdata-private.h"
+#include "gdata-marshal.h"
 
 GQuark
 gdata_service_error_quark (void)
@@ -41,6 +42,14 @@ static gboolean real_parse_authentication_response (GDataService *self, const gc
 
 struct _GDataServicePrivate {
 	SoupSession *session;
+
+	GThread *thread;
+	GAsyncQueue *query_queue;
+	gboolean thread_stopping;
+	gboolean need_logging_in;
+
+	gchar *username; /* TODO: propertyise */
+	gchar *password;
 	gchar *auth_token;
 	gchar *client_id;
 	gboolean logged_in; /* TODO: propertyise */
@@ -49,6 +58,13 @@ struct _GDataServicePrivate {
 enum {
 	PROP_CLIENT_ID = 1
 };
+
+enum {
+	SIGNAL_QUERY_FINISHED,
+	LAST_SIGNAL
+};
+
+static guint service_signals[LAST_SIGNAL] = { 0, };
 
 G_DEFINE_TYPE (GDataService, gdata_service, G_TYPE_OBJECT)
 #define GDATA_SERVICE_GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE ((obj), GDATA_TYPE_SERVICE, GDataServicePrivate))
@@ -74,6 +90,13 @@ gdata_service_class_init (GDataServiceClass *klass)
 					"Client ID", "A client ID for your application (see http://code.google.com/apis/youtube/2.0/developers_guide_protocol_api_query_parameters.html#clientsp).",
 					NULL,
 					G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+	service_signals[SIGNAL_QUERY_FINISHED] = g_signal_new ("query-finished",
+				G_TYPE_FROM_CLASS (klass),
+				G_SIGNAL_RUN_LAST,
+				0, NULL, NULL,
+				gdata_marshal_VOID__OBJECT_OBJECT_POINTER,
+				G_TYPE_NONE, 0);
 }
 
 static void
@@ -92,6 +115,16 @@ gdata_service_dispose (GObject *object)
 		g_object_unref (priv->session);
 	priv->session = NULL;
 
+	/* Wait for the thread to finish */
+	if (priv->thread != NULL)
+		g_thread_join (priv->thread);
+	priv->thread = NULL;
+
+	/* Free the query queue */
+	if (priv->query_queue != NULL)
+		g_async_queue_unref (priv->query_queue);
+	priv->query_queue = NULL;
+
 	/* Chain up to the parent class */
 	G_OBJECT_CLASS (gdata_service_parent_class)->dispose (object);
 }
@@ -101,6 +134,8 @@ gdata_service_finalize (GObject *object)
 {
 	GDataServicePrivate *priv = GDATA_SERVICE_GET_PRIVATE (object);
 
+	g_free (priv->username);
+	g_free (priv->password);
 	g_free (priv->auth_token);
 	g_free (priv->client_id);
 
@@ -140,6 +175,89 @@ gdata_service_set_property (GObject *object, guint property_id, const GValue *va
 	}
 }
 
+typedef struct {
+	GDataService *service;
+	GDataFeed *feed;
+	GDataQuery *query;
+	GError *error;
+} QueryData;
+
+static gboolean
+thread_query_finished (QueryData *query_data)
+{
+	g_signal_emit (query_data->service, SIGNAL_QUERY_FINISHED, 0,
+		       query_data->query,
+		       query_data->feed,
+		       query_data->error);
+	g_object_unref (query_data->query);
+	g_free (query_data);
+	return FALSE;
+}
+
+static gpointer
+gdata_service_thread_main (GDataService *self)
+{
+	GDataServicePrivate *priv = self->priv;
+
+	while (priv->thread_stopping == FALSE) {
+		GDataQuery *query;
+		GDataFeed *feed;
+		GDataFeedParserFunc parser_func;
+		QueryData *query_data;
+		gchar *feed_uri;
+		GError *error = NULL;
+
+		/* First, ensure we're logged in if we're meant to be */
+		if (priv->need_logging_in == TRUE && priv->logged_in == FALSE)
+			gdata_service_authenticate (self, priv->username, priv->password, NULL);
+
+		/* Get a job off the queue */
+		query = g_async_queue_pop (priv->query_queue);
+
+		/* Check to see if it's been cancelled already */
+		if (gdata_query_is_cancelled (query) == TRUE) {
+			/* Unref the query and continue */
+			g_object_unref (query); /* TODO: need to sort out the ref timeline of a query */
+			continue;
+		}
+
+		/* Execute the query and signal completion */
+		feed_uri = g_object_get_data (G_OBJECT (query), "feed_uri");
+		parser_func = g_object_get_data (G_OBJECT (query), "parser_func");
+		/* TODO: add cancellable support to this call */
+		feed = gdata_service_query (self, feed_uri, query, parser_func, &error);
+		g_free (feed_uri);
+
+		query_data = g_new (QueryData, 1);
+		query_data->service = self;
+		query_data->feed = feed;
+		query_data->query = query;
+		query_data->error = error;
+
+		g_idle_add ((GSourceFunc) thread_query_finished, query_data);
+	}
+
+	return NULL;
+}
+
+static gboolean
+create_thread (GDataService *self, GError **error)
+{
+	GDataServicePrivate *priv = self->priv;
+
+	/* Create the worker thread */
+	priv->query_queue = g_async_queue_new_full ((GDestroyNotify) g_object_unref);
+	priv->thread = g_thread_create ((GThreadFunc) gdata_service_thread_main, self, TRUE, error);
+
+	if (priv->thread == NULL) {
+		/* Error creating the thread */
+		g_async_queue_unref (priv->query_queue);
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
 static gboolean
 real_parse_authentication_response (GDataService *self, const gchar *response_body, GError **error)
 {
@@ -168,6 +286,27 @@ protocol_error:
 }
 
 gboolean
+gdata_service_authenticate_async (GDataService *self, const gchar *username, const gchar *password, GError **error)
+{
+	g_return_val_if_fail (GDATA_IS_SERVICE (self), FALSE);
+	g_return_val_if_fail (username != NULL, FALSE);
+	g_return_val_if_fail (password != NULL, FALSE);
+
+	g_free (self->priv->username);
+	self->priv->username = g_strdup (username);
+	g_free (self->priv->password);
+	self->priv->password = g_strdup (password);
+
+	/* Tell the thread we need logging in then spawn it if it doesn't already exist */
+	self->priv->need_logging_in = TRUE;
+
+	if (self->priv->thread == NULL && create_thread (self, error) == FALSE)
+		return FALSE;
+
+	return TRUE;
+}
+
+gboolean
 gdata_service_authenticate (GDataService *self, const gchar *username, const gchar *password, GError **error)
 {
 	GDataServiceClass *klass;
@@ -179,6 +318,11 @@ gdata_service_authenticate (GDataService *self, const gchar *username, const gch
 	g_return_val_if_fail (GDATA_IS_SERVICE (self), FALSE);
 	g_return_val_if_fail (username != NULL, FALSE);
 	g_return_val_if_fail (password != NULL, FALSE);
+
+	g_free (self->priv->username);
+	self->priv->username = g_strdup (username);
+	g_free (self->priv->password);
+	self->priv->password = g_strdup (password);
 
 	/* Prepare the request */
 	klass = GDATA_SERVICE_GET_CLASS (self);
@@ -223,69 +367,34 @@ gdata_service_is_logged_in (GDataService *self)
 	return self->priv->logged_in;
 }
 
-/*static void
-authenticate_async_thread (GSimpleAsyncResult *result, GObject *object, GCancellable *cancellable)
-{
-
-}
-
-static void
-real_authenticate_async (GDataService *self, const gchar *username, const gchar *password,
-			 GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
-{
-	GSimpleAsyncResult *result;
-  NextAsyncOp *op;
-
-  op = g_new0 (NextAsyncOp, 1);
-
-  op->num_files = num_files;
-  op->files = NULL;
-
-	result = g_simple_async_result_new (G_OBJECT (self), callback, user_data, real_authenticate_async);
-	g_simple_async_result_set_op_res_gpointer (result, op, (GDestroyNotify) next_async_op_free);
-  
-	g_simple_async_result_run_in_thread (result, authenticate_async_thread, G_PRIORITY_DEFAULT, cancellable);
-	g_object_unref (result);
-}
-
-void
-gdata_service_authenticate_async (GDataService *self, const gchar *username, const gchar *password,
-				  GCancellable *cancellable, GAsyncReadyCallback *callback, gpointer user_data)
-{
-	GDataServiceClass *klass;
-
-	g_return_if_fail (GDATA_IS_SERVICE (self));
-	g_return_if_fail (username != NULL);
-	g_return_if_fail (password != NULL);
-
-	klass = GDATA_SERVICE_GET_CLASS (self);
-	klass->authenticate_async (self, username, password, cancellable, next_async_callback_wrapper, user_data);
-}
 gboolean
-gdata_service_authenticate_finish (GDataService *self, GAsyncResult *result, GError **error)
+gdata_service_query_async (GDataService *self, const gchar *feed_uri, GDataQuery *query, GDataFeedParserFunc parser_func, GError **error)
 {
-	/* TODO 
-}*/
+	if (self->priv->thread == NULL && create_thread (self, error) == FALSE)
+		return FALSE;
 
-GDataFeed *
-gdata_service_query (GDataService *self, const gchar *query_uri, GError **error)
-{
-	return gdata_service_query_full (self, query_uri, _gdata_feed_new_from_xml, error);
+	/* Thread already exists, so add the query to its queue */
+	g_object_set_data (G_OBJECT (query), "feed_uri", g_strdup (feed_uri));
+	g_object_set_data (G_OBJECT (query), "parser_func", parser_func);
+	g_async_queue_push (self->priv->query_queue, g_object_ref (query));
+
+	return TRUE;
 }
 
 GDataFeed *
-gdata_service_query_full (GDataService *self, const gchar *query_uri, GDataFeedParserFunc parser_func, GError **error)
+gdata_service_query (GDataService *self, const gchar *feed_uri, GDataQuery *query, GDataFeedParserFunc parser_func, GError **error)
 {
 	GDataServiceClass *klass;
 	GDataFeed *feed;
 	SoupMessage *message;
-	gchar *authorisation_header;
+	gchar *authorisation_header, *query_uri;
 	guint status;
 
 	g_return_val_if_fail (GDATA_IS_SERVICE (self), NULL);
-	g_return_val_if_fail (query_uri != NULL, NULL);
 
+	query_uri = gdata_query_get_query_uri (query, feed_uri);
 	message = soup_message_new (SOUP_METHOD_GET, query_uri);
+	g_free (query_uri);
 
 	/* Set the authorisation header */
 	authorisation_header = g_strdup_printf ("GoogleLogin auth=%s", self->priv->auth_token);
@@ -302,11 +411,10 @@ gdata_service_query_full (GDataService *self, const gchar *query_uri, GDataFeedP
 
 	/* Send the message */
 	status = soup_session_send_message (self->priv->session, message);
-	g_debug ("Status %u from service query to \"%s\".", status, query_uri);
 
 	if (status != 200) {
 		/* Error */
-		/* TODO: Handle errors more specifically */
+		/* TODO: Handle errors more specifically, making sure to set logged_in where appropriate */
 		g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_WITH_QUERY,
 			     _("TODO: error code %u when querying"), status);
 		g_object_unref (message);

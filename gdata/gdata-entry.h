@@ -24,6 +24,8 @@
 #include <glib-object.h>
 #include <libxml/parser.h>
 
+#include "gdata-atom.h"
+
 G_BEGIN_DECLS
 
 #define GDATA_TYPE_ENTRY		(gdata_entry_get_type ())
@@ -54,6 +56,13 @@ const gchar *gdata_entry_get_id (GDataEntry *self);
 void gdata_entry_set_id (GDataEntry *self, const gchar *id);
 void gdata_entry_get_updated (GDataEntry *self, GTimeVal *updated);
 void gdata_entry_set_updated (GDataEntry *self, GTimeVal *updated);
+void gdata_entry_get_published (GDataEntry *self, GTimeVal *published);
+void gdata_entry_set_published (GDataEntry *self, GTimeVal *published);
+void gdata_entry_add_category (GDataEntry *self, GDataCategory *category);
+const gchar *gdata_entry_get_content (GDataEntry *self);
+void gdata_entry_set_content (GDataEntry *self, const gchar *content);
+void gdata_entry_add_link (GDataEntry *self, GDataLink *link);
+void gdata_entry_add_author (GDataEntry *self, GDataAuthor *author);
 
 G_END_DECLS
 

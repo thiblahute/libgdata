@@ -189,62 +189,67 @@ gdata_youtube_service_new (const gchar *developer_key, const gchar *client_id)
 GDataYouTubeVideoFeed *
 gdata_youtube_service_query_standard_feed (GDataYouTubeService *self, GDataYouTubeStandardFeedType feed_type, GError **error)
 {
-	const gchar *query_uri;
+	GDataQuery *query;
+	GDataFeed *video_feed;
+	const gchar *feed_uri;
 
 	/* TODO: Support the "time" parameter, as well as category- and region-specific feeds */
+	/* TODO: Async versions of this function and the one below */
 
 	switch (feed_type) {
 	case GDATA_YOUTUBE_TOP_RATED_FEED:
-		query_uri = "http://gdata.youtube.com/feeds/api/standardfeeds/top_rated";
+		feed_uri = "http://gdata.youtube.com/feeds/api/standardfeeds/top_rated";
 		break;
 	case GDATA_YOUTUBE_TOP_FAVORITES_FEED:
-		query_uri = "http://gdata.youtube.com/feeds/api/standardfeeds/top_favorites";
+		feed_uri = "http://gdata.youtube.com/feeds/api/standardfeeds/top_favorites";
 		break;
 	case GDATA_YOUTUBE_MOST_VIEWED_FEED:
-		query_uri = "http://gdata.youtube.com/feeds/api/standardfeeds/most_viewed";
+		feed_uri = "http://gdata.youtube.com/feeds/api/standardfeeds/most_viewed";
 		break;
 	case GDATA_YOUTUBE_MOST_POPULAR_FEED:
-		query_uri = "http://gdata.youtube.com/feeds/api/standardfeeds/most_popular";
+		feed_uri = "http://gdata.youtube.com/feeds/api/standardfeeds/most_popular";
 		break;
 	case GDATA_YOUTUBE_MOST_RECENT_FEED:
-		query_uri = "http://gdata.youtube.com/feeds/api/standardfeeds/most_recent";
+		feed_uri = "http://gdata.youtube.com/feeds/api/standardfeeds/most_recent";
 		break;
 	case GDATA_YOUTUBE_MOST_DISCUSSED_FEED:
-		query_uri = "http://gdata.youtube.com/feeds/api/standardfeeds/most_discussed";
+		feed_uri = "http://gdata.youtube.com/feeds/api/standardfeeds/most_discussed";
 		break;
 	case GDATA_YOUTUBE_MOST_LINKED_FEED:
-		query_uri = "http://gdata.youtube.com/feeds/api/standardfeeds/most_linked";
+		feed_uri = "http://gdata.youtube.com/feeds/api/standardfeeds/most_linked";
 		break;
 	case GDATA_YOUTUBE_MOST_RESPONDED_FEED:
-		query_uri = "http://gdata.youtube.com/feeds/api/standardfeeds/most_responded";
+		feed_uri = "http://gdata.youtube.com/feeds/api/standardfeeds/most_responded";
 		break;
 	case GDATA_YOUTUBE_RECENTLY_FEATURED_FEED:
-		query_uri = "http://gdata.youtube.com/feeds/api/standardfeeds/recently_featured";
+		feed_uri = "http://gdata.youtube.com/feeds/api/standardfeeds/recently_featured";
 		break;
 	case GDATA_YOUTUBE_WATCH_ON_MOBILE_FEED:
-		query_uri = "http://gdata.youtube.com/feeds/api/standardfeeds/watch_on_mobile";
+		feed_uri = "http://gdata.youtube.com/feeds/api/standardfeeds/watch_on_mobile";
 		break;
 	default:
 		g_assert_not_reached ();
 	}
 
-	return GDATA_YOUTUBE_VIDEO_FEED (gdata_service_query_full (GDATA_SERVICE (self), query_uri, _gdata_youtube_video_feed_new_from_xml, error));
+	query = gdata_query_new (GDATA_SERVICE (self), NULL);
+	video_feed = gdata_service_query (GDATA_SERVICE (self), feed_uri, query, _gdata_youtube_video_feed_new_from_xml, error);
+	g_object_unref (query);
+
+	return GDATA_YOUTUBE_VIDEO_FEED (video_feed);
 }
 
 GDataYouTubeVideoFeed *
 gdata_youtube_service_query_videos (GDataYouTubeService *self, const gchar *query_terms, GError **error)
 {
+	GDataQuery *query;
 	GDataFeed *feed;
-	gchar *query_uri, *escaped_terms;
 
-	/* Make sure to escape the parameters first */
-	escaped_terms = g_uri_escape_string (query_terms, NULL, TRUE);
-	query_uri = g_strdup_printf ("http://gdata.youtube.com/feeds/api/videos?q=%s", escaped_terms);
-	g_free (escaped_terms);
-
-	/* Perform the query */
-	feed = gdata_service_query_full (GDATA_SERVICE (self), query_uri, _gdata_youtube_video_feed_new_from_xml, error);
-	g_free (query_uri);
+	/* Build and execute the query */
+	query = gdata_query_new (GDATA_SERVICE (self), query_terms);
+	feed = gdata_service_query (GDATA_SERVICE (self),
+				    "http://gdata.youtube.com/feeds/api/videos", query,
+				    _gdata_youtube_video_feed_new_from_xml, error);
+	g_object_unref (query);
 
 	return GDATA_YOUTUBE_VIDEO_FEED (feed);
 }

@@ -24,6 +24,8 @@
 #include <glib-object.h>
 
 #include "gdata-entry.h"
+#include "gdata-media-group.h"
+#include "gdata-gdata.h"
 
 G_BEGIN_DECLS
 
@@ -48,6 +50,19 @@ typedef struct {
 GType gdata_youtube_video_get_type (void);
 
 GDataYouTubeVideo *gdata_youtube_video_new (void);
+
+GDataMediaGroup *gdata_youtube_video_get_media_group (GDataYouTubeVideo *self);
+void gdata_youtube_video_set_media_group (GDataYouTubeVideo *self, GDataMediaGroup *media_group);
+guint gdata_youtube_video_get_view_count (GDataYouTubeVideo *self);
+void gdata_youtube_video_set_view_count (GDataYouTubeVideo *self, guint view_count);
+guint gdata_youtube_video_get_favorite_count (GDataYouTubeVideo *self);
+void gdata_youtube_video_set_favorite_count (GDataYouTubeVideo *self, guint favorite_count);
+const gchar *gdata_youtube_video_get_location (GDataYouTubeVideo *self);
+void gdata_youtube_video_set_location (GDataYouTubeVideo *self, const gchar *location);
+gboolean gdata_youtube_video_get_no_embed (GDataYouTubeVideo *self);
+void gdata_youtube_video_set_no_embed (GDataYouTubeVideo *self, gboolean no_embed);
+GDataGDRating *gdata_youtube_video_get_rating (GDataYouTubeVideo *self);
+void gdata_youtube_video_set_rating (GDataYouTubeVideo *self, GDataGDRating *rating);
 
 G_END_DECLS
 

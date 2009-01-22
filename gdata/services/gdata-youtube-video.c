@@ -26,22 +26,31 @@
 #include "gdata-youtube-video.h"
 #include "gdata-private.h"
 #include "gdata-service.h"
+#include "gdata-youtube-media-group.h"
+#include "gdata-gdata.h"
 
 static void gdata_youtube_video_dispose (GObject *object);
+static void gdata_youtube_video_finalize (GObject *object);
 static void gdata_youtube_video_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec);
 static void gdata_youtube_video_set_property (GObject *object, guint property_id, const GValue *value, GParamSpec *pspec);
 
 struct _GDataYouTubeVideoPrivate {
-	gboolean dispose_has_run;
-	/* TODO */
+	GDataMediaGroup *media_group;
+	guint view_count;
+	guint favorite_count;
+	gchar *location;
+	gboolean no_embed;
+	GDataGDRating *rating;
 };
 
-/*
-TODO
 enum {
-	PROP_DEV_PATH = 1
+	PROP_MEDIA_GROUP = 1,
+	PROP_VIEW_COUNT,
+	PROP_FAVORITE_COUNT,
+	PROP_LOCATION,
+	PROP_NO_EMBED,
+	PROP_RATING
 };
-*/
 
 G_DEFINE_TYPE (GDataYouTubeVideo, gdata_youtube_video, GDATA_TYPE_ENTRY)
 #define GDATA_YOUTUBE_VIDEO_GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE ((obj), GDATA_TYPE_YOUTUBE_VIDEO, GDataYouTubeVideoPrivate))
@@ -56,26 +65,43 @@ gdata_youtube_video_class_init (GDataYouTubeVideoClass *klass)
 	gobject_class->set_property = gdata_youtube_video_set_property;
 	gobject_class->get_property = gdata_youtube_video_get_property;
 	gobject_class->dispose = gdata_youtube_video_dispose;
+	gobject_class->finalize = gdata_youtube_video_finalize;
 
-	/*
-	TODO
-	g_object_class_install_property (gobject_class, PROP_DEV_PATH,
-				g_param_spec_string ("dev-path",
-					"Device path", "The path to this connection's device node.",
+	g_object_class_install_property (gobject_class, PROP_MEDIA_GROUP,
+				g_param_spec_object ("media-group",
+					"Media group", "The media group describing this video.",
+					GDATA_TYPE_MEDIA_GROUP,
+					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+	g_object_class_install_property (gobject_class, PROP_VIEW_COUNT,
+				g_param_spec_uint ("view-count",
+					"View count", "TODO",
+					0, G_MAXUINT, 0,
+					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+	g_object_class_install_property (gobject_class, PROP_FAVORITE_COUNT,
+				g_param_spec_uint ("favorite-count",
+					"Favorite count", "TODO",
+					0, G_MAXUINT, 0,
+					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+	g_object_class_install_property (gobject_class, PROP_LOCATION,
+				g_param_spec_string ("location",
+					"Location", "TODO",
 					NULL,
-					G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
-	*/
+					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+	g_object_class_install_property (gobject_class, PROP_NO_EMBED,
+				g_param_spec_boolean ("no-embed",
+					"No embed", "TODO",
+					FALSE,
+					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+	g_object_class_install_property (gobject_class, PROP_RATING,
+				g_param_spec_pointer ("rating",
+					"Rating", "TODO",
+					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 }
 
 static void
 gdata_youtube_video_init (GDataYouTubeVideo *self)
 {
 	self->priv = G_TYPE_INSTANCE_GET_PRIVATE (self, GDATA_TYPE_YOUTUBE_VIDEO, GDataYouTubeVideoPrivate);
-	self->priv->dispose_has_run = FALSE;
-	/*
-	TODO
-	self->priv->dev_path = NULL;
-	*/
 }
 
 static void
@@ -83,18 +109,24 @@ gdata_youtube_video_dispose (GObject *object)
 {
 	GDataYouTubeVideoPrivate *priv = GDATA_YOUTUBE_VIDEO_GET_PRIVATE (object);
 
-	/* Make sure we only run once */
-	if (priv->dispose_has_run)
-		return;
-	priv->dispose_has_run = TRUE;
-
-	/*
-	TODO
-	g_free (priv->dev_path);
-	*/
+	if (priv->media_group != NULL)
+		g_object_unref (priv->media_group);
+	priv->media_group = NULL;
 
 	/* Chain up to the parent class */
 	G_OBJECT_CLASS (gdata_youtube_video_parent_class)->dispose (object);
+}
+
+static void
+gdata_youtube_video_finalize (GObject *object)
+{
+	GDataYouTubeVideoPrivate *priv = GDATA_YOUTUBE_VIDEO_GET_PRIVATE (object);
+
+	g_free (priv->location);
+	gdata_gd_rating_free (priv->rating);
+
+	/* Chain up to the parent class */
+	G_OBJECT_CLASS (gdata_youtube_video_parent_class)->finalize (object);
 }
 
 static void
@@ -103,12 +135,24 @@ gdata_youtube_video_get_property (GObject *object, guint property_id, GValue *va
 	GDataYouTubeVideoPrivate *priv = GDATA_YOUTUBE_VIDEO_GET_PRIVATE (object);
 
 	switch (property_id) {
-		/*
-		TODO
-		case PROP_DEV_PATH:
-			g_value_set_string (value, g_strdup (priv->dev_path));
+		case PROP_MEDIA_GROUP:
+			g_value_set_object (value, priv->media_group);
 			break;
-		*/
+		case PROP_VIEW_COUNT:
+			g_value_set_uint (value, priv->view_count);
+			break;
+		case PROP_FAVORITE_COUNT:
+			g_value_set_uint (value, priv->favorite_count);
+			break;
+		case PROP_LOCATION:
+			g_value_set_string (value, priv->location);
+			break;
+		case PROP_NO_EMBED:
+			g_value_set_boolean (value, priv->no_embed);
+			break;
+		case PROP_RATING:
+			g_value_set_pointer (value, priv->rating);
+			break;
 		default:
 			/* We don't have any other property... */
 			G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
@@ -122,13 +166,24 @@ gdata_youtube_video_set_property (GObject *object, guint property_id, const GVal
 	GDataYouTubeVideoPrivate *priv = GDATA_YOUTUBE_VIDEO_GET_PRIVATE (object);
 
 	switch (property_id) {
-		/*
-		TODO
-		case PROP_DEV_PATH:
-			g_free (priv->dev_path);
-			priv->dev_path = g_strdup (g_value_get_string (value));
+		case PROP_MEDIA_GROUP:
+			gdata_youtube_video_set_media_group (GDATA_YOUTUBE_VIDEO (object), g_value_get_object (value));
 			break;
-		*/
+		case PROP_VIEW_COUNT:
+			gdata_youtube_video_set_view_count (GDATA_YOUTUBE_VIDEO (object), g_value_get_uint (value));
+			break;
+		case PROP_FAVORITE_COUNT:
+			gdata_youtube_video_set_favorite_count (GDATA_YOUTUBE_VIDEO (object), g_value_get_uint (value));
+			break;
+		case PROP_LOCATION:
+			gdata_youtube_video_set_location (GDATA_YOUTUBE_VIDEO (object), g_value_get_string (value));
+			break;
+		case PROP_NO_EMBED:
+			gdata_youtube_video_set_no_embed (GDATA_YOUTUBE_VIDEO (object), g_value_get_boolean (value));
+			break;
+		case PROP_RATING:
+			gdata_youtube_video_set_rating (GDATA_YOUTUBE_VIDEO (object), g_value_get_pointer (value));
+			break;
 		default:
 			/* We don't have any other property... */
 			G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
@@ -174,26 +229,99 @@ _gdata_youtube_video_parse_xml_node (GDataYouTubeVideo *self, xmlDoc *doc, xmlNo
 	g_return_val_if_fail (doc != NULL, FALSE);
 	g_return_val_if_fail (node != NULL, FALSE);
 
-	if (xmlStrcmp (node->name, (xmlChar*) "group") == 0) { /* media:group */
-		/*GDataMediaGroup *media_group = gdata_media_group_new ();
-		if (_gdata_media_group_parse_xml_node (media_group, doc, node, error) == FALSE) {
-			/* Error *
-			g_object_unref (media_group);
+	if (xmlStrcmp (node->name, (xmlChar*) "group") == 0) {
+		/* media:group */
+		GDataYouTubeMediaGroup *media_group = _gdata_youtube_media_group_new_from_xml_node (doc, node, error);
+		if (media_group == NULL)
+			return FALSE;
+
+		gdata_youtube_video_set_media_group (self, GDATA_MEDIA_GROUP (media_group));
+		g_object_unref (media_group);
+	} else if (xmlStrcmp (node->name, (xmlChar*) "rating") == 0) {
+		/* gd:rating */
+		xmlChar *min, *max, *num_raters, *average;
+		guint num_raters_uint;
+		gdouble average_double;
+		GDataGDRating *rating;
+
+		min = xmlGetProp (node, (xmlChar*) "min");
+		if (min == NULL) {
+			g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
+				     _("A required @min property of a <gd:rating> was not present."));
 			return FALSE;
 		}
-		video->priv->media_group = media_group;*/
-		g_warning ("TODO: unimplemented");
-	} else if (xmlStrcmp (node->name, (xmlChar*) "statistics") == 0) /* yt:statistics */
-		g_warning ("TODO: unimplemented");
-	else if (xmlStrcmp (node->name, (xmlChar*) "location") == 0) /* yt:location */
-		g_warning ("TODO: unimplemented");
-	else if (xmlStrcmp (node->name, (xmlChar*) "where") == 0) /* georss:where */
-		g_warning ("TODO: unimplemented");
-	else if (xmlStrcmp (node->name, (xmlChar*) "noembed") == 0) /* yt:noembed */
-		g_warning ("TODO: unimplemented");
-	else if (xmlStrcmp (node->name, (xmlChar*) "recorded") == 0) /* yt:recorded */
-		g_warning ("TODO: unimplemented");
-	else if (_gdata_entry_parse_xml_node (GDATA_ENTRY (self), doc, node, &child_error) == FALSE) {
+
+		max = xmlGetProp (node, (xmlChar*) "max");
+		if (max == NULL) {
+			/* TODO: All these errors could be simplified to function calls: e.g. gdata_error_property_not_present() */
+			g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
+				     _("A required @max property of a <gd:rating> was not present."));
+			xmlFree (min);
+			return FALSE;
+		}
+
+		num_raters = xmlGetProp (node, (xmlChar*) "numRaters");
+		if (num_raters == NULL)
+			num_raters_uint = 0;
+		else
+			/* TODO: Convert all these atoi()s to strtoul */
+			num_raters_uint = MAX (atoi ((gchar*) num_raters), 0);
+		xmlFree (num_raters);
+
+		average = xmlGetProp (node, (xmlChar*) "average");
+		if (average == NULL)
+			average_double = 0;
+		else
+			average_double = strtod ((gchar*) average, NULL);
+		xmlFree (average);
+
+		rating = gdata_gd_rating_new (strtoul ((gchar*) min, NULL, 10),
+					      strtoul ((gchar*) max, NULL, 10),
+					      num_raters_uint, average_double);
+		gdata_youtube_video_set_rating (self, rating);
+	} else if (xmlStrcmp (node->name, (xmlChar*) "comments") == 0) {
+		/* gd:comments */
+		g_message ("TODO: comments unimplemented");
+	} else if (xmlStrcmp (node->name, (xmlChar*) "statistics") == 0) {
+		/* yt:statistics */
+		xmlChar *view_count, *favorite_count;
+
+		/* View count */
+		view_count = xmlGetProp (node, (xmlChar*) "viewCount");
+		if (view_count == NULL) {
+			g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
+				     _("A required @viewCount property of a <yt:statistics> was not present."));
+			return FALSE;
+		}
+
+		gdata_youtube_video_set_view_count (self, MAX (atoi ((gchar*) view_count), 0));
+		xmlFree (view_count);
+
+		/* Favourite count */
+		favorite_count = xmlGetProp (node, (xmlChar*) "favoriteCount");
+		if (favorite_count == NULL) {
+			g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
+				     _("A required @favoriteCount property of a <yt:statistics> was not present."));
+			return FALSE;
+		}
+
+		gdata_youtube_video_set_favorite_count (self, MAX (atoi ((gchar*) favorite_count), 0));
+		xmlFree (favorite_count);
+	} else if (xmlStrcmp (node->name, (xmlChar*) "location") == 0) {
+		/* yt:location */
+		xmlChar *location = xmlNodeListGetString (doc, node->xmlChildrenNode, TRUE);
+		gdata_youtube_video_set_location (self, (gchar*) location);
+		xmlFree (location);
+	} else if (xmlStrcmp (node->name, (xmlChar*) "where") == 0) {
+		/* georss:where */
+		g_message ("TODO: where unimplemented");
+	} else if (xmlStrcmp (node->name, (xmlChar*) "noembed") == 0) {
+		/* yt:noembed */
+		gdata_youtube_video_set_no_embed (self, TRUE);
+	} else if (xmlStrcmp (node->name, (xmlChar*) "recorded") == 0) {
+		/* yt:recorded */
+		g_message ("TODO: recorded unimplemented");
+	} else if (_gdata_entry_parse_xml_node (GDATA_ENTRY (self), doc, node, &child_error) == FALSE) {
 		if (g_error_matches (child_error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_UNHANDLED_XML_ELEMENT) == TRUE) {
 			g_error_free (child_error);
 			g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_UNHANDLED_XML_ELEMENT,
@@ -207,4 +335,102 @@ _gdata_youtube_video_parse_xml_node (GDataYouTubeVideo *self, xmlDoc *doc, xmlNo
 	}
 
 	return TRUE;
+}
+
+GDataMediaGroup *
+gdata_youtube_video_get_media_group (GDataYouTubeVideo *self)
+{
+	g_return_val_if_fail (GDATA_IS_YOUTUBE_VIDEO (self), NULL);
+	return self->priv->media_group;
+}
+
+void
+gdata_youtube_video_set_media_group (GDataYouTubeVideo *self, GDataMediaGroup *media_group)
+{
+	g_return_if_fail (GDATA_IS_YOUTUBE_VIDEO (self));
+	g_return_if_fail (GDATA_IS_MEDIA_GROUP (media_group));
+
+	if (self->priv->media_group != NULL)
+		g_object_unref (self->priv->media_group);
+	self->priv->media_group = g_object_ref (media_group);
+	g_object_notify (G_OBJECT (self), "media-group");
+}
+
+guint
+gdata_youtube_video_get_view_count (GDataYouTubeVideo *self)
+{
+	g_return_val_if_fail (GDATA_IS_YOUTUBE_VIDEO (self), 0);
+	return self->priv->view_count;
+}
+
+void
+gdata_youtube_video_set_view_count (GDataYouTubeVideo *self, guint view_count)
+{
+	g_return_if_fail (GDATA_IS_YOUTUBE_VIDEO (self));
+	self->priv->view_count = view_count;
+	g_object_notify (G_OBJECT (self), "view-count");
+}
+
+guint
+gdata_youtube_video_get_favorite_count (GDataYouTubeVideo *self)
+{
+	g_return_val_if_fail (GDATA_IS_YOUTUBE_VIDEO (self), 0);
+	return self->priv->favorite_count;
+}
+
+void
+gdata_youtube_video_set_favorite_count (GDataYouTubeVideo *self, guint favorite_count)
+{
+	g_return_if_fail (GDATA_IS_YOUTUBE_VIDEO (self));
+	self->priv->favorite_count = favorite_count;
+	g_object_notify (G_OBJECT (self), "favorite-count");
+}
+
+const gchar *
+gdata_youtube_video_get_location (GDataYouTubeVideo *self)
+{
+	g_return_val_if_fail (GDATA_IS_YOUTUBE_VIDEO (self), NULL);
+	return self->priv->location;
+}
+
+void
+gdata_youtube_video_set_location (GDataYouTubeVideo *self, const gchar *location)
+{
+	g_return_if_fail (GDATA_IS_YOUTUBE_VIDEO (self));
+
+	g_free (self->priv->location);
+	self->priv->location = g_strdup (location);
+	g_object_notify (G_OBJECT (self), "location");
+}
+
+gboolean
+gdata_youtube_video_get_no_embed (GDataYouTubeVideo *self)
+{
+	g_return_val_if_fail (GDATA_IS_YOUTUBE_VIDEO (self), FALSE);
+	return self->priv->no_embed;
+}
+
+void
+gdata_youtube_video_set_no_embed (GDataYouTubeVideo *self, gboolean no_embed)
+{
+	g_return_if_fail (GDATA_IS_YOUTUBE_VIDEO (self));
+	self->priv->no_embed = no_embed;
+	g_object_notify (G_OBJECT (self), "no-embed");
+}
+
+GDataGDRating *
+gdata_youtube_video_get_rating (GDataYouTubeVideo *self)
+{
+	g_return_val_if_fail (GDATA_IS_YOUTUBE_VIDEO (self), NULL);
+	return self->priv->rating;
+}
+
+void
+gdata_youtube_video_set_rating (GDataYouTubeVideo *self, GDataGDRating *rating)
+{
+	g_return_if_fail (GDATA_IS_YOUTUBE_VIDEO (self));
+
+	gdata_gd_rating_free (self->priv->rating); /* TODO: Not so happy about this memory management */
+	self->priv->rating = rating;
+	g_object_notify (G_OBJECT (self), "rating");
 }

@@ -1,3 +1,5 @@
+gdata_category_new
+gdata_category_free
 gdata_entry_get_type
 gdata_entry_new
 gdata_entry_get_title
