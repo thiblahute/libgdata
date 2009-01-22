@@ -27,6 +27,7 @@
 #include "gdata-private.h"
 #include "gdata-service.h"
 #include "gdata-types.h"
+#include "gdata-parser.h"
 
 static void gdata_youtube_media_group_finalize (GObject *object);
 static void gdata_youtube_media_group_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec);
@@ -137,23 +138,23 @@ gdata_youtube_media_group_get_property (GObject *object, guint property_id, GVal
 static void
 gdata_youtube_media_group_set_property (GObject *object, guint property_id, const GValue *value, GParamSpec *pspec)
 {
-	GDataYouTubeMediaGroupPrivate *priv = GDATA_YOUTUBE_MEDIA_GROUP_GET_PRIVATE (object);
+	GDataYouTubeMediaGroup *self = GDATA_YOUTUBE_MEDIA_GROUP (object);
 
 	switch (property_id) {
 		case PROP_DURATION:
-			gdata_youtube_media_group_set_duration (GDATA_YOUTUBE_MEDIA_GROUP (object), g_value_get_int (value));
+			gdata_youtube_media_group_set_duration (self, g_value_get_int (value));
 			break;
 		case PROP_PRIVATE:
-			gdata_youtube_media_group_set_private (GDATA_YOUTUBE_MEDIA_GROUP (object), g_value_get_boolean (value));
+			gdata_youtube_media_group_set_private (self, g_value_get_boolean (value));
 			break;
 		case PROP_UPLOADED:
-			gdata_youtube_media_group_set_uploaded (GDATA_YOUTUBE_MEDIA_GROUP (object), g_value_get_boxed (value));
+			gdata_youtube_media_group_set_uploaded (self, g_value_get_boxed (value));
 			break;
 		case PROP_VIDEO_ID:
-			gdata_youtube_media_group_set_video_id (GDATA_YOUTUBE_MEDIA_GROUP (object), g_value_get_string (value));
+			gdata_youtube_media_group_set_video_id (self, g_value_get_string (value));
 			break;
 		case PROP_NO_EMBED:
-			gdata_youtube_media_group_set_no_embed (GDATA_YOUTUBE_MEDIA_GROUP (object), g_value_get_boolean (value));
+			gdata_youtube_media_group_set_no_embed (self, g_value_get_boolean (value));
 			break;
 		default:
 			/* We don't have any other property... */
@@ -209,7 +210,7 @@ _gdata_youtube_media_group_parse_xml_node (GDataYouTubeMediaGroup *self, xmlDoc 
 		if (duration == NULL)
 			duration_int = -1;
 		else
-			duration_int = MAX (atoi ((gchar*) duration), -1);
+			duration_int = strtoul ((gchar*) duration, NULL, 10);
 		xmlFree (duration);
 
 		gdata_youtube_media_group_set_duration (self, duration_int);
@@ -224,8 +225,7 @@ _gdata_youtube_media_group_parse_xml_node (GDataYouTubeMediaGroup *self, xmlDoc 
 		uploaded = xmlNodeListGetString (doc, node->xmlChildrenNode, TRUE);
 		if (g_time_val_from_iso8601 ((gchar*) uploaded, &uploaded_timeval) == FALSE) {
 			/* Error */
-			g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
-				     _("A <media:group>'s <uploaded> element (\"%s\") was not in ISO8601 format."), uploaded);
+			gdata_parser_error_not_iso8601_format ("media:group", "uploaded", (gchar*) uploaded, error);
 			xmlFree (uploaded);
 			return FALSE;
 		}
@@ -243,9 +243,7 @@ _gdata_youtube_media_group_parse_xml_node (GDataYouTubeMediaGroup *self, xmlDoc 
 	} else if (_gdata_media_group_parse_xml_node (GDATA_MEDIA_GROUP (self), doc, node, &child_error) == FALSE) {
 		if (g_error_matches (child_error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_UNHANDLED_XML_ELEMENT) == TRUE) {
 			g_error_free (child_error);
-			g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_UNHANDLED_XML_ELEMENT,
-				     _("Unhandled <%s:%s> element as a child of a YouTube video <media:group>."),
-				     node->ns->prefix, node->name);
+			gdata_parser_error_unhandled_element ((gchar*) node->ns->prefix, (gchar*) node->name, "media:group", error);
 		} else {
 			g_propagate_error (error, child_error);
 		}

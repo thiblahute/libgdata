@@ -215,58 +215,8 @@ gdata_feed_set_property (GObject *object, guint property_id, const GValue *value
 	}
 }
 
-GDataFeed *
-_gdata_feed_new_from_xml (const gchar *xml, gint length, GError **error)
-{
-	GDataFeed *feed = NULL;
-	xmlDoc *doc;
-	xmlNode *node;
-
-	g_return_val_if_fail (xml != NULL, NULL);
-
-	if (length == -1)
-		length = strlen (xml);
-
-	/* Parse the XML */
-	doc = xmlReadMemory (xml, length, "feed.xml", NULL, 0);
-	if (doc == NULL) /* TODO: error */
-		return NULL;
-
-	/* Get the root element */
-	node = xmlDocGetRootElement (doc);
-	if (node == NULL) {
-		/* XML document's empty */
-		xmlFreeDoc (doc);
-		/* TODO: error */
-		return NULL;
-	}
-
-	if (xmlStrcmp (node->name, (xmlChar*) "feed") != 0) {
-		/* No <feed> element (required) */
-		xmlFreeDoc (doc);
-		/* TODO: error */
-		return NULL;
-	}
-
-	feed = g_object_new (GDATA_TYPE_FEED, NULL);
-	node = node->xmlChildrenNode;
-	while (node != NULL) {
-		if (_gdata_feed_parse_xml_node (feed, doc, node, error) == FALSE) {
-			g_object_unref (feed);
-			feed = NULL;
-			goto error;
-		}
-		node = node->next;
-	}
-
-error:
-	xmlFreeDoc (doc);
-
-	return feed;
-}
-
-gboolean
-_gdata_feed_parse_xml_node (GDataFeed *self, xmlDoc *doc, xmlNode *node, GError **error)
+static gboolean
+parse_xml_node (GDataFeed *self, xmlDoc *doc, xmlNode *node, GDataEntryParserFunc parser_func, GError **error)
 {
 	g_return_val_if_fail (GDATA_IS_FEED (self), FALSE);
 	g_return_val_if_fail (doc != NULL, FALSE);
@@ -274,7 +224,7 @@ _gdata_feed_parse_xml_node (GDataFeed *self, xmlDoc *doc, xmlNode *node, GError 
 
 	if (xmlStrcmp (node->name, (xmlChar*) "entry") == 0) {
 		/* atom:entry */
-		GDataEntry *entry = _gdata_entry_new_from_xml_node (doc, node, error);
+		GDataEntry *entry = parser_func (doc, node, error);
 		if (entry == NULL)
 			return FALSE;
 
@@ -342,7 +292,7 @@ _gdata_feed_parse_xml_node (GDataFeed *self, xmlDoc *doc, xmlNode *node, GError 
 		if (length == NULL)
 			length_int = -1;
 		else
-			length_int = MAX (atoi ((gchar*) length), -1);
+			length_int = strtoul ((gchar*) length, NULL, 10);
 
 		link = gdata_link_new ((gchar*) href, (gchar*) rel, (gchar*) type, (gchar*) hreflang, (gchar*) title, length_int);
 		gdata_feed_add_link (self, link);
@@ -404,42 +354,33 @@ _gdata_feed_parse_xml_node (GDataFeed *self, xmlDoc *doc, xmlNode *node, GError 
 	} else if (xmlStrcmp (node->name, (xmlChar*) "totalResults") == 0) {
 		/* openSearch:totalResults */
 		xmlChar *total_results;
-		guint total_results_uint;
 
 		total_results = xmlNodeListGetString (doc, node->xmlChildrenNode, TRUE);
 		if (total_results == NULL)
-			total_results_uint = -1; /* TODO: error? */
-		else
-			total_results_uint = MAX (atoi ((gchar*) total_results), 0);
-		xmlFree (total_results);
+			return gdata_parser_error_required_content_missing ("openSearch:totalResults", error);
 
-		gdata_feed_set_total_results (self, total_results_uint);
+		gdata_feed_set_total_results (self, strtoul ((gchar*) total_results, NULL, 10));
+		xmlFree (total_results);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "startIndex") == 0) {
 		/* openSearch:startIndex */
 		xmlChar *start_index;
-		guint start_index_uint;
 
 		start_index = xmlNodeListGetString (doc, node->xmlChildrenNode, TRUE);
 		if (start_index == NULL)
-			start_index_uint = -1; /* TODO: error? */
-		else
-			start_index_uint = MAX (atoi ((gchar*) start_index), 0);
-		xmlFree (start_index);
+			return gdata_parser_error_required_content_missing ("openSearch:startIndex", error);
 
-		gdata_feed_set_start_index (self, start_index_uint);
+		gdata_feed_set_start_index (self, strtoul ((gchar*) start_index, NULL, 10));
+		xmlFree (start_index);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "itemsPerPage") == 0) {
 		/* openSearch:itemsPerPage */
 		xmlChar *items_per_page;
-		guint items_per_page_uint;
 
 		items_per_page = xmlNodeListGetString (doc, node->xmlChildrenNode, TRUE);
 		if (items_per_page == NULL)
-			items_per_page_uint = -1; /* TODO: error? */
-		else
-			items_per_page_uint = MAX (atoi ((gchar*) items_per_page), 0);
-		xmlFree (items_per_page);
+			return gdata_parser_error_required_content_missing ("openSearch:itemsPerPage", error);
 
-		gdata_feed_set_items_per_page (self, items_per_page_uint);
+		gdata_feed_set_items_per_page (self, strtoul ((gchar*) items_per_page, NULL, 10));
+		xmlFree (items_per_page);
 	} else {
 		g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_UNHANDLED_XML_ELEMENT,
 			     _("Unhandled <%s:%s> element as a child of <feed>."),
@@ -448,6 +389,56 @@ _gdata_feed_parse_xml_node (GDataFeed *self, xmlDoc *doc, xmlNode *node, GError 
 	}
 
 	return TRUE;
+}
+
+GDataFeed *
+_gdata_feed_new_from_xml (const gchar *xml, gint length, GDataEntryParserFunc parser_func, GError **error)
+{
+	GDataFeed *feed = NULL;
+	xmlDoc *doc;
+	xmlNode *node;
+
+	g_return_val_if_fail (xml != NULL, NULL);
+
+	if (length == -1)
+		length = strlen (xml);
+
+	/* Parse the XML */
+	doc = xmlReadMemory (xml, length, "feed.xml", NULL, 0);
+	if (doc == NULL) /* TODO: error */
+		return NULL;
+
+	/* Get the root element */
+	node = xmlDocGetRootElement (doc);
+	if (node == NULL) {
+		/* XML document's empty */
+		xmlFreeDoc (doc);
+		/* TODO: error */
+		return NULL;
+	}
+
+	if (xmlStrcmp (node->name, (xmlChar*) "feed") != 0) {
+		/* No <feed> element (required) */
+		xmlFreeDoc (doc);
+		/* TODO: error */
+		return NULL;
+	}
+
+	feed = g_object_new (GDATA_TYPE_FEED, NULL);
+	node = node->xmlChildrenNode;
+	while (node != NULL) {
+		if (parse_xml_node (feed, doc, node, parser_func, error) == FALSE) {
+			g_object_unref (feed);
+			feed = NULL;
+			goto error;
+		}
+		node = node->next;
+	}
+
+error:
+	xmlFreeDoc (doc);
+
+	return feed;
 }
 
 const GList *

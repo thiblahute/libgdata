@@ -202,7 +202,7 @@ gdata_service_thread_main (GDataService *self)
 	while (priv->thread_stopping == FALSE) {
 		GDataQuery *query;
 		GDataFeed *feed;
-		GDataFeedParserFunc parser_func;
+		GDataEntryParserFunc parser_func;
 		QueryData *query_data;
 		gchar *feed_uri;
 		GError *error = NULL;
@@ -368,7 +368,7 @@ gdata_service_is_logged_in (GDataService *self)
 }
 
 gboolean
-gdata_service_query_async (GDataService *self, const gchar *feed_uri, GDataQuery *query, GDataFeedParserFunc parser_func, GError **error)
+gdata_service_query_async (GDataService *self, const gchar *feed_uri, GDataQuery *query, GDataEntryParserFunc parser_func, GError **error)
 {
 	if (self->priv->thread == NULL && create_thread (self, error) == FALSE)
 		return FALSE;
@@ -382,7 +382,7 @@ gdata_service_query_async (GDataService *self, const gchar *feed_uri, GDataQuery
 }
 
 GDataFeed *
-gdata_service_query (GDataService *self, const gchar *feed_uri, GDataQuery *query, GDataFeedParserFunc parser_func, GError **error)
+gdata_service_query (GDataService *self, const gchar *feed_uri, GDataQuery *query, GDataEntryParserFunc parser_func, GError **error)
 {
 	GDataServiceClass *klass;
 	GDataFeed *feed;
@@ -423,7 +423,7 @@ gdata_service_query (GDataService *self, const gchar *feed_uri, GDataQuery *quer
 
 	g_assert (message->response_body->data != NULL);
 
-	feed = parser_func (message->response_body->data, message->response_body->length, error);
+	feed = _gdata_feed_new_from_xml (message->response_body->data, message->response_body->length, parser_func, error);
 	g_object_unref (message);
 
 	return feed;

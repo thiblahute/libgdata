@@ -1,7 +1,6 @@
 gdataservicesincludedir = $(pkgincludedir)/gdata/services
 gdataservicesinclude_HEADERS = \
 	gdata-youtube-service.h		\
-	gdata-youtube-video-feed.h	\
 	gdata-youtube-video.h		\
 	gdata-youtube-media-group.h
 
@@ -12,8 +11,6 @@ libgdataservices_headers =
 libgdataservices_la_SOURCES = \
 	gdata-youtube-service.c		\
 	gdata-youtube-service.h		\
-	gdata-youtube-video-feed.c	\
-	gdata-youtube-video-feed.h	\
 	gdata-youtube-video.c		\
 	gdata-youtube-video.h		\
 	gdata-youtube-media-group.c	\

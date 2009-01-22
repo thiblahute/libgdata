@@ -27,6 +27,7 @@
 #include "gdata-private.h"
 #include "gdata-service.h"
 #include "gdata-media-rss.h"
+#include "gdata-parser.h"
 
 static void gdata_media_group_finalize (GObject *object);
 static void gdata_media_group_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec);
@@ -176,32 +177,32 @@ gdata_media_group_get_property (GObject *object, guint property_id, GValue *valu
 static void
 gdata_media_group_set_property (GObject *object, guint property_id, const GValue *value, GParamSpec *pspec)
 {
-	GDataMediaGroupPrivate *priv = GDATA_MEDIA_GROUP_GET_PRIVATE (object);
+	GDataMediaGroup *self = GDATA_MEDIA_GROUP (object);
 
 	switch (property_id) {
 		case PROP_KEYWORDS:
-			gdata_media_group_set_keywords (GDATA_MEDIA_GROUP (object), g_value_get_string (value));
+			gdata_media_group_set_keywords (self, g_value_get_string (value));
 			break;
 		case PROP_PLAYER_URI:
-			gdata_media_group_set_player_uri (GDATA_MEDIA_GROUP (object), g_value_get_string (value));
+			gdata_media_group_set_player_uri (self, g_value_get_string (value));
 			break;
 		case PROP_RATING:
-			gdata_media_group_set_rating (GDATA_MEDIA_GROUP (object), g_value_get_pointer (value));
+			gdata_media_group_set_rating (self, g_value_get_pointer (value));
 			break;
 		case PROP_RESTRICTION:
-			gdata_media_group_set_restriction (GDATA_MEDIA_GROUP (object), g_value_get_pointer (value));
+			gdata_media_group_set_restriction (self, g_value_get_pointer (value));
 			break;
 		case PROP_TITLE:
-			gdata_media_group_set_title (GDATA_MEDIA_GROUP (object), g_value_get_string (value));
+			gdata_media_group_set_title (self, g_value_get_string (value));
 			break;
 		case PROP_CATEGORY:
-			gdata_media_group_set_category (GDATA_MEDIA_GROUP (object), g_value_get_pointer (value));
+			gdata_media_group_set_category (self, g_value_get_pointer (value));
 			break;
 		case PROP_CREDIT:
-			gdata_media_group_set_credit (GDATA_MEDIA_GROUP (object), g_value_get_pointer (value));
+			gdata_media_group_set_credit (self, g_value_get_pointer (value));
 			break;
 		case PROP_DESCRIPTION:
-			gdata_media_group_set_description (GDATA_MEDIA_GROUP (object), g_value_get_string (value));
+			gdata_media_group_set_description (self, g_value_get_string (value));
 			break;
 		default:
 			/* We don't have any other property... */
@@ -287,9 +288,7 @@ _gdata_media_group_parse_xml_node (GDataMediaGroup *self, xmlDoc *doc, xmlNode *
 		else if (xmlStrcmp (is_default, (xmlChar*) "true") == 0)
 			is_default_bool = TRUE;
 		else {
-			g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
-				     _("Unknown value \"%s\" of a <media:content> @isDefault property."),
-				     is_default);
+			gdata_parser_error_unknown_property_value ("media:content", "isDefault", (gchar*) is_default, error);
 			xmlFree (is_default);
 			return FALSE;
 		}
@@ -304,9 +303,7 @@ _gdata_media_group_parse_xml_node (GDataMediaGroup *self, xmlDoc *doc, xmlNode *
 		else if (xmlStrcmp (expression, (xmlChar*) "nonstop") == 0)
 			expression_enum = GDATA_MEDIA_EXPRESSION_NONSTOP;
 		else {
-			g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
-				     _("Unknown value \"%s\" of a <media:content> @expression property."),
-				     expression);
+			gdata_parser_error_unknown_property_value ("media:content", "expression", (gchar*) expression, error);
 			xmlFree (expression);
 			return FALSE;
 		}
@@ -317,14 +314,14 @@ _gdata_media_group_parse_xml_node (GDataMediaGroup *self, xmlDoc *doc, xmlNode *
 		if (duration == NULL)
 			duration_int = -1;
 		else
-			duration_int = MAX (atoi ((gchar*) duration), -1);
+			duration_int = strtoul ((gchar*) duration, NULL, 10);
 		xmlFree (duration);
 
 		format = xmlGetProp (node, (xmlChar*) "format");
 		if (format == NULL)
 			format_int = -1;
 		else
-			format_int = MAX (atoi ((gchar*) format), -1);
+			format_int = strtoul ((gchar*) format, NULL, 10);
 		xmlFree (format);
 
 		uri = xmlGetProp (node, (xmlChar*) "url");
@@ -340,9 +337,7 @@ _gdata_media_group_parse_xml_node (GDataMediaGroup *self, xmlDoc *doc, xmlNode *
 		/* Check the role property is "uploader" */
 		role = xmlGetProp (node, (xmlChar*) "role");
 		if (xmlStrcmp (role, (xmlChar*) "uploader") != 0) {
-			g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
-				     _("Unknown value \"%s\" of a <media:credit> @role property."),
-				     (gchar*) role);
+			gdata_parser_error_unknown_property_value ("media:credit", "role", (gchar*) role, error);
 			xmlFree (role);
 			return FALSE;
 		}
@@ -351,9 +346,7 @@ _gdata_media_group_parse_xml_node (GDataMediaGroup *self, xmlDoc *doc, xmlNode *
 		/* Check the type property */
 		type = xmlGetProp (node, (xmlChar*) "type");
 		if (type != NULL && xmlStrcmp (role, (xmlChar*) "partner") != 0) {
-			g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
-				     _("Unknown value \"%s\" of a <media:credit> @type property."),
-				     (gchar*) type);
+			gdata_parser_error_unknown_property_value ("media:credit", "type", (gchar*) type, error);
 			xmlFree (type);
 			return FALSE;
 		}
@@ -392,9 +385,7 @@ _gdata_media_group_parse_xml_node (GDataMediaGroup *self, xmlDoc *doc, xmlNode *
 		/* Check the type property is "country" */
 		type = xmlGetProp (node, (xmlChar*) "type");
 		if (xmlStrcmp (type, (xmlChar*) "country") != 0) {
-			g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
-				     _("Unknown value \"%s\" of a <media:restriction> @type property."),
-				     (gchar*) type);
+			gdata_parser_error_unknown_property_value ("media:restriction", "type", (gchar*) type, error);
 			xmlFree (type);
 			return FALSE;
 		}
@@ -408,9 +399,7 @@ _gdata_media_group_parse_xml_node (GDataMediaGroup *self, xmlDoc *doc, xmlNode *
 		else if (xmlStrcmp (relationship, (xmlChar*) "deny") == 0)
 			relationship_bool = FALSE;
 		else {
-			g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
-				     _("Unknown value \"%s\" of a <media:restriction> @relationship property."),
-				     (gchar*) relationship);
+			gdata_parser_error_unknown_property_value ("media:restriction", "relationship", (gchar*) relationship, error);
 			xmlFree (relationship);
 			return FALSE;
 		}
@@ -427,16 +416,15 @@ _gdata_media_group_parse_xml_node (GDataMediaGroup *self, xmlDoc *doc, xmlNode *
 
 		/* Get the width and height */
 		width = xmlGetProp (node, (xmlChar*) "width");
-		height = xmlGetProp (node, (xmlChar*) "height");
-		if (width == NULL || height == NULL) {
-			g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
-				     _("A required @width/@height property of a <media:thumbnail> was not present."));
-			return FALSE;
-		}
-
-		width_uint = MAX (atoi ((gchar*) width), 0);
-		height_uint = MAX (atoi ((gchar*) height), 0);
+		if (width == NULL)
+			return gdata_parser_error_required_property_missing ("media:thumbnail", "width", error);
+		width_uint = strtoul ((gchar*) width, NULL, 10);
 		xmlFree (width);
+
+		height = xmlGetProp (node, (xmlChar*) "height");
+		if (height == NULL)
+			return gdata_parser_error_required_property_missing ("media:thumbnail", "height", error);
+		height_uint = strtoul ((gchar*) height, NULL, 10);
 		xmlFree (height);
 
 		/* Get and parse the time */
@@ -460,10 +448,7 @@ _gdata_media_group_parse_xml_node (GDataMediaGroup *self, xmlDoc *doc, xmlNode *
 		thumbnail = gdata_media_thumbnail_new ((gchar*) uri, width_uint, height_uint, time_int);
 		gdata_media_group_add_thumbnail (self, thumbnail);
 	} else {
-		g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_UNHANDLED_XML_ELEMENT,
-			     _("Unhandled <%s:%s> element as a child of <media:group>."),
-			     node->ns->prefix, node->name);
-		return FALSE;
+		return gdata_parser_error_unhandled_element ((gchar*) node->ns->prefix, (gchar*) node->name, "media:group", error);
 	}
 
 	return TRUE;

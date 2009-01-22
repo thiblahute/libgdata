@@ -25,7 +25,6 @@
 #include <libsoup/soup.h>
 
 #include "gdata-service.h"
-#include "gdata-youtube-video-feed.h"
 
 G_BEGIN_DECLS
 
@@ -65,8 +64,8 @@ GType gdata_youtube_service_get_type (void);
 
 GDataYouTubeService *gdata_youtube_service_new (const gchar *developer_key, const gchar *client_id);
 
-GDataYouTubeVideoFeed *gdata_youtube_service_query_standard_feed (GDataYouTubeService *self, GDataYouTubeStandardFeedType feed_type, GError **error);
-GDataYouTubeVideoFeed *gdata_youtube_service_query_videos (GDataYouTubeService *self, const gchar *query_terms, GError **error);
+GDataFeed *gdata_youtube_service_query_standard_feed (GDataYouTubeService *self, GDataYouTubeStandardFeedType feed_type, GError **error);
+GDataFeed *gdata_youtube_service_query_videos (GDataYouTubeService *self, const gchar *query_terms, GError **error);
 
 const gchar *gdata_youtube_service_get_developer_key (GDataYouTubeService *self);
 const gchar *gdata_youtube_service_get_youtube_user (GDataYouTubeService *self);

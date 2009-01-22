@@ -28,7 +28,8 @@ gdatainclude_HEADERS = \
 	gdata-atom.h		\
 	gdata-media-group.h	\
 	gdata-media-rss.h	\
-	gdata-gdata.h
+	gdata-gdata.h		\
+	gdata-parser.h
 
 libgdata_la_SOURCES = \
 	$(GDATA_MARSHAL_FILES)	\
@@ -41,6 +42,7 @@ libgdata_la_SOURCES = \
 	gdata-media-group.c	\
 	gdata-media-rss.c	\
 	gdata-gdata.c		\
+	gdata-parser.c		\
 	gdata-private.h
 
 libgdata_la_CPPFLAGS = \

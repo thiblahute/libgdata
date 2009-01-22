@@ -23,6 +23,7 @@
 #include <glib.h>
 #include <glib-object.h>
 #include <libsoup/soup.h>
+#include <libxml/parser.h>
 
 #include "gdata-feed.h"
 
@@ -35,7 +36,7 @@ typedef enum {
 	GDATA_SERVICE_ERROR_UNHANDLED_XML_ELEMENT
 } GDataServiceError;
 
-typedef GDataFeed *(*GDataFeedParserFunc) (const gchar *xml, gint length, GError **error);
+typedef GDataEntry *(*GDataEntryParserFunc) (xmlDoc *doc, xmlNode *node, GError **error);
 
 #define GDATA_TYPE_SERVICE		(gdata_service_get_type ())
 #define GDATA_SERVICE(o)		(G_TYPE_CHECK_INSTANCE_CAST ((o), GDATA_TYPE_SERVICE, GDataService))
@@ -72,8 +73,8 @@ gboolean gdata_service_is_logged_in (GDataService *self);
 
 #include "gdata-query.h"
 
-gboolean gdata_service_query_async (GDataService *self, const gchar *feed_uri, GDataQuery *query, GDataFeedParserFunc parser_func, GError **error);
-GDataFeed *gdata_service_query (GDataService *self, const gchar *feed_uri, GDataQuery *query, GDataFeedParserFunc parser_func, GError **error);
+gboolean gdata_service_query_async (GDataService *self, const gchar *feed_uri, GDataQuery *query, GDataEntryParserFunc parser_func, GError **error);
+GDataFeed *gdata_service_query (GDataService *self, const gchar *feed_uri, GDataQuery *query, GDataEntryParserFunc parser_func, GError **error);
 
 const gchar *gdata_service_get_client_id (GDataService *self);
 

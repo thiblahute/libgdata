@@ -186,7 +186,7 @@ gdata_youtube_service_new (const gchar *developer_key, const gchar *client_id)
 			     NULL);
 }
 
-GDataYouTubeVideoFeed *
+GDataFeed *
 gdata_youtube_service_query_standard_feed (GDataYouTubeService *self, GDataYouTubeStandardFeedType feed_type, GError **error)
 {
 	GDataQuery *query;
@@ -232,13 +232,14 @@ gdata_youtube_service_query_standard_feed (GDataYouTubeService *self, GDataYouTu
 	}
 
 	query = gdata_query_new (GDATA_SERVICE (self), NULL);
-	video_feed = gdata_service_query (GDATA_SERVICE (self), feed_uri, query, _gdata_youtube_video_feed_new_from_xml, error);
+	video_feed = gdata_service_query (GDATA_SERVICE (self), feed_uri, query,
+					  (GDataEntryParserFunc) _gdata_youtube_video_new_from_xml_node, error);
 	g_object_unref (query);
 
-	return GDATA_YOUTUBE_VIDEO_FEED (video_feed);
+	return video_feed;
 }
 
-GDataYouTubeVideoFeed *
+GDataFeed *
 gdata_youtube_service_query_videos (GDataYouTubeService *self, const gchar *query_terms, GError **error)
 {
 	GDataQuery *query;
@@ -248,10 +249,10 @@ gdata_youtube_service_query_videos (GDataYouTubeService *self, const gchar *quer
 	query = gdata_query_new (GDATA_SERVICE (self), query_terms);
 	feed = gdata_service_query (GDATA_SERVICE (self),
 				    "http://gdata.youtube.com/feeds/api/videos", query,
-				    _gdata_youtube_video_feed_new_from_xml, error);
+				    (GDataEntryParserFunc) _gdata_youtube_video_new_from_xml_node, error);
 	g_object_unref (query);
 
-	return GDATA_YOUTUBE_VIDEO_FEED (feed);
+	return feed;
 }
 
 const gchar *

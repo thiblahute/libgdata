@@ -26,9 +26,10 @@
 #include <gdata/gdata-service.h>
 #include <gdata/gdata-types.h>
 
+/* TODO: Update this file */
+
 /* Services */
 #include <gdata/services/gdata-youtube-service.h>
-#include <gdata/services/gdata-youtube-video-feed.h>
 #include <gdata/services/gdata-youtube-video.h>
 
 #endif /* !GDATA_H */

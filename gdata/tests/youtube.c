@@ -56,14 +56,14 @@ test_authentication (void)
 static void
 test_query_standard_feed (void)
 {
-	GDataYouTubeVideoFeed *feed;
+	GDataFeed *feed;
 	GError *error = NULL;
 
 	g_assert (service != NULL);
 
 	feed = gdata_youtube_service_query_standard_feed (GDATA_YOUTUBE_SERVICE (service), GDATA_YOUTUBE_TOP_RATED_FEED, &error);
 	g_assert_no_error (error);
-	g_assert (GDATA_IS_YOUTUBE_VIDEO_FEED (feed));
+	g_assert (GDATA_IS_FEED (feed));
 	g_clear_error (&error);
 
 	/* TODO: check entries and feed properties */

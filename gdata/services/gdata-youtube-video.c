@@ -28,6 +28,7 @@
 #include "gdata-service.h"
 #include "gdata-youtube-media-group.h"
 #include "gdata-gdata.h"
+#include "gdata-parser.h"
 
 static void gdata_youtube_video_dispose (GObject *object);
 static void gdata_youtube_video_finalize (GObject *object);
@@ -163,26 +164,26 @@ gdata_youtube_video_get_property (GObject *object, guint property_id, GValue *va
 static void
 gdata_youtube_video_set_property (GObject *object, guint property_id, const GValue *value, GParamSpec *pspec)
 {
-	GDataYouTubeVideoPrivate *priv = GDATA_YOUTUBE_VIDEO_GET_PRIVATE (object);
+	GDataYouTubeVideo *self = GDATA_YOUTUBE_VIDEO (object);
 
 	switch (property_id) {
 		case PROP_MEDIA_GROUP:
-			gdata_youtube_video_set_media_group (GDATA_YOUTUBE_VIDEO (object), g_value_get_object (value));
+			gdata_youtube_video_set_media_group (self, g_value_get_object (value));
 			break;
 		case PROP_VIEW_COUNT:
-			gdata_youtube_video_set_view_count (GDATA_YOUTUBE_VIDEO (object), g_value_get_uint (value));
+			gdata_youtube_video_set_view_count (self, g_value_get_uint (value));
 			break;
 		case PROP_FAVORITE_COUNT:
-			gdata_youtube_video_set_favorite_count (GDATA_YOUTUBE_VIDEO (object), g_value_get_uint (value));
+			gdata_youtube_video_set_favorite_count (self, g_value_get_uint (value));
 			break;
 		case PROP_LOCATION:
-			gdata_youtube_video_set_location (GDATA_YOUTUBE_VIDEO (object), g_value_get_string (value));
+			gdata_youtube_video_set_location (self, g_value_get_string (value));
 			break;
 		case PROP_NO_EMBED:
-			gdata_youtube_video_set_no_embed (GDATA_YOUTUBE_VIDEO (object), g_value_get_boolean (value));
+			gdata_youtube_video_set_no_embed (self, g_value_get_boolean (value));
 			break;
 		case PROP_RATING:
-			gdata_youtube_video_set_rating (GDATA_YOUTUBE_VIDEO (object), g_value_get_pointer (value));
+			gdata_youtube_video_set_rating (self, g_value_get_pointer (value));
 			break;
 		default:
 			/* We don't have any other property... */
@@ -245,17 +246,12 @@ _gdata_youtube_video_parse_xml_node (GDataYouTubeVideo *self, xmlDoc *doc, xmlNo
 		GDataGDRating *rating;
 
 		min = xmlGetProp (node, (xmlChar*) "min");
-		if (min == NULL) {
-			g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
-				     _("A required @min property of a <gd:rating> was not present."));
-			return FALSE;
-		}
+		if (min == NULL)
+			return gdata_parser_error_required_property_missing ("gd:rating", "min", error);
 
 		max = xmlGetProp (node, (xmlChar*) "max");
 		if (max == NULL) {
-			/* TODO: All these errors could be simplified to function calls: e.g. gdata_error_property_not_present() */
-			g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
-				     _("A required @max property of a <gd:rating> was not present."));
+			gdata_parser_error_required_property_missing ("gd:rating", "max", error);
 			xmlFree (min);
 			return FALSE;
 		}
@@ -264,8 +260,7 @@ _gdata_youtube_video_parse_xml_node (GDataYouTubeVideo *self, xmlDoc *doc, xmlNo
 		if (num_raters == NULL)
 			num_raters_uint = 0;
 		else
-			/* TODO: Convert all these atoi()s to strtoul */
-			num_raters_uint = MAX (atoi ((gchar*) num_raters), 0);
+			num_raters_uint = strtoul ((gchar*) num_raters, NULL, 10);
 		xmlFree (num_raters);
 
 		average = xmlGetProp (node, (xmlChar*) "average");
@@ -288,24 +283,16 @@ _gdata_youtube_video_parse_xml_node (GDataYouTubeVideo *self, xmlDoc *doc, xmlNo
 
 		/* View count */
 		view_count = xmlGetProp (node, (xmlChar*) "viewCount");
-		if (view_count == NULL) {
-			g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
-				     _("A required @viewCount property of a <yt:statistics> was not present."));
-			return FALSE;
-		}
-
-		gdata_youtube_video_set_view_count (self, MAX (atoi ((gchar*) view_count), 0));
+		if (view_count == NULL)
+			return gdata_parser_error_required_property_missing ("yt:statistics", "viewCount", error);
+		gdata_youtube_video_set_view_count (self, strtoul ((gchar*) view_count, NULL, 10));
 		xmlFree (view_count);
 
 		/* Favourite count */
 		favorite_count = xmlGetProp (node, (xmlChar*) "favoriteCount");
-		if (favorite_count == NULL) {
-			g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
-				     _("A required @favoriteCount property of a <yt:statistics> was not present."));
-			return FALSE;
-		}
-
-		gdata_youtube_video_set_favorite_count (self, MAX (atoi ((gchar*) favorite_count), 0));
+		if (favorite_count == NULL)
+			return gdata_parser_error_required_property_missing ("yt:statistics", "favoriteCount", error);
+		gdata_youtube_video_set_favorite_count (self, strtoul ((gchar*) favorite_count, NULL, 10));
 		xmlFree (favorite_count);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "location") == 0) {
 		/* yt:location */
@@ -324,9 +311,7 @@ _gdata_youtube_video_parse_xml_node (GDataYouTubeVideo *self, xmlDoc *doc, xmlNo
 	} else if (_gdata_entry_parse_xml_node (GDATA_ENTRY (self), doc, node, &child_error) == FALSE) {
 		if (g_error_matches (child_error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_UNHANDLED_XML_ELEMENT) == TRUE) {
 			g_error_free (child_error);
-			g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_UNHANDLED_XML_ELEMENT,
-				     _("Unhandled <%s:%s> element as a child of a YouTube video <entry>."),
-				     node->ns->prefix, node->name);
+			gdata_parser_error_unhandled_element ((gchar*) node->ns->prefix, (gchar*) node->name, "entry", error);
 		} else {
 			g_propagate_error (error, child_error);
 		}

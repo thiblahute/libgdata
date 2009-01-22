@@ -17,9 +17,7 @@
  * along with GData Client.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <config.h>
 #include <glib.h>
-#include <glib/gi18n-lib.h>
 #include <libxml/parser.h>
 
 #include "gdata-entry.h"
@@ -27,6 +25,7 @@
 #include "gdata-service.h"
 #include "gdata-private.h"
 #include "gdata-atom.h"
+#include "gdata-parser.h"
 
 static void gdata_entry_finalize (GObject *object);
 static void gdata_entry_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec);
@@ -148,23 +147,23 @@ gdata_entry_get_property (GObject *object, guint property_id, GValue *value, GPa
 static void
 gdata_entry_set_property (GObject *object, guint property_id, const GValue *value, GParamSpec *pspec)
 {
-	GDataEntryPrivate *priv = GDATA_ENTRY_GET_PRIVATE (object);
+	GDataEntry *self = GDATA_ENTRY (object);
 
 	switch (property_id) {
 		case PROP_TITLE:
-			gdata_entry_set_title (GDATA_ENTRY (object), g_value_get_string (value));
+			gdata_entry_set_title (self, g_value_get_string (value));
 			break;
 		case PROP_ID:
-			gdata_entry_set_id (GDATA_ENTRY (object), g_value_get_string (value));
+			gdata_entry_set_id (self, g_value_get_string (value));
 			break;
 		case PROP_UPDATED:
-			gdata_entry_set_updated (GDATA_ENTRY (object), g_value_get_boxed (value));
+			gdata_entry_set_updated (self, g_value_get_boxed (value));
 			break;
 		case PROP_PUBLISHED:
-			gdata_entry_set_published (GDATA_ENTRY (object), g_value_get_boxed (value));
+			gdata_entry_set_published (self, g_value_get_boxed (value));
 			break;
 		case PROP_CONTENT:
-			gdata_entry_set_content (GDATA_ENTRY (object), g_value_get_string (value));
+			gdata_entry_set_content (self, g_value_get_string (value));
 			break;
 		default:
 			/* We don't have any other property... */
@@ -227,8 +226,7 @@ _gdata_entry_parse_xml_node (GDataEntry *self, xmlDoc *doc, xmlNode *node, GErro
 		updated = xmlNodeListGetString (doc, node->xmlChildrenNode, TRUE);
 		if (g_time_val_from_iso8601 ((gchar*) updated, &updated_timeval) == FALSE) {
 			/* Error */
-			g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
-				     _("An <entry>'s <updated> element (\"%s\") was not in ISO8601 format."), updated);
+			gdata_parser_error_not_iso8601_format ("entry", "updated", (gchar*) updated, error);
 			xmlFree (updated);
 			return FALSE;
 		}
@@ -243,8 +241,7 @@ _gdata_entry_parse_xml_node (GDataEntry *self, xmlDoc *doc, xmlNode *node, GErro
 		published = xmlNodeListGetString (doc, node->xmlChildrenNode, TRUE);
 		if (g_time_val_from_iso8601 ((gchar*) published, &published_timeval) == FALSE) {
 			/* Error */
-			g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
-				     _("An <entry>'s <published> element (\"%s\") was not in ISO8601 format."), published);
+			gdata_parser_error_not_iso8601_format ("entry", "published", (gchar*) published, error);
 			xmlFree (published);
 			return FALSE;
 		}
@@ -287,7 +284,7 @@ _gdata_entry_parse_xml_node (GDataEntry *self, xmlDoc *doc, xmlNode *node, GErro
 		if (length == NULL)
 			length_int = -1;
 		else
-			length_int = MAX (atoi ((gchar*) length), -1);
+			length_int = strtoul ((gchar*) length, NULL, 10);
 
 		link = gdata_link_new ((gchar*) href, (gchar*) rel, (gchar*) type, (gchar*) hreflang, (gchar*) title, length_int);
 		gdata_entry_add_link (self, link);
@@ -314,9 +311,7 @@ _gdata_entry_parse_xml_node (GDataEntry *self, xmlDoc *doc, xmlNode *node, GErro
 			} else if (xmlStrcmp (author_node->name, (xmlChar*) "email") == 0) {
 				email = xmlNodeListGetString (doc, author_node->xmlChildrenNode, TRUE);
 			} else {
-				g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
-					     _("Unexpected <%s:%s> element as a child of <author>."),
-					     author_node->ns->prefix, author_node->name);
+				gdata_parser_error_unhandled_element ((gchar*) author_node->ns->prefix, (gchar*) author_node->name, "author", error);
 				xmlFree (name);
 				xmlFree (uri);
 				xmlFree (email);
@@ -333,10 +328,7 @@ _gdata_entry_parse_xml_node (GDataEntry *self, xmlDoc *doc, xmlNode *node, GErro
 		xmlFree (uri);
 		xmlFree (email);
 	} else {
-		g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_UNHANDLED_XML_ELEMENT,
-			     _("Unhandled <%s:%s> element as a child of <entry>."),
-			     node->ns->prefix, node->name);
-		return FALSE;
+		return gdata_parser_error_unhandled_element ((gchar*) node->ns->prefix, (gchar*) node->name, "entry", error);
 	}
 
 	return TRUE;
