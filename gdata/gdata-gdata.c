@@ -35,3 +35,21 @@ gdata_gd_rating_free (GDataGDRating *self)
 {
 	g_slice_free (GDataGDRating, self);
 }
+
+GDataGDFeedLink *
+gdata_gd_feed_link_new (const gchar *href, const gchar *rel, guint count_hint)
+{
+	GDataGDFeedLink *self = g_slice_new (GDataGDFeedLink);
+	self->href = g_strdup (href);
+	self->rel = g_strdup (rel);
+	self->count_hint = count_hint;
+	return self;
+}
+
+void
+gdata_gd_feed_link_free (GDataGDFeedLink *self)
+{
+	g_free (self->href);
+	g_free (self->rel);
+	g_slice_free (GDataGDFeedLink, self);
+}

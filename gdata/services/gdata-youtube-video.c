@@ -276,7 +276,27 @@ _gdata_youtube_video_parse_xml_node (GDataYouTubeVideo *self, xmlDoc *doc, xmlNo
 		gdata_youtube_video_set_rating (self, rating);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "comments") == 0) {
 		/* gd:comments */
-		g_message ("TODO: comments unimplemented");
+		xmlChar *rel, *href, *count_hint;
+		guint count_hint_uint;
+		GDataGDFeedLink *feed_link;
+
+		/* TODO: This is actually the child of the <comments> element */
+
+		count_hint = xmlGetProp (node, (xmlChar*) "countHint");
+		if (count_hint == NULL)
+			count_hint_uint = 0;
+		else
+			count_hint_uint = strtoul ((gchar*) count_hint, NULL, 10);
+		xmlFree (count_hint);
+
+		rel = xmlGetProp (node, (xmlChar*) "rel");
+		href = xmlGetProp (node, (xmlChar*) "href");
+
+		feed_link = gdata_gd_feed_link_new ((gchar*) href, (gchar*) rel, count_hint_uint);
+		gdata_youtube_video_set_comments_feed_link (self, feed_link);
+
+		xmlFree (rel);
+		xmlFree (href);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "statistics") == 0) {
 		/* yt:statistics */
 		xmlChar *view_count, *favorite_count;

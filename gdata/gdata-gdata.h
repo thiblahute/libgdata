@@ -34,6 +34,15 @@ typedef struct {
 GDataGDRating *gdata_gd_rating_new (guint min, guint max, guint num_raters, gdouble average);
 void gdata_gd_rating_free (GDataGDRating *self);
 
+typedef struct {
+	gchar *rel;
+	gchar *href;
+	guint count_hint;
+} GDataGDFeedLink;
+
+GDataGDFeedLink *gdata_gd_feed_link_new (const gchar *href, const gchar *rel, guint count_hint);
+void gdata_gd_feed_link_free (GDataGDFeedLink *self);
+
 G_END_DECLS
 
 #endif /* !GDATA_GDATA_H */
