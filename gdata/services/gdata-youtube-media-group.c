@@ -241,7 +241,7 @@ _gdata_youtube_media_group_parse_xml_node (GDataYouTubeMediaGroup *self, xmlDoc 
 		/* yt:noembed */
 		gdata_youtube_media_group_set_no_embed (self, TRUE);
 	} else if (_gdata_media_group_parse_xml_node (GDATA_MEDIA_GROUP (self), doc, node, &child_error) == FALSE) {
-		if (g_error_matches (child_error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_UNHANDLED_XML_ELEMENT) == TRUE) {
+		if (g_error_matches (child_error, GDATA_PARSER_ERROR, GDATA_PARSER_ERROR_UNHANDLED_XML_ELEMENT) == TRUE) {
 			g_error_free (child_error);
 			gdata_parser_error_unhandled_element ((gchar*) node->ns->prefix, (gchar*) node->name, "media:group", error);
 		} else {

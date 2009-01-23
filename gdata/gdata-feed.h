@@ -49,27 +49,18 @@ typedef struct {
 GType gdata_feed_get_type (void);
 
 const GList *gdata_feed_get_entries (GDataFeed *self);
-void gdata_feed_append_entry (GDataFeed *self, GDataEntry *entry);
+const GList *gdata_feed_get_categories (GDataFeed *self);
+const GList *gdata_feed_get_links (GDataFeed *self);
+const GList *gdata_feed_get_authors (GDataFeed *self);
 
 const gchar *gdata_feed_get_title (GDataFeed *self);
-void gdata_feed_set_title (GDataFeed *self, const gchar *title);
 const gchar *gdata_feed_get_id (GDataFeed *self);
-void gdata_feed_set_id (GDataFeed *self, const gchar *id);
 void gdata_feed_get_updated (GDataFeed *self, GTimeVal *updated);
-void gdata_feed_set_updated (GDataFeed *self, GTimeVal *updated);
-void gdata_feed_add_category (GDataFeed *self, GDataCategory *category);
 const gchar *gdata_feed_get_logo (GDataFeed *self);
-void gdata_feed_set_logo (GDataFeed *self, const gchar *logo);
-void gdata_feed_add_link (GDataFeed *self, GDataLink *link);
-void gdata_feed_add_author (GDataFeed *self, GDataAuthor *author);
 GDataGenerator *gdata_feed_get_generator (GDataFeed *self);
-void gdata_feed_set_generator (GDataFeed *self, GDataGenerator *generator);
 guint gdata_feed_get_items_per_page (GDataFeed *self);
-void gdata_feed_set_items_per_page (GDataFeed *self, guint items_per_page);
 guint gdata_feed_get_start_index (GDataFeed *self);
-void gdata_feed_set_start_index (GDataFeed *self, guint start_index);
 guint gdata_feed_get_total_results (GDataFeed *self);
-void gdata_feed_set_total_results (GDataFeed *self, guint total_results);
 
 G_END_DECLS
 

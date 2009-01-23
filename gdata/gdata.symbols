@@ -12,11 +12,8 @@ gdata_feed_get_type
 gdata_feed_get_entries
 gdata_feed_append_entry
 gdata_feed_get_title
-gdata_feed_set_title
 gdata_feed_get_id
-gdata_feed_set_id
 gdata_feed_get_updated
-gdata_feed_set_updated
 gdata_service_get_type
 gdata_service_error_quark
 gdata_service_authenticate

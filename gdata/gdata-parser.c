@@ -24,6 +24,12 @@
 #include "gdata-service.h"
 #include "gdata-parser.h"
 
+GQuark
+gdata_parser_error_quark (void)
+{
+	return g_quark_from_static_string ("gdata-parser-error-quark");
+}
+
 gboolean
 gdata_parser_error_required_content_missing (const gchar *element_name, GError **error)
 {
@@ -33,6 +39,7 @@ gdata_parser_error_required_content_missing (const gchar *element_name, GError *
 	return FALSE;
 }
 
+/* TODO: parameters are in the wrong order */
 gboolean
 gdata_parser_error_not_iso8601_format (const gchar *parent_element_name, const gchar *element_name, const gchar *actual_value, GError **error)
 {
@@ -45,7 +52,7 @@ gdata_parser_error_not_iso8601_format (const gchar *parent_element_name, const g
 gboolean
 gdata_parser_error_unhandled_element (const gchar *element_namespace, const gchar *element_name, const gchar *parent_element_name, GError **error)
 {
-	g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
+	g_set_error (error, GDATA_PARSER_ERROR, GDATA_PARSER_ERROR_UNHANDLED_XML_ELEMENT,
 		     _("Unhandled <%s:%s> element as a child of <%s>."),
 		     element_namespace, element_name, parent_element_name);
 	return FALSE;
@@ -66,5 +73,23 @@ gdata_parser_error_required_property_missing (const gchar *element_name, const g
 	g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
 		     _("A required @%s property of a <%s> was not present."),
 		     property_name, element_name);
+	return FALSE;
+}
+
+gboolean
+gdata_parser_error_required_element_missing (const gchar *element_name, const gchar *parent_element_name, GError **error)
+{
+	g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
+		     _("A required <%s> element as a child of <%s> was not present."),
+		     element_name, parent_element_name);
+	return FALSE;
+}
+
+gboolean
+gdata_parser_error_duplicate_element (const gchar *element_name, const gchar *parent_element_name, GError **error)
+{
+	g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
+		     _("A <%s> element as a child of <%s> was duplicated."),
+		     element_name, parent_element_name);
 	return FALSE;
 }

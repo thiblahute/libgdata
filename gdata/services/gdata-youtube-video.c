@@ -293,7 +293,7 @@ _gdata_youtube_video_parse_xml_node (GDataYouTubeVideo *self, xmlDoc *doc, xmlNo
 		href = xmlGetProp (node, (xmlChar*) "href");
 
 		feed_link = gdata_gd_feed_link_new ((gchar*) href, (gchar*) rel, count_hint_uint);
-		gdata_youtube_video_set_comments_feed_link (self, feed_link);
+		/*gdata_youtube_video_set_comments_feed_link (self, feed_link);*/
 
 		xmlFree (rel);
 		xmlFree (href);
@@ -329,7 +329,7 @@ _gdata_youtube_video_parse_xml_node (GDataYouTubeVideo *self, xmlDoc *doc, xmlNo
 		/* yt:recorded */
 		g_message ("TODO: recorded unimplemented");
 	} else if (_gdata_entry_parse_xml_node (GDATA_ENTRY (self), doc, node, &child_error) == FALSE) {
-		if (g_error_matches (child_error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_UNHANDLED_XML_ELEMENT) == TRUE) {
+		if (g_error_matches (child_error, GDATA_PARSER_ERROR, GDATA_PARSER_ERROR_UNHANDLED_XML_ELEMENT) == TRUE) {
 			g_error_free (child_error);
 			gdata_parser_error_unhandled_element ((gchar*) node->ns->prefix, (gchar*) node->name, "entry", error);
 		} else {
