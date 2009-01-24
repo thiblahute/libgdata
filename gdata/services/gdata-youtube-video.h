@@ -24,8 +24,8 @@
 #include <glib-object.h>
 
 #include "gdata-entry.h"
-#include "gdata-media-group.h"
 #include "gdata-gdata.h"
+#include "gdata-media-rss.h"
 
 G_BEGIN_DECLS
 
@@ -51,8 +51,6 @@ GType gdata_youtube_video_get_type (void);
 
 GDataYouTubeVideo *gdata_youtube_video_new (void);
 
-GDataMediaGroup *gdata_youtube_video_get_media_group (GDataYouTubeVideo *self);
-void gdata_youtube_video_set_media_group (GDataYouTubeVideo *self, GDataMediaGroup *media_group);
 guint gdata_youtube_video_get_view_count (GDataYouTubeVideo *self);
 void gdata_youtube_video_set_view_count (GDataYouTubeVideo *self, guint view_count);
 guint gdata_youtube_video_get_favorite_count (GDataYouTubeVideo *self);
@@ -63,6 +61,32 @@ gboolean gdata_youtube_video_get_no_embed (GDataYouTubeVideo *self);
 void gdata_youtube_video_set_no_embed (GDataYouTubeVideo *self, gboolean no_embed);
 GDataGDRating *gdata_youtube_video_get_rating (GDataYouTubeVideo *self);
 void gdata_youtube_video_set_rating (GDataYouTubeVideo *self, GDataGDRating *rating);
+const gchar *gdata_youtube_video_get_keywords (GDataYouTubeVideo *self);
+void gdata_youtube_video_set_keywords (GDataYouTubeVideo *self, const gchar *keywords);
+const gchar *gdata_youtube_video_get_player_uri (GDataYouTubeVideo *self);
+void gdata_youtube_video_set_player_uri (GDataYouTubeVideo *self, const gchar *player_uri);
+GDataMediaRating *gdata_youtube_video_get_media_rating (GDataYouTubeVideo *self);
+void gdata_youtube_video_set_media_rating (GDataYouTubeVideo *self, GDataMediaRating *rating);
+GDataMediaRestriction *gdata_youtube_video_get_restriction (GDataYouTubeVideo *self);
+void gdata_youtube_video_set_restriction (GDataYouTubeVideo *self, GDataMediaRestriction *restriction);
+const gchar *gdata_youtube_video_get_title (GDataYouTubeVideo *self);
+void gdata_youtube_video_set_title (GDataYouTubeVideo *self, const gchar *title);
+GDataMediaCategory *gdata_youtube_video_get_category (GDataYouTubeVideo *self);
+void gdata_youtube_video_set_category (GDataYouTubeVideo *self, GDataMediaCategory *category);
+GDataMediaCredit *gdata_youtube_video_get_credit (GDataYouTubeVideo *self);
+void gdata_youtube_video_set_credit (GDataYouTubeVideo *self, GDataMediaCredit *credit);
+const gchar *gdata_youtube_video_get_description (GDataYouTubeVideo *self);
+void gdata_youtube_video_set_description (GDataYouTubeVideo *self, const gchar *description);
+void gdata_youtube_video_add_content (GDataYouTubeVideo *self, GDataMediaContent *content);
+void gdata_youtube_video_add_thumbnail (GDataYouTubeVideo *self, GDataMediaThumbnail *thumbnail);
+gint gdata_youtube_video_get_duration (GDataYouTubeVideo *self);
+void gdata_youtube_video_set_duration (GDataYouTubeVideo *self, gint duration);
+gboolean gdata_youtube_video_get_private (GDataYouTubeVideo *self);
+void gdata_youtube_video_set_private (GDataYouTubeVideo *self, gboolean private);
+void gdata_youtube_video_get_uploaded (GDataYouTubeVideo *self, GTimeVal *uploaded);
+void gdata_youtube_video_set_uploaded (GDataYouTubeVideo *self, GTimeVal *uploaded);
+const gchar *gdata_youtube_video_get_video_id (GDataYouTubeVideo *self);
+void gdata_youtube_video_set_video_id (GDataYouTubeVideo *self, const gchar *video_id);
 
 G_END_DECLS
 

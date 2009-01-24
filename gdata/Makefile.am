@@ -26,7 +26,6 @@ gdatainclude_HEADERS = \
 	gdata-query.h		\
 	gdata-marshal.h		\
 	gdata-atom.h		\
-	gdata-media-group.h	\
 	gdata-media-rss.h	\
 	gdata-gdata.h		\
 	gdata-parser.h
@@ -39,7 +38,6 @@ libgdata_la_SOURCES = \
 	gdata-types.c		\
 	gdata-query.c		\
 	gdata-atom.c		\
-	gdata-media-group.c	\
 	gdata-media-rss.c	\
 	gdata-gdata.c		\
 	gdata-parser.c		\
