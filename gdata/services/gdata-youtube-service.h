@@ -64,8 +64,13 @@ GType gdata_youtube_service_get_type (void);
 
 GDataYouTubeService *gdata_youtube_service_new (const gchar *developer_key, const gchar *client_id);
 
-GDataFeed *gdata_youtube_service_query_standard_feed (GDataYouTubeService *self, GDataYouTubeStandardFeedType feed_type, GError **error);
-GDataFeed *gdata_youtube_service_query_videos (GDataYouTubeService *self, const gchar *query_terms, GError **error);
+GDataFeed *gdata_youtube_service_query_standard_feed (GDataYouTubeService *self, GDataYouTubeStandardFeedType feed_type,
+						      GCancellable *cancellable, GError **error);
+void gdata_youtube_service_query_standard_feed_async (GDataYouTubeService *self, GDataYouTubeStandardFeedType feed_type,
+						      GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data);
+GDataFeed *gdata_youtube_service_query_videos (GDataYouTubeService *self, const gchar *query_terms, GCancellable *cancellable, GError **error);
+void gdata_youtube_service_query_videos_async (GDataYouTubeService *self, const gchar *query_terms,
+					       GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data);
 
 const gchar *gdata_youtube_service_get_developer_key (GDataYouTubeService *self);
 const gchar *gdata_youtube_service_get_youtube_user (GDataYouTubeService *self);

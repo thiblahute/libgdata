@@ -186,61 +186,71 @@ gdata_youtube_service_new (const gchar *developer_key, const gchar *client_id)
 			     NULL);
 }
 
-GDataFeed *
-gdata_youtube_service_query_standard_feed (GDataYouTubeService *self, GDataYouTubeStandardFeedType feed_type, GError **error)
+static const gchar *
+standard_feed_type_to_feed_uri (GDataYouTubeStandardFeedType feed_type)
 {
-	GDataQuery *query;
-	GDataFeed *video_feed;
-	const gchar *feed_uri;
-
-	/* TODO: Support the "time" parameter, as well as category- and region-specific feeds */
-	/* TODO: Async versions of this function and the one below */
-
 	switch (feed_type) {
 	case GDATA_YOUTUBE_TOP_RATED_FEED:
-		feed_uri = "http://gdata.youtube.com/feeds/api/standardfeeds/top_rated";
-		break;
+		return "http://gdata.youtube.com/feeds/api/standardfeeds/top_rated";
 	case GDATA_YOUTUBE_TOP_FAVORITES_FEED:
-		feed_uri = "http://gdata.youtube.com/feeds/api/standardfeeds/top_favorites";
-		break;
+		return "http://gdata.youtube.com/feeds/api/standardfeeds/top_favorites";
 	case GDATA_YOUTUBE_MOST_VIEWED_FEED:
-		feed_uri = "http://gdata.youtube.com/feeds/api/standardfeeds/most_viewed";
-		break;
+		return "http://gdata.youtube.com/feeds/api/standardfeeds/most_viewed";
 	case GDATA_YOUTUBE_MOST_POPULAR_FEED:
-		feed_uri = "http://gdata.youtube.com/feeds/api/standardfeeds/most_popular";
-		break;
+		return "http://gdata.youtube.com/feeds/api/standardfeeds/most_popular";
 	case GDATA_YOUTUBE_MOST_RECENT_FEED:
-		feed_uri = "http://gdata.youtube.com/feeds/api/standardfeeds/most_recent";
-		break;
+		return "http://gdata.youtube.com/feeds/api/standardfeeds/most_recent";
 	case GDATA_YOUTUBE_MOST_DISCUSSED_FEED:
-		feed_uri = "http://gdata.youtube.com/feeds/api/standardfeeds/most_discussed";
-		break;
+		return "http://gdata.youtube.com/feeds/api/standardfeeds/most_discussed";
 	case GDATA_YOUTUBE_MOST_LINKED_FEED:
-		feed_uri = "http://gdata.youtube.com/feeds/api/standardfeeds/most_linked";
-		break;
+		return "http://gdata.youtube.com/feeds/api/standardfeeds/most_linked";
 	case GDATA_YOUTUBE_MOST_RESPONDED_FEED:
-		feed_uri = "http://gdata.youtube.com/feeds/api/standardfeeds/most_responded";
-		break;
+		return "http://gdata.youtube.com/feeds/api/standardfeeds/most_responded";
 	case GDATA_YOUTUBE_RECENTLY_FEATURED_FEED:
-		feed_uri = "http://gdata.youtube.com/feeds/api/standardfeeds/recently_featured";
-		break;
+		return "http://gdata.youtube.com/feeds/api/standardfeeds/recently_featured";
 	case GDATA_YOUTUBE_WATCH_ON_MOBILE_FEED:
-		feed_uri = "http://gdata.youtube.com/feeds/api/standardfeeds/watch_on_mobile";
-		break;
+		return "http://gdata.youtube.com/feeds/api/standardfeeds/watch_on_mobile";
 	default:
 		g_assert_not_reached ();
 	}
-
-	query = gdata_query_new (GDATA_SERVICE (self), NULL);
-	video_feed = gdata_service_query (GDATA_SERVICE (self), feed_uri, query,
-					  (GDataEntryParserFunc) _gdata_youtube_video_new_from_xml_node, error);
-	g_object_unref (query);
-
-	return video_feed;
 }
 
 GDataFeed *
-gdata_youtube_service_query_videos (GDataYouTubeService *self, const gchar *query_terms, GError **error)
+gdata_youtube_service_query_standard_feed (GDataYouTubeService *self, GDataYouTubeStandardFeedType feed_type, GCancellable *cancellable, GError **error)
+{
+	GDataQuery *query;
+	GDataFeed *feed;
+	const gchar *feed_uri;
+
+	/* TODO: Support the "time" parameter, as well as category- and region-specific feeds */
+	feed_uri = standard_feed_type_to_feed_uri (feed_type);
+
+	query = gdata_query_new (GDATA_SERVICE (self), NULL);
+	feed = gdata_service_query (GDATA_SERVICE (self), feed_uri, query,
+				    (GDataEntryParserFunc) _gdata_youtube_video_new_from_xml_node, cancellable, error);
+	g_object_unref (query);
+
+	return feed;
+}
+
+void
+gdata_youtube_service_query_standard_feed_async (GDataYouTubeService *self, GDataYouTubeStandardFeedType feed_type,
+						 GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+	GDataQuery *query;
+	const gchar *feed_uri;
+
+	feed_uri = standard_feed_type_to_feed_uri (feed_type);
+
+	query = gdata_query_new (GDATA_SERVICE (self), NULL);
+	gdata_service_query_async (GDATA_SERVICE (self), feed_uri, query,
+				   (GDataEntryParserFunc) _gdata_youtube_video_new_from_xml_node,
+				   cancellable, callback, user_data);
+	g_object_unref (query);
+}
+
+GDataFeed *
+gdata_youtube_service_query_videos (GDataYouTubeService *self, const gchar *query_terms, GCancellable *cancellable, GError **error)
 {
 	GDataQuery *query;
 	GDataFeed *feed;
@@ -249,10 +259,24 @@ gdata_youtube_service_query_videos (GDataYouTubeService *self, const gchar *quer
 	query = gdata_query_new (GDATA_SERVICE (self), query_terms);
 	feed = gdata_service_query (GDATA_SERVICE (self),
 				    "http://gdata.youtube.com/feeds/api/videos", query,
-				    (GDataEntryParserFunc) _gdata_youtube_video_new_from_xml_node, error);
+				    (GDataEntryParserFunc) _gdata_youtube_video_new_from_xml_node, cancellable, error);
 	g_object_unref (query);
 
 	return feed;
+}
+
+void
+gdata_youtube_service_query_videos_async (GDataYouTubeService *self, const gchar *query_terms,
+					  GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+	GDataQuery *query;
+
+	query = gdata_query_new (GDATA_SERVICE (self), query_terms);
+	gdata_service_query_async (GDATA_SERVICE (self),
+				   "http://gdata.youtube.com/feeds/api/videos", query,
+				   (GDataEntryParserFunc) _gdata_youtube_video_new_from_xml_node,
+				   cancellable, callback, user_data);
+	g_object_unref (query);
 }
 
 const gchar *

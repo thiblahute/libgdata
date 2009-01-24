@@ -68,7 +68,6 @@ GDataQuery *gdata_query_new_for_id (GDataService *service, const gchar *entry_id
 gchar *gdata_query_get_query_uri (GDataQuery *self, const gchar *feed_uri);
 
 GDataService *gdata_query_get_service (GDataQuery *self);
-gboolean gdata_query_is_cancelled (GDataQuery *self);
 
 const gchar *gdata_query_get_q (GDataQuery *self);
 void gdata_query_set_q (GDataQuery *self, const gchar *q);

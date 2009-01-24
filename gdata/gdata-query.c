@@ -30,7 +30,6 @@ static void gdata_query_set_property (GObject *object, guint property_id, const 
 
 struct _GDataQueryPrivate {
 	GDataService *service;
-	GCancellable *cancellable;
 
 	guint parameter_mask;
 
@@ -51,7 +50,6 @@ struct _GDataQueryPrivate {
 /* TODO: actually turn these into parameters */
 enum {
 	PROP_SERVICE = 1,
-	PROP_CANCELLED,
 	PROP_Q,
 	PROP_CATEGORIES,
 	PROP_AUTHOR,
@@ -86,11 +84,6 @@ gdata_query_class_init (GDataQueryClass *klass)
 					"Service", "The service for which this query was created.",
 					GDATA_TYPE_SERVICE,
 					G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
-	g_object_class_install_property (gobject_class, PROP_CANCELLED,
-				g_param_spec_boolean ("cancelled",
-					"Cancelled?", "Has this query been cancelled?",
-					FALSE,
-					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 
 	g_object_class_install_property (gobject_class, PROP_Q,
 				g_param_spec_string ("q",
@@ -167,10 +160,6 @@ gdata_query_dispose (GObject *object)
 		g_object_unref (priv->service);
 	priv->service = NULL;
 
-	if (priv->cancellable != NULL)
-		g_object_unref (priv->cancellable); /* TODO: should I really be holding a reference to the GCancellable? */
-	priv->cancellable = NULL;
-
 	/* Chain up to the parent class */
 	G_OBJECT_CLASS (gdata_query_parent_class)->dispose (object);
 }
@@ -201,9 +190,6 @@ gdata_query_get_property (GObject *object, guint property_id, GValue *value, GPa
 	switch (property_id) {
 		case PROP_SERVICE:
 			g_value_set_object (value, priv->service);
-			break;
-		case PROP_CANCELLED:
-			g_value_set_boolean (value, gdata_query_is_cancelled (GDATA_QUERY (object)));
 			break;
 		case PROP_Q:
 			g_value_set_string (value, priv->q);
@@ -403,15 +389,6 @@ gdata_query_get_service (GDataQuery *self)
 {
 	g_return_val_if_fail (GDATA_IS_QUERY (self), NULL);
 	return self->priv->service;
-}
-
-gboolean
-gdata_query_is_cancelled (GDataQuery *self)
-{
-	g_return_val_if_fail (GDATA_IS_QUERY (self), FALSE);
-	if (self->priv->cancellable == NULL)
-		return FALSE;
-	return g_cancellable_is_cancelled (self->priv->cancellable);
 }
 
 const gchar *

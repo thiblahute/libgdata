@@ -66,15 +66,20 @@ typedef struct {
 GType gdata_service_get_type (void);
 GQuark gdata_service_error_quark (void);
 
-gboolean gdata_service_authenticate (GDataService *self, const gchar *username, const gchar *password, GError **error);
-gboolean gdata_service_authenticate_async (GDataService *self, const gchar *username, const gchar *password, GError **error);
-gboolean gdata_service_is_logged_in (GDataService *self);
+gboolean gdata_service_authenticate (GDataService *self, const gchar *username, const gchar *password, GCancellable *cancellable, GError **error);
+void gdata_service_authenticate_async (GDataService *self, const gchar *username, const gchar *password,
+				       GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data);
+gboolean gdata_service_authenticate_finish (GDataService *self, GAsyncResult *async_result, GError **error);
 
 #include "gdata-query.h"
 
-gboolean gdata_service_query_async (GDataService *self, const gchar *feed_uri, GDataQuery *query, GDataEntryParserFunc parser_func, GError **error);
-GDataFeed *gdata_service_query (GDataService *self, const gchar *feed_uri, GDataQuery *query, GDataEntryParserFunc parser_func, GError **error);
+GDataFeed *gdata_service_query (GDataService *self, const gchar *feed_uri, GDataQuery *query, GDataEntryParserFunc parser_func,
+				GCancellable *cancellable, GError **error);
+void gdata_service_query_async (GDataService *self, const gchar *feed_uri, GDataQuery *query, GDataEntryParserFunc parser_func,
+				GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data);
+GDataFeed *gdata_service_query_finish (GDataService *self, GAsyncResult *async_result, GError **error);
 
+gboolean gdata_service_is_logged_in (GDataService *self);
 const gchar *gdata_service_get_client_id (GDataService *self);
 
 G_END_DECLS

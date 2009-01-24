@@ -468,7 +468,7 @@ parse_media_group_xml_node (GDataYouTubeVideo *self, xmlDoc *doc, xmlNode *node,
 
 		/* Check the type property */
 		type = xmlGetProp (node, (xmlChar*) "type");
-		if (type != NULL && xmlStrcmp (role, (xmlChar*) "partner") != 0) {
+		if (type != NULL && xmlStrcmp (type, (xmlChar*) "partner") != 0) {
 			gdata_parser_error_unknown_property_value ("media:credit", "type", (gchar*) type, error);
 			xmlFree (type);
 			return FALSE;
