@@ -17,8 +17,11 @@
  * along with GData Client.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <config.h>
 #include <glib.h>
+#include <glib/gi18n-lib.h>
 #include <libxml/parser.h>
+#include <string.h>
 
 #include "gdata-entry.h"
 #include "gdata-types.h"
@@ -30,6 +33,7 @@
 static void gdata_entry_finalize (GObject *object);
 static void gdata_entry_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec);
 static void gdata_entry_set_property (GObject *object, guint property_id, const GValue *value, GParamSpec *pspec);
+static void real_get_xml (GDataEntry *self, GString *xml_string);
 
 struct _GDataEntryPrivate {
 	gchar *title;
@@ -63,6 +67,8 @@ gdata_entry_class_init (GDataEntryClass *klass)
 	gobject_class->set_property = gdata_entry_set_property;
 	gobject_class->get_property = gdata_entry_get_property;
 	gobject_class->finalize = gdata_entry_finalize;
+
+	klass->get_xml = real_get_xml;
 
 	g_object_class_install_property (gobject_class, PROP_TITLE,
 				g_param_spec_string ("title",
@@ -172,10 +178,146 @@ gdata_entry_set_property (GObject *object, guint property_id, const GValue *valu
 	}
 }
 
+static void
+real_get_xml (GDataEntry *self, GString *xml_string)
+{
+	GDataEntryPrivate *priv = self->priv;
+	gchar *title;
+	GList *categories, *links, *authors;
+
+	title = g_markup_escape_text (priv->title, -1);
+	g_string_append_printf (xml_string, "<title type='text'>%s</title>", title);
+	g_free (title);
+
+	if (priv->id != NULL)
+		g_string_append_printf (xml_string, "<id>%s</id>", priv->id);
+
+	if (priv->updated.tv_sec != 0 || priv->updated.tv_usec != 0) {
+		gchar *updated = g_time_val_to_iso8601 (&(priv->updated));
+		g_string_append_printf (xml_string, "<updated>%s</updated>", updated);
+		g_free (updated);
+	}
+
+	if (priv->published.tv_sec != 0 || priv->published.tv_usec != 0) {
+		gchar *published = g_time_val_to_iso8601 (&(priv->published));
+		g_string_append_printf (xml_string, "<published>%s</published>", published);
+		g_free (published);
+	}
+
+	if (priv->content != NULL) {
+		gchar *content = g_markup_escape_text (priv->content, -1);
+		g_string_append_printf (xml_string, "<content type='text'>%s</content>", content);
+		g_free (content);
+	}
+
+	for (categories = priv->categories; categories != NULL; categories = categories->next) {
+		GDataCategory *category = (GDataCategory*) categories->data;
+
+		g_string_append_printf (xml_string, "<category term='%s'", category->term);
+
+		if (G_LIKELY (category->scheme != NULL))
+			g_string_append_printf (xml_string, " scheme='%s'", category->scheme);
+
+		if (G_UNLIKELY (category->label != NULL)) {
+			gchar *label = g_markup_escape_text (category->label, -1);
+			g_string_append_printf (xml_string, " label='%s'", label);
+			g_free (label);
+		}
+
+		g_string_append (xml_string, "/>");
+	}
+
+	for (links = priv->links; links != NULL; links = links->next) {
+		GDataLink *link = (GDataLink*) links->data;
+
+		g_string_append_printf (xml_string, "<link href='%s'", link->href);
+
+		if (G_UNLIKELY (link->title != NULL)) {
+			gchar *title = g_markup_escape_text (link->title, -1);
+			g_string_append_printf (xml_string, " title='%s'", title);
+			g_free (title);
+		}
+
+		if (G_LIKELY (link->rel != NULL))
+			g_string_append_printf (xml_string, " rel='%s'", link->rel);
+		if (G_LIKELY (link->type != NULL))
+			g_string_append_printf (xml_string, " type='%s'", link->type);
+		if (G_UNLIKELY (link->hreflang != NULL))
+			g_string_append_printf (xml_string, " hreflang='%s'", link->hreflang);
+		if (G_UNLIKELY (link->length != -1))
+			g_string_append_printf (xml_string, " length='%i'", link->length);
+		g_string_append (xml_string, "/>");
+	}
+
+	for (authors = priv->authors; authors != NULL; authors = authors->next) {
+		GDataAuthor *author = (GDataAuthor*) authors->data;
+
+		gchar *name = g_markup_escape_text (author->name, -1);
+		g_string_append_printf (xml_string, "<author><name>%s</name>", name);
+		g_free (name);
+
+		if (G_LIKELY (author->uri != NULL)) {
+			gchar *uri = g_markup_escape_text (author->uri, -1);
+			g_string_append_printf (xml_string, "<uri>%s</uri>", uri);
+			g_free (uri);
+		}
+
+		if (G_UNLIKELY (author->email != NULL)) {
+			gchar *email = g_markup_escape_text (author->email, -1);
+			g_string_append_printf (xml_string, "<email>%s</email>", email);
+			g_free (email);
+		}
+
+		g_string_append (xml_string, "</author>");
+	}
+}
+
 GDataEntry *
 gdata_entry_new (void)
 {
 	return g_object_new (GDATA_TYPE_ENTRY, NULL);
+}
+
+GDataEntry *
+gdata_entry_new_from_xml (const gchar *xml, gint length, GError **error)
+{
+	xmlDoc *doc;
+	xmlNode *node;
+
+	g_return_val_if_fail (xml != NULL, NULL);
+
+	if (length == -1)
+		length = strlen (xml);
+
+	/* Parse the XML */
+	doc = xmlReadMemory (xml, length, "entry.xml", NULL, 0);
+	if (doc == NULL) {
+		xmlError *xml_error = xmlGetLastError ();
+		g_set_error (error, GDATA_PARSER_ERROR, GDATA_PARSER_ERROR_PARSING_STRING,
+			     _("Error parsing XML: %s"),
+			     xml_error->message);
+		return NULL;
+	}
+
+	/* Get the root element */
+	node = xmlDocGetRootElement (doc);
+	if (node == NULL) {
+		/* XML document's empty */
+		xmlFreeDoc (doc);
+		g_set_error (error, GDATA_PARSER_ERROR, GDATA_PARSER_ERROR_EMPTY_DOCUMENT,
+			     _("Error parsing XML: %s"),
+			     _("Empty document."));
+		return NULL;
+	}
+
+	if (xmlStrcmp (node->name, (xmlChar*) "entry") != 0) {
+		/* No <entry> element (required) */
+		xmlFreeDoc (doc);
+		gdata_parser_error_required_element_missing ("entry", "root", error);
+		return NULL;
+	}
+
+	return _gdata_entry_new_from_xml_node (doc, node, error);
 }
 
 GDataEntry *
@@ -257,7 +399,7 @@ _gdata_entry_parse_xml_node (GDataEntry *self, xmlDoc *doc, xmlNode *node, GErro
 		term = xmlGetProp (node, (xmlChar*) "term");
 		label = xmlGetProp (node, (xmlChar*) "label");
 
-		category = gdata_category_new ((gchar*) scheme, (gchar*) term, (gchar*) label);
+		category = gdata_category_new ((gchar*) term, (gchar*) scheme, (gchar*) label);
 		gdata_entry_add_category (self, category);
 
 		xmlFree (scheme);
@@ -457,4 +599,35 @@ gdata_entry_add_author (GDataEntry *self, GDataAuthor *author)
 	g_return_if_fail (author != NULL);
 
 	self->priv->authors = g_list_prepend (self->priv->authors, author);
+}
+
+gboolean
+gdata_entry_inserted (GDataEntry *self)
+{
+	g_return_val_if_fail (GDATA_IS_ENTRY (self), FALSE);
+
+	if (self->priv->id != NULL &&
+	    self->priv->links != NULL &&
+	    (self->priv->updated.tv_sec != 0 || self->priv->updated.tv_usec != 0))
+		return TRUE;
+	return FALSE;
+}
+
+gchar *
+gdata_entry_get_xml (GDataEntry *self)
+{
+	GDataEntryClass *klass;
+	GString *xml_string;
+
+	klass = GDATA_ENTRY_GET_CLASS (self);
+	if (klass->get_xml == NULL)
+		return NULL;
+
+	/* Allocate enough space for 300 characters, which is a decent average entry length */
+	xml_string = g_string_sized_new (300);
+	g_string_append (xml_string, "<entry xmlns='http://www.w3.org/2005/Atom'>");
+	klass->get_xml (self, xml_string);
+	g_string_append (xml_string, "</entry>");
+
+	return g_string_free (xml_string, FALSE);
 }

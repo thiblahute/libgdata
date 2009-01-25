@@ -44,11 +44,14 @@ typedef struct {
 
 typedef struct {
 	GObjectClass parent;
+
+	void (*get_xml) (GDataEntry *self, GString *xml_string);
 } GDataEntryClass;
 
 GType gdata_entry_get_type (void);
 
 GDataEntry *gdata_entry_new (void);
+GDataEntry *gdata_entry_new_from_xml (const gchar *xml, gint length, GError **error);
 
 const gchar *gdata_entry_get_title (GDataEntry *self);
 void gdata_entry_set_title (GDataEntry *self, const gchar *title);
@@ -63,6 +66,9 @@ const gchar *gdata_entry_get_content (GDataEntry *self);
 void gdata_entry_set_content (GDataEntry *self, const gchar *content);
 void gdata_entry_add_link (GDataEntry *self, GDataLink *link);
 void gdata_entry_add_author (GDataEntry *self, GDataAuthor *author);
+
+gboolean gdata_entry_inserted (GDataEntry *self);
+gchar *gdata_entry_get_xml (GDataEntry *self);
 
 G_END_DECLS
 

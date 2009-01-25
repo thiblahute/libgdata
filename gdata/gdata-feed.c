@@ -318,7 +318,7 @@ _gdata_feed_new_from_xml (const gchar *xml, gint length, GDataEntryParserFunc pa
 			term = xmlGetProp (node, (xmlChar*) "term");
 			label = xmlGetProp (node, (xmlChar*) "label");
 
-			category = gdata_category_new ((gchar*) scheme, (gchar*) term, (gchar*) label);
+			category = gdata_category_new ((gchar*) term, (gchar*) scheme, (gchar*) label);
 			categories = g_list_prepend (categories, category);
 
 			xmlFree (scheme);

@@ -172,6 +172,9 @@ append_query_headers (GDataService *self, SoupMessage *message)
 	g_free (key_header);
 
 	soup_message_headers_append (message->request_headers, "X-GData-Client", gdata_service_get_client_id (self));
+
+	/* Chain up to the parent class */
+	GDATA_SERVICE_CLASS (gdata_youtube_service_parent_class)->append_query_headers (self, message);
 }
 
 GDataYouTubeService *

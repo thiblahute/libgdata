@@ -25,12 +25,12 @@
 G_BEGIN_DECLS
 
 typedef struct {
-	gchar *scheme;
 	gchar *term;
+	gchar *scheme;
 	gchar *label;
 } GDataCategory;
 
-GDataCategory *gdata_category_new (const gchar *scheme, const gchar *term, const gchar *label);
+GDataCategory *gdata_category_new (const gchar *term, const gchar *scheme, const gchar *label);
 void gdata_category_free (GDataCategory *self);
 
 typedef struct {

@@ -20,11 +20,12 @@
 #include "gdata-atom.h"
 
 GDataCategory *
-gdata_category_new (const gchar *scheme, const gchar *term, const gchar *label)
+gdata_category_new (const gchar *term, const gchar *scheme, const gchar *label)
 {
+	/* TODO: Add validation to these functions, against the Atom spec (http://www.atomenabled.org/developers/syndication/atom-format-spec.php) */
 	GDataCategory *self = g_slice_new (GDataCategory);
-	self->scheme = g_strdup (scheme);
 	self->term = g_strdup (term);
+	self->scheme = g_strdup (scheme);
 	self->label = g_strdup (label);
 	return self;
 }
@@ -35,8 +36,8 @@ gdata_category_free (GDataCategory *self)
 	if (G_UNLIKELY (self == NULL))
 		return;
 
-	g_free (self->scheme);
 	g_free (self->term);
+	g_free (self->scheme);
 	g_free (self->label);
 	g_slice_free (GDataCategory, self);
 }

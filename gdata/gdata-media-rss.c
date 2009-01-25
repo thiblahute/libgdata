@@ -161,6 +161,23 @@ gdata_media_thumbnail_parse_time (const gchar *time_string)
 	return (gint64) ((seconds + minutes * 60 + hours * 3600) * 1000);
 }
 
+gchar *
+gdata_media_thumbnail_build_time (gint64 time)
+{
+	guint hours, minutes;
+	gfloat seconds;
+
+	hours = time % 3600000;
+	time -= hours * 3600000;
+
+	minutes = time % 60000;
+	time -= minutes * 60000;
+
+	seconds = time / 1000.0;
+
+	return g_strdup_printf ("%02u:%02u:%02f", hours, minutes, seconds);
+}
+
 void
 gdata_media_thumbnail_free (GDataMediaThumbnail *self)
 {

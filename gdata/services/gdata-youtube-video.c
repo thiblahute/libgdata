@@ -34,6 +34,7 @@
 static void gdata_youtube_video_finalize (GObject *object);
 static void gdata_youtube_video_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec);
 static void gdata_youtube_video_set_property (GObject *object, guint property_id, const GValue *value, GParamSpec *pspec);
+static void get_xml (GDataEntry *entry, GString *xml_string);
 
 struct _GDataYouTubeVideoPrivate {
 	guint view_count;
@@ -88,12 +89,15 @@ static void
 gdata_youtube_video_class_init (GDataYouTubeVideoClass *klass)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
+	GDataEntryClass *entry_class = GDATA_ENTRY_CLASS (klass);
 
 	g_type_class_add_private (klass, sizeof (GDataYouTubeVideoPrivate));
 
 	gobject_class->set_property = gdata_youtube_video_set_property;
 	gobject_class->get_property = gdata_youtube_video_get_property;
 	gobject_class->finalize = gdata_youtube_video_finalize;
+
+	entry_class->get_xml = get_xml;
 
 	g_object_class_install_property (gobject_class, PROP_VIEW_COUNT,
 				g_param_spec_uint ("view-count",
@@ -734,6 +738,165 @@ _gdata_youtube_video_parse_xml_node (GDataYouTubeVideo *self, xmlDoc *doc, xmlNo
 	}
 
 	return TRUE;
+}
+
+static void
+get_xml (GDataEntry *entry, GString *xml_string)
+{
+	GDataYouTubeVideoPrivate *priv = GDATA_YOUTUBE_VIDEO (entry)->priv;
+	gchar *category;
+	GList *contents, *thumbnails;
+
+	/* Chain up to the parent class */
+	GDATA_ENTRY_CLASS (gdata_youtube_video_parent_class)->get_xml (entry, xml_string);
+
+	/* Add all the YouTube-specific XML */
+	category = g_markup_escape_text (priv->category->category, -1);
+	g_string_append_printf (xml_string, "<media:group>"
+				"<media:category label='%s' scheme='%s'>%s</media:category>",
+				priv->category->label, priv->category->scheme, category);
+	g_free (category);
+
+	if (priv->title != NULL) {
+		gchar *title = g_markup_escape_text (priv->title, -1);
+		g_string_append_printf (xml_string, "<media:title type='plain'>%s</media:title>", title);
+		g_free (title);
+	}
+
+	if (priv->description != NULL) {
+		gchar *description = g_markup_escape_text (priv->description, -1);
+		g_string_append_printf (xml_string, "<media:description type='plain'>%s</media:description>", description);
+		g_free (description);
+	}
+
+	if (priv->keywords != NULL) {
+		gchar *keywords = g_markup_escape_text (priv->keywords, -1);
+		g_string_append_printf (xml_string, "<media:keywords>%s</media:keywords>", keywords);
+		g_free (keywords);
+	}
+
+	for (contents = priv->contents; contents != NULL; contents = contents->next) {
+		GDataMediaContent *content = (GDataMediaContent*) contents->data;
+		gchar *uri, *type;
+
+		uri = g_markup_escape_text (content->uri, -1);
+		type = g_markup_escape_text (content->type, -1);
+		g_string_append_printf (xml_string, "<media:content url='%s' type='%s'", uri, type);
+		g_free (uri);
+		g_free (type);
+
+		if (content->is_default == TRUE)
+			g_string_append (xml_string, " isDefault='true'");
+		else
+			g_string_append (xml_string, " isDefault='false'");
+
+		switch (content->expression) {
+		case GDATA_MEDIA_EXPRESSION_SAMPLE:
+			g_string_append (xml_string, " expression='sample'");
+			break;
+		case GDATA_MEDIA_EXPRESSION_FULL:
+			g_string_append (xml_string, " expression='full'");
+			break;
+		case GDATA_MEDIA_EXPRESSION_NONSTOP:
+			g_string_append (xml_string, " expression='nonstop'");
+			break;
+		default:
+			g_assert_not_reached ();
+		}
+
+		if (content->duration != -1)
+			g_string_append_printf (xml_string, " duration='%i'", content->duration);
+		if (content->format != -1)
+			g_string_append_printf (xml_string, " yt:format='%i'", content->format);
+
+		g_string_append (xml_string, "/>");
+	}
+
+	if (priv->credit != NULL) {
+		gchar *credit;
+
+		g_string_append (xml_string, "<media:credit role='uploader' scheme='urn:youtube'");
+		if (priv->credit->partner == TRUE)
+			g_string_append (xml_string, " yt:type='partner'");
+
+		credit = g_markup_escape_text (priv->credit->credit, -1);
+		g_string_append_printf (xml_string, ">%s</media:credit>", credit);
+		g_free (credit);
+	}
+
+	if (priv->player_uri != NULL) {
+		gchar *player_uri = g_markup_escape_text (priv->player_uri, -1);
+		g_string_append_printf (xml_string, "<media:player url='%s'/>", player_uri);
+		g_free (player_uri);
+	}
+
+	if (priv->media_rating != NULL) {
+		gchar *scheme, *country;
+		scheme = g_markup_escape_text (priv->media_rating->scheme, -1);
+		country = g_markup_escape_text (priv->media_rating->country, -1);
+		g_string_append_printf (xml_string, "<media:rating scheme='%s' country='%s'>1</media:rating>",
+					scheme, country);
+		g_free (scheme);
+		g_free (country);
+	}
+
+	if (priv->restriction != NULL) {
+		gchar *countries = g_markup_escape_text (priv->restriction->countries, -1);
+		g_string_append (xml_string, "<media:restriction type='country' relationship='");
+		if (priv->restriction->relationship == TRUE)
+			g_string_append_printf (xml_string, "allow'>%s</media:restriction>", countries);
+		else
+			g_string_append_printf (xml_string, "deny'>%s</media:restriction>", countries);
+		g_free (countries);
+	}
+
+	for (thumbnails = priv->thumbnails; thumbnails != NULL; thumbnails = thumbnails->next) {
+		GDataMediaThumbnail *thumbnail = (GDataMediaThumbnail*) thumbnails->data;
+		gchar *uri, *time;
+
+		uri = g_markup_escape_text (thumbnail->uri, -1);
+		time = gdata_media_thumbnail_build_time (thumbnail->time);
+		g_string_append_printf (xml_string, "<media:thumbnail url='%s' height='%u' width='%u' time='%s'/>",
+					uri, thumbnail->height, thumbnail->width, time);
+		g_free (uri);
+		g_free (time);
+	}
+
+	if (priv->duration != -1)
+		g_string_append_printf (xml_string, "<yt:duration seconds='%i'/>", priv->duration);
+
+	if (priv->private == TRUE)
+		g_string_append (xml_string, "<yt:private/>");
+
+	if (priv->uploaded.tv_sec != 0 || priv->uploaded.tv_usec != 0) {
+		gchar *uploaded = g_time_val_to_iso8601 (&(priv->uploaded));
+		g_string_append_printf (xml_string, "<yt:uploaded>%s</yt:uploaded>", uploaded);
+		g_free (uploaded);
+	}
+
+	if (priv->video_id != NULL) {
+		gchar *video_id = g_markup_escape_text (priv->video_id, -1);
+		g_string_append_printf (xml_string, "<yt:videoid>%s</yt:videoid>", video_id);
+		g_free (video_id);
+	}
+
+	if (priv->no_embed == TRUE)
+		g_string_append (xml_string, "<yt:noembed/>");
+
+	if (priv->location != NULL) {
+		gchar *location = g_markup_escape_text (priv->location, -1);
+		g_string_append_printf (xml_string, "<yt:location>%s</yt:location>", location);
+		g_free (location);
+	}
+
+	/* TODO:
+	 * - yt:recorded
+	 * - georss:where
+	 * - Check all tags here are valid for insertions and updates
+	 * - Check things are escaped (or not) as appropriate
+	 * - Write a function to encapsulate g_markup_escape_text and
+	 *   g_string_append_printf to reduce the number of allocations
+	 */
 }
 
 guint

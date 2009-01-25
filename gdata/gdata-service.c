@@ -38,6 +38,7 @@ static void gdata_service_finalize (GObject *object);
 static void gdata_service_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec);
 static void gdata_service_set_property (GObject *object, guint property_id, const GValue *value, GParamSpec *pspec);
 static gboolean real_parse_authentication_response (GDataService *self, const gchar *response_body, GError **error);
+static void real_append_query_headers (GDataService *self, SoupMessage *message);
 
 struct _GDataServicePrivate {
 	SoupSession *session;
@@ -81,6 +82,7 @@ gdata_service_class_init (GDataServiceClass *klass)
 	klass->service_name = "xapi";
 	klass->authentication_uri = "https://www.google.com/accounts/ClientLogin";
 	klass->parse_authentication_response = real_parse_authentication_response;
+	klass->append_query_headers = real_append_query_headers;
 
 	g_object_class_install_property (gobject_class, PROP_CLIENT_ID,
 				g_param_spec_string ("client-id",
@@ -184,6 +186,47 @@ gdata_service_set_property (GObject *object, guint property_id, const GValue *va
 			G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
 			break;
 	}
+}
+
+static gboolean
+real_parse_authentication_response (GDataService *self, const gchar *response_body, GError **error)
+{
+	gchar *auth_start, *auth_end;
+
+	/* Parse the response */
+	auth_start = strstr (response_body, "Auth=");
+	if (auth_start == NULL)
+		goto protocol_error;
+	auth_start += strlen ("Auth=");
+
+	auth_end = strstr (auth_start, "\n");
+	if (auth_end == NULL)
+		goto protocol_error;
+
+	self->priv->auth_token = g_strndup (auth_start, auth_end - auth_start);
+	if (self->priv->auth_token == NULL || strlen (self->priv->auth_token) == 0)
+		goto protocol_error;
+
+	return TRUE;
+
+protocol_error:
+	g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
+		     _("The server returned a malformed response."));
+	return FALSE;
+}
+
+static void
+real_append_query_headers (GDataService *self, SoupMessage *message)
+{
+	gchar *authorisation_header;
+
+	/* Set the authorisation header */
+	authorisation_header = g_strdup_printf ("GoogleLogin auth=%s", self->priv->auth_token);
+	soup_message_headers_append (message->request_headers, "Authorization", authorisation_header);
+	g_free (authorisation_header);
+
+	/* Set the GData-Version header to tell it we want to use the v2 API */
+	soup_message_headers_append (message->request_headers, "GData-Version", "2");
 }
 
 typedef struct {
@@ -293,33 +336,6 @@ gdata_service_authenticate_finish (GDataService *self, GAsyncResult *async_resul
 		return TRUE;
 
 	g_assert_not_reached ();
-}
-
-static gboolean
-real_parse_authentication_response (GDataService *self, const gchar *response_body, GError **error)
-{
-	gchar *auth_start, *auth_end;
-
-	/* Parse the response */
-	auth_start = strstr (response_body, "Auth=");
-	if (auth_start == NULL)
-		goto protocol_error;
-	auth_start += strlen ("Auth=");
-
-	auth_end = strstr (auth_start, "\n");
-	if (auth_end == NULL)
-		goto protocol_error;
-
-	self->priv->auth_token = g_strndup (auth_start, auth_end - auth_start);
-	if (self->priv->auth_token == NULL || strlen (self->priv->auth_token) == 0)
-		goto protocol_error;
-
-	return TRUE;
-
-protocol_error:
-	g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
-		     _("The server returned a malformed response."));
-	return FALSE;
 }
 
 gboolean
@@ -490,7 +506,7 @@ gdata_service_query (GDataService *self, const gchar *feed_uri, GDataQuery *quer
 	GDataServiceClass *klass;
 	GDataFeed *feed;
 	SoupMessage *message;
-	gchar *authorisation_header, *query_uri;
+	gchar *query_uri;
 	guint status;
 
 	g_return_val_if_fail (GDATA_IS_SERVICE (self), NULL);
@@ -498,14 +514,6 @@ gdata_service_query (GDataService *self, const gchar *feed_uri, GDataQuery *quer
 	query_uri = gdata_query_get_query_uri (query, feed_uri);
 	message = soup_message_new (SOUP_METHOD_GET, query_uri);
 	g_free (query_uri);
-
-	/* Set the authorisation header */
-	authorisation_header = g_strdup_printf ("GoogleLogin auth=%s", self->priv->auth_token);
-	soup_message_headers_append (message->request_headers, "Authorization", authorisation_header);
-	g_free (authorisation_header);
-
-	/* Set the GData-Version header to tell it we want to use the v2 API */
-	soup_message_headers_append (message->request_headers, "GData-Version", "2");
 
 	/* Make sure subclasses set their headers */
 	klass = GDATA_SERVICE_GET_CLASS (self);
@@ -536,6 +544,58 @@ gdata_service_query (GDataService *self, const gchar *feed_uri, GDataQuery *quer
 	g_object_unref (message);
 
 	return feed;
+}
+
+gboolean
+gdata_service_insert_entry (GDataService *self, const gchar *upload_uri, GDataEntry *entry, GCancellable *cancellable, GError **error)
+{
+	GDataServiceClass *klass;
+	SoupMessage *message;
+	gchar *upload_data;
+	guint status;
+
+	g_return_val_if_fail (GDATA_IS_SERVICE (self), FALSE);
+	g_return_val_if_fail (upload_uri != NULL, FALSE);
+	g_return_val_if_fail (GDATA_IS_ENTRY (entry), FALSE);
+
+	if (gdata_entry_inserted (entry) == TRUE) {
+		g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_ENTRY_ALREADY_INSERTED,
+			     _("The entry has already been inserted."));
+		return FALSE;
+	}
+
+	message = soup_message_new (SOUP_METHOD_POST, upload_uri);
+
+	/* Make sure subclasses set their headers */
+	klass = GDATA_SERVICE_GET_CLASS (self);
+	if (klass->append_query_headers != NULL)
+		klass->append_query_headers (self, message);
+
+	/* Append the data */
+	upload_data = gdata_entry_get_xml (entry);
+	soup_message_set_request (message, "application/atom+xml", SOUP_MEMORY_TAKE, upload_data, strlen (upload_data));
+
+	/* Send the message */
+	status = soup_session_send_message (self->priv->session, message);
+
+	/* Check for cancellation */
+	if (g_cancellable_set_error_if_cancelled (cancellable, error) == TRUE) {
+		g_object_unref (message);
+		return FALSE;
+	}
+
+	if (status != 201) {
+		/* Error */
+		/* TODO: Handle errors more specifically, making sure to set logged_in where appropriate */
+		g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_WITH_INSERTION,
+			     _("TODO: error code %u when inserting"), status);
+		g_object_unref (message);
+		return FALSE;
+	}
+
+	g_assert (message->response_body->data != NULL);
+
+	return TRUE;
 }
 
 gboolean
