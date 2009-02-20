@@ -35,6 +35,7 @@ static void gdata_youtube_video_finalize (GObject *object);
 static void gdata_youtube_video_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec);
 static void gdata_youtube_video_set_property (GObject *object, guint property_id, const GValue *value, GParamSpec *pspec);
 static void get_xml (GDataEntry *entry, GString *xml_string);
+static const gchar *get_namespaces (GDataEntry *entry);
 
 struct _GDataYouTubeVideoPrivate {
 	guint view_count;
@@ -98,6 +99,7 @@ gdata_youtube_video_class_init (GDataYouTubeVideoClass *klass)
 	gobject_class->finalize = gdata_youtube_video_finalize;
 
 	entry_class->get_xml = get_xml;
+	entry_class->get_namespaces = get_namespaces;
 
 	g_object_class_install_property (gobject_class, PROP_VIEW_COUNT,
 				g_param_spec_uint ("view-count",
@@ -346,6 +348,48 @@ GDataYouTubeVideo *
 gdata_youtube_video_new (void)
 {
 	return g_object_new (GDATA_TYPE_YOUTUBE_VIDEO, NULL);
+}
+
+GDataYouTubeVideo *
+gdata_youtube_video_new_from_xml (const gchar *xml, gint length, GError **error)
+{
+	xmlDoc *doc;
+	xmlNode *node;
+
+	g_return_val_if_fail (xml != NULL, NULL);
+
+	if (length == -1)
+		length = strlen (xml);
+
+	/* Parse the XML */
+	doc = xmlReadMemory (xml, length, "entry.xml", NULL, 0);
+	if (doc == NULL) {
+		xmlError *xml_error = xmlGetLastError ();
+		g_set_error (error, GDATA_PARSER_ERROR, GDATA_PARSER_ERROR_PARSING_STRING,
+			     _("Error parsing XML: %s"),
+			     xml_error->message);
+		return NULL;
+	}
+
+	/* Get the root element */
+	node = xmlDocGetRootElement (doc);
+	if (node == NULL) {
+		/* XML document's empty */
+		xmlFreeDoc (doc);
+		g_set_error (error, GDATA_PARSER_ERROR, GDATA_PARSER_ERROR_EMPTY_DOCUMENT,
+			     _("Error parsing XML: %s"),
+			     _("Empty document."));
+		return NULL;
+	}
+
+	if (xmlStrcmp (node->name, (xmlChar*) "entry") != 0) {
+		/* No <entry> element (required) */
+		xmlFreeDoc (doc);
+		gdata_parser_error_required_element_missing ("entry", "root", error);
+		return NULL;
+	}
+
+	return _gdata_youtube_video_new_from_xml_node (doc, node, error);
 }
 
 GDataYouTubeVideo *
@@ -751,10 +795,15 @@ get_xml (GDataEntry *entry, GString *xml_string)
 	GDATA_ENTRY_CLASS (gdata_youtube_video_parent_class)->get_xml (entry, xml_string);
 
 	/* Add all the YouTube-specific XML */
+	g_string_append (xml_string, "<media:group><media:category");
+
+	if (priv->category->label != NULL)
+		g_string_append_printf (xml_string, " label='%s'", priv->category->label);
+	if (priv->category->scheme != NULL)
+		g_string_append_printf (xml_string, " scheme='%s'", priv->category->scheme);
+
 	category = g_markup_escape_text (priv->category->category, -1);
-	g_string_append_printf (xml_string, "<media:group>"
-				"<media:category label='%s' scheme='%s'>%s</media:category>",
-				priv->category->label, priv->category->scheme, category);
+	g_string_append_printf (xml_string, ">%s</media:category>", category);
 	g_free (category);
 
 	if (priv->title != NULL) {
@@ -883,6 +932,8 @@ get_xml (GDataEntry *entry, GString *xml_string)
 	if (priv->no_embed == TRUE)
 		g_string_append (xml_string, "<yt:noembed/>");
 
+	g_string_append (xml_string, "</media:group>");
+
 	if (priv->location != NULL) {
 		gchar *location = g_markup_escape_text (priv->location, -1);
 		g_string_append_printf (xml_string, "<yt:location>%s</yt:location>", location);
@@ -897,6 +948,12 @@ get_xml (GDataEntry *entry, GString *xml_string)
 	 * - Write a function to encapsulate g_markup_escape_text and
 	 *   g_string_append_printf to reduce the number of allocations
 	 */
+}
+
+static const gchar *
+get_namespaces (GDataEntry *entry)
+{
+	return "xmlns:media='http://search.yahoo.com/mrss/' xmlns:yt='http://gdata.youtube.com/schemas/2007'";
 }
 
 guint

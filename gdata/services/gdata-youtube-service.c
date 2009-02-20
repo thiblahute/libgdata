@@ -27,6 +27,8 @@
 #include "gdata-service.h"
 #include "gdata-private.h"
 
+/* Standards reference here: http://code.google.com/apis/youtube/2.0/reference.html */
+
 static void gdata_youtube_service_finalize (GObject *object);
 static void gdata_youtube_service_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec);
 static void gdata_youtube_service_set_property (GObject *object, guint property_id, const GValue *value, GParamSpec *pspec);
@@ -280,6 +282,137 @@ gdata_youtube_service_query_videos_async (GDataYouTubeService *self, const gchar
 				   (GDataEntryParserFunc) _gdata_youtube_video_new_from_xml_node,
 				   cancellable, callback, user_data);
 	g_object_unref (query);
+}
+
+GDataYouTubeVideo *
+gdata_youtube_service_upload_video (GDataYouTubeService *self, GDataYouTubeVideo *video, GFile *video_file,
+				    GCancellable *cancellable, GError **error)
+{
+	#define BOUNDARY_STRING "0xdeadbeef6e0808d5e6ed8bc168390bcc"
+
+	GDataServiceClass *klass;
+	SoupMessage *message;
+	gchar *entry_xml, *upload_uri, *second_chunk_header, *upload_data, *video_contents, *i;
+	const gchar *first_chunk_header, *footer;
+	guint status;
+	GFileInfo *video_file_info;
+	gsize content_length, first_chunk_header_length, second_chunk_header_length, entry_xml_length, video_length, footer_length;
+
+	g_return_val_if_fail (GDATA_IS_YOUTUBE_SERVICE (self), NULL);
+	g_return_val_if_fail (GDATA_IS_YOUTUBE_VIDEO (video), NULL);
+
+	if (gdata_entry_inserted (GDATA_ENTRY (video)) == TRUE) {
+		g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_ENTRY_ALREADY_INSERTED,
+			     _("The entry has already been inserted."));
+		return NULL;
+	}
+
+	if (gdata_service_is_logged_in (GDATA_SERVICE (self)) == FALSE) {
+		g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_AUTHENTICATION_REQUIRED,
+			     _("You must be logged in before uploading a video."));
+		return NULL;
+	}
+
+	upload_uri = g_strdup_printf ("http://uploads.gdata.youtube.com/feeds/api/users/%s/uploads", gdata_service_get_username (GDATA_SERVICE (self)));
+	message = soup_message_new (SOUP_METHOD_POST, upload_uri);
+	g_free (upload_uri);
+
+	/* Make sure subclasses set their headers */
+	klass = GDATA_SERVICE_GET_CLASS (self);
+	if (klass->append_query_headers != NULL)
+		klass->append_query_headers (GDATA_SERVICE (self), message);
+
+	/* Get the data early so we can calculate the content length */
+	if (g_file_load_contents (video_file, NULL, &video_contents, &video_length, NULL, error) == FALSE) {
+		g_object_unref (message);
+		return NULL;
+	}
+
+	entry_xml = gdata_entry_get_xml (GDATA_ENTRY (video));
+
+	/* Check for cancellation */
+	if (g_cancellable_set_error_if_cancelled (cancellable, error) == TRUE) {
+		g_object_unref (message);
+		g_free (entry_xml);
+		return NULL;
+	}
+
+	video_file_info = g_file_query_info (video_file, "standard::display-name,standard::content-type", G_FILE_QUERY_INFO_NONE, NULL, error);
+	if (video_file_info == NULL) {
+		g_object_unref (message);
+		g_free (entry_xml);
+		return NULL;
+	}
+
+	/* Check for cancellation */
+	if (g_cancellable_set_error_if_cancelled (cancellable, error) == TRUE) {
+		g_object_unref (message);
+		g_free (entry_xml);
+		g_object_unref (video_file_info);
+		return NULL;
+	}
+
+	/* Add video-upload--specific headers */
+	soup_message_headers_append (message->request_headers, "Slug", g_file_info_get_display_name (video_file_info));
+
+	first_chunk_header = "--" BOUNDARY_STRING "\nContent-Type: application/atom+xml; charset=UTF-8\n\n<?xml version='1.0'?>";
+	second_chunk_header = g_strdup_printf ("\n--" BOUNDARY_STRING "\nContent-Type: %s\nContent-Transfer-Encoding: binary\n\n",
+					       g_file_info_get_content_type (video_file_info));
+	footer = "\n--" BOUNDARY_STRING "--";
+
+	g_object_unref (video_file_info);
+
+	first_chunk_header_length = strlen (first_chunk_header);
+	second_chunk_header_length = strlen (second_chunk_header);
+	footer_length = strlen (footer);
+	entry_xml_length = strlen (entry_xml);
+
+	content_length = first_chunk_header_length + entry_xml_length + second_chunk_header_length + video_length + footer_length;
+
+	/* Build the upload data */
+	upload_data = i = g_malloc (content_length);
+
+	memcpy (upload_data, first_chunk_header, first_chunk_header_length);
+	i += first_chunk_header_length;
+
+	memcpy (i, entry_xml, entry_xml_length);
+	i += entry_xml_length;
+	g_free (entry_xml);
+
+	memcpy (i, second_chunk_header, second_chunk_header_length);
+	g_free (second_chunk_header);
+	i += second_chunk_header_length;
+
+	memcpy (i, video_contents, video_length);
+	g_free (video_contents);
+	i += video_length;
+
+	memcpy (i, footer, footer_length);
+
+	/* Append the data */
+	soup_message_set_request (message, "multipart/related; boundary=" BOUNDARY_STRING, SOUP_MEMORY_TAKE, upload_data, content_length);
+
+	/* Send the message */
+	status = soup_session_send_message (gdata_service_get_session (GDATA_SERVICE (self)), message);
+
+	/* Check for cancellation */
+	if (g_cancellable_set_error_if_cancelled (cancellable, error) == TRUE) {
+		g_object_unref (message);
+		return NULL;
+	}
+
+	if (status != 201) {
+		/* Error */
+		/* TODO: Handle errors more specifically, making sure to set logged_in where appropriate */
+		g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_WITH_INSERTION,
+			     _("TODO: error code %u when uploading video"), status);
+		g_object_unref (message);
+		return NULL;
+	}
+
+	g_assert (message->response_body->data != NULL);
+
+	return gdata_youtube_video_new_from_xml (message->response_body->data, (gint) message->response_body->length, error);
 }
 
 const gchar *

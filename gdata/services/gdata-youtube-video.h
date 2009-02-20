@@ -50,6 +50,7 @@ typedef struct {
 GType gdata_youtube_video_get_type (void);
 
 GDataYouTubeVideo *gdata_youtube_video_new (void);
+GDataYouTubeVideo *gdata_youtube_video_new_from_xml (const gchar *xml, gint length, GError **error);
 
 guint gdata_youtube_video_get_view_count (GDataYouTubeVideo *self);
 void gdata_youtube_video_set_view_count (GDataYouTubeVideo *self, guint view_count);

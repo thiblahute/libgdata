@@ -46,6 +46,7 @@ typedef struct {
 	GObjectClass parent;
 
 	void (*get_xml) (GDataEntry *self, GString *xml_string);
+	const gchar *(*get_namespaces) (GDataEntry *self);
 } GDataEntryClass;
 
 GType gdata_entry_get_type (void);

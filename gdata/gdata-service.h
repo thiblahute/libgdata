@@ -34,7 +34,8 @@ typedef enum {
 	GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
 	GDATA_SERVICE_ERROR_WITH_QUERY,
 	GDATA_SERVICE_ERROR_ENTRY_ALREADY_INSERTED,
-	GDATA_SERVICE_ERROR_WITH_INSERTION
+	GDATA_SERVICE_ERROR_WITH_INSERTION,
+	GDATA_SERVICE_ERROR_AUTHENTICATION_REQUIRED
 } GDataServiceError;
 
 typedef GDataEntry *(*GDataEntryParserFunc) (xmlDoc *doc, xmlNode *node, GError **error);
@@ -86,6 +87,9 @@ gboolean gdata_service_insert_entry (GDataService *self, const gchar *upload_uri
 
 gboolean gdata_service_is_logged_in (GDataService *self);
 const gchar *gdata_service_get_client_id (GDataService *self);
+const gchar *gdata_service_get_username (GDataService *self);
+const gchar *gdata_service_get_password (GDataService *self);
+SoupSession *gdata_service_get_session (GDataService *self);
 
 G_END_DECLS
 

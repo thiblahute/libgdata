@@ -618,14 +618,21 @@ gdata_entry_get_xml (GDataEntry *self)
 {
 	GDataEntryClass *klass;
 	GString *xml_string;
+	const gchar *namespaces;
 
 	klass = GDATA_ENTRY_GET_CLASS (self);
 	if (klass->get_xml == NULL)
 		return NULL;
 
+	/* Get the namespaces the class uses */
+	if (klass->get_namespaces == NULL)
+		namespaces = "";
+	else
+		namespaces = klass->get_namespaces (self);
+
 	/* Allocate enough space for 300 characters, which is a decent average entry length */
 	xml_string = g_string_sized_new (300);
-	g_string_append (xml_string, "<entry xmlns='http://www.w3.org/2005/Atom'>");
+	g_string_append_printf (xml_string, "<entry xmlns='http://www.w3.org/2005/Atom' %s>", klass->get_namespaces (self));
 	klass->get_xml (self, xml_string);
 	g_string_append (xml_string, "</entry>");
 

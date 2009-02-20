@@ -611,3 +611,24 @@ gdata_service_get_client_id (GDataService *self)
 	g_return_val_if_fail (GDATA_IS_SERVICE (self), NULL);
 	return self->priv->client_id;
 }
+
+const gchar *
+gdata_service_get_username (GDataService *self)
+{
+	g_return_val_if_fail (GDATA_IS_SERVICE (self), NULL);
+	return self->priv->username;
+}
+
+const gchar *
+gdata_service_get_password (GDataService *self)
+{
+	g_return_val_if_fail (GDATA_IS_SERVICE (self), NULL);
+	return self->priv->password;
+}
+
+SoupSession *
+gdata_service_get_session (GDataService *self)
+{
+	g_return_val_if_fail (GDATA_IS_SERVICE (self), NULL);
+	return self->priv->session;
+}

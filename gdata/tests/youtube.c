@@ -136,6 +136,59 @@ test_query_standard_feed_async (void)
 	g_main_loop_unref (main_loop);
 }
 
+static void
+test_upload_simple (void)
+{
+	GDataYouTubeVideo *video, *new_video;
+	GDataMediaCategory *category;
+	GFile *video_file;
+	gchar *xml;
+	GError *error = NULL;
+
+	g_assert (service != NULL);
+
+	video = gdata_youtube_video_new ();
+
+	gdata_entry_set_title (GDATA_ENTRY (video), "Bad Wedding Toast");
+	gdata_youtube_video_set_title (video, "Bad Wedding Toast");
+	gdata_youtube_video_set_description (video, "I gave a bad toast at my friend's wedding.");
+	category = gdata_media_category_new ("People", NULL, "http://gdata.youtube.com/schemas/2007/categories.cat");
+	gdata_youtube_video_set_category (video, category);
+	gdata_youtube_video_set_keywords (video, "toast, wedding");
+
+	/* Check the XML */
+	xml = gdata_entry_get_xml (GDATA_ENTRY (video));
+	g_assert_cmpstr (xml, ==,
+			 "<entry xmlns='http://www.w3.org/2005/Atom' "
+				"xmlns:media='http://search.yahoo.com/mrss/' "
+				"xmlns:yt='http://gdata.youtube.com/schemas/2007'>"
+			 	"<title type='text'>Bad Wedding Toast</title>"
+			 	"<media:group>"
+			 		"<media:category scheme='http://gdata.youtube.com/schemas/2007/categories.cat'>People</media:category>"
+			 		"<media:title type='plain'>Bad Wedding Toast</media:title>"
+			 		"<media:description type='plain'>I gave a bad toast at my friend&apos;s wedding.</media:description>"
+			 		"<media:keywords>toast, wedding</media:keywords>"
+			 		"<yt:duration seconds='0'/>"
+			 	"</media:group>"
+			 "</entry>");
+	g_free (xml);
+
+	/* TODO: fix the path */
+	video_file = g_file_new_for_path ("/home/philip/Development/libgdata/gdata/tests/sample.ogg");
+
+	/* Upload the video */
+	new_video = gdata_youtube_service_upload_video (GDATA_YOUTUBE_SERVICE (service), video, video_file, NULL, &error);
+	g_assert_no_error (error);
+	g_assert (GDATA_IS_YOUTUBE_VIDEO (new_video));
+	g_clear_error (&error);
+
+	/* TODO: check entries and feed properties */
+
+	g_object_unref (video);
+	g_object_unref (new_video);
+	g_object_unref (video_file);
+}
+
 int
 main (int argc, char *argv[])
 {
@@ -152,6 +205,7 @@ main (int argc, char *argv[])
 	g_test_add_func ("/youtube/query/standard_feed", test_query_standard_feed);
 	if (g_test_thorough () == TRUE)
 		g_test_add_func ("/youtube/query/standard_feed_async", test_query_standard_feed_async);
+	g_test_add_func ("/youtube/upload/simple", test_upload_simple);
 
 	retval = g_test_run ();
 	if (service != NULL)

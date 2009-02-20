@@ -22,6 +22,9 @@
 
 #include "gdata-media-rss.h"
 
+/* This may have been subverted by Google for the YouTube API, but it was actually originally
+ * designed by Yahoo. Standards reference here: http://search.yahoo.com/mrss/ */
+
 GDataMediaRating *
 gdata_media_rating_new (const gchar *scheme, const gchar *country)
 {
