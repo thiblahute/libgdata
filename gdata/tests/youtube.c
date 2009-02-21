@@ -96,7 +96,7 @@ test_query_standard_feed (void)
 
 	g_assert (service != NULL);
 
-	feed = gdata_youtube_service_query_standard_feed (GDATA_YOUTUBE_SERVICE (service), GDATA_YOUTUBE_TOP_RATED_FEED, NULL, &error);
+	feed = gdata_youtube_service_query_standard_feed (GDATA_YOUTUBE_SERVICE (service), GDATA_YOUTUBE_TOP_RATED_FEED, -1, -1, NULL, &error);
 	g_assert_no_error (error);
 	g_assert (GDATA_IS_FEED (feed));
 	g_clear_error (&error);
@@ -128,8 +128,132 @@ test_query_standard_feed_async (void)
 {
 	g_assert (service != NULL);
 
-	gdata_youtube_service_query_standard_feed_async (GDATA_YOUTUBE_SERVICE (service), GDATA_YOUTUBE_TOP_RATED_FEED,
+	gdata_youtube_service_query_standard_feed_async (GDATA_YOUTUBE_SERVICE (service), GDATA_YOUTUBE_TOP_RATED_FEED, -1, -1,
 							 NULL, (GAsyncReadyCallback) test_query_standard_feed_async_cb, NULL);
+
+	main_loop = g_main_loop_new (NULL, TRUE);
+	g_main_loop_run (main_loop);
+	g_main_loop_unref (main_loop);
+}
+
+static GDataYouTubeVideo *
+get_video_for_related (void)
+{
+	GDataYouTubeVideo *video;
+	GError *error = NULL;
+
+	video = gdata_youtube_video_new_from_xml (
+		"<entry xmlns='http://www.w3.org/2005/Atom' "
+			"xmlns:media='http://search.yahoo.com/mrss/' "
+			"xmlns:yt='http://gdata.youtube.com/schemas/2007' "
+			"xmlns:georss='http://www.georss.org/georss' "
+			"xmlns:gd='http://schemas.google.com/g/2005' "
+			"xmlns:gml='http://www.opengis.net/gml'>"
+			"<id>http://gdata.youtube.com/feeds/api/videos/q1UPMEmCqZo</id>"
+			"<published>2009-02-12T20:34:08.000Z</published>"
+			"<updated>2009-02-21T13:00:13.000Z</updated>"
+			"<category scheme='http://gdata.youtube.com/schemas/2007/keywords.cat' term='part one'/>"
+			"<category scheme='http://gdata.youtube.com/schemas/2007/categories.cat' term='Film' label='Film &amp; Animation'/>"
+			"<category scheme='http://schemas.google.com/g/2005#kind' term='http://gdata.youtube.com/schemas/2007#video'/>"
+			"<category scheme='http://gdata.youtube.com/schemas/2007/keywords.cat' term='ian purchase'/>"
+			"<category scheme='http://gdata.youtube.com/schemas/2007/keywords.cat' term='purchase brothers'/>"
+			"<category scheme='http://gdata.youtube.com/schemas/2007/keywords.cat' term='half life 2'/>"
+			"<category scheme='http://gdata.youtube.com/schemas/2007/keywords.cat' term='escape from city 17'/>"
+			"<category scheme='http://gdata.youtube.com/schemas/2007/keywords.cat' term='Half Life'/>"
+			"<category scheme='http://gdata.youtube.com/schemas/2007/keywords.cat' term='david purchase'/>"
+			"<category scheme='http://gdata.youtube.com/schemas/2007/keywords.cat' term='half-life'/>"
+			"<title type='text'>Escape From City 17 - Part One</title>"
+			"<content type='text'>Directed by The Purchase Brothers. *snip*</content>"
+			"<link rel='alternate' type='text/html' href='http://www.youtube.com/watch?v=q1UPMEmCqZo'/>"
+			"<link rel='http://gdata.youtube.com/schemas/2007#video.related' type='application/atom+xml' href='http://gdata.youtube.com/feeds/api/videos/q1UPMEmCqZo/related'/>"
+			"<link rel='http://gdata.youtube.com/schemas/2007#mobile' type='text/html' href='http://m.youtube.com/details?v=q1UPMEmCqZo'/>"
+			"<link rel='self' type='application/atom+xml' href='http://gdata.youtube.com/feeds/api/standardfeeds/top_rated/v/q1UPMEmCqZo'/>"
+			"<author>"
+				"<name>PurchaseBrothers</name>"
+				"<uri>http://gdata.youtube.com/feeds/api/users/purchasebrothers</uri>"
+			"</author>"
+			"<media:group>"
+				"<media:title type='plain'>Escape From City 17 - Part One</media:title>"
+				"<media:description type='plain'>Directed by The Purchase Brothers. *snip*</media:description>"
+				"<media:keywords>Half Life, escape from city 17, half-life, half life 2, part one, purchase brothers, david purchase, ian purchase</media:keywords>"
+				"<yt:duration seconds='330'/>"
+				"<media:category label='Film &amp; Animation' scheme='http://gdata.youtube.com/schemas/2007/categories.cat'>Film</media:category>"
+				"<media:content url='http://www.youtube.com/v/q1UPMEmCqZo&amp;f=standard&amp;app=youtube_gdata' type='application/x-shockwave-flash' medium='video' isDefault='true' expression='full' duration='330' yt:format='5'/>"
+				"<media:content url='rtsp://rtsp2.youtube.com/CiQLENy73wIaGwmaqYJJMA9VqxMYDSANFEgGUghzdGFuZGFyZAw=/0/0/0/video.3gp' type='video/3gpp' medium='video' expression='full' duration='330' yt:format='1'/>"
+				"<media:content url='rtsp://rtsp2.youtube.com/CiQLENy73wIaGwmaqYJJMA9VqxMYESARFEgGUghzdGFuZGFyZAw=/0/0/0/video.3gp' type='video/3gpp' medium='video' expression='full' duration='330' yt:format='6'/>"
+				"<media:thumbnail url='http://i.ytimg.com/vi/q1UPMEmCqZo/2.jpg' height='97' width='130' time='00:02:45'/>"
+				"<media:thumbnail url='http://i.ytimg.com/vi/q1UPMEmCqZo/1.jpg' height='97' width='130' time='00:01:22.500'/>"
+				"<media:thumbnail url='http://i.ytimg.com/vi/q1UPMEmCqZo/3.jpg' height='97' width='130' time='00:04:07.500'/>"
+				"<media:thumbnail url='http://i.ytimg.com/vi/q1UPMEmCqZo/0.jpg' height='240' width='320' time='00:02:45'/>"
+				"<media:player url='http://www.youtube.com/watch?v=q1UPMEmCqZo'/>"
+			"</media:group>"
+			"<yt:statistics viewCount='1683289' favoriteCount='29963'/>"
+			"<gd:rating min='1' max='5' numRaters='24550' average='4.95'/>"
+			"<georss:where>"
+				"<gml:Point>"
+					"<gml:pos>43.661911057260674 -79.37759399414062</gml:pos>"
+				"</gml:Point>"
+			"</georss:where>"
+			"<gd:comments>"
+				"<gd:feedLink href='http://gdata.youtube.com/feeds/api/videos/q1UPMEmCqZo/comments' countHint='13021'/>"
+			"</gd:comments>"
+		"</entry>", -1, &error);
+	g_assert_no_error (error);
+	g_assert (GDATA_IS_YOUTUBE_VIDEO (video));
+	g_clear_error (&error);
+
+	return video;
+}
+
+static void
+test_query_related (void)
+{
+	GDataFeed *feed;
+	GDataYouTubeVideo *video;
+	GError *error = NULL;
+
+	g_assert (service != NULL);
+
+	video = get_video_for_related ();
+	feed = gdata_youtube_service_query_related (GDATA_YOUTUBE_SERVICE (service), video, -1, -1, NULL, &error);
+	g_assert_no_error (error);
+	g_assert (GDATA_IS_FEED (feed));
+	g_clear_error (&error);
+
+	/* TODO: check entries and feed properties */
+
+	g_object_unref (video);
+	g_object_unref (feed);
+}
+
+static void
+test_query_related_async_cb (GDataService *service, GAsyncResult *async_result, gpointer user_data)
+{
+	GDataFeed *feed;
+	GError *error = NULL;
+
+	feed = gdata_service_query_finish (service, async_result, &error);
+	g_assert_no_error (error);
+	g_assert (GDATA_IS_FEED (feed));
+	g_clear_error (&error);
+
+	/* TODO: Tests? */
+	g_main_loop_quit (main_loop);
+
+	g_object_unref (feed);
+}
+
+static void
+test_query_related_async (void)
+{
+	GDataYouTubeVideo *video;
+
+	g_assert (service != NULL);
+
+	video = get_video_for_related ();
+	gdata_youtube_service_query_related_async (GDATA_YOUTUBE_SERVICE (service), video, -1, -1,
+						   NULL, (GAsyncReadyCallback) test_query_related_async_cb, NULL);
+	g_object_unref (video);
 
 	main_loop = g_main_loop_new (NULL, TRUE);
 	g_main_loop_run (main_loop);
@@ -205,6 +329,9 @@ main (int argc, char *argv[])
 	g_test_add_func ("/youtube/query/standard_feed", test_query_standard_feed);
 	if (g_test_thorough () == TRUE)
 		g_test_add_func ("/youtube/query/standard_feed_async", test_query_standard_feed_async);
+	g_test_add_func ("/youtube/query/related", test_query_related);
+	if (g_test_thorough () == TRUE)
+		g_test_add_func ("/youtube/query/related_async", test_query_related_async);
 	g_test_add_func ("/youtube/upload/simple", test_upload_simple);
 
 	retval = g_test_run ();

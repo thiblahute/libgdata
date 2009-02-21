@@ -168,6 +168,8 @@ append_query_headers (GDataService *self, SoupMessage *message)
 	GDataYouTubeServicePrivate *priv = GDATA_YOUTUBE_SERVICE (self)->priv;
 	gchar *key_header;
 
+	g_assert (message != NULL);
+
 	/* Dev key and client headers */
 	key_header = g_strdup_printf ("key=%s", priv->developer_key);
 	soup_message_headers_append (message->request_headers, "X-GData-Key", key_header);
@@ -221,7 +223,8 @@ standard_feed_type_to_feed_uri (GDataYouTubeStandardFeedType feed_type)
 }
 
 GDataFeed *
-gdata_youtube_service_query_standard_feed (GDataYouTubeService *self, GDataYouTubeStandardFeedType feed_type, GCancellable *cancellable, GError **error)
+gdata_youtube_service_query_standard_feed (GDataYouTubeService *self, GDataYouTubeStandardFeedType feed_type, gint start_index, gint max_results,
+					   GCancellable *cancellable, GError **error)
 {
 	GDataQuery *query;
 	GDataFeed *feed;
@@ -230,7 +233,7 @@ gdata_youtube_service_query_standard_feed (GDataYouTubeService *self, GDataYouTu
 	/* TODO: Support the "time" parameter, as well as category- and region-specific feeds */
 	feed_uri = standard_feed_type_to_feed_uri (feed_type);
 
-	query = gdata_query_new (GDATA_SERVICE (self), NULL);
+	query = gdata_query_new_with_limits (GDATA_SERVICE (self), NULL, start_index, max_results);
 	feed = gdata_service_query (GDATA_SERVICE (self), feed_uri, query,
 				    (GDataEntryParserFunc) _gdata_youtube_video_new_from_xml_node, cancellable, error);
 	g_object_unref (query);
@@ -239,7 +242,7 @@ gdata_youtube_service_query_standard_feed (GDataYouTubeService *self, GDataYouTu
 }
 
 void
-gdata_youtube_service_query_standard_feed_async (GDataYouTubeService *self, GDataYouTubeStandardFeedType feed_type,
+gdata_youtube_service_query_standard_feed_async (GDataYouTubeService *self, GDataYouTubeStandardFeedType feed_type, gint start_index, gint max_results,
 						 GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
 	GDataQuery *query;
@@ -247,7 +250,7 @@ gdata_youtube_service_query_standard_feed_async (GDataYouTubeService *self, GDat
 
 	feed_uri = standard_feed_type_to_feed_uri (feed_type);
 
-	query = gdata_query_new (GDATA_SERVICE (self), NULL);
+	query = gdata_query_new_with_limits (GDATA_SERVICE (self), NULL, start_index, max_results);
 	gdata_service_query_async (GDATA_SERVICE (self), feed_uri, query,
 				   (GDataEntryParserFunc) _gdata_youtube_video_new_from_xml_node,
 				   cancellable, callback, user_data);
@@ -255,13 +258,14 @@ gdata_youtube_service_query_standard_feed_async (GDataYouTubeService *self, GDat
 }
 
 GDataFeed *
-gdata_youtube_service_query_videos (GDataYouTubeService *self, const gchar *query_terms, GCancellable *cancellable, GError **error)
+gdata_youtube_service_query_videos (GDataYouTubeService *self, const gchar *query_terms, gint start_index, gint max_results,
+				    GCancellable *cancellable, GError **error)
 {
 	GDataQuery *query;
 	GDataFeed *feed;
 
 	/* Build and execute the query */
-	query = gdata_query_new (GDATA_SERVICE (self), query_terms);
+	query = gdata_query_new_with_limits (GDATA_SERVICE (self), query_terms, start_index, max_results);
 	feed = gdata_service_query (GDATA_SERVICE (self),
 				    "http://gdata.youtube.com/feeds/api/videos", query,
 				    (GDataEntryParserFunc) _gdata_youtube_video_new_from_xml_node, cancellable, error);
@@ -271,12 +275,12 @@ gdata_youtube_service_query_videos (GDataYouTubeService *self, const gchar *quer
 }
 
 void
-gdata_youtube_service_query_videos_async (GDataYouTubeService *self, const gchar *query_terms,
+gdata_youtube_service_query_videos_async (GDataYouTubeService *self, const gchar *query_terms, gint start_index, gint max_results,
 					  GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
 	GDataQuery *query;
 
-	query = gdata_query_new (GDATA_SERVICE (self), query_terms);
+	query = gdata_query_new_with_limits (GDATA_SERVICE (self), query_terms, start_index, max_results);
 	gdata_service_query_async (GDATA_SERVICE (self),
 				   "http://gdata.youtube.com/feeds/api/videos", query,
 				   (GDataEntryParserFunc) _gdata_youtube_video_new_from_xml_node,
@@ -284,6 +288,59 @@ gdata_youtube_service_query_videos_async (GDataYouTubeService *self, const gchar
 	g_object_unref (query);
 }
 
+GDataFeed *
+gdata_youtube_service_query_related (GDataYouTubeService *self, GDataYouTubeVideo *video, gint start_index, gint max_results,
+				     GCancellable *cancellable, GError **error)
+{
+	GDataQuery *query;
+	GDataFeed *feed;
+	GDataLink *related_link;
+
+	/* See if the video already has a rel="http://gdata.youtube.com/schemas/2007#video.related" link */
+	related_link = gdata_entry_lookup_link (GDATA_ENTRY (video), "http://gdata.youtube.com/schemas/2007#video.related");
+	if (related_link == NULL) {
+		/* Erroring out is probably the safest thing to do */
+		g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
+			     _("The video didn't have a related videos <link>."));
+		return NULL;
+	}
+
+	/* Build and execute the query */
+	query = gdata_query_new_with_limits (GDATA_SERVICE (self), NULL, start_index, max_results);
+	feed = gdata_service_query (GDATA_SERVICE (self),
+				    related_link->href, query,
+				    (GDataEntryParserFunc) _gdata_youtube_video_new_from_xml_node, cancellable, error);
+	g_object_unref (query);
+
+	return feed;
+}
+
+void
+gdata_youtube_service_query_related_async (GDataYouTubeService *self, GDataYouTubeVideo *video, gint start_index, gint max_results,
+					   GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+	GDataQuery *query;
+	GDataLink *related_link;
+
+	/* See if the video already has a rel="http://gdata.youtube.com/schemas/2007#video.related" link */
+	related_link = gdata_entry_lookup_link (GDATA_ENTRY (video), "http://gdata.youtube.com/schemas/2007#video.related");
+	if (related_link == NULL) {
+		/* Erroring out is probably the safest thing to do */
+		g_simple_async_report_error_in_idle (G_OBJECT (self), callback, user_data,
+						     GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
+						     _("The video didn't have a related videos <link>."));
+		return;
+	}
+
+	query = gdata_query_new_with_limits (GDATA_SERVICE (self), NULL, start_index, max_results);
+	gdata_service_query_async (GDATA_SERVICE (self),
+				   related_link->href, query,
+				   (GDataEntryParserFunc) _gdata_youtube_video_new_from_xml_node,
+				   cancellable, callback, user_data);
+	g_object_unref (query);
+}
+
+/* TODO: Async variant */
 GDataYouTubeVideo *
 gdata_youtube_service_upload_video (GDataYouTubeService *self, GDataYouTubeVideo *video, GFile *video_file,
 				    GCancellable *cancellable, GError **error)

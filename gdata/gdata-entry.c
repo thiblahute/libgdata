@@ -591,6 +591,26 @@ gdata_entry_add_link (GDataEntry *self, GDataLink *link)
 	self->priv->links = g_list_prepend (self->priv->links, link);
 }
 
+static gint
+link_compare_cb (const GDataLink *link, const gchar *rel)
+{
+	return strcmp (link->rel, rel);
+}
+
+GDataLink *
+gdata_entry_lookup_link (GDataEntry *self, const gchar *rel)
+{
+	GList *element;
+
+	g_return_val_if_fail (GDATA_IS_ENTRY (self), NULL);
+	g_return_val_if_fail (rel != NULL, NULL);
+
+	element = g_list_find_custom (self->priv->links, rel, (GCompareFunc) link_compare_cb);
+	if (element == NULL)
+		return NULL;
+	return (GDataLink*) (element->data);
+}
+
 /* TODO: More author API */
 void
 gdata_entry_add_author (GDataEntry *self, GDataAuthor *author)

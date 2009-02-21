@@ -753,8 +753,9 @@ _gdata_youtube_video_parse_xml_node (GDataYouTubeVideo *self, xmlDoc *doc, xmlNo
 		/* Favourite count */
 		favorite_count = xmlGetProp (node, (xmlChar*) "favoriteCount");
 		if (favorite_count == NULL)
-			return gdata_parser_error_required_property_missing ("yt:statistics", "favoriteCount", error);
-		gdata_youtube_video_set_favorite_count (self, strtoul ((gchar*) favorite_count, NULL, 10));
+			gdata_youtube_video_set_favorite_count (self, 0);
+		else
+			gdata_youtube_video_set_favorite_count (self, strtoul ((gchar*) favorite_count, NULL, 10));
 		xmlFree (favorite_count);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "location") == 0) {
 		/* yt:location */

@@ -220,6 +220,8 @@ real_append_query_headers (GDataService *self, SoupMessage *message)
 {
 	gchar *authorisation_header;
 
+	g_assert (message != NULL);
+
 	/* Set the authorisation header */
 	authorisation_header = g_strdup_printf ("GoogleLogin auth=%s", self->priv->auth_token);
 	soup_message_headers_append (message->request_headers, "Authorization", authorisation_header);
@@ -512,6 +514,7 @@ gdata_service_query (GDataService *self, const gchar *feed_uri, GDataQuery *quer
 	g_return_val_if_fail (GDATA_IS_SERVICE (self), NULL);
 
 	query_uri = gdata_query_get_query_uri (query, feed_uri);
+
 	message = soup_message_new (SOUP_METHOD_GET, query_uri);
 	g_free (query_uri);
 

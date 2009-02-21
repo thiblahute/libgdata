@@ -66,6 +66,7 @@ void gdata_entry_add_category (GDataEntry *self, GDataCategory *category);
 const gchar *gdata_entry_get_content (GDataEntry *self);
 void gdata_entry_set_content (GDataEntry *self, const gchar *content);
 void gdata_entry_add_link (GDataEntry *self, GDataLink *link);
+GDataLink *gdata_entry_lookup_link (GDataEntry *self, const gchar *rel);
 void gdata_entry_add_author (GDataEntry *self, GDataAuthor *author);
 
 gboolean gdata_entry_inserted (GDataEntry *self);

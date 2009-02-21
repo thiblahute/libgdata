@@ -290,11 +290,33 @@ gdata_query_new (GDataService *service, const gchar *q)
 }
 
 GDataQuery *
+gdata_query_new_with_limits (GDataService *service, const gchar *q, gint start_index, gint max_results)
+{
+	return g_object_new (GDATA_TYPE_QUERY,
+			     "service", service,
+			     "q", q,
+			     "start-index", start_index,
+			     "max-results", max_results,
+			     NULL);
+}
+
+GDataQuery *
 gdata_query_new_for_id (GDataService *service, const gchar *entry_id)
 {
 	return g_object_new (GDATA_TYPE_QUERY,
 			     "service", service,
 			     "entry-id", entry_id,
+			     NULL);
+}
+
+GDataQuery *
+gdata_query_new_for_id_with_limits (GDataService *service, const gchar *entry_id, gint start_index, gint max_results)
+{
+	return g_object_new (GDATA_TYPE_QUERY,
+			     "service", service,
+			     "entry-id", entry_id,
+			     "start-index", start_index,
+			     "max-results", max_results,
 			     NULL);
 }
 

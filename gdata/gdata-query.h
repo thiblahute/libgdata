@@ -63,7 +63,9 @@ GType gdata_query_get_type (void);
 #include "gdata-service.h"
 
 GDataQuery *gdata_query_new (GDataService *service, const gchar *q);
+GDataQuery *gdata_query_new_with_limits (GDataService *service, const gchar *q, gint start_index, gint max_results);
 GDataQuery *gdata_query_new_for_id (GDataService *service, const gchar *entry_id);
+GDataQuery *gdata_query_new_for_id_with_limits (GDataService *service, const gchar *entry_id, gint start_index, gint max_results);
 
 gchar *gdata_query_get_query_uri (GDataQuery *self, const gchar *feed_uri);
 
