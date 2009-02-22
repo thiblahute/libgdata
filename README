@@ -6,4 +6,4 @@ See the test programs in gdata/tests/ for simple examples of how to use the
 code.
 
 Licensing:
-libsoup is licensed under the LGPL, see COPYING.lib for more details.
+libgdata is licensed under the LGPL, see COPYING.lib for more details.
