@@ -1,7 +1,7 @@
 /* -*- Mode: C; indent-tabs-mode: t; c-basic-offset: 8; tab-width: 8 -*- */
 /*
  * GData Client
- * Copyright (C) Philip Withnall 2008 <philip@tecnocode.co.uk>
+ * Copyright (C) Philip Withnall 2008-2009 <philip@tecnocode.co.uk>
  * 
  * GData Client is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,13 +30,24 @@
 G_BEGIN_DECLS
 
 typedef enum {
-	GDATA_SERVICE_ERROR_AUTHENTICATING = 1,
+	GDATA_SERVICE_ERROR_UNAVAILABLE = 1,
 	GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
 	GDATA_SERVICE_ERROR_WITH_QUERY,
 	GDATA_SERVICE_ERROR_ENTRY_ALREADY_INSERTED,
 	GDATA_SERVICE_ERROR_WITH_INSERTION,
 	GDATA_SERVICE_ERROR_AUTHENTICATION_REQUIRED
 } GDataServiceError;
+
+/* http://code.google.com/apis/accounts/docs/AuthForInstalledApps.html#Errors */
+typedef enum {
+	GDATA_AUTHENTICATION_ERROR_BAD_AUTHENTICATION = 1,
+	GDATA_AUTHENTICATION_ERROR_NOT_VERIFIED,
+	GDATA_AUTHENTICATION_ERROR_TERMS_NOT_AGREED,
+	GDATA_AUTHENTICATION_ERROR_CAPTCHA_REQUIRED,
+	GDATA_AUTHENTICATION_ERROR_ACCOUNT_DELETED,
+	GDATA_AUTHENTICATION_ERROR_ACCOUNT_DISABLED,
+	GDATA_AUTHENTICATION_ERROR_SERVICE_DISABLED
+} GDataAuthenticationError;
 
 typedef GDataEntry *(*GDataEntryParserFunc) (xmlDoc *doc, xmlNode *node, GError **error);
 
@@ -48,6 +59,7 @@ typedef GDataEntry *(*GDataEntryParserFunc) (xmlDoc *doc, xmlNode *node, GError 
 #define GDATA_SERVICE_GET_CLASS(o)	(G_TYPE_INSTANCE_GET_CLASS ((o), GDATA_TYPE_SERVICE, GDataServiceClass))
 
 #define GDATA_SERVICE_ERROR		gdata_service_error_quark ()
+#define GDATA_AUTHENTICATION_ERROR	gdata_authentication_error_quark ()
 
 typedef struct _GDataServicePrivate	GDataServicePrivate;
 
@@ -68,6 +80,7 @@ typedef struct {
 
 GType gdata_service_get_type (void);
 GQuark gdata_service_error_quark (void);
+GQuark gdata_authentication_error_quark (void);
 
 gboolean gdata_service_authenticate (GDataService *self, const gchar *username, const gchar *password, GCancellable *cancellable, GError **error);
 void gdata_service_authenticate_async (GDataService *self, const gchar *username, const gchar *password,

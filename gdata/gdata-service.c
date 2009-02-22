@@ -33,6 +33,12 @@ gdata_service_error_quark (void)
 	return g_quark_from_static_string ("gdata-service-error-quark");
 }
 
+GQuark
+gdata_authentication_error_quark (void)
+{
+	return g_quark_from_static_string ("gdata-authentication-error-quark");
+}
+
 static void gdata_service_dispose (GObject *object);
 static void gdata_service_finalize (GObject *object);
 static void gdata_service_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec);
@@ -57,12 +63,12 @@ enum {
 	PROP_LOGGED_IN
 };
 
-/*enum {
-	SIGNAL_QUERY_FINISHED,
+enum {
+	SIGNAL_CAPTCHA_CHALLENGE,
 	LAST_SIGNAL
 };
 
-static guint service_signals[LAST_SIGNAL] = { 0, };*/
+static guint service_signals[LAST_SIGNAL] = { 0, };
 
 G_DEFINE_TYPE (GDataService, gdata_service, G_TYPE_OBJECT)
 #define GDATA_SERVICE_GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE ((obj), GDATA_TYPE_SERVICE, GDataServicePrivate))
@@ -105,12 +111,12 @@ gdata_service_class_init (GDataServiceClass *klass)
 					FALSE,
 					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 
-	/*service_signals[SIGNAL_QUERY_FINISHED] = g_signal_new ("query-finished",
+	service_signals[SIGNAL_CAPTCHA_CHALLENGE] = g_signal_new ("captcha-challenge",
 				G_TYPE_FROM_CLASS (klass),
 				G_SIGNAL_RUN_LAST,
 				0, NULL, NULL,
-				gdata_marshal_VOID__OBJECT_OBJECT_POINTER,
-				G_TYPE_NONE, 0);*/
+				gdata_marshal_STRING__OBJECT_STRING,
+				G_TYPE_STRING, 1, G_TYPE_STRING);
 }
 
 static void
@@ -340,8 +346,9 @@ gdata_service_authenticate_finish (GDataService *self, GAsyncResult *async_resul
 	g_assert_not_reached ();
 }
 
-gboolean
-gdata_service_authenticate (GDataService *self, const gchar *username, const gchar *password, GCancellable *cancellable, GError **error)
+static gboolean
+authenticate (GDataService *self, const gchar *username, const gchar *password, gchar *captcha_token, gchar *captcha_answer,
+	      GCancellable *cancellable, GError **error)
 {
 	GDataServicePrivate *priv = self->priv;
 	GDataServiceClass *klass;
@@ -354,8 +361,6 @@ gdata_service_authenticate (GDataService *self, const gchar *username, const gch
 	g_return_val_if_fail (username != NULL, FALSE);
 	g_return_val_if_fail (password != NULL, FALSE);
 
-	
-
 	/* Prepare the request */
 	klass = GDATA_SERVICE_GET_CLASS (self);
 	request_body = soup_form_encode ("accountType", "HOSTED_OR_GOOGLE",
@@ -363,7 +368,13 @@ gdata_service_authenticate (GDataService *self, const gchar *username, const gch
 					 "Passwd", password,
 					 "service", klass->service_name,
 					 "source", priv->client_id,
+					 (captcha_token == NULL) ? NULL : "logintoken", captcha_token,
+					 "loginanswer", captcha_answer,
 					 NULL);
+
+	/* Free the CAPTCHA token and answer if necessary */
+	g_free (captcha_token);
+	g_free (captcha_answer);
 
 	/* Build the message */
 	message = soup_message_new (SOUP_METHOD_POST, klass->authentication_uri);
@@ -379,13 +390,120 @@ gdata_service_authenticate (GDataService *self, const gchar *username, const gch
 	}
 
 	if (status != 200) {
+		const gchar *response_body = message->response_body->data;
+		gchar *error_start, *error_end, *uri_start, *uri_end, *uri;
+
 		/* Error */
-		/* TODO: Handle CAPTCHA requests and other errors more specifically */
-		g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_AUTHENTICATING,
-			     _("TODO: error code %u when authenticating"), status);
+		error_start = strstr (response_body, "Error=");
+		if (error_start == NULL)
+			goto protocol_error;
+		error_start += strlen ("Error=");
+
+		error_end = strstr (error_start, "\n");
+		if (error_end == NULL)
+			goto protocol_error;
+
+		if (strncmp (error_start, "CaptchaRequired", error_end - error_start) == 0) {
+			const gchar *captcha_base_uri = "http://www.google.com/accounts/";
+			gchar *captcha_start, *captcha_end, *captcha_uri, *captcha_answer;
+			guint captcha_base_uri_length;
+
+			/* CAPTCHA required to log in */
+			captcha_start = strstr (response_body, "CaptchaUrl=");
+			if (captcha_start == NULL)
+				goto protocol_error;
+			captcha_start += strlen ("CaptchaUrl=");
+
+			captcha_end = strstr (captcha_start, "\n");
+			if (captcha_end == NULL)
+				goto protocol_error;
+
+			/* Do some fancy memory stuff to save ourselves another alloc */
+			captcha_base_uri_length = strlen (captcha_base_uri);
+			captcha_uri = g_malloc (captcha_base_uri_length + (captcha_end - captcha_start) + 1);
+			memcpy (captcha_uri, captcha_base_uri, captcha_base_uri_length);
+			memcpy (captcha_uri + captcha_base_uri_length, captcha_start, (captcha_end - captcha_start));
+			captcha_uri[captcha_base_uri_length + (captcha_end - captcha_start)] = '\0';
+
+			/* Request a CAPTCHA answer from the application */
+			g_signal_emit (self, service_signals[SIGNAL_CAPTCHA_CHALLENGE], 0, captcha_uri, &captcha_answer);
+			g_free (captcha_uri);
+
+			if (captcha_answer == NULL || *captcha_answer == '\0') {
+				g_set_error (error, GDATA_AUTHENTICATION_ERROR, GDATA_AUTHENTICATION_ERROR_CAPTCHA_REQUIRED,
+				     _("A CAPTCHA must be filled out to log in."));
+				goto login_error;
+			}
+
+			/* Get the CAPTCHA token */
+			captcha_start = strstr (response_body, "CaptchaToken=");
+			if (captcha_start == NULL)
+				goto protocol_error;
+			captcha_start += strlen ("CaptchaToken=");
+
+			captcha_end = strstr (captcha_start, "\n");
+			if (captcha_end == NULL)
+				goto protocol_error;
+
+			/* Save the CAPTCHA token and answer, and attempt to log in with them */
+			g_object_unref (message);
+
+			return authenticate (self, username, password, g_strndup (captcha_start, captcha_end - captcha_start), captcha_answer,
+					     cancellable, error);
+		} else if (strncmp (error_start, "Unknown", error_end - error_start) == 0) {
+			goto protocol_error; /* TODO: is this really a protocol error? It's an error with *our* code */
+		}
+
+		/* Get the information URI */
+		uri_start = strstr (response_body, "Url=");
+		if (uri_start == NULL)
+			goto protocol_error;
+		uri_start += strlen ("Url=");
+
+		uri_end = strstr (uri_start, "\n");
+		if (uri_end == NULL)
+			goto protocol_error;
+
+		uri = g_strndup (uri_start, uri_end - uri_start);
+
+		if (strncmp (error_start, "BadAuthentication", error_end - error_start) == 0) {
+			g_set_error (error, GDATA_AUTHENTICATION_ERROR, GDATA_AUTHENTICATION_ERROR_BAD_AUTHENTICATION,
+				     _("Your username or password were incorrect. (%s)"), uri);
+			goto login_error;
+		} else if (strncmp (error_start, "NotVerified", error_end - error_start) == 0) {
+			g_set_error (error, GDATA_AUTHENTICATION_ERROR, GDATA_AUTHENTICATION_ERROR_NOT_VERIFIED,
+				     _("Your account's e-mail address has not been verified. (%s)"), uri);
+			goto login_error;
+		} else if (strncmp (error_start, "TermsNotAgreed", error_end - error_start) == 0) {
+			g_set_error (error, GDATA_AUTHENTICATION_ERROR, GDATA_AUTHENTICATION_ERROR_TERMS_NOT_AGREED,
+				     _("You have not agreed to the service's terms and conditions. (%s)"), uri);
+			goto login_error;
+		} else if (strncmp (error_start, "AccountDeleted", error_end - error_start) == 0) {
+			g_set_error (error, GDATA_AUTHENTICATION_ERROR, GDATA_AUTHENTICATION_ERROR_ACCOUNT_DELETED,
+				     _("This account has been deleted. (%s)"), uri);
+			goto login_error;
+		} else if (strncmp (error_start, "AccountDisabled", error_end - error_start) == 0) {
+			g_set_error (error, GDATA_AUTHENTICATION_ERROR, GDATA_AUTHENTICATION_ERROR_ACCOUNT_DISABLED,
+				     _("This account has been disabled. (%s)"), uri);
+			goto login_error;
+		} else if (strncmp (error_start, "ServiceDisabled", error_end - error_start) == 0) {
+			g_set_error (error, GDATA_AUTHENTICATION_ERROR, GDATA_AUTHENTICATION_ERROR_SERVICE_DISABLED,
+				     _("This account's access to this service has been disabled. (%s)"), uri);
+			goto login_error;
+		} else if (strncmp (error_start, "ServiceUnavailable", error_end - error_start) == 0) {
+			g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_UNAVAILABLE,
+				     _("This service is not available at the moment. (%s)"), uri);
+			goto login_error;
+		} else {
+			/* Unknown error type! */
+			goto protocol_error;
+		}
+
+login_error:
 		g_object_unref (message);
 		priv->logged_in = FALSE;
 		g_object_notify (G_OBJECT (self), "logged-in");
+
 		return FALSE;
 	}
 
@@ -412,6 +530,21 @@ gdata_service_authenticate (GDataService *self, const gchar *username, const gch
 	g_object_thaw_notify (G_OBJECT (self));
 
 	return retval;
+
+protocol_error:
+	g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
+		     _("The server returned a malformed response."));
+	g_object_unref (message);
+	priv->logged_in = FALSE;
+	g_object_notify (G_OBJECT (self), "logged-in");
+
+	return FALSE;
+}
+
+gboolean
+gdata_service_authenticate (GDataService *self, const gchar *username, const gchar *password, GCancellable *cancellable, GError **error)
+{
+	return authenticate (self, username, password, NULL, NULL, cancellable, error);
 }
 
 typedef struct {
