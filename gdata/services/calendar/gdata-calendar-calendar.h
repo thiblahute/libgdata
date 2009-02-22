@@ -25,6 +25,7 @@
 
 #include "gdata-entry.h"
 #include "gdata-gdata.h"
+#include "gdata-types.h"
 
 G_BEGIN_DECLS
 
@@ -53,6 +54,18 @@ GDataCalendarCalendar *gdata_calendar_calendar_new_from_xml (const gchar *xml, g
 
 const gchar *gdata_calendar_calendar_get_timezone (GDataCalendarCalendar *self);
 void gdata_calendar_calendar_set_timezone (GDataCalendarCalendar *self, const gchar *timezone);
+guint gdata_calendar_calendar_get_times_cleaned (GDataCalendarCalendar *self);
+void gdata_calendar_calendar_set_times_cleaned (GDataCalendarCalendar *self, guint times_cleaned);
+gboolean gdata_calendar_calendar_get_hidden (GDataCalendarCalendar *self);
+void gdata_calendar_calendar_set_hidden (GDataCalendarCalendar *self, gboolean hidden);
+void gdata_calendar_calendar_get_color (GDataCalendarCalendar *self, GDataColor *color);
+void gdata_calendar_calendar_set_color (GDataCalendarCalendar *self, GDataColor *color);
+gboolean gdata_calendar_calendar_get_selected (GDataCalendarCalendar *self);
+void gdata_calendar_calendar_set_selected (GDataCalendarCalendar *self, gboolean selected);
+const gchar *gdata_calendar_calendar_get_access_level (GDataCalendarCalendar *self);
+void gdata_calendar_calendar_set_access_level (GDataCalendarCalendar *self, const gchar *access_level);
+void gdata_calendar_calendar_get_edited (GDataCalendarCalendar *self, GTimeVal *edited);
+void gdata_calendar_calendar_set_edited (GDataCalendarCalendar *self, GTimeVal *edited);
 
 G_END_DECLS
 

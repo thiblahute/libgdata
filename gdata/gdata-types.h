@@ -25,8 +25,17 @@
 G_BEGIN_DECLS
 
 #define G_TYPE_TIME_VAL (g_time_val_get_type ())
-
 GType g_time_val_get_type (void);
+
+typedef struct {
+	guint16 red;
+	guint16 green;
+	guint16 blue;
+} GDataColor;
+
+#define GDATA_TYPE_COLOR (gdata_color_get_type ())
+GType gdata_color_get_type (void);
+gboolean gdata_color_from_hexadecimal (const gchar *hexadecimal, GDataColor *color);
 
 G_END_DECLS
 
