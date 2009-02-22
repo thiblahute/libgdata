@@ -72,6 +72,7 @@ Makefile
 gdata.pc
 gdata/Makefile
 gdata/services/Makefile
+gdata/services/calendar/Makefile
 gdata/services/youtube/Makefile
 gdata/tests/Makefile
 po/Makefile.in

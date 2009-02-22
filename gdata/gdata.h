@@ -34,7 +34,13 @@
 #include <gdata/gdata-media-rss.h>
 
 /* Services */
+
+/* YouTube */
 #include <gdata/services/youtube/gdata-youtube-service.h>
 #include <gdata/services/youtube/gdata-youtube-video.h>
+
+/* Google Calendar */
+#include <gdata/services/calendar/gdata-calendar-service.h>
+#include <gdata/services/calendar/gdata-calendar-calendar.h>
 
 #endif /* !GDATA_H */

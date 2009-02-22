@@ -1,1 +1,1 @@
-SUBDIRS = youtube
+SUBDIRS = youtube calendar

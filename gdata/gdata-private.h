@@ -20,24 +20,27 @@
 #include <glib.h>
 #include <libxml/parser.h>
 
-#include "gdata-entry.h"
-#include "gdata-feed.h"
 #include "gdata-service.h"
-
-#include "services/youtube/gdata-youtube-video.h"
 
 #ifndef GDATA_PRIVATE_H
 #define GDATA_PRIVATE_H
 
 G_BEGIN_DECLS
 
+#include "gdata-feed.h"
 GDataFeed *_gdata_feed_new_from_xml (const gchar *xml, gint length, GDataEntryParserFunc parser_func, GError **error);
 
+#include "gdata-entry.h"
 GDataEntry *_gdata_entry_new_from_xml_node (xmlDoc *doc, xmlNode *node, GError **error);
 gboolean _gdata_entry_parse_xml_node (GDataEntry *self, xmlDoc *doc, xmlNode *node, GError **error);
 
+#include "services/youtube/gdata-youtube-video.h"
 GDataYouTubeVideo *_gdata_youtube_video_new_from_xml_node (xmlDoc *doc, xmlNode *node, GError **error);
 gboolean _gdata_youtube_video_parse_xml_node (GDataYouTubeVideo *self, xmlDoc *doc, xmlNode *node, GError **error);
+
+#include "services/calendar/gdata-calendar-calendar.h"
+GDataCalendarCalendar *_gdata_calendar_calendar_new_from_xml_node (xmlDoc *doc, xmlNode *node, GError **error);
+gboolean _gdata_calendar_calendar_parse_xml_node (GDataCalendarCalendar *self, xmlDoc *doc, xmlNode *node, GError **error);
 
 G_END_DECLS
 

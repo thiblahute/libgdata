@@ -38,3 +38,20 @@ youtube_CFLAGS			 = \
 				$(GDATA_CFLAGS)		\
 				$(WARN_CFLAGS)		\
 				$(AM_CFLAGS)
+
+TEST_PROGS			+= calendar
+calendar_SOURCES		 = calendar.c
+calendar_LDADD			 = \
+				$(progs_ldadd)		\
+				$(GDATA_LIBS)		\
+				../libgdata.la
+calendar_CPPFLAGS		 = \
+				-I$(top_srcdir)			\
+				-I$(top_builddir)/gdata		\
+				-DGNOMELOCALEDIR=\""$(datadir)/locale"\"\
+				$(DISABLE_DEPRECATED)		\
+				$(AM_CPPFLAGS)
+calendar_CFLAGS			 = \
+				$(GDATA_CFLAGS)		\
+				$(WARN_CFLAGS)		\
+				$(AM_CFLAGS)
