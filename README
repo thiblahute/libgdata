@@ -1,1 +1,9 @@
-TODO
+libgdata is a GLib-based library for accessing online service APIs using the
+GData protocol --- most notably, Google's services. It provides APIs to access
+the common Google services, and has full asynchronous support.
+
+See the test programs in gdata/tests/ for simple examples of how to use the
+code.
+
+Licensing:
+libsoup is licensed under the LGPL, see COPYING.lib for more details.

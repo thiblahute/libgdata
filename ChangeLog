@@ -1,3 +1,61 @@
+2009-02-22  Philip Withnall  <philip@tecnocode.co.uk>
+
+	Improved documentation (README, ChangeLog).
+
+2009-02-21  Philip Withnall  <philip@tecnocode.co.uk>
+
+	Added support for querying for related videos and fixed a bug parsing
+	<yt:statistics/>.
+
+2009-02-20  Philip Withnall  <philip@tecnocode.co.uk>
+
+	Completed functionality to upload videos to YouTube. There are a few
+	elements in the response which are still unparsed, but the tests in
+	the suite work.
+
+2009-02-11  Philip Withnall  <philip@tecnocode.co.uk>
+
+	Removed generated file.
+
+2009-01-25  Philip Withnall  <philip@tecnocode.co.uk>
+
+	Initial support for inserting entries, mainly adding functionality to
+	serialise GDataEntry and GDataYouTubeVideo to XML.
+
+2009-01-24  Philip Withnall  <philip@tecnocode.co.uk>
+
+	Converted all async functions to use GAsyncResult, and implemented
+	overridden versions for YouTubeVideo. Added testcases, and generally
+	made sure all current async functionality works nicely.
+
+	Fixed a small bug when parsing <media:credit> elements.
+
+2009-01-24  Philip Withnall  <philip@tecnocode.co.uk>
+
+	Consolidated the MediaGroup classes into YouTubeVideo, since that was
+	the only class which would ever use them.
+
+2009-01-23  Philip Withnall  <philip@tecnocode.co.uk>
+
+	Redesigned how feeds are parsed such that there is no longer any need
+	for public setters, and there should be fewer memcpys.
+
+2009-01-23  Philip Withnall  <philip@tecnocode.co.uk>
+
+	Added mostly-complete support for video comments.
+
+2009-01-22  Philip Withnall  <philip@tecnocode.co.uk>
+
+	Cleaned up parsing of numbers a little, and cleaned up parsing error
+	handling. Also tidied up feed creation, and removed the now-redundant
+	GDataYouTubeVideoFeed object.
+
+2009-01-22  Philip Withnall  <philip@tecnocode.co.uk>
+
+	Added basic async support, and greatly expanded the parsing code such
+	that almost all of a typical YouTube GData query is now parsed into
+	datastructures.
+
 2009-01-03  Philip Withnall  <philip@tecnocode.co.uk>
 
 	Initial commit, with basic functional queries for YouTube and the
