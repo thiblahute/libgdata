@@ -391,7 +391,7 @@ authenticate (GDataService *self, const gchar *username, const gchar *password, 
 
 	if (status != 200) {
 		const gchar *response_body = message->response_body->data;
-		gchar *error_start, *error_end, *uri_start, *uri_end, *uri;
+		gchar *error_start, *error_end, *uri_start, *uri_end, *uri = NULL;
 
 		/* Error */
 		error_start = strstr (response_body, "Error=");
@@ -452,6 +452,11 @@ authenticate (GDataService *self, const gchar *username, const gchar *password, 
 					     cancellable, error);
 		} else if (strncmp (error_start, "Unknown", error_end - error_start) == 0) {
 			goto protocol_error; /* TODO: is this really a protocol error? It's an error with *our* code */
+		} else if (strncmp (error_start, "BadAuthentication", error_end - error_start) == 0) {
+			/* TODO: Looks like Error=BadAuthentication errors don't return a URI */
+			g_set_error (error, GDATA_AUTHENTICATION_ERROR, GDATA_AUTHENTICATION_ERROR_BAD_AUTHENTICATION,
+				     _("Your username or password were incorrect."));
+			goto login_error;
 		}
 
 		/* Get the information URI */
@@ -466,11 +471,7 @@ authenticate (GDataService *self, const gchar *username, const gchar *password, 
 
 		uri = g_strndup (uri_start, uri_end - uri_start);
 
-		if (strncmp (error_start, "BadAuthentication", error_end - error_start) == 0) {
-			g_set_error (error, GDATA_AUTHENTICATION_ERROR, GDATA_AUTHENTICATION_ERROR_BAD_AUTHENTICATION,
-				     _("Your username or password were incorrect. (%s)"), uri);
-			goto login_error;
-		} else if (strncmp (error_start, "NotVerified", error_end - error_start) == 0) {
+		if (strncmp (error_start, "NotVerified", error_end - error_start) == 0) {
 			g_set_error (error, GDATA_AUTHENTICATION_ERROR, GDATA_AUTHENTICATION_ERROR_NOT_VERIFIED,
 				     _("Your account's e-mail address has not been verified. (%s)"), uri);
 			goto login_error;
@@ -494,17 +495,14 @@ authenticate (GDataService *self, const gchar *username, const gchar *password, 
 			g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_UNAVAILABLE,
 				     _("This service is not available at the moment. (%s)"), uri);
 			goto login_error;
-		} else {
-			/* Unknown error type! */
-			goto protocol_error;
 		}
 
-login_error:
-		g_object_unref (message);
-		priv->logged_in = FALSE;
-		g_object_notify (G_OBJECT (self), "logged-in");
+		/* Unknown error type! */
+		goto protocol_error;
 
-		return FALSE;
+login_error:
+		g_free (uri);
+		goto general_error;
 	}
 
 	g_assert (message->response_body->data != NULL);
@@ -534,6 +532,8 @@ login_error:
 protocol_error:
 	g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
 		     _("The server returned a malformed response."));
+
+general_error:
 	g_object_unref (message);
 	priv->logged_in = FALSE;
 	g_object_notify (G_OBJECT (self), "logged-in");

@@ -34,6 +34,9 @@ gdata_service_query_async
 gdata_service_query_finish
 gdata_service_is_logged_in
 gdata_service_get_client_id
+gdata_service_get_username
+gdata_service_get_password
+gdata_service_get_session
 g_time_val_get_type
 gdata_category_new
 gdata_category_free
