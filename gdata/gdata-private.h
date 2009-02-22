@@ -24,7 +24,7 @@
 #include "gdata-feed.h"
 #include "gdata-service.h"
 
-#include "services/gdata-youtube-video.h"
+#include "services/youtube/gdata-youtube-video.h"
 
 #ifndef GDATA_PRIVATE_H
 #define GDATA_PRIVATE_H

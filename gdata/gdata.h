@@ -25,11 +25,16 @@
 #include <gdata/gdata-feed.h>
 #include <gdata/gdata-service.h>
 #include <gdata/gdata-types.h>
+#include <gdata/gdata-parser.h>
+#include <gdata/gdata-query.h>
 
-/* TODO: Update this file */
+/* Namespaces */
+#include <gdata/gdata-atom.h>
+#include <gdata/gdata-gdata.h>
+#include <gdata/gdata-media-rss.h>
 
 /* Services */
-#include <gdata/services/gdata-youtube-service.h>
-#include <gdata/services/gdata-youtube-video.h>
+#include <gdata/services/youtube/gdata-youtube-service.h>
+#include <gdata/services/youtube/gdata-youtube-video.h>
 
 #endif /* !GDATA_H */

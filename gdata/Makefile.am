@@ -57,7 +57,7 @@ libgdata_la_CFLAGS = \
 
 libgdata_la_LIBADD = \
 	$(GDATA_LIBS)	\
-	services/libgdataservices.la
+	services/youtube/libgdatayoutube.la
 
 libgdata_la_LDFLAGS = \
 	-version-info $(GDATA_LT_VERSION)	\
