@@ -26,6 +26,7 @@
 #include "gdata-calendar-service.h"
 #include "gdata-service.h"
 #include "gdata-private.h"
+#include "gdata-calendar-query.h"
 
 /* Standards reference here: http://code.google.com/apis/calendar/docs/2.0/reference.html */
 
@@ -139,4 +140,38 @@ gdata_calendar_service_query_own_calendars_async (GDataCalendarService *self, gi
 				   (GDataEntryParserFunc) _gdata_calendar_calendar_new_from_xml_node,
 				   cancellable, callback, user_data);
 	g_object_unref (query);
+}
+
+/* TODO: Async variant */
+GDataFeed *
+gdata_calendar_service_query_events (GDataCalendarService *self, GDataCalendarCalendar *calendar, GTimeVal *start_min, GTimeVal *start_max,
+				      GCancellable *cancellable, GError **error)
+{
+	GDataCalendarQuery *query;
+	GDataFeed *feed;
+	const gchar *uri;
+
+	/* Ensure we're authenticated first */
+	if (gdata_service_is_authenticated (GDATA_SERVICE (self)) == FALSE) {
+		g_set_error_literal (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_AUTHENTICATION_REQUIRED,
+				     _("You must be authenticated to query your own calendars."));
+		return NULL;
+	}
+
+	/* Use the calendar's content src */
+	uri = gdata_entry_get_content (GDATA_ENTRY (calendar));
+	if (uri == NULL) {
+		/* Erroring out is probably the safest thing to do */
+		g_set_error_literal (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
+				     _("The calendar didn't have a content source."));
+		return NULL;
+	}
+
+	/* Execute the query */
+	query = gdata_calendar_query_new_with_limits (self, NULL, start_min, start_max);
+	feed = gdata_service_query (GDATA_SERVICE (self), uri, GDATA_QUERY (query),
+				    (GDataEntryParserFunc) _gdata_calendar_event_new_from_xml_node, cancellable, error);
+	g_object_unref (query);
+
+	return feed;
 }

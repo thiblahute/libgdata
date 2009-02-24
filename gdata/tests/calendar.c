@@ -185,6 +185,42 @@ test_query_own_calendars_async (void)
 	g_main_loop_unref (main_loop);
 }
 
+static void
+test_query_events (void)
+{
+	GDataFeed *feed, *calendar_feed;
+	GDataCalendarCalendar *calendar;
+	GList *calendars;
+	GError *error = NULL;
+
+	g_assert (service != NULL);
+
+	/* Get a calendar */
+	calendar_feed = gdata_calendar_service_query_own_calendars (GDATA_CALENDAR_SERVICE (service), -1, 1, NULL, &error);
+	g_assert_no_error (error);
+	g_assert (GDATA_IS_FEED (calendar_feed));
+	g_clear_error (&error);
+
+	calendars = gdata_feed_get_entries (calendar_feed);
+	g_assert (calendars != NULL);
+	calendar = calendars->data;
+	g_assert (GDATA_IS_CALENDAR_CALENDAR (calendar));
+
+	g_object_ref (calendar);
+	g_object_unref (calendar_feed);
+
+	/* Get the entry feed */
+	feed = gdata_calendar_service_query_events (GDATA_CALENDAR_SERVICE (service), calendar, NULL, NULL, NULL, &error);
+	g_assert_no_error (error);
+	g_assert (GDATA_IS_FEED (feed));
+	g_clear_error (&error);
+
+	/* TODO: check entries and feed properties */
+
+	g_object_unref (feed);
+	g_object_unref (calendar);
+}
+
 int
 main (int argc, char *argv[])
 {
@@ -204,6 +240,7 @@ main (int argc, char *argv[])
 	g_test_add_func ("/calendar/query/own_calendars", test_query_own_calendars);
 	if (g_test_thorough () == TRUE)
 		g_test_add_func ("/calendar/query/own_calendars_async", test_query_own_calendars_async);
+	g_test_add_func ("/calendar/query/events", test_query_events);
 
 	retval = g_test_run ();
 	if (service != NULL)

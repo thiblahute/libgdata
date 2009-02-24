@@ -248,24 +248,24 @@ gdata_calendar_calendar_new_from_xml (const gchar *xml, gint length, GError **er
 GDataCalendarCalendar *
 _gdata_calendar_calendar_new_from_xml_node (xmlDoc *doc, xmlNode *node, GError **error)
 {
-	GDataCalendarCalendar *video;
+	GDataCalendarCalendar *calendar;
 
 	g_return_val_if_fail (doc != NULL, FALSE);
 	g_return_val_if_fail (node != NULL, FALSE);
 	g_return_val_if_fail (xmlStrcmp (node->name, (xmlChar*) "entry") == 0, FALSE);
 
-	video = gdata_calendar_calendar_new ();
+	calendar = gdata_calendar_calendar_new ();
 
 	node = node->xmlChildrenNode;
 	while (node != NULL) {
-		if (_gdata_calendar_calendar_parse_xml_node (video, doc, node, error) == FALSE) {
-			g_object_unref (video);
+		if (_gdata_calendar_calendar_parse_xml_node (calendar, doc, node, error) == FALSE) {
+			g_object_unref (calendar);
 			return NULL;
 		}
 		node = node->next;
 	}
 
-	return video;
+	return calendar;
 }
 
 gboolean

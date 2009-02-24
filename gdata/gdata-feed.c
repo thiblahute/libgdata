@@ -126,7 +126,7 @@ gdata_feed_finalize (GObject *object)
 {
 	GDataFeedPrivate *priv = GDATA_FEED_GET_PRIVATE (object);
 
-	g_list_foreach (priv->entries, (GFunc) g_object_unref, NULL);
+	g_list_foreach (priv->entries, (GFunc) g_object_unref, NULL); /* TODO: move to dispose */
 	g_list_free (priv->entries);
 	g_free (priv->title);
 	g_free (priv->id);
@@ -260,6 +260,7 @@ _gdata_feed_new_from_xml (const gchar *xml, gint length, GDataEntryParserFunc pa
 
 	if (xmlStrcmp (node->name, (xmlChar*) "feed") != 0) {
 		/* No <feed> element (required) */
+		g_message (node->name);
 		xmlFreeDoc (doc);
 		gdata_parser_error_required_element_missing ("feed", "root", error);
 		return NULL;
@@ -536,28 +537,28 @@ error:
 	return feed;
 }
 
-const GList *
+GList *
 gdata_feed_get_entries (GDataFeed *self)
 {
 	g_return_val_if_fail (GDATA_IS_FEED (self), NULL);
 	return self->priv->entries;
 }
 
-const GList *
+GList *
 gdata_feed_get_categories (GDataFeed *self)
 {
 	g_return_val_if_fail (GDATA_IS_FEED (self), NULL);
 	return self->priv->categories;
 }
 
-const GList *
+GList *
 gdata_feed_get_links (GDataFeed *self)
 {
 	g_return_val_if_fail (GDATA_IS_FEED (self), NULL);
 	return self->priv->links;
 }
 
-const GList *
+GList *
 gdata_feed_get_authors (GDataFeed *self)
 {
 	g_return_val_if_fail (GDATA_IS_FEED (self), NULL);

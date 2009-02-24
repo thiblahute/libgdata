@@ -42,6 +42,10 @@ gboolean _gdata_youtube_video_parse_xml_node (GDataYouTubeVideo *self, xmlDoc *d
 GDataCalendarCalendar *_gdata_calendar_calendar_new_from_xml_node (xmlDoc *doc, xmlNode *node, GError **error);
 gboolean _gdata_calendar_calendar_parse_xml_node (GDataCalendarCalendar *self, xmlDoc *doc, xmlNode *node, GError **error);
 
+#include "services/calendar/gdata-calendar-event.h"
+GDataCalendarEvent *_gdata_calendar_event_new_from_xml_node (xmlDoc *doc, xmlNode *node, GError **error);
+gboolean _gdata_calendar_event_parse_xml_node (GDataCalendarEvent *self, xmlDoc *doc, xmlNode *node, GError **error);
+
 G_END_DECLS
 
 #endif /* !GDATA_PRIVATE_H */

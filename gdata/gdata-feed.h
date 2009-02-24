@@ -48,10 +48,10 @@ typedef struct {
 
 GType gdata_feed_get_type (void);
 
-const GList *gdata_feed_get_entries (GDataFeed *self);
-const GList *gdata_feed_get_categories (GDataFeed *self);
-const GList *gdata_feed_get_links (GDataFeed *self);
-const GList *gdata_feed_get_authors (GDataFeed *self);
+GList *gdata_feed_get_entries (GDataFeed *self);
+GList *gdata_feed_get_categories (GDataFeed *self);
+GList *gdata_feed_get_links (GDataFeed *self);
+GList *gdata_feed_get_authors (GDataFeed *self);
 
 const gchar *gdata_feed_get_title (GDataFeed *self);
 const gchar *gdata_feed_get_id (GDataFeed *self);

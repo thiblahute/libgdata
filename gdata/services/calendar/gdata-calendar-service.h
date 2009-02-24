@@ -22,9 +22,9 @@
 
 #include <glib.h>
 #include <glib-object.h>
-#include <libsoup/soup.h>
 
 #include "gdata-service.h"
+#include "gdata-calendar-calendar.h"
 
 G_BEGIN_DECLS
 
@@ -58,6 +58,9 @@ GDataFeed *gdata_calendar_service_query_own_calendars (GDataCalendarService *sel
 						       GCancellable *cancellable, GError **error);
 void gdata_calendar_service_query_own_calendars_async (GDataCalendarService *self, gint start_index, gint max_results,
 						       GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data);
+
+GDataFeed *gdata_calendar_service_query_events (GDataCalendarService *self, GDataCalendarCalendar *calendar, GTimeVal *start_min, GTimeVal *start_max,
+						GCancellable *cancellable, GError **error);
 
 G_END_DECLS
 

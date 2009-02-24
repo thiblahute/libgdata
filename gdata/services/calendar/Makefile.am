@@ -1,7 +1,9 @@
 gdatacalendarincludedir = $(pkgincludedir)/gdata/services/calendar
 gdatacalendarinclude_HEADERS = \
 	gdata-calendar-service.h	\
-	gdata-calendar-calendar.h
+	gdata-calendar-calendar.h	\
+	gdata-calendar-event.h		\
+	gdata-calendar-query.h
 
 noinst_LTLIBRARIES = libgdatacalendar.la
 
@@ -11,7 +13,11 @@ libgdatacalendar_la_SOURCES = \
 	gdata-calendar-service.c	\
 	gdata-calendar-service.h	\
 	gdata-calendar-calendar.c	\
-	gdata-calendar-calendar.h
+	gdata-calendar-calendar.h	\
+	gdata-calendar-event.c		\
+	gdata-calendar-event.h		\
+	gdata-calendar-query.c		\
+	gdata-calendar-query.h
 
 libgdatacalendar_la_CPPFLAGS = \
 	-I$(top_srcdir)					\

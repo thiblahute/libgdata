@@ -47,7 +47,6 @@ struct _GDataQueryPrivate {
 	gchar *entry_id;
 };
 
-/* TODO: actually turn these into parameters */
 enum {
 	PROP_SERVICE = 1,
 	PROP_Q,
@@ -134,8 +133,7 @@ gdata_query_class_init (GDataQueryClass *klass)
 				g_param_spec_int ("max-results",
 					"Maximum number of results", "The maximum number of entries to return.",
 					-1, G_MAXINT, -1,
-					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS))
-;
+					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 	g_object_class_install_property (gobject_class, PROP_ENTRY_ID,
 				g_param_spec_string ("entry-id",
 					"Entry ID", "A specific entry ID to return.",

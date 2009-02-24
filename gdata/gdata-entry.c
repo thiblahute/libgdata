@@ -408,6 +408,8 @@ _gdata_entry_parse_xml_node (GDataEntry *self, xmlDoc *doc, xmlNode *node, GErro
 	} else if (xmlStrcmp (node->name, (xmlChar*) "content") == 0) {
 		/* atom:content */
 		xmlChar *content = xmlNodeListGetString (doc, node->xmlChildrenNode, TRUE);
+		if (content == NULL)
+			content = xmlGetProp (node, (xmlChar*) "src");
 		gdata_entry_set_content (self, (gchar*) content);
 		xmlFree (content);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "link") == 0) {
