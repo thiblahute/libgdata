@@ -31,6 +31,7 @@ static void gdata_calendar_query_finalize (GObject *object);
 static void gdata_calendar_query_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec);
 static void gdata_calendar_query_set_property (GObject *object, guint property_id, const GValue *value, GParamSpec *pspec);
 
+/* TODO: Actually override GDataQuery's get_query_uri function to return a URI including all our custom parameters */
 struct _GDataCalendarQueryPrivate {
 	gboolean future_events;
 	gchar *order_by; /* TODO: enum? #defined values? */
