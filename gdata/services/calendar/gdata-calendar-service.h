@@ -54,6 +54,11 @@ GDataFeed *gdata_calendar_service_query_all_calendars (GDataCalendarService *sel
 void gdata_calendar_service_query_all_calendars_async (GDataCalendarService *self, gint start_index, gint max_results,
 						       GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data);
 
+GDataFeed *gdata_calendar_service_query_own_calendars (GDataCalendarService *self, gint start_index, gint max_results,
+						       GCancellable *cancellable, GError **error);
+void gdata_calendar_service_query_own_calendars_async (GDataCalendarService *self, gint start_index, gint max_results,
+						       GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data);
+
 G_END_DECLS
 
 #endif /* !GDATA_CALENDAR_SERVICE_H */

@@ -137,6 +137,54 @@ test_query_all_calendars_async (void)
 	g_main_loop_unref (main_loop);
 }
 
+static void
+test_query_own_calendars (void)
+{
+	GDataFeed *feed;
+	GError *error = NULL;
+
+	g_assert (service != NULL);
+
+	feed = gdata_calendar_service_query_own_calendars (GDATA_CALENDAR_SERVICE (service), -1, -1, NULL, &error);
+	g_assert_no_error (error);
+	g_assert (GDATA_IS_FEED (feed));
+	g_clear_error (&error);
+
+	/* TODO: check entries and feed properties */
+
+	g_object_unref (feed);
+}
+
+static void
+test_query_own_calendars_async_cb (GDataService *service, GAsyncResult *async_result, gpointer user_data)
+{
+	GDataFeed *feed;
+	GError *error = NULL;
+
+	feed = gdata_service_query_finish (service, async_result, &error);
+	g_assert_no_error (error);
+	g_assert (GDATA_IS_FEED (feed));
+	g_clear_error (&error);
+
+	/* TODO: Tests? */
+	g_main_loop_quit (main_loop);
+
+	g_object_unref (feed);
+}
+
+static void
+test_query_own_calendars_async (void)
+{
+	g_assert (service != NULL);
+
+	gdata_calendar_service_query_own_calendars_async (GDATA_CALENDAR_SERVICE (service), -1, -1,
+							  NULL, (GAsyncReadyCallback) test_query_own_calendars_async_cb, NULL);
+
+	main_loop = g_main_loop_new (NULL, TRUE);
+	g_main_loop_run (main_loop);
+	g_main_loop_unref (main_loop);
+}
+
 int
 main (int argc, char *argv[])
 {
@@ -153,6 +201,9 @@ main (int argc, char *argv[])
 	g_test_add_func ("/calendar/query/all_calendars", test_query_all_calendars);
 	if (g_test_thorough () == TRUE)
 		g_test_add_func ("/calendar/query/all_calendars_async", test_query_all_calendars_async);
+	g_test_add_func ("/calendar/query/own_calendars", test_query_own_calendars);
+	if (g_test_thorough () == TRUE)
+		g_test_add_func ("/calendar/query/own_calendars_async", test_query_own_calendars_async);
 
 	retval = g_test_run ();
 	if (service != NULL)

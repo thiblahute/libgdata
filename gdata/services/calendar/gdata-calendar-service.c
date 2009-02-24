@@ -97,3 +97,46 @@ gdata_calendar_service_query_all_calendars_async (GDataCalendarService *self, gi
 				   cancellable, callback, user_data);
 	g_object_unref (query);
 }
+
+GDataFeed *
+gdata_calendar_service_query_own_calendars (GDataCalendarService *self, gint start_index, gint max_results,
+					    GCancellable *cancellable, GError **error)
+{
+	GDataQuery *query;
+	GDataFeed *feed;
+
+	/* Ensure we're authenticated first */
+	if (gdata_service_is_authenticated (GDATA_SERVICE (self)) == FALSE) {
+		g_set_error_literal (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_AUTHENTICATION_REQUIRED,
+				     _("You must be authenticated to query your own calendars."));
+		return NULL;
+	}
+
+	query = gdata_query_new_with_limits (GDATA_SERVICE (self), NULL, start_index, max_results);
+	feed = gdata_service_query (GDATA_SERVICE (self), "http://www.google.com/calendar/feeds/default/owncalendars/full", query,
+				    (GDataEntryParserFunc) _gdata_calendar_calendar_new_from_xml_node, cancellable, error);
+	g_object_unref (query);
+
+	return feed;
+}
+
+void
+gdata_calendar_service_query_own_calendars_async (GDataCalendarService *self, gint start_index, gint max_results,
+						  GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+	GDataQuery *query;
+
+	/* Ensure we're authenticated first */
+	if (gdata_service_is_authenticated (GDATA_SERVICE (self)) == FALSE) {
+		g_simple_async_report_error_in_idle (G_OBJECT (self), callback, user_data,
+						     GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_AUTHENTICATION_REQUIRED,
+						     _("You must be authenticated to query your own calendars."));
+		return;
+	}
+
+	query = gdata_query_new_with_limits (GDATA_SERVICE (self), NULL, start_index, max_results);
+	gdata_service_query_async (GDATA_SERVICE (self), "http://www.google.com/calendar/feeds/default/owncalendars/full", query,
+				   (GDataEntryParserFunc) _gdata_calendar_calendar_new_from_xml_node,
+				   cancellable, callback, user_data);
+	g_object_unref (query);
+}
