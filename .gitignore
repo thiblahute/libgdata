@@ -28,4 +28,7 @@ gdata/gdata-marshal.h
 *.la
 gdata/tests/general
 gdata/tests/youtube
+gdata/tests/calendar
 gtk-doc.make
+*~
+*.o
