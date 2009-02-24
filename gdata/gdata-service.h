@@ -98,7 +98,7 @@ GDataFeed *gdata_service_query_finish (GDataService *self, GAsyncResult *async_r
 gboolean gdata_service_insert_entry (GDataService *self, const gchar *upload_uri, GDataEntry *entry, GCancellable *cancellable, GError **error);
 /* TODO: async versions */
 
-gboolean gdata_service_is_logged_in (GDataService *self);
+gboolean gdata_service_is_authenticated (GDataService *self);
 const gchar *gdata_service_get_client_id (GDataService *self);
 const gchar *gdata_service_get_username (GDataService *self);
 const gchar *gdata_service_get_password (GDataService *self);

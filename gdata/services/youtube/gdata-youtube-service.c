@@ -157,8 +157,8 @@ parse_authentication_response (GDataService *self, const gchar *response_body, G
 	return TRUE;
 
 protocol_error:
-	g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
-		     _("The server returned a malformed response."));
+	g_set_error_literal (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
+			     _("The server returned a malformed response."));
 	return FALSE;
 }
 
@@ -300,8 +300,8 @@ gdata_youtube_service_query_related (GDataYouTubeService *self, GDataYouTubeVide
 	related_link = gdata_entry_lookup_link (GDATA_ENTRY (video), "http://gdata.youtube.com/schemas/2007#video.related");
 	if (related_link == NULL) {
 		/* Erroring out is probably the safest thing to do */
-		g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
-			     _("The video didn't have a related videos <link>."));
+		g_set_error_literal (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
+				     _("The video didn't have a related videos <link>."));
 		return NULL;
 	}
 
@@ -359,14 +359,14 @@ gdata_youtube_service_upload_video (GDataYouTubeService *self, GDataYouTubeVideo
 	g_return_val_if_fail (GDATA_IS_YOUTUBE_VIDEO (video), NULL);
 
 	if (gdata_entry_inserted (GDATA_ENTRY (video)) == TRUE) {
-		g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_ENTRY_ALREADY_INSERTED,
-			     _("The entry has already been inserted."));
+		g_set_error_literal (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_ENTRY_ALREADY_INSERTED,
+				     _("The entry has already been inserted."));
 		return NULL;
 	}
 
-	if (gdata_service_is_logged_in (GDATA_SERVICE (self)) == FALSE) {
-		g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_AUTHENTICATION_REQUIRED,
-			     _("You must be logged in before uploading a video."));
+	if (gdata_service_is_authenticated (GDATA_SERVICE (self)) == FALSE) {
+		g_set_error_literal (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_AUTHENTICATION_REQUIRED,
+				     _("You must be authenticated to upload a video."));
 		return NULL;
 	}
 
@@ -460,7 +460,7 @@ gdata_youtube_service_upload_video (GDataYouTubeService *self, GDataYouTubeVideo
 
 	if (status != 201) {
 		/* Error */
-		/* TODO: Handle errors more specifically, making sure to set logged_in where appropriate */
+		/* TODO: Handle errors more specifically, making sure to set authenticated where appropriate */
 		g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_WITH_INSERTION,
 			     _("TODO: error code %u when uploading video"), status);
 		g_object_unref (message);

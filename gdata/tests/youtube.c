@@ -50,7 +50,7 @@ test_authentication (void)
 	g_clear_error (&error);
 
 	/* Check all is as it should be */
-	g_assert (gdata_service_is_logged_in (service) == TRUE);
+	g_assert (gdata_service_is_authenticated (service) == TRUE);
 	g_assert_cmpstr (gdata_service_get_username (service), ==, "GDataTest");
 	g_assert_cmpstr (gdata_service_get_password (service), ==, "gdata");
 	g_assert_cmpstr (gdata_youtube_service_get_youtube_user (GDATA_YOUTUBE_SERVICE (service)), ==, "GDataTest");
@@ -70,7 +70,7 @@ test_authentication_async_cb (GDataService *service, GAsyncResult *async_result,
 	g_main_loop_quit (main_loop);
 
 	/* Check all is as it should be */
-	g_assert (gdata_service_is_logged_in (service) == TRUE);
+	g_assert (gdata_service_is_authenticated (service) == TRUE);
 	g_assert_cmpstr (gdata_service_get_username (service), ==, "GDataTest");
 	g_assert_cmpstr (gdata_service_get_password (service), ==, "gdata");
 	g_assert_cmpstr (gdata_youtube_service_get_youtube_user (GDATA_YOUTUBE_SERVICE (service)), ==, "GDataTest");

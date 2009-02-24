@@ -53,14 +53,14 @@ struct _GDataServicePrivate {
 	gchar *password;
 	gchar *auth_token;
 	gchar *client_id;
-	gboolean logged_in;
+	gboolean authenticated;
 };
 
 enum {
 	PROP_CLIENT_ID = 1,
 	PROP_USERNAME,
 	PROP_PASSWORD,
-	PROP_LOGGED_IN
+	PROP_AUTHENTICATED
 };
 
 enum {
@@ -105,9 +105,9 @@ gdata_service_class_init (GDataServiceClass *klass)
 					"Password", "TODO",
 					NULL,
 					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
-	g_object_class_install_property (gobject_class, PROP_LOGGED_IN,
-				g_param_spec_boolean ("logged-in",
-					"Logged in", "TODO",
+	g_object_class_install_property (gobject_class, PROP_AUTHENTICATED,
+				g_param_spec_boolean ("authenticated",
+					"Authenticated", "TODO",
 					FALSE,
 					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 
@@ -168,8 +168,8 @@ gdata_service_get_property (GObject *object, guint property_id, GValue *value, G
 		case PROP_PASSWORD:
 			g_value_set_string (value, priv->password);
 			break;
-		case PROP_LOGGED_IN:
-			g_value_set_boolean (value, priv->logged_in);
+		case PROP_AUTHENTICATED:
+			g_value_set_boolean (value, priv->authenticated);
 			break;
 		default:
 			/* We don't have any other property... */
@@ -216,8 +216,8 @@ real_parse_authentication_response (GDataService *self, const gchar *response_bo
 	return TRUE;
 
 protocol_error:
-	g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
-		     _("The server returned a malformed response."));
+	g_set_error_literal (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
+			     _("The server returned a malformed response."));
 	return FALSE;
 }
 
@@ -266,12 +266,12 @@ set_authentication_details_cb (AuthenticateAsyncData *data)
 	priv->username = g_strdup (data->username);
 	g_free (priv->password);
 	priv->password = g_strdup (data->password);
-	priv->logged_in = TRUE;
+	priv->authenticated = TRUE;
 
 	g_object_freeze_notify (service);
 	g_object_notify (service, "username");
 	g_object_notify (service, "password");
-	g_object_notify (service, "logged-in");
+	g_object_notify (service, "authenticated");
 	g_object_thaw_notify (service);
 
 	return FALSE;
@@ -430,8 +430,8 @@ authenticate (GDataService *self, const gchar *username, const gchar *password, 
 			g_free (captcha_uri);
 
 			if (captcha_answer == NULL || *captcha_answer == '\0') {
-				g_set_error (error, GDATA_AUTHENTICATION_ERROR, GDATA_AUTHENTICATION_ERROR_CAPTCHA_REQUIRED,
-				     _("A CAPTCHA must be filled out to log in."));
+				g_set_error_literal (error, GDATA_AUTHENTICATION_ERROR, GDATA_AUTHENTICATION_ERROR_CAPTCHA_REQUIRED,
+						     _("A CAPTCHA must be filled out to log in."));
 				goto login_error;
 			}
 
@@ -454,8 +454,8 @@ authenticate (GDataService *self, const gchar *username, const gchar *password, 
 			goto protocol_error; /* TODO: is this really a protocol error? It's an error with *our* code */
 		} else if (strncmp (error_start, "BadAuthentication", error_end - error_start) == 0) {
 			/* TODO: Looks like Error=BadAuthentication errors don't return a URI */
-			g_set_error (error, GDATA_AUTHENTICATION_ERROR, GDATA_AUTHENTICATION_ERROR_BAD_AUTHENTICATION,
-				     _("Your username or password were incorrect."));
+			g_set_error_literal (error, GDATA_AUTHENTICATION_ERROR, GDATA_AUTHENTICATION_ERROR_BAD_AUTHENTICATION,
+					     _("Your username or password were incorrect."));
 			goto login_error;
 		}
 
@@ -511,7 +511,7 @@ login_error:
 	g_object_unref (message);
 
 	g_object_freeze_notify (G_OBJECT (self));
-	priv->logged_in = retval;
+	priv->authenticated = retval;
 
 	if (retval == TRUE) {
 		/* Update several properties the service holds */
@@ -524,19 +524,19 @@ login_error:
 		g_object_notify (G_OBJECT (self), "password");
 	}
 
-	g_object_notify (G_OBJECT (self), "logged-in");
+	g_object_notify (G_OBJECT (self), "authenticated");
 	g_object_thaw_notify (G_OBJECT (self));
 
 	return retval;
 
 protocol_error:
-	g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
-		     _("The server returned a malformed response."));
+	g_set_error_literal (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
+			     _("The server returned a malformed response."));
 
 general_error:
 	g_object_unref (message);
-	priv->logged_in = FALSE;
-	g_object_notify (G_OBJECT (self), "logged-in");
+	priv->authenticated = FALSE;
+	g_object_notify (G_OBJECT (self), "authenticated");
 
 	return FALSE;
 }
@@ -667,7 +667,7 @@ gdata_service_query (GDataService *self, const gchar *feed_uri, GDataQuery *quer
 
 	if (status != 200) {
 		/* Error */
-		/* TODO: Handle errors more specifically, making sure to set logged_in where appropriate */
+		/* TODO: Handle errors more specifically, making sure to set authenticated where appropriate */
 		g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_WITH_QUERY,
 			     _("TODO: error code %u when querying"), status);
 		g_object_unref (message);
@@ -695,8 +695,8 @@ gdata_service_insert_entry (GDataService *self, const gchar *upload_uri, GDataEn
 	g_return_val_if_fail (GDATA_IS_ENTRY (entry), FALSE);
 
 	if (gdata_entry_inserted (entry) == TRUE) {
-		g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_ENTRY_ALREADY_INSERTED,
-			     _("The entry has already been inserted."));
+		g_set_error_literal (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_ENTRY_ALREADY_INSERTED,
+				     _("The entry has already been inserted."));
 		return FALSE;
 	}
 
@@ -722,7 +722,7 @@ gdata_service_insert_entry (GDataService *self, const gchar *upload_uri, GDataEn
 
 	if (status != 201) {
 		/* Error */
-		/* TODO: Handle errors more specifically, making sure to set logged_in where appropriate */
+		/* TODO: Handle errors more specifically, making sure to set authenticated where appropriate */
 		g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_WITH_INSERTION,
 			     _("TODO: error code %u when inserting"), status);
 		g_object_unref (message);
@@ -735,10 +735,10 @@ gdata_service_insert_entry (GDataService *self, const gchar *upload_uri, GDataEn
 }
 
 gboolean
-gdata_service_is_logged_in (GDataService *self)
+gdata_service_is_authenticated (GDataService *self)
 {
 	g_assert (GDATA_IS_SERVICE (self));
-	return self->priv->logged_in;
+	return self->priv->authenticated;
 }
 
 const gchar *
