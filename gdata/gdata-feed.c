@@ -37,6 +37,7 @@ static void gdata_feed_set_property (GObject *object, guint property_id, const G
 struct _GDataFeedPrivate {
 	GList *entries;
 	gchar *title;
+	gchar *subtitle;
 	gchar *id;
 	GTimeVal updated;
 	GList *categories;
@@ -53,6 +54,7 @@ enum {
 	PROP_ID = 1,
 	PROP_UPDATED,
 	PROP_TITLE,
+	PROP_SUBTITLE,
 	PROP_LOGO,
 	PROP_GENERATOR,
 	PROP_ITEMS_PER_PAGE,
@@ -77,6 +79,11 @@ gdata_feed_class_init (GDataFeedClass *klass)
 	g_object_class_install_property (gobject_class, PROP_TITLE,
 				g_param_spec_string ("title",
 					"Title", "The title for this feed.",
+					NULL,
+					G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+	g_object_class_install_property (gobject_class, PROP_SUBTITLE,
+				g_param_spec_string ("subtitle",
+					"Subtitle", "The subtitle for this feed.",
 					NULL,
 					G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 	g_object_class_install_property (gobject_class, PROP_ID,
@@ -129,6 +136,7 @@ gdata_feed_finalize (GObject *object)
 	g_list_foreach (priv->entries, (GFunc) g_object_unref, NULL); /* TODO: move to dispose */
 	g_list_free (priv->entries);
 	g_free (priv->title);
+	g_free (priv->subtitle);
 	g_free (priv->id);
 	g_list_foreach (priv->categories, (GFunc) gdata_category_free, NULL);
 	g_list_free (priv->categories);
@@ -151,6 +159,9 @@ gdata_feed_get_property (GObject *object, guint property_id, GValue *value, GPar
 	switch (property_id) {
 		case PROP_TITLE:
 			g_value_set_string (value, priv->title);
+			break;
+		case PROP_SUBTITLE:
+			g_value_set_string (value, priv->subtitle);
 			break;
 		case PROP_ID:
 			g_value_set_string (value, priv->id);
@@ -190,6 +201,9 @@ gdata_feed_set_property (GObject *object, guint property_id, const GValue *value
 		case PROP_TITLE:
 			priv->title = g_value_dup_string (value);
 			break;
+		case PROP_SUBTITLE:
+			priv->subtitle = g_value_dup_string (value);
+			break;
 		case PROP_ID:
 			priv->id = g_value_dup_string (value);
 			break;
@@ -226,7 +240,7 @@ _gdata_feed_new_from_xml (const gchar *xml, gint length, GDataEntryParserFunc pa
 	GDataFeed *feed = NULL;
 	xmlDoc *doc;
 	xmlNode *node;
-	xmlChar *title = NULL, *id = NULL, *logo = NULL;
+	xmlChar *title = NULL, *subtitle = NULL, *id = NULL, *logo = NULL;
 	GTimeVal updated = { 0, };
 	GDataGenerator *generator = NULL;
 	guint total_results = 0, start_index = 0, items_per_page = 0;
@@ -260,7 +274,6 @@ _gdata_feed_new_from_xml (const gchar *xml, gint length, GDataEntryParserFunc pa
 
 	if (xmlStrcmp (node->name, (xmlChar*) "feed") != 0) {
 		/* No <feed> element (required) */
-		g_message (node->name);
 		xmlFreeDoc (doc);
 		gdata_parser_error_required_element_missing ("feed", "root", error);
 		return NULL;
@@ -283,6 +296,14 @@ _gdata_feed_new_from_xml (const gchar *xml, gint length, GDataEntryParserFunc pa
 			}
 
 			title = xmlNodeListGetString (doc, node->xmlChildrenNode, TRUE);
+		} else if (xmlStrcmp (node->name, (xmlChar*) "subtitle") == 0) {
+			/* atom:subtitle */
+			if (subtitle != NULL) {
+				gdata_parser_error_duplicate_element ("subtitle", "feed", error);
+				goto error;
+			}
+
+			subtitle = xmlNodeListGetString (doc, node->xmlChildrenNode, TRUE);
 		} else if (xmlStrcmp (node->name, (xmlChar*) "id") == 0) {
 			/* atom:id */
 			if (id != NULL) {
@@ -469,10 +490,11 @@ _gdata_feed_new_from_xml (const gchar *xml, gint length, GDataEntryParserFunc pa
 
 			items_per_page = strtoul ((gchar*) items_per_page_string, NULL, 10);
 			xmlFree (items_per_page_string);
-		} else {
+		}/* else {
+		TODO
 			gdata_parser_error_unhandled_element ((gchar*) node->ns->prefix, (gchar*) node->name, "feed", error);
 			goto error;
-		}
+		}*/
 
 		node = node->next;
 	}
@@ -500,6 +522,7 @@ _gdata_feed_new_from_xml (const gchar *xml, gint length, GDataEntryParserFunc pa
 	/* Create the feed */
 	feed = g_object_new (GDATA_TYPE_FEED,
 			     "title", (gchar*) title,
+			     "subtitle", (gchar*) subtitle,
 			     "id", (gchar*) id,
 			     "updated", &updated,
 			     "logo", (gchar*) logo,
@@ -520,6 +543,7 @@ _gdata_feed_new_from_xml (const gchar *xml, gint length, GDataEntryParserFunc pa
 
 error:
 	xmlFree (title);
+	xmlFree (subtitle);
 	xmlFree (id);
 	xmlFree (logo);
 	gdata_generator_free (generator);
@@ -570,6 +594,13 @@ gdata_feed_get_title (GDataFeed *self)
 {
 	g_return_val_if_fail (GDATA_IS_FEED (self), NULL);
 	return self->priv->title;
+}
+
+const gchar *
+gdata_feed_get_subtitle (GDataFeed *self)
+{
+	g_return_val_if_fail (GDATA_IS_FEED (self), NULL);
+	return self->priv->subtitle;
 }
 
 const gchar *

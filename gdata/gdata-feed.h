@@ -54,6 +54,7 @@ GList *gdata_feed_get_links (GDataFeed *self);
 GList *gdata_feed_get_authors (GDataFeed *self);
 
 const gchar *gdata_feed_get_title (GDataFeed *self);
+const gchar *gdata_feed_get_subtitle (GDataFeed *self);
 const gchar *gdata_feed_get_id (GDataFeed *self);
 void gdata_feed_get_updated (GDataFeed *self, GTimeVal *updated);
 const gchar *gdata_feed_get_logo (GDataFeed *self);

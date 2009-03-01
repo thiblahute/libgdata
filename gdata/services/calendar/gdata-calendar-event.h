@@ -52,6 +52,25 @@ GType gdata_calendar_event_get_type (void);
 GDataCalendarEvent *gdata_calendar_event_new (void);
 GDataCalendarEvent *gdata_calendar_event_new_from_xml (const gchar *xml, gint length, GError **error);
 
+void gdata_calendar_event_get_edited (GDataCalendarEvent *self, GTimeVal *edited);
+void gdata_calendar_event_set_edited (GDataCalendarEvent *self, GTimeVal *edited);
+const gchar *gdata_calendar_event_get_event_status (GDataCalendarEvent *self);
+void gdata_calendar_event_set_event_status (GDataCalendarEvent *self, const gchar *event_status);
+const gchar *gdata_calendar_event_get_visibility (GDataCalendarEvent *self);
+void gdata_calendar_event_set_visibility (GDataCalendarEvent *self, const gchar *visibility);
+const gchar *gdata_calendar_event_get_transparency (GDataCalendarEvent *self);
+void gdata_calendar_event_set_transparency (GDataCalendarEvent *self, const gchar *transparency);
+const gchar *gdata_calendar_event_get_uid (GDataCalendarEvent *self);
+void gdata_calendar_event_set_uid (GDataCalendarEvent *self, const gchar *uid);
+guint gdata_calendar_event_get_sequence (GDataCalendarEvent *self);
+void gdata_calendar_event_set_sequence (GDataCalendarEvent *self, guint sequence);
+void gdata_calendar_event_get_start_time (GDataCalendarEvent *self, GTimeVal *start_time);
+void gdata_calendar_event_set_start_time (GDataCalendarEvent *self, GTimeVal *start_time);
+void gdata_calendar_event_get_end_time (GDataCalendarEvent *self, GTimeVal *end_time);
+void gdata_calendar_event_set_end_time (GDataCalendarEvent *self, GTimeVal *end_time);
+const gchar *gdata_calendar_event_get_when_value (GDataCalendarEvent *self);
+void gdata_calendar_event_set_when_value (GDataCalendarEvent *self, const gchar *when_value);
+
 G_END_DECLS
 
 #endif /* !GDATA_CALENDAR_EVENT_H */

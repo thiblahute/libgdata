@@ -22,6 +22,7 @@ gdata_feed_get_type
 gdata_feed_get_entries
 gdata_feed_append_entry
 gdata_feed_get_title
+gdata_feed_get_subtitle
 gdata_feed_get_id
 gdata_feed_get_updated
 gdata_service_get_type
