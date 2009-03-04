@@ -55,3 +55,20 @@ calendar_CFLAGS			 = \
 				$(GDATA_CFLAGS)		\
 				$(WARN_CFLAGS)		\
 				$(AM_CFLAGS)
+
+TEST_PROGS			+= memory
+memory_SOURCES			 = memory.c
+memory_LDADD			 = \
+				$(progs_ldadd)		\
+				$(GDATA_LIBS)		\
+				../libgdata.la
+memory_CPPFLAGS			 = \
+				-I$(top_srcdir)			\
+				-I$(top_builddir)/gdata		\
+				-DGNOMELOCALEDIR=\""$(datadir)/locale"\"\
+				$(DISABLE_DEPRECATED)		\
+				$(AM_CPPFLAGS)
+memory_CFLAGS			 = \
+				$(GDATA_CFLAGS)		\
+				$(WARN_CFLAGS)		\
+				$(AM_CFLAGS)

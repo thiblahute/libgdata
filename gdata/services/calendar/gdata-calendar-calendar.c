@@ -124,6 +124,7 @@ gdata_calendar_calendar_finalize (GObject *object)
 	GDataCalendarCalendarPrivate *priv = GDATA_CALENDAR_CALENDAR_GET_PRIVATE (object);
 
 	g_free (priv->timezone);
+	g_free (priv->access_level);
 
 	/* Chain up to the parent class */
 	G_OBJECT_CLASS (gdata_calendar_calendar_parent_class)->finalize (object);

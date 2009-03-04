@@ -1,0 +1,4 @@
+#!/bin/sh
+
+G_SLICE=always-malloc libtool --mode=execute "valgrind --tool=memcheck --log-file=memcheck.`date +%s` --leak-check=full --leak-resolution=high \
+						--show-reachable=yes" ./calendar
