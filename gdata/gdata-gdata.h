@@ -43,6 +43,26 @@ typedef struct {
 GDataGDFeedLink *gdata_gd_feed_link_new (const gchar *href, const gchar *rel, guint count_hint);
 void gdata_gd_feed_link_free (GDataGDFeedLink *self);
 
+typedef struct {
+	gchar *email;
+	gchar *rel;
+	gchar *value_string;
+	/* TODO: deal with the attendeeType, attendeeStatus and entryLink */
+} GDataGDWho;
+
+GDataGDWho *gdata_gd_who_new (const gchar *rel, const gchar *value_string, const gchar *email);
+void gdata_gd_who_free (GDataGDWho *self);
+
+typedef struct {
+	gchar *label;
+	gchar *rel;
+	gchar *value_string;
+	/* TODO: deal with the entryLink */
+} GDataGDWhere;
+
+GDataGDWhere *gdata_gd_where_new (const gchar *rel, const gchar *value_string, const gchar *label);
+void gdata_gd_where_free (GDataGDWhere *self);
+
 G_END_DECLS
 
 #endif /* !GDATA_GDATA_H */

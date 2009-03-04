@@ -70,6 +70,16 @@ void gdata_calendar_event_get_end_time (GDataCalendarEvent *self, GTimeVal *end_
 void gdata_calendar_event_set_end_time (GDataCalendarEvent *self, GTimeVal *end_time);
 const gchar *gdata_calendar_event_get_when_value (GDataCalendarEvent *self);
 void gdata_calendar_event_set_when_value (GDataCalendarEvent *self, const gchar *when_value);
+gboolean gdata_calendar_event_get_guests_can_modify (GDataCalendarEvent *self);
+void gdata_calendar_event_set_guests_can_modify (GDataCalendarEvent *self, gboolean guests_can_modify);
+gboolean gdata_calendar_event_get_guests_can_invite_others (GDataCalendarEvent *self);
+void gdata_calendar_event_set_guests_can_invite_others (GDataCalendarEvent *self, gboolean guests_can_invite_others);
+gboolean gdata_calendar_event_get_guests_can_see_guests (GDataCalendarEvent *self);
+void gdata_calendar_event_set_guests_can_see_guests (GDataCalendarEvent *self, gboolean guests_can_see_guests);
+gboolean gdata_calendar_event_get_anyone_can_add_self (GDataCalendarEvent *self);
+void gdata_calendar_event_set_anyone_can_add_self (GDataCalendarEvent *self, gboolean anyone_can_add_self);
+void gdata_calendar_event_add_person (GDataCalendarEvent *self, GDataGDWho *who);
+void gdata_calendar_event_add_place (GDataCalendarEvent *self, GDataGDWhere *where);
 
 G_END_DECLS
 

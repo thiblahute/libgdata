@@ -47,6 +47,12 @@ struct _GDataCalendarEventPrivate {
 	GTimeVal end_time;
 	gchar *when_value;
 	GList *reminders;
+	gboolean guests_can_modify; /* TODO: Merge these three somehow? */
+	gboolean guests_can_invite_others;
+	gboolean guests_can_see_guests;
+	gboolean anyone_can_add_self;
+	GList *people;
+	GList *places;
 };
 
 enum {
@@ -58,7 +64,11 @@ enum {
 	PROP_SEQUENCE,
 	PROP_START_TIME,
 	PROP_END_TIME,
-	PROP_WHEN_VALUE
+	PROP_WHEN_VALUE,
+	PROP_GUESTS_CAN_MODIFY,
+	PROP_GUESTS_CAN_INVITE_OTHERS,
+	PROP_GUESTS_CAN_SEE_GUESTS,
+	PROP_ANYONE_CAN_ADD_SELF
 };
 
 G_DEFINE_TYPE (GDataCalendarEvent, gdata_calendar_event, GDATA_TYPE_ENTRY)
@@ -125,6 +135,26 @@ gdata_calendar_event_class_init (GDataCalendarEventClass *klass)
 					"When value", "TODO",
 					NULL,
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+	g_object_class_install_property (gobject_class, PROP_GUESTS_CAN_MODIFY,
+				g_param_spec_boolean ("guests-can-modify",
+					"Guests can modify", "TODO",
+					FALSE,
+					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+	g_object_class_install_property (gobject_class, PROP_GUESTS_CAN_INVITE_OTHERS,
+				g_param_spec_boolean ("guests-can-invite-others",
+					"Guests can invite others", "TODO",
+					FALSE,
+					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+	g_object_class_install_property (gobject_class, PROP_GUESTS_CAN_SEE_GUESTS,
+				g_param_spec_boolean ("guests-can-see-guests",
+					"Guests can see guests", "TODO",
+					FALSE,
+					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+	g_object_class_install_property (gobject_class, PROP_ANYONE_CAN_ADD_SELF,
+				g_param_spec_boolean ("anyone-can-add-self",
+					"Anyone can add self", "TODO",
+					FALSE,
+					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 }
 
 static void
@@ -143,6 +173,10 @@ gdata_calendar_event_finalize (GObject *object)
 	g_free (priv->transparency);
 	g_free (priv->uid);
 	g_free (priv->when_value);
+	g_list_foreach (priv->people, (GFunc) gdata_gd_who_free, NULL);
+	g_list_free (priv->people);
+	g_list_foreach (priv->places, (GFunc) gdata_gd_where_free, NULL);
+	g_list_free (priv->places);
 
 	/* Chain up to the parent class */
 	G_OBJECT_CLASS (gdata_calendar_event_parent_class)->finalize (object);
@@ -180,6 +214,18 @@ gdata_calendar_event_get_property (GObject *object, guint property_id, GValue *v
 			break;
 		case PROP_WHEN_VALUE:
 			g_value_set_string (value, priv->when_value);
+			break;
+		case PROP_GUESTS_CAN_MODIFY:
+			g_value_set_boolean (value, priv->guests_can_modify);
+			break;
+		case PROP_GUESTS_CAN_INVITE_OTHERS:
+			g_value_set_boolean (value, priv->guests_can_invite_others);
+			break;
+		case PROP_GUESTS_CAN_SEE_GUESTS:
+			g_value_set_boolean (value, priv->guests_can_see_guests);
+			break;
+		case PROP_ANYONE_CAN_ADD_SELF:
+			g_value_set_boolean (value, priv->anyone_can_add_self);
 			break;
 		default:
 			/* We don't have any other property... */
@@ -220,6 +266,18 @@ gdata_calendar_event_set_property (GObject *object, guint property_id, const GVa
 			break;
 		case PROP_WHEN_VALUE:
 			gdata_calendar_event_set_when_value (self, g_value_get_string (value));
+			break;
+		case PROP_GUESTS_CAN_MODIFY:
+			gdata_calendar_event_set_guests_can_modify (self, g_value_get_boolean (value));
+			break;
+		case PROP_GUESTS_CAN_INVITE_OTHERS:
+			gdata_calendar_event_set_guests_can_invite_others (self, g_value_get_boolean (value));
+			break;
+		case PROP_GUESTS_CAN_SEE_GUESTS:
+			gdata_calendar_event_set_guests_can_see_guests (self, g_value_get_boolean (value));
+			break;
+		case PROP_ANYONE_CAN_ADD_SELF:
+			gdata_calendar_event_set_anyone_can_add_self (self, g_value_get_boolean (value));
 			break;
 		default:
 			/* We don't have any other property... */
@@ -424,6 +482,66 @@ _gdata_calendar_event_parse_xml_node (GDataCalendarEvent *self, xmlDoc *doc, xml
 		xmlFree (value);
 
 		/* TODO: Deal with reminders (<gd:reminder> child elements) */
+	} else if (xmlStrcmp (node->name, (xmlChar*) "guestsCanModify") == 0) {
+		/* gCal:guestsCanModify */
+		xmlChar *value = xmlGetProp (node, (xmlChar*) "value");
+		if (value == NULL)
+			return gdata_parser_error_required_property_missing ("gCal:guestsCanModify", "value", error);
+		gdata_calendar_event_set_guests_can_modify (self, (xmlStrcmp (value, (xmlChar*) "true") == 0) ? TRUE : FALSE);
+		xmlFree (value);
+	} else if (xmlStrcmp (node->name, (xmlChar*) "guestsCanInviteOthers") == 0) {
+		/* gCal:guestsCanInviteOthers */
+		xmlChar *value = xmlGetProp (node, (xmlChar*) "value");
+		if (value == NULL)
+			return gdata_parser_error_required_property_missing ("gCal:guestsCanInviteOthers", "value", error);
+		gdata_calendar_event_set_guests_can_invite_others (self, (xmlStrcmp (value, (xmlChar*) "true") == 0) ? TRUE : FALSE);
+		xmlFree (value);
+	} else if (xmlStrcmp (node->name, (xmlChar*) "guestsCanSeeGuests") == 0) {
+		/* gCal:guestsCanSeeGuests */
+		xmlChar *value = xmlGetProp (node, (xmlChar*) "value");
+		if (value == NULL)
+			return gdata_parser_error_required_property_missing ("gCal:guestsCanSeeGuests", "value", error);
+		gdata_calendar_event_set_guests_can_see_guests (self, (xmlStrcmp (value, (xmlChar*) "true") == 0) ? TRUE : FALSE);
+		xmlFree (value);
+	} else if (xmlStrcmp (node->name, (xmlChar*) "anyoneCanAddSelf") == 0) {
+		/* gCal:anyoneCanAddSelf */
+		xmlChar *value = xmlGetProp (node, (xmlChar*) "value");
+		if (value == NULL)
+			return gdata_parser_error_required_property_missing ("gCal:anyoneCanAddSelf", "value", error);
+		gdata_calendar_event_set_anyone_can_add_self (self, (xmlStrcmp (value, (xmlChar*) "true") == 0) ? TRUE : FALSE);
+		xmlFree (value);
+	} else if (xmlStrcmp (node->name, (xmlChar*) "who") == 0) {
+		/* gd:who */
+		xmlChar *email, *rel, *value_string;
+		GDataGDWho *who;
+
+		rel = xmlGetProp (node, (xmlChar*) "rel");
+		value_string = xmlGetProp (node, (xmlChar*) "valueString");
+		email = xmlGetProp (node, (xmlChar*) "email");
+		/* TODO: deal with the attendeeType, attendeeStatus and entryLink */
+
+		who = gdata_gd_who_new ((gchar*) rel, (gchar*) value_string, (gchar*) email);
+		xmlFree (rel);
+		xmlFree (value_string);
+		xmlFree (email);
+
+		gdata_calendar_event_add_person (self, who);
+	} else if (xmlStrcmp (node->name, (xmlChar*) "where") == 0) {
+		/* gd:where */
+		xmlChar *label, *rel, *value_string;
+		GDataGDWhere *where;
+
+		rel = xmlGetProp (node, (xmlChar*) "rel");
+		value_string = xmlGetProp (node, (xmlChar*) "valueString");
+		label = xmlGetProp (node, (xmlChar*) "label");
+		/* TODO: deal with the entryLink */
+
+		where = gdata_gd_where_new ((gchar*) rel, (gchar*) value_string, (gchar*) label);
+		xmlFree (rel);
+		xmlFree (value_string);
+		xmlFree (label);
+
+		gdata_calendar_event_add_place (self, where);
 	} else if (_gdata_entry_parse_xml_node (GDATA_ENTRY (self), doc, node, &child_error) == FALSE) {
 		if (g_error_matches (child_error, GDATA_PARSER_ERROR, GDATA_PARSER_ERROR_UNHANDLED_XML_ELEMENT) == TRUE) {
 			g_error_free (child_error);
@@ -630,4 +748,82 @@ gdata_calendar_event_set_when_value (GDataCalendarEvent *self, const gchar *when
 	g_free (self->priv->when_value);
 	self->priv->when_value = g_strdup (when_value);
 	g_object_notify (G_OBJECT (self), "when-value");
+}
+
+gboolean
+gdata_calendar_event_get_guests_can_modify (GDataCalendarEvent *self)
+{
+	g_return_val_if_fail (GDATA_IS_CALENDAR_EVENT (self), FALSE);
+	return self->priv->guests_can_modify;
+}
+
+void
+gdata_calendar_event_set_guests_can_modify (GDataCalendarEvent *self, gboolean guests_can_modify)
+{
+	g_return_if_fail (GDATA_IS_CALENDAR_EVENT (self));
+	self->priv->guests_can_modify = guests_can_modify;
+	g_object_notify (G_OBJECT (self), "guests-can-modify");
+}
+
+gboolean
+gdata_calendar_event_get_guests_can_invite_others (GDataCalendarEvent *self)
+{
+	g_return_val_if_fail (GDATA_IS_CALENDAR_EVENT (self), FALSE);
+	return self->priv->guests_can_invite_others;
+}
+
+void
+gdata_calendar_event_set_guests_can_invite_others (GDataCalendarEvent *self, gboolean guests_can_invite_others)
+{
+	g_return_if_fail (GDATA_IS_CALENDAR_EVENT (self));
+	self->priv->guests_can_invite_others = guests_can_invite_others;
+	g_object_notify (G_OBJECT (self), "guests-can-invite-others");
+}
+
+gboolean
+gdata_calendar_event_get_guests_can_see_guests (GDataCalendarEvent *self)
+{
+	g_return_val_if_fail (GDATA_IS_CALENDAR_EVENT (self), FALSE);
+	return self->priv->guests_can_see_guests;
+}
+
+void
+gdata_calendar_event_set_guests_can_see_guests (GDataCalendarEvent *self, gboolean guests_can_see_guests)
+{
+	g_return_if_fail (GDATA_IS_CALENDAR_EVENT (self));
+	self->priv->guests_can_see_guests = guests_can_see_guests;
+	g_object_notify (G_OBJECT (self), "guests-can-see-guests");
+}
+
+gboolean
+gdata_calendar_event_get_anyone_can_add_self (GDataCalendarEvent *self)
+{
+	g_return_val_if_fail (GDATA_IS_CALENDAR_EVENT (self), FALSE);
+	return self->priv->anyone_can_add_self;
+}
+
+void
+gdata_calendar_event_set_anyone_can_add_self (GDataCalendarEvent *self, gboolean anyone_can_add_self)
+{
+	g_return_if_fail (GDATA_IS_CALENDAR_EVENT (self));
+	self->priv->anyone_can_add_self = anyone_can_add_self;
+	g_object_notify (G_OBJECT (self), "anyone-can-add-self");
+}
+
+void
+gdata_calendar_event_add_person (GDataCalendarEvent *self, GDataGDWho *who)
+{
+	g_return_if_fail (GDATA_IS_CALENDAR_EVENT (self));
+	g_return_if_fail (who != NULL);
+
+	self->priv->people = g_list_append (self->priv->people, who);
+}
+
+void
+gdata_calendar_event_add_place (GDataCalendarEvent *self, GDataGDWhere *where)
+{
+	g_return_if_fail (GDATA_IS_CALENDAR_EVENT (self));
+	g_return_if_fail (where != NULL);
+
+	self->priv->places = g_list_append (self->priv->places, where);
 }

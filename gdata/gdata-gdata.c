@@ -56,3 +56,45 @@ gdata_gd_feed_link_free (GDataGDFeedLink *self)
 	g_free (self->rel);
 	g_slice_free (GDataGDFeedLink, self);
 }
+
+GDataGDWho *
+gdata_gd_who_new (const gchar *rel, const gchar *value_string, const gchar *email)
+{
+	GDataGDWho *self = g_slice_new (GDataGDWho);
+	self->rel = g_strdup (rel);
+	self->email = g_strdup (email);
+	self->value_string = g_strdup (value_string);
+	return self;
+}
+
+void
+gdata_gd_who_free (GDataGDWho *self)
+{
+	g_return_if_fail (self != NULL);
+
+	g_free (self->rel);
+	g_free (self->email);
+	g_free (self->value_string);
+	g_slice_free (GDataGDWho, self);
+}
+
+GDataGDWhere *
+gdata_gd_where_new (const gchar *rel, const gchar *value_string, const gchar *label)
+{
+	GDataGDWhere *self = g_slice_new (GDataGDWhere);
+	self->rel = g_strdup (rel);
+	self->label = g_strdup (label);
+	self->value_string = g_strdup (value_string);
+	return self;
+}
+
+void
+gdata_gd_where_free (GDataGDWhere *self)
+{
+	g_return_if_fail (self != NULL);
+
+	g_free (self->rel);
+	g_free (self->label);
+	g_free (self->value_string);
+	g_slice_free (GDataGDWhere, self);
+}
