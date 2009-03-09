@@ -99,6 +99,7 @@ gboolean gdata_service_insert_entry (GDataService *self, const gchar *upload_uri
 /* TODO: async versions */
 
 gboolean gdata_service_is_authenticated (GDataService *self);
+void gdata_service_set_authenticated (GDataService *self, gboolean authenticated);
 const gchar *gdata_service_get_client_id (GDataService *self);
 const gchar *gdata_service_get_username (GDataService *self);
 const gchar *gdata_service_get_password (GDataService *self);

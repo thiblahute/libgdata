@@ -741,6 +741,13 @@ gdata_service_is_authenticated (GDataService *self)
 	return self->priv->authenticated;
 }
 
+void
+gdata_service_set_authenticated (GDataService *self, gboolean authenticated)
+{
+	g_assert (GDATA_IS_SERVICE (self));
+	self->priv->authenticated = authenticated;
+}
+
 const gchar *
 gdata_service_get_client_id (GDataService *self)
 {

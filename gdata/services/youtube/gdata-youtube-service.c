@@ -1,7 +1,7 @@
 /* -*- Mode: C; indent-tabs-mode: t; c-basic-offset: 8; tab-width: 8 -*- */
 /*
  * GData Client
- * Copyright (C) Philip Withnall 2008 <philip@tecnocode.co.uk>
+ * Copyright (C) Philip Withnall 2008-2009 <philip@tecnocode.co.uk>
  * 
  * GData Client is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,6 +28,12 @@
 #include "gdata-private.h"
 
 /* Standards reference here: http://code.google.com/apis/youtube/2.0/reference.html */
+
+GQuark
+gdata_youtube_service_error_quark (void)
+{
+	return g_quark_from_static_string ("gdata-youtube-service-error-quark");
+}
 
 static void gdata_youtube_service_finalize (GObject *object);
 static void gdata_youtube_service_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec);
@@ -460,9 +466,7 @@ gdata_youtube_service_upload_video (GDataYouTubeService *self, GDataYouTubeVideo
 
 	if (status != 201) {
 		/* Error */
-		/* TODO: Handle errors more specifically, making sure to set authenticated where appropriate */
-		g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_WITH_INSERTION,
-			     _("TODO: error code %u when uploading video"), status);
+		gdata_youtube_service_parse_error_response (self, status, message->response_body->data, message->response_body->length, error);
 		g_object_unref (message);
 		return NULL;
 	}
@@ -470,6 +474,119 @@ gdata_youtube_service_upload_video (GDataYouTubeService *self, GDataYouTubeVideo
 	g_assert (message->response_body->data != NULL);
 
 	return gdata_youtube_video_new_from_xml (message->response_body->data, (gint) message->response_body->length, error);
+}
+
+void
+gdata_youtube_service_parse_error_response (GDataYouTubeService *self, guint status, const gchar *response, gint length, GError **error)
+{
+	xmlDoc *doc;
+	xmlNode *node;
+
+	g_return_val_if_fail (response != NULL, NULL);
+
+	if (length == -1)
+		length = strlen (response);
+
+	/* Parse the XML */
+	doc = xmlReadMemory (response, length, "error.xml", NULL, 0);
+	if (doc == NULL) {
+		xmlError *xml_error = xmlGetLastError ();
+		g_set_error (error, GDATA_PARSER_ERROR, GDATA_PARSER_ERROR_PARSING_STRING,
+			     _("Error parsing XML: %s"),
+			     xml_error->message);
+		return;
+	}
+
+	/* Get the root element */
+	node = xmlDocGetRootElement (doc);
+	if (node == NULL) {
+		/* XML document's empty */
+		xmlFreeDoc (doc);
+		g_set_error (error, GDATA_PARSER_ERROR, GDATA_PARSER_ERROR_EMPTY_DOCUMENT,
+			     _("Error parsing XML: %s"),
+			     _("Empty document."));
+		return;
+	}
+
+	if (xmlStrcmp (node->name, (xmlChar*) "errors") != 0) {
+		/* No <errors> element (required) */
+		xmlFreeDoc (doc);
+		gdata_parser_error_required_element_missing ("errors", "root", error);
+		return;
+	}
+
+	/* Parse the actual errors */
+	node = node->xmlChildrenNode;
+	while (node != NULL) {
+		xmlChar *domain, *code, *location = NULL;
+		gchar *message;
+		xmlNode *child_node = node->xmlChildrenNode;
+
+		/* Get the error data */
+		while (child_node != NULL) {
+			if (xmlStrcmp (child_node->name, (xmlChar*) "domain") == 0)
+				domain = xmlNodeListGetString (doc, child_node->xmlChildrenNode, TRUE);
+			else if (xmlStrcmp (child_node->name, (xmlChar*) "code") == 0)
+				code = xmlNodeListGetString (doc, child_node->xmlChildrenNode, TRUE);
+			else if (xmlStrcmp (child_node->name, (xmlChar*) "location") == 0)
+				location = xmlNodeListGetString (doc, child_node->xmlChildrenNode, TRUE);
+			else {
+				/* Unknown element */
+				gdata_parser_error_unhandled_element ((gchar*) child_node->ns->prefix, (gchar*) child_node->name, "error", error);
+				xmlFree (domain);
+				xmlFree (code);
+				xmlFree (location);
+				xmlFreeDoc (doc);
+				return;
+			}
+
+			child_node = child_node->next;
+		}
+
+		/* Create an error message, but only for the first error */
+		if (*error == NULL) {
+			/* See http://code.google.com/apis/youtube/2.0/developers_guide_protocol.html#Error_responses */
+			if (xmlStrcmp (domain, (xmlChar*) "yt:service") == 0 && xmlStrcmp (code, (xmlChar*) "disabled_in_maintenance_mode") == 0) {
+				/* Service disabled */
+				g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_UNAVAILABLE,
+					     _("This service is not available at the moment."));
+			} else if (xmlStrcmp (domain, (xmlChar*) "yt:authentication") == 0) {
+				/* Authentication problem; make sure to set our status as unauthenticated */
+				gdata_service_set_authenticated (GDATA_SERVICE (self), FALSE);
+				g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_AUTHENTICATION_REQUIRED,
+					     _("You must be authenticated to do this."));
+			} else if (xmlStrcmp (domain, (xmlChar*) "yt:quota") == 0) {
+				/* Quota errors */
+				if (xmlStrcmp (code, (xmlChar*) "too_many_recent_calls") == 0) {
+					g_set_error (error, GDATA_YOUTUBE_SERVICE_ERROR, GDATA_YOUTUBE_SERVICE_ERROR_API_QUOTA_EXCEEDED,
+						     _("You have made too many API calls recently. Please wait a few minutes and try again."));
+				} else if (xmlStrcmp (code, (xmlChar*) "too_many_entries") == 0) {
+					g_set_error (error, GDATA_YOUTUBE_SERVICE_ERROR, GDATA_YOUTUBE_SERVICE_ERROR_ENTRY_QUOTA_EXCEEDED,
+						     _("You have exceeded your entry quota with the entry \"%s\"."
+						       "Please delete some entries and try again."), location);
+				} else {
+					/* Protocol error */
+					g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
+						     _("Unknown error code \"%s\" in domain \"%s\" received with location \"%s\"."),
+						     code, domain, location);
+				}
+			} else {
+				/* Unknown or validation (protocol) error */
+				g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
+					     _("Unknown error code \"%s\" in domain \"%s\" received with location \"%s\"."),
+					     code, domain, location);
+			}
+		} else {
+			/* For all errors after the first, log the error in the terminal */
+			g_debug ("Error message received in response: code \"%s\", domain \"%s\", location \"%s\".", code, domain, location);
+		}
+
+		xmlFree (domain);
+		xmlFree (code);
+		xmlFree (location);
+
+		node = node->next;
+	}
 }
 
 const gchar *

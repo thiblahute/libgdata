@@ -43,12 +43,20 @@ typedef enum {
 	GDATA_YOUTUBE_WATCH_ON_MOBILE_FEED
 } GDataYouTubeStandardFeedType;
 
+/* TODO: make this a proper enum */
+typedef enum {
+	GDATA_YOUTUBE_SERVICE_ERROR_API_QUOTA_EXCEEDED,
+	GDATA_YOUTUBE_SERVICE_ERROR_ENTRY_QUOTA_EXCEEDED
+} GDataYouTubeServiceError;
+
 #define GDATA_TYPE_YOUTUBE_SERVICE		(gdata_youtube_service_get_type ())
 #define GDATA_YOUTUBE_SERVICE(o)		(G_TYPE_CHECK_INSTANCE_CAST ((o), GDATA_TYPE_YOUTUBE_SERVICE, GDataYouTubeService))
 #define GDATA_YOUTUBE_SERVICE_CLASS(k)		(G_TYPE_CHECK_CLASS_CAST((k), GDATA_TYPE_YOUTUBE_SERVICE, GDataYouTubeServiceClass))
 #define GDATA_IS_YOUTUBE_SERVICE(o)		(G_TYPE_CHECK_INSTANCE_TYPE ((o), GDATA_TYPE_YOUTUBE_SERVICE))
 #define GDATA_IS_YOUTUBE_SERVICE_CLASS(k)	(G_TYPE_CHECK_CLASS_TYPE ((k), GDATA_TYPE_YOUTUBE_SERVICE))
 #define GDATA_YOUTUBE_SERVICE_GET_CLASS(o)	(G_TYPE_INSTANCE_GET_CLASS ((o), GDATA_TYPE_YOUTUBE_SERVICE, GDataYouTubeServiceClass))
+
+#define GDATA_YOUTUBE_SERVICE_ERROR		gdata_youtube_service_error_quark ()
 
 typedef struct _GDataYouTubeServicePrivate	GDataYouTubeServicePrivate;
 
@@ -62,6 +70,7 @@ typedef struct {
 } GDataYouTubeServiceClass;
 
 GType gdata_youtube_service_get_type (void);
+GQuark gdata_youtube_service_error_quark (void);
 
 GDataYouTubeService *gdata_youtube_service_new (const gchar *developer_key, const gchar *client_id);
 
@@ -84,6 +93,8 @@ void gdata_youtube_service_query_related_async (GDataYouTubeService *self, GData
 
 GDataYouTubeVideo *gdata_youtube_service_upload_video (GDataYouTubeService *self, GDataYouTubeVideo *video, GFile *video_file,
 						       GCancellable *cancellable, GError **error);
+
+void gdata_youtube_service_parse_error_response (GDataYouTubeService *self, guint status, const gchar *response, GError **error);
 
 const gchar *gdata_youtube_service_get_developer_key (GDataYouTubeService *self);
 const gchar *gdata_youtube_service_get_youtube_user (GDataYouTubeService *self);
