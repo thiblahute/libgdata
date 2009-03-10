@@ -24,6 +24,14 @@
 
 G_BEGIN_DECLS
 
+/**
+ * GDataParserError:
+ * @GDATA_PARSER_ERROR_PARSING_STRING: Error parsing the XML syntax itself
+ * @GDATA_PARSER_ERROR_EMPTY_DOCUMENT: Empty document
+ * @GDATA_PARSER_ERROR_UNHANDLED_XML_ELEMENT: Unknown or unhandled XML element (fatal error)
+ *
+ * Error codes for XML parsing operations.
+ **/
 typedef enum {
 	GDATA_PARSER_ERROR_PARSING_STRING = 1,
 	GDATA_PARSER_ERROR_EMPTY_DOCUMENT,

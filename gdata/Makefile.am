@@ -13,6 +13,31 @@ gdata-marshal.h: gdata-marshal.list Makefile
 gdata-marshal.c: gdata-marshal.h Makefile
 	( $(GLIB_GENMARSHAL) --prefix=gdata_marshal $(srcdir)/gdata-marshal.list --header --body > gdata-marshal.c )
 
+# Enums
+GDATA_ENUM_FILES = \
+	gdata-enums.c	\
+	gdata-enums.h
+
+gdata-enums.h: $(gdatainclude_HEADERS) Makefile
+	(cd $(srcdir) && $(GLIB_MKENUMS) \
+			--fhead "#ifndef GDATA_ENUMS_H\n#define GDATA_ENUMS_H\n\n#include <glib-object.h>\n\nG_BEGIN_DECLS\n" \
+			--fprod "/* enumerations from \"@filename@\" */\n" \
+			--vhead "GType @enum_name@_get_type (void) G_GNUC_CONST;\n#define GDATA_TYPE_@ENUMSHORT@ (@enum_name@_get_type())\n" \
+			--ftail "G_END_DECLS\n\n#endif /* !GDATA_ENUMS_H */" $(gdatainclude_HEADERS)) > gdata-enums.h.tmp \
+	&& mv gdata-enums.h.tmp gdata-enums.h \
+	|| rm -f gdata-enums.h.tmp
+
+gdata-enums.c: $(gdatainclude_HEADERS) Makefile gdata-enums.h
+	(cd $(srcdir) && $(GLIB_MKENUMS) \
+			--fhead "#include \"gdata.h\"\n#include \"gdata-enums.h\"" \
+			--fprod "\n/* enumerations from \"@filename@\" */" \
+			--vhead "GType\n@enum_name@_get_type (void)\n{\n  static GType etype = 0;\n  if (etype == 0) {\n    static const G@Type@Value values[] = {" \
+			--vprod "      { @VALUENAME@, \"@VALUENAME@\", \"@valuenick@\" }," \
+			--vtail "      { 0, NULL, NULL }\n    };\n    etype = g_@type@_register_static (\"@EnumName@\", values);\n  }\n  return etype;\n}\n" \
+		$(gdatainclude_HEADERS)) > gdata-enums.c.tmp \
+	&& mv gdata-enums.c.tmp gdata-enums.c \
+	|| rm -f gdata-enums.c.tmp
+
 # libgdata library
 lib_LTLIBRARIES = libgdata.la
 
@@ -20,6 +45,7 @@ gdataincludedir = $(pkgincludedir)/gdata
 gdatainclude_HEADERS = \
 	gdata.h			\
 	gdata-entry.h		\
+	gdata-enums.h		\
 	gdata-feed.h		\
 	gdata-service.h		\
 	gdata-types.h		\
@@ -32,6 +58,7 @@ gdatainclude_HEADERS = \
 
 libgdata_la_SOURCES = \
 	$(GDATA_MARSHAL_FILES)	\
+	$(GDATA_ENUM_FILES)	\
 	gdata-entry.c		\
 	gdata-feed.c		\
 	gdata-service.c		\
@@ -67,7 +94,9 @@ libgdata_la_LDFLAGS = \
 	$(AM_LDFLAGS)
 
 # General cleanup
-CLEANFILES = $(GDATA_MARSHAL_FILES)
+CLEANFILES = \
+	$(GDATA_ENUM_FILES)	\
+	$(GDATA_MARSHAL_FILES)
 EXTRA_DIST = \
 	gdata.symbols	\
 	gdata-marshal.list

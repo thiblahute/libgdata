@@ -26,6 +26,7 @@
 #include "gdata-youtube-service.h"
 #include "gdata-service.h"
 #include "gdata-private.h"
+#include "gdata-parser.h"
 
 /* Standards reference here: http://code.google.com/apis/youtube/2.0/reference.html */
 
@@ -482,7 +483,7 @@ gdata_youtube_service_parse_error_response (GDataYouTubeService *self, guint sta
 	xmlDoc *doc;
 	xmlNode *node;
 
-	g_return_val_if_fail (response != NULL, NULL);
+	g_return_if_fail (response != NULL);
 
 	if (length == -1)
 		length = strlen (response);
@@ -518,8 +519,7 @@ gdata_youtube_service_parse_error_response (GDataYouTubeService *self, guint sta
 	/* Parse the actual errors */
 	node = node->xmlChildrenNode;
 	while (node != NULL) {
-		xmlChar *domain, *code, *location = NULL;
-		gchar *message;
+		xmlChar *domain = NULL, *code = NULL, *location = NULL;
 		xmlNode *child_node = node->xmlChildrenNode;
 
 		/* Get the error data */

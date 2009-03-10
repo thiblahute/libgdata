@@ -24,11 +24,14 @@ config.status.lineno
 gdata.pc
 gdata/gdata-marshal.c
 gdata/gdata-marshal.h
+gdata/gdata-enums.c
+gdata/gdata-enums.h
 *.lo
 *.la
 gdata/tests/general
 gdata/tests/youtube
 gdata/tests/calendar
+gdata/tests/memory
 gtk-doc.make
 *~
 *.o

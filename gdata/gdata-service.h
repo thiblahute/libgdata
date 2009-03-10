@@ -29,16 +29,42 @@
 
 G_BEGIN_DECLS
 
+/**
+ * GDataServiceError:
+ * @GDATA_SERVICE_ERROR_UNAVAILABLE: The service is unavailable due to maintainence or other reasons
+ * @GDATA_SERVICE_ERROR_PROTOCOL: The client or server unexpectedly strayed from the protocol (fatal error)
+ * @GDATA_SERVICE_ERROR_WITH_QUERY: TODO
+ * @GDATA_SERVICE_ERROR_ENTRY_ALREADY_INSERTED: An entry has already been inserted, and cannot be re-inserted
+ * @GDATA_SERVICE_ERROR_WITH_INSERTION: TODO
+ * @GDATA_SERVICE_ERROR_AUTHENTICATION_REQUIRED: The user attempted to do something which required authentication, and they weren't authenticated
+ *
+ * Error codes for #GDataService operations.
+ **/
 typedef enum {
 	GDATA_SERVICE_ERROR_UNAVAILABLE = 1,
 	GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
-	GDATA_SERVICE_ERROR_WITH_QUERY,
+	GDATA_SERVICE_ERROR_WITH_QUERY,/* TODO: probably should die */
 	GDATA_SERVICE_ERROR_ENTRY_ALREADY_INSERTED,
-	GDATA_SERVICE_ERROR_WITH_INSERTION,
+	GDATA_SERVICE_ERROR_WITH_INSERTION,/* TODO: probably should die */
 	GDATA_SERVICE_ERROR_AUTHENTICATION_REQUIRED
 } GDataServiceError;
 
-/* http://code.google.com/apis/accounts/docs/AuthForInstalledApps.html#Errors */
+/**
+ * GDataAuthenticationError:
+ * @GDATA_AUTHENTICATION_ERROR_BAD_AUTHENTICATION: The login request used a username or password that is not recognized.
+ * @GDATA_AUTHENTICATION_ERROR_NOT_VERIFIED: The account email address has not been verified. The user will need to access their Google account
+    directly to resolve the issue before logging in using a non-Google application.
+ * @GDATA_AUTHENTICATION_ERROR_TERMS_NOT_AGREED: The user has not agreed to terms. The user will need to access their Google account directly to
+    resolve the issue before logging in using a non-Google application.
+ * @GDATA_AUTHENTICATION_ERROR_CAPTCHA_REQUIRED: A CAPTCHA is required. (A response with this error code will also contain an image URL and a
+    CAPTCHA token.)
+ * @GDATA_AUTHENTICATION_ERROR_ACCOUNT_DELETED: The user account has been deleted.
+ * @GDATA_AUTHENTICATION_ERROR_ACCOUNT_DISABLED: The user account has been disabled.
+ * @GDATA_AUTHENTICATION_ERROR_SERVICE_DISABLED: The user's access to the specified service has been disabled. (The user account may still be valid.)
+ *
+ * Error codes for #GDataDataService authentication operations. See http://code.google.com/apis/accounts/docs/AuthForInstalledApps.html#Errors for
+ * the official reference.
+ **/
 typedef enum {
 	GDATA_AUTHENTICATION_ERROR_BAD_AUTHENTICATION = 1,
 	GDATA_AUTHENTICATION_ERROR_NOT_VERIFIED,
