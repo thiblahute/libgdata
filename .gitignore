@@ -21,7 +21,7 @@ version.xml
 .libs
 po/POTFILES
 config.status.lineno
-gdata.pc
+libgdata.pc
 gdata/gdata-marshal.c
 gdata/gdata-marshal.h
 gdata/gdata-enums.c

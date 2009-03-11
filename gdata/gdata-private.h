@@ -20,7 +20,7 @@
 #include <glib.h>
 #include <libxml/parser.h>
 
-#include "gdata-service.h"
+#include <gdata/gdata-service.h>
 
 #ifndef GDATA_PRIVATE_H
 #define GDATA_PRIVATE_H

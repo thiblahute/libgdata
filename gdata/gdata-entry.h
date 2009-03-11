@@ -24,7 +24,7 @@
 #include <glib-object.h>
 #include <libxml/parser.h>
 
-#include "gdata-atom.h"
+#include <gdata/gdata-atom.h>
 
 G_BEGIN_DECLS
 

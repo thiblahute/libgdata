@@ -16,6 +16,6 @@ DISTCLEANFILES = intltool-extract intltool-merge intltool-update \
 		 gnome-doc-utils.make gtk-doc.make
 
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = gdata.pc
+pkgconfig_DATA = libgdata.pc
 
 DISTCHECK_CONFIGURE_FLAGS = --disable-scrollkeeper --enable-gtk-doc

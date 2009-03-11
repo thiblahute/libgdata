@@ -69,7 +69,7 @@ GTK_DOC_CHECK(1.0)
 
 AC_OUTPUT([
 Makefile
-gdata.pc
+libgdata.pc
 gdata/Makefile
 gdata/services/Makefile
 gdata/services/calendar/Makefile

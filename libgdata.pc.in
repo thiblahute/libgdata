@@ -3,9 +3,9 @@ exec_prefix=@exec_prefix@
 libdir=@libdir@
 includedir=@includedir@
 
-Name: gdata
+Name: libgdata
 Description: GData client library
 Version: @VERSION@
-Requires: soup-2.4 libxml-2.0
+Requires: libsoup-2.4 libxml-2.0
 Libs: -L${libdir} -lgdata
 Cflags: -I${includedir}/libgdata

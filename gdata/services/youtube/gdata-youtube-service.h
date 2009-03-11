@@ -24,8 +24,8 @@
 #include <glib-object.h>
 #include <libsoup/soup.h>
 
-#include "gdata-service.h"
-#include "gdata-youtube-video.h"
+#include <gdata/gdata-service.h>
+#include <gdata/services/youtube/gdata-youtube-video.h>
 
 G_BEGIN_DECLS
 

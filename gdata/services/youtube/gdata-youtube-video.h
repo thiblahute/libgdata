@@ -23,9 +23,9 @@
 #include <glib.h>
 #include <glib-object.h>
 
-#include "gdata-entry.h"
-#include "gdata-gdata.h"
-#include "gdata-media-rss.h"
+#include <gdata/gdata-entry.h>
+#include <gdata/gdata-gdata.h>
+#include <gdata/gdata-media-rss.h>
 
 G_BEGIN_DECLS
 

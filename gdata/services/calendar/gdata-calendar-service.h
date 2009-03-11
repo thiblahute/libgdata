@@ -23,8 +23,8 @@
 #include <glib.h>
 #include <glib-object.h>
 
-#include "gdata-service.h"
-#include "gdata-calendar-calendar.h"
+#include <gdata/gdata-service.h>
+#include <gdata/services/calendar/gdata-calendar-calendar.h>
 
 G_BEGIN_DECLS
 

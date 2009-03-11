@@ -25,7 +25,7 @@
 #include <libsoup/soup.h>
 #include <libxml/parser.h>
 
-#include "gdata-feed.h"
+#include <gdata/gdata-feed.h>
 
 G_BEGIN_DECLS
 

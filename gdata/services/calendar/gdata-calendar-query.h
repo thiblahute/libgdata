@@ -23,9 +23,9 @@
 #include <glib.h>
 #include <glib-object.h>
 
-#include "gdata-query.h"
-#include "gdata-calendar-service.h"
-#include "gdata-types.h"
+#include <gdata/gdata-query.h>
+#include <gdata/services/calendar/gdata-calendar-service.h>
+#include <gdata/gdata-types.h>
 
 G_BEGIN_DECLS
 

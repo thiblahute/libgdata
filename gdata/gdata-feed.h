@@ -23,8 +23,8 @@
 #include <glib.h>
 #include <glib-object.h>
 
-#include "gdata-entry.h"
-#include "gdata-atom.h"
+#include <gdata/gdata-entry.h>
+#include <gdata/gdata-atom.h>
 
 G_BEGIN_DECLS
 

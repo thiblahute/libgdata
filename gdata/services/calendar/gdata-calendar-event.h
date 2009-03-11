@@ -23,9 +23,9 @@
 #include <glib.h>
 #include <glib-object.h>
 
-#include "gdata-entry.h"
-#include "gdata-gdata.h"
-#include "gdata-types.h"
+#include <gdata/gdata-entry.h>
+#include <gdata/gdata-gdata.h>
+#include <gdata/gdata-types.h>
 
 G_BEGIN_DECLS
 
