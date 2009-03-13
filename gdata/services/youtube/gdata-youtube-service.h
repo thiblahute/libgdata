@@ -74,22 +74,28 @@ GQuark gdata_youtube_service_error_quark (void);
 
 GDataYouTubeService *gdata_youtube_service_new (const gchar *developer_key, const gchar *client_id);
 
-GDataFeed *gdata_youtube_service_query_standard_feed (GDataYouTubeService *self, GDataYouTubeStandardFeedType feed_type,
-						      gint start_index, gint max_results,
-						      GCancellable *cancellable, GError **error);
-void gdata_youtube_service_query_standard_feed_async (GDataYouTubeService *self, GDataYouTubeStandardFeedType feed_type,
-						      gint start_index, gint max_results,
-						      GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data);
+GDataFeed *gdata_youtube_service_query_standard_feed (GDataYouTubeService *self, GDataYouTubeStandardFeedType feed_type, GDataQuery *query,
+						      GCancellable *cancellable,
+						      GDataQueryProgressCallback progress_callback, gpointer progress_user_data,
+						      GError **error);
+void gdata_youtube_service_query_standard_feed_async (GDataYouTubeService *self, GDataYouTubeStandardFeedType feed_type, GDataQuery *query,
+						      GCancellable *cancellable,
+						      GDataQueryProgressCallback progress_callback, gpointer progress_user_data,
+						      GAsyncReadyCallback callback, gpointer user_data);
 
-GDataFeed *gdata_youtube_service_query_videos (GDataYouTubeService *self, const gchar *query_terms, gint start_index, gint max_results,
-					       GCancellable *cancellable, GError **error);
-void gdata_youtube_service_query_videos_async (GDataYouTubeService *self, const gchar *query_terms, gint start_index, gint max_results,
-					       GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data);
+GDataFeed *gdata_youtube_service_query_videos (GDataYouTubeService *self, GDataQuery *query,
+					       GCancellable *cancellable, GDataQueryProgressCallback progress_callback, gpointer progress_user_data,
+					       GError **error);
+void gdata_youtube_service_query_videos_async (GDataYouTubeService *self, GDataQuery *query,
+					       GCancellable *cancellable, GDataQueryProgressCallback progress_callback, gpointer progress_user_data,
+					       GAsyncReadyCallback callback, gpointer user_data);
 
-GDataFeed *gdata_youtube_service_query_related (GDataYouTubeService *self, GDataYouTubeVideo *video, gint start_index, gint max_results,
-						GCancellable *cancellable, GError **error);
-void gdata_youtube_service_query_related_async (GDataYouTubeService *self, GDataYouTubeVideo *video, gint start_index, gint max_results,
-						GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data);
+GDataFeed *gdata_youtube_service_query_related (GDataYouTubeService *self, GDataYouTubeVideo *video, GDataQuery *query,
+						GCancellable *cancellable, GDataQueryProgressCallback progress_callback, gpointer progress_user_data,
+						GError **error);
+void gdata_youtube_service_query_related_async (GDataYouTubeService *self, GDataYouTubeVideo *video, GDataQuery *query,
+						GCancellable *cancellable, GDataQueryProgressCallback progress_callback, gpointer progress_user_data,
+						GAsyncReadyCallback callback, gpointer user_data);
 
 GDataYouTubeVideo *gdata_youtube_service_upload_video (GDataYouTubeService *self, GDataYouTubeVideo *video, GFile *video_file,
 						       GCancellable *cancellable, GError **error);

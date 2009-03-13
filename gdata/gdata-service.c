@@ -555,6 +555,8 @@ typedef struct {
 
 	/* Output */
 	GDataFeed *feed;
+	GDataQueryProgressCallback progress_callback;
+	gpointer progress_user_data;
 } QueryAsyncData;
 
 static void
@@ -583,7 +585,8 @@ query_thread (GSimpleAsyncResult *result, GDataService *service, GCancellable *c
 	}
 
 	/* Execute the query and return */
-	data->feed = gdata_service_query (service, data->feed_uri, data->query, data->parser_func, cancellable, &error);
+	data->feed = gdata_service_query (service, data->feed_uri, data->query, data->parser_func, cancellable,
+					  data->progress_callback, data->progress_user_data, &error);
 	if (data->feed == NULL) {
 		g_simple_async_result_set_from_error (result, error);
 		g_error_free (error);
@@ -591,8 +594,9 @@ query_thread (GSimpleAsyncResult *result, GDataService *service, GCancellable *c
 }
 
 void
-gdata_service_query_async (GDataService *self, const gchar *feed_uri, GDataQuery *query, GDataEntryParserFunc parser_func,
-			   GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+gdata_service_query_async (GDataService *self, const gchar *feed_uri, GDataQuery *query, GDataEntryParserFunc parser_func, GCancellable *cancellable,
+			   GDataQueryProgressCallback progress_callback, gpointer progress_user_data,
+			   GAsyncReadyCallback callback, gpointer user_data)
 {
 	GSimpleAsyncResult *result;
 	QueryAsyncData *data;
@@ -606,6 +610,8 @@ gdata_service_query_async (GDataService *self, const gchar *feed_uri, GDataQuery
 	data->feed_uri = g_strdup (feed_uri);
 	data->query = g_object_ref (query);
 	data->parser_func = parser_func;
+	data->progress_callback = progress_callback;
+	data->progress_user_data = progress_user_data;
 
 	result = g_simple_async_result_new (G_OBJECT (self), callback, user_data, gdata_service_query_async);
 	g_simple_async_result_set_op_res_gpointer (result, data, (GDestroyNotify) query_async_data_free);
@@ -636,7 +642,7 @@ gdata_service_query_finish (GDataService *self, GAsyncResult *async_result, GErr
 
 GDataFeed *
 gdata_service_query (GDataService *self, const gchar *feed_uri, GDataQuery *query, GDataEntryParserFunc parser_func,
-		     GCancellable *cancellable, GError **error)
+		     GCancellable *cancellable, GDataQueryProgressCallback progress_callback, gpointer progress_user_data, GError **error)
 {
 	GDataServiceClass *klass;
 	GDataFeed *feed;
@@ -646,10 +652,13 @@ gdata_service_query (GDataService *self, const gchar *feed_uri, GDataQuery *quer
 
 	g_return_val_if_fail (GDATA_IS_SERVICE (self), NULL);
 
-	query_uri = gdata_query_get_query_uri (query, feed_uri);
-
-	message = soup_message_new (SOUP_METHOD_GET, query_uri);
-	g_free (query_uri);
+	if (query != NULL) {
+		query_uri = gdata_query_get_query_uri (query, feed_uri);
+		message = soup_message_new (SOUP_METHOD_GET, query_uri);
+		g_free (query_uri);
+	} else {
+		message = soup_message_new (SOUP_METHOD_GET, feed_uri);
+	}
 
 	/* Make sure subclasses set their headers */
 	klass = GDATA_SERVICE_GET_CLASS (self);
@@ -676,7 +685,8 @@ gdata_service_query (GDataService *self, const gchar *feed_uri, GDataQuery *quer
 
 	g_assert (message->response_body->data != NULL);
 
-	feed = _gdata_feed_new_from_xml (message->response_body->data, message->response_body->length, parser_func, error);
+	feed = _gdata_feed_new_from_xml (message->response_body->data, message->response_body->length, parser_func,
+					 progress_callback, progress_user_data, error);
 	g_object_unref (message);
 
 	return feed;

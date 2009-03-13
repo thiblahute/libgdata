@@ -559,7 +559,7 @@ _gdata_calendar_event_parse_xml_node (GDataCalendarEvent *self, xmlDoc *doc, xml
 static void
 get_xml (GDataEntry *entry, GString *xml_string)
 {
-	GDataCalendarEventPrivate *priv = GDATA_CALENDAR_EVENT (entry)->priv;
+	/*GDataCalendarEventPrivate *priv = GDATA_CALENDAR_EVENT (entry)->priv;*/
 
 	/* Chain up to the parent class */
 	GDATA_ENTRY_CLASS (gdata_calendar_event_parent_class)->get_xml (entry, xml_string);

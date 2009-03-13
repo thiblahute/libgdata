@@ -95,7 +95,7 @@ test_query_all_calendars (void)
 
 	g_assert (service != NULL);
 
-	feed = gdata_calendar_service_query_all_calendars (GDATA_CALENDAR_SERVICE (service), -1, -1, NULL, &error);
+	feed = gdata_calendar_service_query_all_calendars (GDATA_CALENDAR_SERVICE (service), NULL, NULL, NULL, NULL, &error);
 	g_assert_no_error (error);
 	g_assert (GDATA_IS_FEED (feed));
 	g_clear_error (&error);
@@ -127,7 +127,7 @@ test_query_all_calendars_async (void)
 {
 	g_assert (service != NULL);
 
-	gdata_calendar_service_query_all_calendars_async (GDATA_CALENDAR_SERVICE (service), -1, -1,
+	gdata_calendar_service_query_all_calendars_async (GDATA_CALENDAR_SERVICE (service), NULL, NULL, NULL,
 							  NULL, (GAsyncReadyCallback) test_query_all_calendars_async_cb, NULL);
 
 	main_loop = g_main_loop_new (NULL, TRUE);
@@ -143,7 +143,7 @@ test_query_own_calendars (void)
 
 	g_assert (service != NULL);
 
-	feed = gdata_calendar_service_query_own_calendars (GDATA_CALENDAR_SERVICE (service), -1, -1, NULL, &error);
+	feed = gdata_calendar_service_query_own_calendars (GDATA_CALENDAR_SERVICE (service), NULL, NULL, NULL, NULL, &error);
 	g_assert_no_error (error);
 	g_assert (GDATA_IS_FEED (feed));
 	g_clear_error (&error);
@@ -175,7 +175,7 @@ test_query_own_calendars_async (void)
 {
 	g_assert (service != NULL);
 
-	gdata_calendar_service_query_own_calendars_async (GDATA_CALENDAR_SERVICE (service), -1, -1,
+	gdata_calendar_service_query_own_calendars_async (GDATA_CALENDAR_SERVICE (service), NULL, NULL, NULL,
 							  NULL, (GAsyncReadyCallback) test_query_own_calendars_async_cb, NULL);
 
 	main_loop = g_main_loop_new (NULL, TRUE);
@@ -194,7 +194,7 @@ test_query_events (void)
 	g_assert (service != NULL);
 
 	/* Get a calendar */
-	calendar_feed = gdata_calendar_service_query_own_calendars (GDATA_CALENDAR_SERVICE (service), -1, 1, NULL, &error);
+	calendar_feed = gdata_calendar_service_query_own_calendars (GDATA_CALENDAR_SERVICE (service), NULL, NULL, NULL, NULL, &error);
 	g_assert_no_error (error);
 	g_assert (GDATA_IS_FEED (calendar_feed));
 	g_clear_error (&error);
@@ -208,7 +208,7 @@ test_query_events (void)
 	g_object_unref (calendar_feed);
 
 	/* Get the entry feed */
-	feed = gdata_calendar_service_query_events (GDATA_CALENDAR_SERVICE (service), calendar, NULL, NULL, NULL, &error);
+	feed = gdata_calendar_service_query_events (GDATA_CALENDAR_SERVICE (service), calendar, NULL, NULL, NULL, NULL, &error);
 	g_assert_no_error (error);
 	g_assert (GDATA_IS_FEED (feed));
 	g_clear_error (&error);

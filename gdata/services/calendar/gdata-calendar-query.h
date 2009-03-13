@@ -24,7 +24,6 @@
 #include <glib-object.h>
 
 #include <gdata/gdata-query.h>
-#include <gdata/services/calendar/gdata-calendar-service.h>
 #include <gdata/gdata-types.h>
 
 G_BEGIN_DECLS
@@ -48,6 +47,8 @@ typedef struct {
 } GDataCalendarQueryClass;
 
 GType gdata_calendar_query_get_type (void);
+
+#include <gdata/services/calendar/gdata-calendar-service.h>
 
 GDataCalendarQuery *gdata_calendar_query_new (GDataCalendarService *service, const gchar *q);
 GDataCalendarQuery *gdata_calendar_query_new_with_limits (GDataCalendarService *service, const gchar *q, GTimeVal *start_min, GTimeVal *start_max);

@@ -235,7 +235,8 @@ gdata_feed_set_property (GObject *object, guint property_id, const GValue *value
 }
 
 GDataFeed *
-_gdata_feed_new_from_xml (const gchar *xml, gint length, GDataEntryParserFunc parser_func, GError **error)
+_gdata_feed_new_from_xml (const gchar *xml, gint length, GDataEntryParserFunc parser_func,
+			  GDataQueryProgressCallback progress_callback, gpointer progress_user_data, GError **error)
 {
 	GDataFeed *feed = NULL;
 	xmlDoc *doc;
@@ -243,7 +244,7 @@ _gdata_feed_new_from_xml (const gchar *xml, gint length, GDataEntryParserFunc pa
 	xmlChar *title = NULL, *subtitle = NULL, *id = NULL, *logo = NULL;
 	GTimeVal updated = { 0, };
 	GDataGenerator *generator = NULL;
-	guint total_results = 0, start_index = 0, items_per_page = 0;
+	guint entry_i = 0, total_results = 0, start_index = 0, items_per_page = 0;
 	GList *entries = NULL, *categories = NULL, *links = NULL, *authors = NULL;
 
 	g_return_val_if_fail (xml != NULL, NULL);
@@ -287,6 +288,11 @@ _gdata_feed_new_from_xml (const gchar *xml, gint length, GDataEntryParserFunc pa
 			if (entry == NULL)
 				goto error;
 
+			/* Call the progress callback */
+			if (progress_callback != NULL)
+				progress_callback (entry, entry_i, total_results, progress_user_data);
+
+			entry_i++;
 			entries = g_list_prepend (entries, entry);
 		} else if (xmlStrcmp (node->name, (xmlChar*) "title") == 0) {
 			/* atom:title */

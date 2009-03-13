@@ -57,12 +57,9 @@ gdata_calendar_service_new (const gchar *client_id)
 }
 
 GDataFeed *
-gdata_calendar_service_query_all_calendars (GDataCalendarService *self, gint start_index, gint max_results,
-					    GCancellable *cancellable, GError **error)
+gdata_calendar_service_query_all_calendars (GDataCalendarService *self, GDataCalendarQuery *query, GCancellable *cancellable,
+					    GDataQueryProgressCallback progress_callback, gpointer progress_user_data, GError **error)
 {
-	GDataQuery *query;
-	GDataFeed *feed;
-
 	/* Ensure we're authenticated first */
 	if (gdata_service_is_authenticated (GDATA_SERVICE (self)) == FALSE) {
 		g_set_error_literal (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_AUTHENTICATION_REQUIRED,
@@ -70,20 +67,16 @@ gdata_calendar_service_query_all_calendars (GDataCalendarService *self, gint sta
 		return NULL;
 	}
 
-	query = gdata_query_new_with_limits (GDATA_SERVICE (self), NULL, start_index, max_results);
-	feed = gdata_service_query (GDATA_SERVICE (self), "http://www.google.com/calendar/feeds/default/allcalendars/full", query,
-				    (GDataEntryParserFunc) _gdata_calendar_calendar_new_from_xml_node, cancellable, error);
-	g_object_unref (query);
-
-	return feed;
+	return gdata_service_query (GDATA_SERVICE (self), "http://www.google.com/calendar/feeds/default/allcalendars/full", GDATA_QUERY (query),
+				    (GDataEntryParserFunc) _gdata_calendar_calendar_new_from_xml_node, cancellable,
+				    progress_callback, progress_user_data, error);
 }
 
 void
-gdata_calendar_service_query_all_calendars_async (GDataCalendarService *self, gint start_index, gint max_results,
-						  GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+gdata_calendar_service_query_all_calendars_async (GDataCalendarService *self, GDataCalendarQuery *query, GCancellable *cancellable,
+						  GDataQueryProgressCallback progress_callback, gpointer progress_user_data,
+						  GAsyncReadyCallback callback, gpointer user_data)
 {
-	GDataQuery *query;
-
 	/* Ensure we're authenticated first */
 	if (gdata_service_is_authenticated (GDATA_SERVICE (self)) == FALSE) {
 		g_simple_async_report_error_in_idle (G_OBJECT (self), callback, user_data,
@@ -92,20 +85,15 @@ gdata_calendar_service_query_all_calendars_async (GDataCalendarService *self, gi
 		return;
 	}
 
-	query = gdata_query_new_with_limits (GDATA_SERVICE (self), NULL, start_index, max_results);
-	gdata_service_query_async (GDATA_SERVICE (self), "http://www.google.com/calendar/feeds/default/allcalendars/full", query,
+	gdata_service_query_async (GDATA_SERVICE (self), "http://www.google.com/calendar/feeds/default/allcalendars/full", GDATA_QUERY (query),
 				   (GDataEntryParserFunc) _gdata_calendar_calendar_new_from_xml_node,
-				   cancellable, callback, user_data);
-	g_object_unref (query);
+				   cancellable, progress_callback, progress_user_data, callback, user_data);
 }
 
 GDataFeed *
-gdata_calendar_service_query_own_calendars (GDataCalendarService *self, gint start_index, gint max_results,
-					    GCancellable *cancellable, GError **error)
+gdata_calendar_service_query_own_calendars (GDataCalendarService *self, GDataCalendarQuery *query, GCancellable *cancellable,
+					    GDataQueryProgressCallback progress_callback, gpointer progress_user_data, GError **error)
 {
-	GDataQuery *query;
-	GDataFeed *feed;
-
 	/* Ensure we're authenticated first */
 	if (gdata_service_is_authenticated (GDATA_SERVICE (self)) == FALSE) {
 		g_set_error_literal (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_AUTHENTICATION_REQUIRED,
@@ -113,20 +101,16 @@ gdata_calendar_service_query_own_calendars (GDataCalendarService *self, gint sta
 		return NULL;
 	}
 
-	query = gdata_query_new_with_limits (GDATA_SERVICE (self), NULL, start_index, max_results);
-	feed = gdata_service_query (GDATA_SERVICE (self), "http://www.google.com/calendar/feeds/default/owncalendars/full", query,
-				    (GDataEntryParserFunc) _gdata_calendar_calendar_new_from_xml_node, cancellable, error);
-	g_object_unref (query);
-
-	return feed;
+	return gdata_service_query (GDATA_SERVICE (self), "http://www.google.com/calendar/feeds/default/owncalendars/full", GDATA_QUERY (query),
+				    (GDataEntryParserFunc) _gdata_calendar_calendar_new_from_xml_node, cancellable,
+				    progress_callback, progress_user_data, error);
 }
 
 void
-gdata_calendar_service_query_own_calendars_async (GDataCalendarService *self, gint start_index, gint max_results,
-						  GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+gdata_calendar_service_query_own_calendars_async (GDataCalendarService *self, GDataCalendarQuery *query, GCancellable *cancellable,
+						  GDataQueryProgressCallback progress_callback, gpointer progress_user_data,
+						  GAsyncReadyCallback callback, gpointer user_data)
 {
-	GDataQuery *query;
-
 	/* Ensure we're authenticated first */
 	if (gdata_service_is_authenticated (GDATA_SERVICE (self)) == FALSE) {
 		g_simple_async_report_error_in_idle (G_OBJECT (self), callback, user_data,
@@ -135,20 +119,16 @@ gdata_calendar_service_query_own_calendars_async (GDataCalendarService *self, gi
 		return;
 	}
 
-	query = gdata_query_new_with_limits (GDATA_SERVICE (self), NULL, start_index, max_results);
-	gdata_service_query_async (GDATA_SERVICE (self), "http://www.google.com/calendar/feeds/default/owncalendars/full", query,
+	gdata_service_query_async (GDATA_SERVICE (self), "http://www.google.com/calendar/feeds/default/owncalendars/full", GDATA_QUERY (query),
 				   (GDataEntryParserFunc) _gdata_calendar_calendar_new_from_xml_node,
-				   cancellable, callback, user_data);
-	g_object_unref (query);
+				   cancellable, progress_callback, progress_user_data, callback, user_data);
 }
 
 /* TODO: Async variant */
 GDataFeed *
-gdata_calendar_service_query_events (GDataCalendarService *self, GDataCalendarCalendar *calendar, GTimeVal *start_min, GTimeVal *start_max,
-				      GCancellable *cancellable, GError **error)
+gdata_calendar_service_query_events (GDataCalendarService *self, GDataCalendarCalendar *calendar, GDataCalendarQuery *query, GCancellable *cancellable,
+				     GDataQueryProgressCallback progress_callback, gpointer progress_user_data, GError **error)
 {
-	GDataCalendarQuery *query;
-	GDataFeed *feed;
 	const gchar *uri;
 
 	/* Ensure we're authenticated first */
@@ -168,10 +148,7 @@ gdata_calendar_service_query_events (GDataCalendarService *self, GDataCalendarCa
 	}
 
 	/* Execute the query */
-	query = gdata_calendar_query_new_with_limits (self, NULL, start_min, start_max);
-	feed = gdata_service_query (GDATA_SERVICE (self), uri, GDATA_QUERY (query),
-				    (GDataEntryParserFunc) _gdata_calendar_event_new_from_xml_node, cancellable, error);
-	g_object_unref (query);
-
-	return feed;
+	return gdata_service_query (GDATA_SERVICE (self), uri, GDATA_QUERY (query),
+				    (GDataEntryParserFunc) _gdata_calendar_event_new_from_xml_node, cancellable,
+				    progress_callback, progress_user_data, error);
 }

@@ -38,7 +38,7 @@ test_query_events (void)
 	g_assert_no_error (error);
 
 	/* Get a calendar */
-	calendar_feed = gdata_calendar_service_query_own_calendars (service, -1, 1, NULL, &error);
+	calendar_feed = gdata_calendar_service_query_own_calendars (service, NULL, NULL, NULL, NULL, &error);
 	g_assert_no_error (error);
 
 	calendars = gdata_feed_get_entries (calendar_feed);
@@ -48,7 +48,7 @@ test_query_events (void)
 	g_object_unref (calendar_feed);
 
 	/* Get the entry feed */
-	feed = gdata_calendar_service_query_events (service, calendar, NULL, NULL, NULL, &error);
+	feed = gdata_calendar_service_query_events (service, calendar, NULL, NULL, NULL, NULL, &error);
 	g_assert_no_error (error);
 
 	g_object_unref (feed);

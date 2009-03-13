@@ -28,7 +28,8 @@
 G_BEGIN_DECLS
 
 #include "gdata-feed.h"
-GDataFeed *_gdata_feed_new_from_xml (const gchar *xml, gint length, GDataEntryParserFunc parser_func, GError **error);
+GDataFeed *_gdata_feed_new_from_xml (const gchar *xml, gint length, GDataEntryParserFunc parser_func,
+				     GDataQueryProgressCallback progress_callback, gpointer progress_user_data, GError **error);
 
 #include "gdata-entry.h"
 GDataEntry *_gdata_entry_new_from_xml_node (xmlDoc *doc, xmlNode *node, GError **error);

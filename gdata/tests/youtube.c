@@ -102,7 +102,7 @@ test_query_standard_feed (void)
 
 	g_assert (service != NULL);
 
-	feed = gdata_youtube_service_query_standard_feed (GDATA_YOUTUBE_SERVICE (service), GDATA_YOUTUBE_TOP_RATED_FEED, -1, -1, NULL, &error);
+	feed = gdata_youtube_service_query_standard_feed (GDATA_YOUTUBE_SERVICE (service), GDATA_YOUTUBE_TOP_RATED_FEED, NULL, NULL, NULL, NULL, &error);
 	g_assert_no_error (error);
 	g_assert (GDATA_IS_FEED (feed));
 	g_clear_error (&error);
@@ -134,8 +134,8 @@ test_query_standard_feed_async (void)
 {
 	g_assert (service != NULL);
 
-	gdata_youtube_service_query_standard_feed_async (GDATA_YOUTUBE_SERVICE (service), GDATA_YOUTUBE_TOP_RATED_FEED, -1, -1,
-							 NULL, (GAsyncReadyCallback) test_query_standard_feed_async_cb, NULL);
+	gdata_youtube_service_query_standard_feed_async (GDATA_YOUTUBE_SERVICE (service), GDATA_YOUTUBE_TOP_RATED_FEED, NULL,
+							 NULL, NULL, NULL, (GAsyncReadyCallback) test_query_standard_feed_async_cb, NULL);
 
 	main_loop = g_main_loop_new (NULL, TRUE);
 	g_main_loop_run (main_loop);
@@ -221,7 +221,7 @@ test_query_related (void)
 	g_assert (service != NULL);
 
 	video = get_video_for_related ();
-	feed = gdata_youtube_service_query_related (GDATA_YOUTUBE_SERVICE (service), video, -1, -1, NULL, &error);
+	feed = gdata_youtube_service_query_related (GDATA_YOUTUBE_SERVICE (service), video, NULL, NULL, NULL, NULL, &error);
 	g_assert_no_error (error);
 	g_assert (GDATA_IS_FEED (feed));
 	g_clear_error (&error);
@@ -257,7 +257,7 @@ test_query_related_async (void)
 	g_assert (service != NULL);
 
 	video = get_video_for_related ();
-	gdata_youtube_service_query_related_async (GDATA_YOUTUBE_SERVICE (service), video, -1, -1,
+	gdata_youtube_service_query_related_async (GDATA_YOUTUBE_SERVICE (service), video, NULL, NULL, NULL,
 						   NULL, (GAsyncReadyCallback) test_query_related_async_cb, NULL);
 	g_object_unref (video);
 

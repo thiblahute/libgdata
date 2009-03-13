@@ -60,7 +60,7 @@ typedef struct {
 
 GType gdata_query_get_type (void);
 
-#include "gdata-service.h"
+#include <gdata/gdata-service.h>
 
 GDataQuery *gdata_query_new (GDataService *service, const gchar *q);
 GDataQuery *gdata_query_new_with_limits (GDataService *service, const gchar *q, gint start_index, gint max_results);

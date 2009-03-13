@@ -76,6 +76,7 @@ typedef enum {
 } GDataAuthenticationError;
 
 typedef GDataEntry *(*GDataEntryParserFunc) (xmlDoc *doc, xmlNode *node, GError **error);
+typedef void *(*GDataQueryProgressCallback) (GDataEntry *entry, guint entry_key, guint entry_count, gpointer user_data);
 
 #define GDATA_TYPE_SERVICE		(gdata_service_get_type ())
 #define GDATA_SERVICE(o)		(G_TYPE_CHECK_INSTANCE_CAST ((o), GDATA_TYPE_SERVICE, GDataService))
@@ -113,12 +114,15 @@ void gdata_service_authenticate_async (GDataService *self, const gchar *username
 				       GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data);
 gboolean gdata_service_authenticate_finish (GDataService *self, GAsyncResult *async_result, GError **error);
 
-#include "gdata-query.h"
+#include <gdata/gdata-query.h>
 
 GDataFeed *gdata_service_query (GDataService *self, const gchar *feed_uri, GDataQuery *query, GDataEntryParserFunc parser_func,
-				GCancellable *cancellable, GError **error);
+				GCancellable *cancellable,
+				GDataQueryProgressCallback progress_callback, gpointer progress_user_data, GError **error);
 void gdata_service_query_async (GDataService *self, const gchar *feed_uri, GDataQuery *query, GDataEntryParserFunc parser_func,
-				GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data);
+				GCancellable *cancellable,
+				GDataQueryProgressCallback progress_callback, gpointer progress_user_data,
+				GAsyncReadyCallback callback, gpointer user_data);
 GDataFeed *gdata_service_query_finish (GDataService *self, GAsyncResult *async_result, GError **error);
 
 gboolean gdata_service_insert_entry (GDataService *self, const gchar *upload_uri, GDataEntry *entry, GCancellable *cancellable, GError **error);

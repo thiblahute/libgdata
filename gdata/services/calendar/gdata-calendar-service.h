@@ -49,18 +49,23 @@ GType gdata_calendar_service_get_type (void);
 
 GDataCalendarService *gdata_calendar_service_new (const gchar *client_id);
 
-GDataFeed *gdata_calendar_service_query_all_calendars (GDataCalendarService *self, gint start_index, gint max_results,
-						       GCancellable *cancellable, GError **error);
-void gdata_calendar_service_query_all_calendars_async (GDataCalendarService *self, gint start_index, gint max_results,
-						       GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data);
+#include <gdata/services/calendar/gdata-calendar-query.h>
 
-GDataFeed *gdata_calendar_service_query_own_calendars (GDataCalendarService *self, gint start_index, gint max_results,
-						       GCancellable *cancellable, GError **error);
-void gdata_calendar_service_query_own_calendars_async (GDataCalendarService *self, gint start_index, gint max_results,
-						       GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data);
+GDataFeed *gdata_calendar_service_query_all_calendars (GDataCalendarService *self, GDataCalendarQuery *query, GCancellable *cancellable,
+						       GDataQueryProgressCallback progress_callback, gpointer progress_user_data,GError **error);
+void gdata_calendar_service_query_all_calendars_async (GDataCalendarService *self, GDataCalendarQuery *query, GCancellable *cancellable,
+						       GDataQueryProgressCallback progress_callback, gpointer progress_user_data,
+						       GAsyncReadyCallback callback, gpointer user_data);
 
-GDataFeed *gdata_calendar_service_query_events (GDataCalendarService *self, GDataCalendarCalendar *calendar, GTimeVal *start_min, GTimeVal *start_max,
-						GCancellable *cancellable, GError **error);
+GDataFeed *gdata_calendar_service_query_own_calendars (GDataCalendarService *self, GDataCalendarQuery *query, GCancellable *cancellable,
+						       GDataQueryProgressCallback progress_callback, gpointer progress_user_data, GError **error);
+void gdata_calendar_service_query_own_calendars_async (GDataCalendarService *self, GDataCalendarQuery *query, GCancellable *cancellable,
+						       GDataQueryProgressCallback progress_callback, gpointer progress_user_data,
+						       GAsyncReadyCallback callback, gpointer user_data);
+
+GDataFeed *gdata_calendar_service_query_events (GDataCalendarService *self, GDataCalendarCalendar *calendar, GDataCalendarQuery *query,
+						GCancellable *cancellable, GDataQueryProgressCallback progress_callback, gpointer progress_user_data,
+						GError **error);
 
 G_END_DECLS
 
