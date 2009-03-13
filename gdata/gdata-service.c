@@ -43,8 +43,10 @@ static void gdata_service_dispose (GObject *object);
 static void gdata_service_finalize (GObject *object);
 static void gdata_service_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec);
 static void gdata_service_set_property (GObject *object, guint property_id, const GValue *value, GParamSpec *pspec);
-static gboolean real_parse_authentication_response (GDataService *self, const gchar *response_body, GError **error);
+static gboolean real_parse_authentication_response (GDataService *self, guint status, const gchar *response_body, gint length, GError **error);
 static void real_append_query_headers (GDataService *self, SoupMessage *message);
+static void real_parse_error_response (GDataService *self, guint status, const gchar *reason_phrase,
+				       const gchar *response_body, gint length, GError **error);
 
 struct _GDataServicePrivate {
 	SoupSession *session;
@@ -89,6 +91,7 @@ gdata_service_class_init (GDataServiceClass *klass)
 	klass->authentication_uri = "https://www.google.com/accounts/ClientLogin";
 	klass->parse_authentication_response = real_parse_authentication_response;
 	klass->append_query_headers = real_append_query_headers;
+	klass->parse_error_response = real_parse_error_response;
 
 	g_object_class_install_property (gobject_class, PROP_CLIENT_ID,
 				g_param_spec_string ("client-id",
@@ -195,7 +198,7 @@ gdata_service_set_property (GObject *object, guint property_id, const GValue *va
 }
 
 static gboolean
-real_parse_authentication_response (GDataService *self, const gchar *response_body, GError **error)
+real_parse_authentication_response (GDataService *self, guint status, const gchar *response_body, gint length, GError **error)
 {
 	gchar *auth_start, *auth_end;
 
@@ -229,12 +232,21 @@ real_append_query_headers (GDataService *self, SoupMessage *message)
 	g_assert (message != NULL);
 
 	/* Set the authorisation header */
-	authorisation_header = g_strdup_printf ("GoogleLogin auth=%s", self->priv->auth_token);
-	soup_message_headers_append (message->request_headers, "Authorization", authorisation_header);
-	g_free (authorisation_header);
+	if (self->priv->auth_token != NULL) {
+		authorisation_header = g_strdup_printf ("GoogleLogin auth=%s", self->priv->auth_token);
+		soup_message_headers_append (message->request_headers, "Authorization", authorisation_header);
+		g_free (authorisation_header);
+	}
 
 	/* Set the GData-Version header to tell it we want to use the v2 API */
 	soup_message_headers_append (message->request_headers, "GData-Version", "2");
+}
+
+static void
+real_parse_error_response (GDataService *self, guint status, const gchar *reason_phrase, const gchar *response_body, gint length, GError **error)
+{
+	g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_WITH_QUERY,
+		     _("Error code %u when querying: %s"), status, reason_phrase);
 }
 
 typedef struct {
@@ -507,7 +519,7 @@ login_error:
 
 	g_assert (message->response_body->data != NULL);
 
-	retval = klass->parse_authentication_response (self, message->response_body->data, error);
+	retval = klass->parse_authentication_response (self, status, message->response_body->data, message->response_body->length, error);
 	g_object_unref (message);
 
 	g_object_freeze_notify (G_OBJECT (self));
@@ -676,9 +688,8 @@ gdata_service_query (GDataService *self, const gchar *feed_uri, GDataQuery *quer
 
 	if (status != 200) {
 		/* Error */
-		/* TODO: Handle errors more specifically, making sure to set authenticated where appropriate */
-		g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_WITH_QUERY,
-			     _("TODO: error code %u when querying"), status);
+		g_assert (klass->parse_error_response != NULL);
+		klass->parse_error_response (self, status, message->reason_phrase, message->response_body->data, message->response_body->length, error);
 		g_object_unref (message);
 		return FALSE;
 	}

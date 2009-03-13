@@ -101,8 +101,10 @@ typedef struct {
 	const gchar *service_name;
 	const gchar *authentication_uri;
 
-	gboolean (*parse_authentication_response) (GDataService *self, const gchar *response_body, GError **error);
+	gboolean (*parse_authentication_response) (GDataService *self, guint status, const gchar *response_body, gint length, GError **error);
 	void (*append_query_headers) (GDataService *self, SoupMessage *message);
+	void (*parse_error_response) (GDataService *self, guint status, const gchar *reason_phrase,
+				      const gchar *response_body, gint length, GError **error);
 } GDataServiceClass;
 
 GType gdata_service_get_type (void);

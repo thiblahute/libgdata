@@ -39,8 +39,10 @@ gdata_youtube_service_error_quark (void)
 static void gdata_youtube_service_finalize (GObject *object);
 static void gdata_youtube_service_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec);
 static void gdata_youtube_service_set_property (GObject *object, guint property_id, const GValue *value, GParamSpec *pspec);
-static gboolean parse_authentication_response (GDataService *self, const gchar *response_body, GError **error);
+static gboolean parse_authentication_response (GDataService *self, guint status, const gchar *response_body, gint length, GError **error);
 static void append_query_headers (GDataService *self, SoupMessage *message);
+static void parse_error_response (GDataService *self, guint status, const gchar *reason_phrase,
+				  const gchar *response_body, gint length, GError **error);
 
 struct _GDataYouTubeServicePrivate {
 	gchar *youtube_user;
@@ -71,6 +73,7 @@ gdata_youtube_service_class_init (GDataYouTubeServiceClass *klass)
 	service_class->authentication_uri = "https://www.google.com/youtube/accounts/ClientLogin";
 	service_class->parse_authentication_response = parse_authentication_response;
 	service_class->append_query_headers = append_query_headers;
+	service_class->parse_error_response = parse_error_response;
 
 	g_object_class_install_property (gobject_class, PROP_DEVELOPER_KEY,
 				g_param_spec_string ("developer-key",
@@ -138,14 +141,16 @@ gdata_youtube_service_set_property (GObject *object, guint property_id, const GV
 }
 
 static gboolean
-parse_authentication_response (GDataService *self, const gchar *response_body, GError **error)
+parse_authentication_response (GDataService *self, guint status, const gchar *response_body, gint length, GError **error)
 {
 	GDataYouTubeServicePrivate *priv = GDATA_YOUTUBE_SERVICE (self)->priv;
 	gchar *user_start, *user_end;
 
 	/* Chain up to the parent method first */
-	if (GDATA_SERVICE_CLASS (gdata_youtube_service_parent_class)->parse_authentication_response (self, response_body, error) == FALSE)
+	if (GDATA_SERVICE_CLASS (gdata_youtube_service_parent_class)->parse_authentication_response (self, status,
+												     response_body, length, error) == FALSE) {
 		return FALSE;
+	}
 
 	/* Parse the response */
 	user_start = strstr (response_body, "YouTubeUser=");
@@ -186,6 +191,117 @@ append_query_headers (GDataService *self, SoupMessage *message)
 
 	/* Chain up to the parent class */
 	GDATA_SERVICE_CLASS (gdata_youtube_service_parent_class)->append_query_headers (self, message);
+}
+
+static void
+parse_error_response (GDataService *self, guint status, const gchar *reason_phrase, const gchar *response_body, gint length, GError **error)
+{
+	xmlDoc *doc;
+	xmlNode *node;
+
+	g_return_if_fail (response_body != NULL);
+
+	if (length == -1)
+		length = strlen (response_body);
+
+	/* Parse the XML */
+	doc = xmlReadMemory (response_body, length, "error.xml", NULL, 0);
+	if (doc == NULL) {
+		/* Chain up to the parent class */
+		GDATA_SERVICE_CLASS (gdata_youtube_service_parent_class)->parse_error_response (self, status, reason_phrase,
+												response_body, length, error);
+		return;
+	}
+
+	/* Get the root element */
+	node = xmlDocGetRootElement (doc);
+	if (node == NULL) {
+		/* XML document's empty; chain up to the parent class */
+		xmlFreeDoc (doc);
+		GDATA_SERVICE_CLASS (gdata_youtube_service_parent_class)->parse_error_response (self, status, reason_phrase,
+												response_body, length, error);
+		return;
+	}
+
+	if (xmlStrcmp (node->name, (xmlChar*) "errors") != 0) {
+		/* No <errors> element (required); chain up to the parent class */
+		xmlFreeDoc (doc);
+		GDATA_SERVICE_CLASS (gdata_youtube_service_parent_class)->parse_error_response (self, status, reason_phrase,
+												response_body, length, error);
+		return;
+	}
+
+	/* Parse the actual errors */
+	node = node->xmlChildrenNode;
+	while (node != NULL) {
+		xmlChar *domain = NULL, *code = NULL, *location = NULL;
+		xmlNode *child_node = node->xmlChildrenNode;
+
+		/* Get the error data */
+		while (child_node != NULL) {
+			if (xmlStrcmp (child_node->name, (xmlChar*) "domain") == 0)
+				domain = xmlNodeListGetString (doc, child_node->xmlChildrenNode, TRUE);
+			else if (xmlStrcmp (child_node->name, (xmlChar*) "code") == 0)
+				code = xmlNodeListGetString (doc, child_node->xmlChildrenNode, TRUE);
+			else if (xmlStrcmp (child_node->name, (xmlChar*) "location") == 0)
+				location = xmlNodeListGetString (doc, child_node->xmlChildrenNode, TRUE);
+			else {
+				/* Unknown element */
+				gdata_parser_error_unhandled_element ((gchar*) child_node->ns->prefix, (gchar*) child_node->name, "error", error);
+				xmlFree (domain);
+				xmlFree (code);
+				xmlFree (location);
+				xmlFreeDoc (doc);
+				return;
+			}
+
+			child_node = child_node->next;
+		}
+
+		/* Create an error message, but only for the first error */
+		if (*error == NULL) {
+			/* See http://code.google.com/apis/youtube/2.0/developers_guide_protocol.html#Error_responses */
+			if (xmlStrcmp (domain, (xmlChar*) "yt:service") == 0 && xmlStrcmp (code, (xmlChar*) "disabled_in_maintenance_mode") == 0) {
+				/* Service disabled */
+				g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_UNAVAILABLE,
+					     _("This service is not available at the moment."));
+			} else if (xmlStrcmp (domain, (xmlChar*) "yt:authentication") == 0) {
+				/* Authentication problem; make sure to set our status as unauthenticated */
+				gdata_service_set_authenticated (GDATA_SERVICE (self), FALSE);
+				g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_AUTHENTICATION_REQUIRED,
+					     _("You must be authenticated to do this."));
+			} else if (xmlStrcmp (domain, (xmlChar*) "yt:quota") == 0) {
+				/* Quota errors */
+				if (xmlStrcmp (code, (xmlChar*) "too_many_recent_calls") == 0) {
+					g_set_error (error, GDATA_YOUTUBE_SERVICE_ERROR, GDATA_YOUTUBE_SERVICE_ERROR_API_QUOTA_EXCEEDED,
+						     _("You have made too many API calls recently. Please wait a few minutes and try again."));
+				} else if (xmlStrcmp (code, (xmlChar*) "too_many_entries") == 0) {
+					g_set_error (error, GDATA_YOUTUBE_SERVICE_ERROR, GDATA_YOUTUBE_SERVICE_ERROR_ENTRY_QUOTA_EXCEEDED,
+						     _("You have exceeded your entry quota with the entry \"%s\"."
+						       "Please delete some entries and try again."), location);
+				} else {
+					/* Protocol error */
+					g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
+						     _("Unknown error code \"%s\" in domain \"%s\" received with location \"%s\"."),
+						     code, domain, location);
+				}
+			} else {
+				/* Unknown or validation (protocol) error */
+				g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
+					     _("Unknown error code \"%s\" in domain \"%s\" received with location \"%s\"."),
+					     code, domain, location);
+			}
+		} else {
+			/* For all errors after the first, log the error in the terminal */
+			g_debug ("Error message received in response: code \"%s\", domain \"%s\", location \"%s\".", code, domain, location);
+		}
+
+		xmlFree (domain);
+		xmlFree (code);
+		xmlFree (location);
+
+		node = node->next;
+	}
 }
 
 GDataYouTubeService *
@@ -434,7 +550,8 @@ gdata_youtube_service_upload_video (GDataYouTubeService *self, GDataYouTubeVideo
 
 	if (status != 201) {
 		/* Error */
-		gdata_youtube_service_parse_error_response (self, status, message->response_body->data, message->response_body->length, error);
+		parse_error_response (GDATA_SERVICE (self), status, message->reason_phrase,
+				      message->response_body->data, message->response_body->length, error);
 		g_object_unref (message);
 		return NULL;
 	}
@@ -442,118 +559,6 @@ gdata_youtube_service_upload_video (GDataYouTubeService *self, GDataYouTubeVideo
 	g_assert (message->response_body->data != NULL);
 
 	return gdata_youtube_video_new_from_xml (message->response_body->data, (gint) message->response_body->length, error);
-}
-
-void
-gdata_youtube_service_parse_error_response (GDataYouTubeService *self, guint status, const gchar *response, gint length, GError **error)
-{
-	xmlDoc *doc;
-	xmlNode *node;
-
-	g_return_if_fail (response != NULL);
-
-	if (length == -1)
-		length = strlen (response);
-
-	/* Parse the XML */
-	doc = xmlReadMemory (response, length, "error.xml", NULL, 0);
-	if (doc == NULL) {
-		xmlError *xml_error = xmlGetLastError ();
-		g_set_error (error, GDATA_PARSER_ERROR, GDATA_PARSER_ERROR_PARSING_STRING,
-			     _("Error parsing XML: %s"),
-			     xml_error->message);
-		return;
-	}
-
-	/* Get the root element */
-	node = xmlDocGetRootElement (doc);
-	if (node == NULL) {
-		/* XML document's empty */
-		xmlFreeDoc (doc);
-		g_set_error (error, GDATA_PARSER_ERROR, GDATA_PARSER_ERROR_EMPTY_DOCUMENT,
-			     _("Error parsing XML: %s"),
-			     _("Empty document."));
-		return;
-	}
-
-	if (xmlStrcmp (node->name, (xmlChar*) "errors") != 0) {
-		/* No <errors> element (required) */
-		xmlFreeDoc (doc);
-		gdata_parser_error_required_element_missing ("errors", "root", error);
-		return;
-	}
-
-	/* Parse the actual errors */
-	node = node->xmlChildrenNode;
-	while (node != NULL) {
-		xmlChar *domain = NULL, *code = NULL, *location = NULL;
-		xmlNode *child_node = node->xmlChildrenNode;
-
-		/* Get the error data */
-		while (child_node != NULL) {
-			if (xmlStrcmp (child_node->name, (xmlChar*) "domain") == 0)
-				domain = xmlNodeListGetString (doc, child_node->xmlChildrenNode, TRUE);
-			else if (xmlStrcmp (child_node->name, (xmlChar*) "code") == 0)
-				code = xmlNodeListGetString (doc, child_node->xmlChildrenNode, TRUE);
-			else if (xmlStrcmp (child_node->name, (xmlChar*) "location") == 0)
-				location = xmlNodeListGetString (doc, child_node->xmlChildrenNode, TRUE);
-			else {
-				/* Unknown element */
-				gdata_parser_error_unhandled_element ((gchar*) child_node->ns->prefix, (gchar*) child_node->name, "error", error);
-				xmlFree (domain);
-				xmlFree (code);
-				xmlFree (location);
-				xmlFreeDoc (doc);
-				return;
-			}
-
-			child_node = child_node->next;
-		}
-
-		/* Create an error message, but only for the first error */
-		if (*error == NULL) {
-			/* See http://code.google.com/apis/youtube/2.0/developers_guide_protocol.html#Error_responses */
-			if (xmlStrcmp (domain, (xmlChar*) "yt:service") == 0 && xmlStrcmp (code, (xmlChar*) "disabled_in_maintenance_mode") == 0) {
-				/* Service disabled */
-				g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_UNAVAILABLE,
-					     _("This service is not available at the moment."));
-			} else if (xmlStrcmp (domain, (xmlChar*) "yt:authentication") == 0) {
-				/* Authentication problem; make sure to set our status as unauthenticated */
-				gdata_service_set_authenticated (GDATA_SERVICE (self), FALSE);
-				g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_AUTHENTICATION_REQUIRED,
-					     _("You must be authenticated to do this."));
-			} else if (xmlStrcmp (domain, (xmlChar*) "yt:quota") == 0) {
-				/* Quota errors */
-				if (xmlStrcmp (code, (xmlChar*) "too_many_recent_calls") == 0) {
-					g_set_error (error, GDATA_YOUTUBE_SERVICE_ERROR, GDATA_YOUTUBE_SERVICE_ERROR_API_QUOTA_EXCEEDED,
-						     _("You have made too many API calls recently. Please wait a few minutes and try again."));
-				} else if (xmlStrcmp (code, (xmlChar*) "too_many_entries") == 0) {
-					g_set_error (error, GDATA_YOUTUBE_SERVICE_ERROR, GDATA_YOUTUBE_SERVICE_ERROR_ENTRY_QUOTA_EXCEEDED,
-						     _("You have exceeded your entry quota with the entry \"%s\"."
-						       "Please delete some entries and try again."), location);
-				} else {
-					/* Protocol error */
-					g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
-						     _("Unknown error code \"%s\" in domain \"%s\" received with location \"%s\"."),
-						     code, domain, location);
-				}
-			} else {
-				/* Unknown or validation (protocol) error */
-				g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
-					     _("Unknown error code \"%s\" in domain \"%s\" received with location \"%s\"."),
-					     code, domain, location);
-			}
-		} else {
-			/* For all errors after the first, log the error in the terminal */
-			g_debug ("Error message received in response: code \"%s\", domain \"%s\", location \"%s\".", code, domain, location);
-		}
-
-		xmlFree (domain);
-		xmlFree (code);
-		xmlFree (location);
-
-		node = node->next;
-	}
 }
 
 const gchar *

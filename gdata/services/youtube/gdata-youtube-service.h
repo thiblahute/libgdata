@@ -100,8 +100,6 @@ void gdata_youtube_service_query_related_async (GDataYouTubeService *self, GData
 GDataYouTubeVideo *gdata_youtube_service_upload_video (GDataYouTubeService *self, GDataYouTubeVideo *video, GFile *video_file,
 						       GCancellable *cancellable, GError **error);
 
-void gdata_youtube_service_parse_error_response (GDataYouTubeService *self, guint status, const gchar *response, gint length, GError **error);
-
 const gchar *gdata_youtube_service_get_developer_key (GDataYouTubeService *self);
 const gchar *gdata_youtube_service_get_youtube_user (GDataYouTubeService *self);
 

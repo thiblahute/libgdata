@@ -33,7 +33,9 @@ gdata_gd_rating_new (guint min, guint max, guint num_raters, gdouble average)
 void
 gdata_gd_rating_free (GDataGDRating *self)
 {
-	g_return_if_fail (self != NULL);
+	if (G_UNLIKELY (self == NULL))
+		return;
+
 	g_slice_free (GDataGDRating, self);
 }
 
@@ -50,7 +52,8 @@ gdata_gd_feed_link_new (const gchar *href, const gchar *rel, guint count_hint)
 void
 gdata_gd_feed_link_free (GDataGDFeedLink *self)
 {
-	g_return_if_fail (self != NULL);
+	if (G_UNLIKELY (self == NULL))
+		return;
 
 	g_free (self->href);
 	g_free (self->rel);
@@ -70,7 +73,8 @@ gdata_gd_who_new (const gchar *rel, const gchar *value_string, const gchar *emai
 void
 gdata_gd_who_free (GDataGDWho *self)
 {
-	g_return_if_fail (self != NULL);
+	if (G_UNLIKELY (self == NULL))
+		return;
 
 	g_free (self->rel);
 	g_free (self->email);
@@ -91,7 +95,8 @@ gdata_gd_where_new (const gchar *rel, const gchar *value_string, const gchar *la
 void
 gdata_gd_where_free (GDataGDWhere *self)
 {
-	g_return_if_fail (self != NULL);
+	if (G_UNLIKELY (self == NULL))
+		return;
 
 	g_free (self->rel);
 	g_free (self->label);
