@@ -1192,6 +1192,13 @@ gdata_youtube_video_add_thumbnail (GDataYouTubeVideo *self, GDataMediaThumbnail 
 	self->priv->thumbnails = g_list_prepend (self->priv->thumbnails, thumbnail);
 }
 
+GList *
+gdata_youtube_video_get_thumbnails (GDataYouTubeVideo *self)
+{
+	g_return_val_if_fail (GDATA_IS_YOUTUBE_VIDEO (self), NULL);
+	return self->priv->thumbnails;
+}
+
 gint
 gdata_youtube_video_get_duration (GDataYouTubeVideo *self)
 {
