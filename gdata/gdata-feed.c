@@ -234,6 +234,23 @@ gdata_feed_set_property (GObject *object, guint property_id, const GValue *value
 	}
 }
 
+typedef struct {
+	GDataQueryProgressCallback progress_callback;
+	gpointer progress_user_data;
+	GDataEntry *entry;
+	guint entry_i;
+	guint total_results;
+} ProgressCallbackData;
+
+static gboolean
+progress_callback_idle (ProgressCallbackData *data)
+{
+	data->progress_callback (data->entry, data->entry_i, data->total_results, data->progress_user_data);
+	g_object_unref (data->entry);
+	g_slice_free (ProgressCallbackData, data);
+	return FALSE;
+}
+
 GDataFeed *
 _gdata_feed_new_from_xml (const gchar *xml, gint length, GDataEntryParserFunc parser_func,
 			  GDataQueryProgressCallback progress_callback, gpointer progress_user_data, GError **error)
@@ -288,9 +305,17 @@ _gdata_feed_new_from_xml (const gchar *xml, gint length, GDataEntryParserFunc pa
 			if (entry == NULL)
 				goto error;
 
-			/* Call the progress callback */
-			if (progress_callback != NULL)
-				progress_callback (entry, entry_i, total_results, progress_user_data);
+			/* Call the progress callback in the main thread */
+			if (progress_callback != NULL) {
+				ProgressCallbackData *data = g_slice_new (ProgressCallbackData);
+				data->progress_callback = progress_callback;
+				data->progress_user_data = progress_user_data;
+				data->entry = g_object_ref (entry);
+				data->entry_i = entry_i;
+				data->total_results = total_results;
+
+				g_idle_add ((GSourceFunc) progress_callback_idle, data);
+			}
 
 			entry_i++;
 			entries = g_list_prepend (entries, entry);
