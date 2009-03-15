@@ -199,36 +199,29 @@ parse_error_response (GDataService *self, guint status, const gchar *reason_phra
 	xmlDoc *doc;
 	xmlNode *node;
 
-	g_return_if_fail (response_body != NULL);
+	if (response_body == NULL)
+		goto parent;
 
 	if (length == -1)
 		length = strlen (response_body);
 
 	/* Parse the XML */
 	doc = xmlReadMemory (response_body, length, "error.xml", NULL, 0);
-	if (doc == NULL) {
-		/* Chain up to the parent class */
-		GDATA_SERVICE_CLASS (gdata_youtube_service_parent_class)->parse_error_response (self, status, reason_phrase,
-												response_body, length, error);
-		return;
-	}
+	if (doc == NULL)
+		goto parent;
 
 	/* Get the root element */
 	node = xmlDocGetRootElement (doc);
 	if (node == NULL) {
 		/* XML document's empty; chain up to the parent class */
 		xmlFreeDoc (doc);
-		GDATA_SERVICE_CLASS (gdata_youtube_service_parent_class)->parse_error_response (self, status, reason_phrase,
-												response_body, length, error);
-		return;
+		goto parent;
 	}
 
 	if (xmlStrcmp (node->name, (xmlChar*) "errors") != 0) {
 		/* No <errors> element (required); chain up to the parent class */
 		xmlFreeDoc (doc);
-		GDATA_SERVICE_CLASS (gdata_youtube_service_parent_class)->parse_error_response (self, status, reason_phrase,
-												response_body, length, error);
-		return;
+		goto parent;
 	}
 
 	/* Parse the actual errors */
@@ -302,6 +295,14 @@ parse_error_response (GDataService *self, guint status, const gchar *reason_phra
 
 		node = node->next;
 	}
+
+	return;
+
+parent:
+	/* Chain up to the parent class */
+	GDATA_SERVICE_CLASS (gdata_youtube_service_parent_class)->parse_error_response (self, status, reason_phrase,
+											response_body, length, error);
+	return;
 }
 
 GDataYouTubeService *

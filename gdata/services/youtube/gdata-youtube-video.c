@@ -1182,6 +1182,27 @@ gdata_youtube_video_add_content (GDataYouTubeVideo *self, GDataMediaContent *con
 	self->priv->contents = g_list_prepend (self->priv->contents, content);
 }
 
+static gint
+content_compare_cb (const GDataMediaContent *content, const gchar *type)
+{
+	return strcmp (content->type, type);
+}
+
+GDataMediaContent *
+gdata_youtube_video_lookup_content (GDataYouTubeVideo *self, const gchar *type)
+{
+	GList *element;
+
+	g_return_val_if_fail (GDATA_IS_YOUTUBE_VIDEO (self), NULL);
+	g_return_val_if_fail (type != NULL, NULL);
+
+	/* TODO: If type is required, and is unique, the contents can be stored in a hash table rather than a linked list */
+	element = g_list_find_custom (self->priv->contents, type, (GCompareFunc) content_compare_cb);
+	if (element == NULL)
+		return NULL;
+	return (GDataMediaContent*) (element->data);
+}
+
 /* TODO: More thumbnail API */
 void
 gdata_youtube_video_add_thumbnail (GDataYouTubeVideo *self, GDataMediaThumbnail *thumbnail)

@@ -79,6 +79,7 @@ void gdata_youtube_video_set_credit (GDataYouTubeVideo *self, GDataMediaCredit *
 const gchar *gdata_youtube_video_get_description (GDataYouTubeVideo *self);
 void gdata_youtube_video_set_description (GDataYouTubeVideo *self, const gchar *description);
 void gdata_youtube_video_add_content (GDataYouTubeVideo *self, GDataMediaContent *content);
+GDataMediaContent *gdata_youtube_video_lookup_content (GDataYouTubeVideo *self, const gchar *type);
 void gdata_youtube_video_add_thumbnail (GDataYouTubeVideo *self, GDataMediaThumbnail *thumbnail);
 GList *gdata_youtube_video_get_thumbnails (GDataYouTubeVideo *self);
 gint gdata_youtube_video_get_duration (GDataYouTubeVideo *self);
