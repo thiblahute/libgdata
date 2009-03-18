@@ -27,6 +27,10 @@
 
 G_BEGIN_DECLS
 
+#include "gdata-query.h"
+void _gdata_query_set_next_uri (GDataQuery *self, const gchar *next_uri);
+void _gdata_query_set_previous_uri (GDataQuery *self, const gchar *previous_uri);
+
 #include "gdata-feed.h"
 GDataFeed *_gdata_feed_new_from_xml (const gchar *xml, gint length, GDataEntryParserFunc parser_func,
 				     GDataQueryProgressCallback progress_callback, gpointer progress_user_data, GError **error);

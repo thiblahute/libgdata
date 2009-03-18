@@ -45,6 +45,11 @@ struct _GDataQueryPrivate {
 	gboolean strict;
 	gint max_results;
 	gchar *entry_id;
+
+	gchar *next_uri;
+	gchar *previous_uri;
+	gboolean use_next_uri;
+	gboolean use_previous_uri;
 };
 
 enum {
@@ -175,6 +180,9 @@ gdata_query_finalize (GObject *object)
 	g_free (priv->published_min);
 	g_free (priv->published_max);
 	g_free (priv->entry_id);
+
+	g_free (priv->next_uri);
+	g_free (priv->previous_uri);
 
 	/* Chain up to the parent class */
 	G_OBJECT_CLASS (gdata_query_parent_class)->finalize (object);
@@ -326,6 +334,12 @@ gdata_query_get_query_uri (GDataQuery *self, const gchar *feed_uri)
 	gboolean params_started = FALSE;
 
 	#define APPEND_SEP g_string_append_c (query_uri, (params_started == FALSE) ? '?' : '&'); params_started = TRUE;
+
+	/* Check to see if we're paginating first */
+	if (priv->use_next_uri == TRUE)
+		return priv->next_uri;
+	if (priv->use_previous_uri == TRUE)
+		return priv->previous_uri;
 
 	/* Check to see if any parameters have been set */
 	if ((priv->parameter_mask & GDATA_QUERY_PARAM_ALL) == 0)
@@ -661,4 +675,50 @@ gdata_query_set_entry_id (GDataQuery *self, const gchar *entry_id)
 		self->priv->parameter_mask |= GDATA_QUERY_PARAM_ENTRY_ID;
 
 	g_object_notify (G_OBJECT (self), "entry-id");
+}
+
+void
+_gdata_query_set_next_uri (GDataQuery *self, const gchar *next_uri)
+{
+	g_return_if_fail (GDATA_IS_QUERY (self));
+	g_free (self->priv->next_uri);
+	self->priv->next_uri = g_strdup (next_uri);
+	self->priv->use_next_uri = FALSE;
+	self->priv->use_previous_uri = FALSE;
+}
+
+void
+_gdata_query_set_previous_uri (GDataQuery *self, const gchar *previous_uri)
+{
+	g_return_if_fail (GDATA_IS_QUERY (self));
+	g_free (self->priv->previous_uri);
+	self->priv->previous_uri = g_strdup (previous_uri);
+	self->priv->use_next_uri = FALSE;
+	self->priv->use_previous_uri = FALSE;
+}
+
+void
+gdata_query_next_page (GDataQuery *self)
+{
+	if (self->priv->next_uri != NULL) {
+		self->priv->use_next_uri = TRUE;
+		self->priv->use_previous_uri = FALSE;
+	} else {
+		self->priv->start_index += self->priv->max_results;
+	}
+}
+
+gboolean
+gdata_query_previous_page (GDataQuery *self)
+{
+	if (self->priv->next_uri != NULL) {
+		self->priv->use_previous_uri = TRUE;
+		self->priv->use_next_uri = FALSE;
+	} else if (self->priv->start_index < self->priv->max_results) {
+		return FALSE;
+	} else {
+		self->priv->start_index -= self->priv->max_results;
+	}
+
+	return TRUE;
 }

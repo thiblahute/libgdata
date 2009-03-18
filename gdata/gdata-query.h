@@ -68,6 +68,8 @@ GDataQuery *gdata_query_new_for_id (GDataService *service, const gchar *entry_id
 GDataQuery *gdata_query_new_for_id_with_limits (GDataService *service, const gchar *entry_id, gint start_index, gint max_results);
 
 gchar *gdata_query_get_query_uri (GDataQuery *self, const gchar *feed_uri);
+void gdata_query_next_page (GDataQuery *self);
+gboolean gdata_query_previous_page (GDataQuery *self);
 
 GDataService *gdata_query_get_service (GDataQuery *self);
 

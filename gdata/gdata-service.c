@@ -661,6 +661,7 @@ gdata_service_query (GDataService *self, const gchar *feed_uri, GDataQuery *quer
 	SoupMessage *message;
 	gchar *query_uri;
 	guint status;
+	GDataLink *link;
 
 	g_return_val_if_fail (GDATA_IS_SERVICE (self), NULL);
 
@@ -699,6 +700,14 @@ gdata_service_query (GDataService *self, const gchar *feed_uri, GDataQuery *quer
 	feed = _gdata_feed_new_from_xml (message->response_body->data, message->response_body->length, parser_func,
 					 progress_callback, progress_user_data, error);
 	g_object_unref (message);
+
+	/* Update the query with the next and previous URIs from the feed */
+	link = gdata_feed_lookup_link (feed, "next");
+	if (link != NULL)
+		_gdata_query_set_next_uri (query, link->href);
+	link = gdata_feed_lookup_link (feed, "previous");
+	if (link != NULL)
+		_gdata_query_set_previous_uri (query, link->href);
 
 	return feed;
 }

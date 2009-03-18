@@ -613,6 +613,26 @@ gdata_feed_get_links (GDataFeed *self)
 	return self->priv->links;
 }
 
+static gint
+link_compare_cb (const GDataLink *link, const gchar *rel)
+{
+	return strcmp (link->rel, rel);
+}
+
+GDataLink *
+gdata_feed_lookup_link (GDataFeed *self, const gchar *rel)
+{
+	GList *element;
+
+	g_return_val_if_fail (GDATA_IS_FEED (self), NULL);
+	g_return_val_if_fail (rel != NULL, NULL);
+
+	element = g_list_find_custom (self->priv->links, rel, (GCompareFunc) link_compare_cb);
+	if (element == NULL)
+		return NULL;
+	return (GDataLink*) (element->data);
+}
+
 GList *
 gdata_feed_get_authors (GDataFeed *self)
 {

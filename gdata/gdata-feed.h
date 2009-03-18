@@ -51,6 +51,7 @@ GType gdata_feed_get_type (void);
 GList *gdata_feed_get_entries (GDataFeed *self);
 GList *gdata_feed_get_categories (GDataFeed *self);
 GList *gdata_feed_get_links (GDataFeed *self);
+GDataLink *gdata_feed_lookup_link (GDataFeed *self, const gchar *rel);
 GList *gdata_feed_get_authors (GDataFeed *self);
 
 const gchar *gdata_feed_get_title (GDataFeed *self);
