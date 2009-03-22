@@ -337,9 +337,9 @@ gdata_query_get_query_uri (GDataQuery *self, const gchar *feed_uri)
 
 	/* Check to see if we're paginating first */
 	if (priv->use_next_uri == TRUE)
-		return priv->next_uri;
+		return g_strdup (priv->next_uri);
 	if (priv->use_previous_uri == TRUE)
-		return priv->previous_uri;
+		return g_strdup (priv->previous_uri);
 
 	/* Check to see if any parameters have been set */
 	if ((priv->parameter_mask & GDATA_QUERY_PARAM_ALL) == 0)

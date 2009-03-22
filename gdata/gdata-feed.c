@@ -307,14 +307,19 @@ _gdata_feed_new_from_xml (const gchar *xml, gint length, GDataEntryParserFunc pa
 
 			/* Call the progress callback in the main thread */
 			if (progress_callback != NULL) {
-				ProgressCallbackData *data = g_slice_new (ProgressCallbackData);
+				ProgressCallbackData *data;
+
+				/* Build the data for the callback */
+				data = g_slice_new (ProgressCallbackData);
 				data->progress_callback = progress_callback;
 				data->progress_user_data = progress_user_data;
 				data->entry = g_object_ref (entry);
 				data->entry_i = entry_i;
-				data->total_results = total_results;
+				data->total_results = MIN (items_per_page, total_results);
 
-				g_idle_add ((GSourceFunc) progress_callback_idle, data);
+				/* Send the callback; use G_PRIORITY_DEFAULT rather than G_PRIORITY_DEFAULT_IDLE
+				 * to contend with the priorities used by the callback functions in GAsyncResult */
+				g_idle_add_full (G_PRIORITY_DEFAULT, (GSourceFunc) progress_callback_idle, data, NULL);
 			}
 
 			entry_i++;
