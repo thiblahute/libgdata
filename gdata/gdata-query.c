@@ -363,6 +363,9 @@ gdata_query_get_query_uri (GDataQuery *self, const gchar *feed_uri)
 	if ((priv->parameter_mask & (GDATA_QUERY_PARAM_ALL ^ GDATA_QUERY_PARAM_ENTRY_ID ^ GDATA_QUERY_PARAM_CATEGORIES)) == 0)
 		return g_string_free (query_uri, FALSE);
 
+	/* Determine whether the first param has already been appended (e.g. it exists in the feed_uri) */
+	params_started = (strstr (feed_uri, "?") != NULL) ? TRUE : FALSE;
+
 	/* q param */
 	if (priv->q != NULL) {
 		APPEND_SEP
