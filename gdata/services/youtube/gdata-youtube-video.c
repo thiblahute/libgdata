@@ -61,6 +61,10 @@ struct _GDataYouTubeVideoPrivate {
 	gboolean private;
 	GTimeVal uploaded;
 	gchar *video_id;
+
+	/* Other properties */
+	gboolean is_draft;
+	GDataYouTubeState *state;
 };
 
 enum {
@@ -80,7 +84,9 @@ enum {
 	PROP_DURATION,
 	PROP_PRIVATE,
 	PROP_UPLOADED,
-	PROP_VIDEO_ID
+	PROP_VIDEO_ID,
+	PROP_IS_DRAFT,
+	PROP_STATE
 };
 
 G_DEFINE_TYPE (GDataYouTubeVideo, gdata_youtube_video, GDATA_TYPE_ENTRY)
@@ -181,6 +187,14 @@ gdata_youtube_video_class_init (GDataYouTubeVideoClass *klass)
 					"Video ID", "The video's unique ID.",
 					NULL,
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+	g_object_class_install_property (gobject_class, PROP_IS_DRAFT,
+				g_param_spec_boolean ("is-draft",
+					"Draft?", "Whether the video's marked as a draft.",
+					FALSE, G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+	g_object_class_install_property (gobject_class, PROP_STATE,
+				g_param_spec_pointer ("state",
+					"State", "TODO",
+					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 }
 
 static void
@@ -211,6 +225,7 @@ gdata_youtube_video_finalize (GObject *object)
 	g_free (priv->description);
 
 	g_free (priv->video_id);
+	gdata_youtube_state_free (priv->state);
 
 	/* Chain up to the parent class */
 	G_OBJECT_CLASS (gdata_youtube_video_parent_class)->finalize (object);
@@ -272,6 +287,12 @@ gdata_youtube_video_get_property (GObject *object, guint property_id, GValue *va
 			break;
 		case PROP_VIDEO_ID:
 			g_value_set_string (value, priv->video_id);
+			break;
+		case PROP_IS_DRAFT:
+			g_value_set_boolean (value, priv->is_draft);
+			break;
+		case PROP_STATE:
+			g_value_set_pointer (value, priv->state);
 			break;
 		default:
 			/* We don't have any other property... */
@@ -336,6 +357,12 @@ gdata_youtube_video_set_property (GObject *object, guint property_id, const GVal
 			break;
 		case PROP_VIDEO_ID:
 			gdata_youtube_video_set_video_id (self, g_value_get_string (value));
+			break;
+		case PROP_IS_DRAFT:
+			gdata_youtube_video_set_is_draft (self, g_value_get_boolean (value));
+			break;
+		case PROP_STATE:
+			gdata_youtube_video_set_state (self, g_value_get_pointer (value));
 			break;
 		default:
 			/* We don't have any other property... */
@@ -771,6 +798,43 @@ _gdata_youtube_video_parse_xml_node (GDataYouTubeVideo *self, xmlDoc *doc, xmlNo
 	} else if (xmlStrcmp (node->name, (xmlChar*) "recorded") == 0) {
 		/* yt:recorded */
 		g_message ("TODO: recorded unimplemented");
+	} else if (xmlStrcmp (node->name, (xmlChar*) "control") == 0) {
+		/* app:control */
+		xmlNode *child_node;
+
+		child_node = node->xmlChildrenNode;
+		while (child_node != NULL) {
+			if (xmlStrcmp (child_node->name, (xmlChar*) "draft") == 0) {
+				/* app:draft */
+				gdata_youtube_video_set_is_draft (self, TRUE);
+			} else if (xmlStrcmp (child_node->name, (xmlChar*) "state") == 0) {
+				/* yt:state */
+				xmlChar *name, *message, *reason_code, *help_uri;
+				GDataYouTubeState *state;
+
+				name = xmlGetProp (child_node, (xmlChar*) "name");
+				if (name == NULL)
+					return gdata_parser_error_required_property_missing ("yt:state", "name", error);
+
+				message = xmlNodeListGetString (doc, child_node->xmlChildrenNode, TRUE);
+				reason_code = xmlGetProp (child_node, (xmlChar*) "reasonCode");
+				help_uri = xmlGetProp (child_node, (xmlChar*) "helpUrl");
+
+				state = gdata_youtube_state_new ((gchar*) name, (gchar*) message, (gchar*) reason_code, (gchar*) help_uri);
+				gdata_youtube_video_set_state (self, state);
+
+				xmlFree (name);
+				xmlFree (message);
+				xmlFree (reason_code);
+				xmlFree (help_uri);
+			} else {
+				/* Unhandled element */
+				return gdata_parser_error_unhandled_element ((gchar*) child_node->ns->prefix,
+									     (gchar*) child_node->name, "app:control", error);
+			}
+
+			child_node = child_node->next;
+		}
 	} else if (_gdata_entry_parse_xml_node (GDATA_ENTRY (self), doc, node, &child_error) == FALSE) {
 		if (g_error_matches (child_error, GDATA_PARSER_ERROR, GDATA_PARSER_ERROR_UNHANDLED_XML_ELEMENT) == TRUE) {
 			g_error_free (child_error);
@@ -1283,4 +1347,36 @@ gdata_youtube_video_set_video_id (GDataYouTubeVideo *self, const gchar *video_id
 	g_free (self->priv->video_id);
 	self->priv->video_id = g_strdup (video_id);
 	g_object_notify (G_OBJECT (self), "video-id");
+}
+
+gboolean
+gdata_youtube_video_is_draft (GDataYouTubeVideo *self)
+{
+	g_return_val_if_fail (GDATA_IS_YOUTUBE_VIDEO (self), FALSE);
+	return self->priv->is_draft;
+}
+
+void
+gdata_youtube_video_set_is_draft (GDataYouTubeVideo *self, gboolean is_draft)
+{
+	g_return_if_fail (GDATA_IS_YOUTUBE_VIDEO (self));
+	self->priv->is_draft = is_draft;
+	g_object_notify (G_OBJECT (self), "is-draft");
+}
+
+GDataYouTubeState *
+gdata_youtube_video_get_state (GDataYouTubeVideo *self)
+{
+	g_return_val_if_fail (GDATA_IS_YOUTUBE_VIDEO (self), NULL);
+	return self->priv->state;
+}
+
+void
+gdata_youtube_video_set_state (GDataYouTubeVideo *self, GDataYouTubeState *state)
+{
+	g_return_if_fail (GDATA_IS_YOUTUBE_VIDEO (self));
+
+	gdata_youtube_state_free (self->priv->state);
+	self->priv->state = state;
+	g_object_notify (G_OBJECT (self), "state");
 }

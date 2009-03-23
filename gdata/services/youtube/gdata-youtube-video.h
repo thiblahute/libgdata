@@ -1,7 +1,7 @@
 /* -*- Mode: C; indent-tabs-mode: t; c-basic-offset: 8; tab-width: 8 -*- */
 /*
  * GData Client
- * Copyright (C) Philip Withnall 2008 <philip@tecnocode.co.uk>
+ * Copyright (C) Philip Withnall 2008-2009 <philip@tecnocode.co.uk>
  * 
  * GData Client is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,6 +26,7 @@
 #include <gdata/gdata-entry.h>
 #include <gdata/gdata-gdata.h>
 #include <gdata/gdata-media-rss.h>
+#include <gdata/services/youtube/gdata-youtube.h>
 
 G_BEGIN_DECLS
 
@@ -90,6 +91,10 @@ void gdata_youtube_video_get_uploaded (GDataYouTubeVideo *self, GTimeVal *upload
 void gdata_youtube_video_set_uploaded (GDataYouTubeVideo *self, GTimeVal *uploaded);
 const gchar *gdata_youtube_video_get_video_id (GDataYouTubeVideo *self);
 void gdata_youtube_video_set_video_id (GDataYouTubeVideo *self, const gchar *video_id);
+gboolean gdata_youtube_video_is_draft (GDataYouTubeVideo *self);
+void gdata_youtube_video_set_is_draft (GDataYouTubeVideo *self, gboolean is_draft);
+GDataYouTubeState *gdata_youtube_video_get_state (GDataYouTubeVideo *self);
+void gdata_youtube_video_set_state (GDataYouTubeVideo *self, GDataYouTubeState *state);
 
 G_END_DECLS
 

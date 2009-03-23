@@ -702,12 +702,14 @@ gdata_service_query (GDataService *self, const gchar *feed_uri, GDataQuery *quer
 	g_object_unref (message);
 
 	/* Update the query with the next and previous URIs from the feed */
-	link = gdata_feed_lookup_link (feed, "next");
-	if (link != NULL)
-		_gdata_query_set_next_uri (query, link->href);
-	link = gdata_feed_lookup_link (feed, "previous");
-	if (link != NULL)
-		_gdata_query_set_previous_uri (query, link->href);
+	if (query != NULL) {
+		link = gdata_feed_lookup_link (feed, "next");
+		if (link != NULL)
+			_gdata_query_set_next_uri (query, link->href);
+		link = gdata_feed_lookup_link (feed, "previous");
+		if (link != NULL)
+			_gdata_query_set_previous_uri (query, link->href);
+	}
 
 	return feed;
 }
