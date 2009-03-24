@@ -1,7 +1,7 @@
 /* -*- Mode: C; indent-tabs-mode: t; c-basic-offset: 8; tab-width: 8 -*- */
 /*
  * GData Client
- * Copyright (C) Philip Withnall 2008 <philip@tecnocode.co.uk>
+ * Copyright (C) Philip Withnall 2008-2009 <philip@tecnocode.co.uk>
  * 
  * GData Client is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,6 +16,20 @@
  * You should have received a copy of the GNU General Public License
  * along with GData Client.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+/**
+ * SECTION:gdata-feed
+ * @short_description: GData feed object
+ * @stability: Unstable
+ * @include: gdata/gdata-feed.h
+ *
+ * #GDataFeed is a list of entries (#GDataEntry) returned as the result of a query to a #GDataService, or given as the input to another
+ * operation on the online service. It also has pieces of data associated with the query on the #GDataService, such as the query title
+ * or timestamp when it was last updated.
+ *
+ * Each #GDataEntry represents a single object on the online service, such as a playlist, video or calendar entry, and the #GDataFeed
+ * represents a collection of similar objects.
+ **/
 
 #include <config.h>
 #include <glib.h>
@@ -76,45 +90,127 @@ gdata_feed_class_init (GDataFeedClass *klass)
 	gobject_class->get_property = gdata_feed_get_property;
 	gobject_class->finalize = gdata_feed_finalize;
 
+	/**
+	 * GDataFeed:title:
+	 *
+	 * The title of the feed.
+	 *
+	 * API reference: <ulink type="http" url="http://code.google.com/apis/youtube/2.0/reference.html#youtube_data_api_tag_title">atom:title</ulink>
+	 **/
 	g_object_class_install_property (gobject_class, PROP_TITLE,
 				g_param_spec_string ("title",
-					"Title", "The title for this feed.",
+					"Title", "The title of the feed.",
 					NULL,
 					G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * GDataFeed:subtitle:
+	 *
+	 * The subtitle of the feed.
+	 *
+	 * API reference: <ulink type="http" url="http://atomenabled.org/developers/syndication/">atom:subtitle</ulink>
+	 **/
 	g_object_class_install_property (gobject_class, PROP_SUBTITLE,
 				g_param_spec_string ("subtitle",
-					"Subtitle", "The subtitle for this feed.",
+					"Subtitle", "The subtitle of the feed.",
 					NULL,
 					G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * GDataFeed:id:
+	 *
+	 * The unique and permanent URN ID for the feed.
+	 *
+	 * API reference: <ulink type="http" url="http://code.google.com/apis/youtube/2.0/reference.html#youtube_data_api_tag_id">atom:id</ulink>
+	 **/
 	g_object_class_install_property (gobject_class, PROP_ID,
 				g_param_spec_string ("id",
-					"ID", "The ID for this feed.",
+					"ID", "The unique and permanent URN ID for the feed.",
 					NULL,
 					G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * GDataFeed:updated:
+	 *
+	 * The time the feed was last updated.
+	 *
+	 * API reference: <ulink type="http" url="http://code.google.com/apis/youtube/2.0/reference.html#youtube_data_api_tag_updated">
+	 * atom:updated</ulink>
+	 **/
 	g_object_class_install_property (gobject_class, PROP_UPDATED,
 				g_param_spec_boxed ("updated",
-					"Updated", "The last update time for this feed.",
+					"Updated", "The time the feed was last updated.",
 					G_TYPE_TIME_VAL,
 					G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * GDataFeed:logo:
+	 *
+	 * The URI of a logo for the feed.
+	 *
+	 * API reference: <ulink type="http" url="http://code.google.com/apis/youtube/2.0/reference.html#youtube_data_api_tag_logo">atom:logo</ulink>
+	 **/
 	g_object_class_install_property (gobject_class, PROP_LOGO,
 				g_param_spec_string ("logo",
-					"Logo", "The logo image URI for this feed.",
+					"Logo", "The URI of a logo for the feed.",
 					NULL,
 					G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * GDataFeed:generator:
+	 *
+	 * Details of the software used to generate the feed.
+	 *
+	 * API reference: <ulink type="http" url="http://code.google.com/apis/youtube/2.0/reference.html#youtube_data_api_tag_generator">
+	 * atom:generator</ulink>
+	 **/
 	g_object_class_install_property (gobject_class, PROP_GENERATOR,
 				g_param_spec_pointer ("generator",
-					"Generator", "Details of the application to generate the feed.",
+					"Generator", "Details of the software used to generate the feed.",
 					G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * GDataFeed:items-per-page:
+	 *
+	 * The number of items per results page feed.
+	 *
+	 * API reference: <ulink type="http" url="http://code.google.com/apis/youtube/2.0/reference.html#youtube_data_api_tag_openSearch:itemsPerPage">
+	 * openSearch:itemsPerPage</ulink>
+	 **/
 	g_object_class_install_property (gobject_class, PROP_ITEMS_PER_PAGE,
 				g_param_spec_uint ("items-per-page",
-					"Items per page", "The number of items per results page.",
+					"Items per page", "The number of items per results page feed.",
 					0, G_MAXINT, 0,
 					G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * GDataFeed:start-index:
+	 *
+	 * The one-based index of the first item in the results feed.
+	 *
+	 * This should <emphasis>not</emphasis> be used manually for pagination. Instead, use a #GDataQuery and call its gdata_query_next_page()
+	 * or gdata_query_previous_page() functions before making the query to the service.
+	 *
+	 * API reference: <ulink type="http" url="http://code.google.com/apis/youtube/2.0/reference.html#youtube_data_api_tag_openSearch:startIndex">
+	 * openSearch:startIndex</ulink>
+	 **/
 	g_object_class_install_property (gobject_class, PROP_START_INDEX,
 				g_param_spec_uint ("start-index",
-					"Start index", "The one-based start index.",
+					"Start index", "The one-based index of the first item in the results feed.",
 					1, G_MAXINT, 1,
 					G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * GDataFeed:total-results:
+	 *
+	 * The number of items in the result set for the feed, including those on other pages.
+	 *
+	 * This should <emphasis>not</emphasis> be used manually for pagination. Instead, use a #GDataQuery and call its gdata_query_next_page()
+	 * or gdata_query_previous_page() functions before making the query to the service.
+	 *
+	 * API reference: <ulink type="http" url="http://code.google.com/apis/youtube/2.0/reference.html#youtube_data_api_tag_openSearch:totalResults">
+	 * openSearch:totalResults</ulink>
+	 **/
 	g_object_class_install_property (gobject_class, PROP_TOTAL_RESULTS,
 				g_param_spec_uint ("total-results",
 					"Total results", "The total number of results in the feed.",
@@ -597,6 +693,14 @@ error:
 	return feed;
 }
 
+/**
+ * gdata_feed_get_entries:
+ * @self: a #GDataFeed
+ *
+ * Returns a list of the entries contained in this feed.
+ *
+ * Return value: a #GList of #GDataEntry<!-- -->s; free the list with g_list_free(), but do not unref the entries
+ **/
 GList *
 gdata_feed_get_entries (GDataFeed *self)
 {
@@ -604,6 +708,14 @@ gdata_feed_get_entries (GDataFeed *self)
 	return self->priv->entries;
 }
 
+/**
+ * gdata_feed_get_categories:
+ * @self: a #GDataFeed
+ *
+ * Returns a list of the categories listed in this feed.
+ *
+ * Return value: a #GList of #GDataCategory<!-- -->s; free the list with g_list_free(), but do not free the categories
+ **/
 GList *
 gdata_feed_get_categories (GDataFeed *self)
 {
@@ -611,6 +723,14 @@ gdata_feed_get_categories (GDataFeed *self)
 	return self->priv->categories;
 }
 
+/**
+ * gdata_feed_get_links:
+ * @self: a #GDataFeed
+ *
+ * Returns a list of the links listed in this feed.
+ *
+ * Return value: a #GList of #GDataLink<!-- -->s; free the list with g_list_free(), but do not free the links
+ **/
 GList *
 gdata_feed_get_links (GDataFeed *self)
 {
@@ -624,6 +744,15 @@ link_compare_cb (const GDataLink *link, const gchar *rel)
 	return strcmp (link->rel, rel);
 }
 
+/**
+ * gdata_feed_lookup_link:
+ * @self: a #GDataFeed
+ * @rel: the value of the <structfield>rel</structfield> attribute of the desired link
+ *
+ * Looks up a link by <structfield>rel</structfield> value from the list of links in the feed.
+ *
+ * Return value: a #GDataLink, or %NULL if one was not found
+ **/
 GDataLink *
 gdata_feed_lookup_link (GDataFeed *self, const gchar *rel)
 {
@@ -638,6 +767,14 @@ gdata_feed_lookup_link (GDataFeed *self, const gchar *rel)
 	return (GDataLink*) (element->data);
 }
 
+/**
+ * gdata_feed_get_authors:
+ * @self: a #GDataFeed
+ *
+ * Returns a list of the authors listed in this feed.
+ *
+ * Return value: a #GList of #GDataAuthor<!-- -->s; free the list with g_list_free(), but do not free the authors
+ **/
 GList *
 gdata_feed_get_authors (GDataFeed *self)
 {
@@ -645,6 +782,14 @@ gdata_feed_get_authors (GDataFeed *self)
 	return self->priv->authors;
 }
 
+/**
+ * gdata_feed_get_title:
+ * @self: a #GDataFeed
+ *
+ * Returns the title of the feed.
+ *
+ * Return value: the feed's title
+ **/
 const gchar *
 gdata_feed_get_title (GDataFeed *self)
 {
@@ -652,6 +797,14 @@ gdata_feed_get_title (GDataFeed *self)
 	return self->priv->title;
 }
 
+/**
+ * gdata_feed_get_subtitle:
+ * @self: a #GDataFeed
+ *
+ * Returns the subtitle of the feed.
+ *
+ * Return value: the feed's subtitle, or %NULL
+ **/
 const gchar *
 gdata_feed_get_subtitle (GDataFeed *self)
 {
@@ -659,6 +812,14 @@ gdata_feed_get_subtitle (GDataFeed *self)
 	return self->priv->subtitle;
 }
 
+/**
+ * gdata_feed_get_id:
+ * @self: a #GDataFeed
+ *
+ * Returns the feed's unique and permanent URN ID.
+ *
+ * Return value: the feed's ID
+ **/
 const gchar *
 gdata_feed_get_id (GDataFeed *self)
 {
@@ -666,6 +827,13 @@ gdata_feed_get_id (GDataFeed *self)
 	return self->priv->id;
 }
 
+/**
+ * gdata_feed_get_updated:
+ * @self: a #GDataFeed
+ * @updated: a #GTimeVal
+ *
+ * Puts the time the feed was last updated into @updated.
+ **/
 void
 gdata_feed_get_updated (GDataFeed *self, GTimeVal *updated)
 {
@@ -676,6 +844,14 @@ gdata_feed_get_updated (GDataFeed *self, GTimeVal *updated)
 	updated->tv_usec = self->priv->updated.tv_usec;
 }
 
+/**
+ * gdata_feed_get_logo:
+ * @self: a #GDataFeed
+ *
+ * Returns the logo URI of the feed.
+ *
+ * Return value: the feed's logo URI, or %NULL
+ **/
 const gchar *
 gdata_feed_get_logo (GDataFeed *self)
 {
@@ -683,6 +859,14 @@ gdata_feed_get_logo (GDataFeed *self)
 	return self->priv->logo;
 }
 
+/**
+ * gdata_feed_get_generator:
+ * @self: a #GDataFeed
+ *
+ * Returns details about the software which generated the feed.
+ *
+ * Return value: a #GDataGenerator, or %NULL
+ **/
 GDataGenerator *
 gdata_feed_get_generator (GDataFeed *self)
 {
@@ -690,6 +874,14 @@ gdata_feed_get_generator (GDataFeed *self)
 	return self->priv->generator;
 }
 
+/**
+ * gdata_feed_get_items_per_page:
+ * @self: a #GDataFeed
+ *
+ * Returns the number of items per results page feed.
+ *
+ * Return value: the number of items per results page feed, or 0 on error
+ **/
 guint
 gdata_feed_get_items_per_page (GDataFeed *self)
 {
@@ -697,6 +889,14 @@ gdata_feed_get_items_per_page (GDataFeed *self)
 	return self->priv->items_per_page;
 }
 
+/**
+ * gdata_feed_get_start_index:
+ * @self: a #GDataFeed
+ *
+ * Returns the one-based start index of the results feed in the result set.
+ *
+ * Return value: the one-based start index, or 0 on error
+ **/
 guint
 gdata_feed_get_start_index (GDataFeed *self)
 {
@@ -704,6 +904,15 @@ gdata_feed_get_start_index (GDataFeed *self)
 	return self->priv->start_index;
 }
 
+/**
+ * gdata_feed_get_total_results:
+ * @self: a #GDataFeed
+ *
+ * Returns the total number of results in the result set, including results on other
+ * pages.
+ *
+ * Return value: the total number of results, or 0 on error
+ **/
 guint
 gdata_feed_get_total_results (GDataFeed *self)
 {

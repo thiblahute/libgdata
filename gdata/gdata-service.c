@@ -17,6 +17,17 @@
  * along with GData Client.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * SECTION:gdata-service
+ * @short_description: GData service object
+ * @stability: Unstable
+ * @include: gdata/gdata-service.h
+ *
+ * #GDataService represents a GData API service, typically a website using the GData API, such as YouTube or Google Calendar. One
+ * #GDataService instance is required to issue queries to the service, handle insertions, updates and deletions, and generally
+ * communicate with the online service.
+ **/
+
 #include <config.h>
 #include <glib.h>
 #include <glib/gi18n-lib.h>
@@ -93,27 +104,64 @@ gdata_service_class_init (GDataServiceClass *klass)
 	klass->append_query_headers = real_append_query_headers;
 	klass->parse_error_response = real_parse_error_response;
 
+	/**
+	 * GDataService:client-id:
+	 *
+	 * A client ID for your application (see the
+	 * <ulink url="http://code.google.com/apis/youtube/2.0/developers_guide_protocol_api_query_parameters.html#clientsp" type="http">
+	 * YouTube reference documentation</ulink>).
+	 **/
 	g_object_class_install_property (gobject_class, PROP_CLIENT_ID,
 				g_param_spec_string ("client-id",
 					"Client ID", "A client ID for your application (see http://code.google.com/apis/youtube/2.0/developers_guide_protocol_api_query_parameters.html#clientsp).",
 					NULL,
 					G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * GDataService:username:
+	 *
+	 * The user's Google or YouTube username for authentication.
+	 **/
 	g_object_class_install_property (gobject_class, PROP_USERNAME,
 				g_param_spec_string ("username",
-					"Username", "TODO",
+					"Username", "The user's Google or YouTube username for authentication.",
 					NULL,
 					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * GDataService:password:
+	 *
+	 * The user's account password for authentication.
+	 **/
 	g_object_class_install_property (gobject_class, PROP_PASSWORD,
 				g_param_spec_string ("password",
-					"Password", "TODO",
+					"Password", "The user's account password for authentication.",
 					NULL,
 					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * GDataService:authenticated:
+	 *
+	 * Whether the user is authenticated (logged in) with the service.
+	 **/
 	g_object_class_install_property (gobject_class, PROP_AUTHENTICATED,
 				g_param_spec_boolean ("authenticated",
-					"Authenticated", "TODO",
+					"Authenticated", "Whether the user is authenticated (logged in) with the service.",
 					FALSE,
 					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 
+	/**
+	 * GDataService::captcha-challenge:
+	 * @service: the #GDataService which received the challenge
+	 * @uri: the URI of the CAPTCHA image to be used
+	 *
+	 * The #GDataService::captcha-challenge signal is emitted during the authentication process if
+	 * the service requires a CAPTCHA to be completed. The URI of a CAPTCHA image is given, and the
+	 * program should display this to the user, and return their response (the text displayed in the
+	 * image). There is no timeout imposed by the library for the response.
+	 *
+	 * Return value: the text in the CAPTCHA image
+	 **/
 	service_signals[SIGNAL_CAPTCHA_CHALLENGE] = g_signal_new ("captcha-challenge",
 				G_TYPE_FROM_CLASS (klass),
 				G_SIGNAL_RUN_LAST,
@@ -316,6 +364,23 @@ authenticate_thread (GSimpleAsyncResult *result, GDataService *service, GCancell
 	g_idle_add ((GSourceFunc) set_authentication_details_cb, data);
 }
 
+/**
+ * gdata_service_authenticate_async:
+ * @self: a #GDataService
+ * @username: the user's username
+ * @password: the user's password
+ * @cancellable: optional #GCancellable object, or %NULL
+ * @callback: a #GAsyncReadyCallback to call when authentication is finished
+ * @user_data: data to pass to the @callback function
+ *
+ * Authenticates the #GDataService with the online service using the given @username and @password. @self, @username and
+ * @password are all reffed/copied when this function is called, so can safely be freed after this function returns.
+ *
+ * For more details, see gdata_service_authenticate(), which is the synchronous version of this function.
+ *
+ * When the operation is finished, @callback will be called. You can then call gdata_service_authenticate_finish()
+ * to get the results of the operation.
+ **/
 void
 gdata_service_authenticate_async (GDataService *self, const gchar *username, const gchar *password,
 				  GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
@@ -337,6 +402,16 @@ gdata_service_authenticate_async (GDataService *self, const gchar *username, con
 	g_object_unref (result);
 }
 
+/**
+ * gdata_service_authenticate_finish:
+ * @self: a #GDataService
+ * @async_result: a #GAsyncResult
+ * @error: a #GError, or %NULL
+ *
+ * Finishes an asynchronous authentication operation started with gdata_service_authenticate_async().
+ *
+ * Return value: %TRUE if authentication was successful, %FALSE otherwise
+ **/
 gboolean
 gdata_service_authenticate_finish (GDataService *self, GAsyncResult *async_result, GError **error)
 {
@@ -553,6 +628,33 @@ general_error:
 	return FALSE;
 }
 
+/**
+ * gdata_service_authenticate:
+ * @self: a #GDataService
+ * @username: the user's username
+ * @password: the user's password
+ * @cancellable: optional #GCancellable object, or %NULL
+ * @error: a #GError, or %NULL
+ *
+ * Authenticates the #GDataService with the online service using @username and @password; i.e. logs into the service with the given
+ * user account.
+ *
+ * If @cancellable is not %NULL, then the operation can be cancelled by triggering the @cancellable object from another thread.
+ * If the operation was cancelled, the error %G_IO_ERROR_CANCELLED will be returned.
+ *
+ * A %GDATA_AUTHENTICATION_ERROR_BAD_AUTHENTICATION will be returned if authentication failed due to an incorrect username or password.
+ * Other #GDataAuthenticationError errors can be returned for other conditions.
+ *
+ * If the service requires a CAPTCHA to be completed, the #GDataService::captcha-challenge signal will be emitted. The return value from
+ * a signal handler for the signal should be the text from the image. If the text is %NULL or empty, authentication will fail with a
+ * %GDATA_AUTHENTICATION_ERROR_CAPTCHA_REQUIRED error. Otherwise, authentication will be automatically and transparently restarted with
+ * the new CAPTCHA details.
+ *
+ * A %GDATA_SERVICE_ERROR_PROTOCOL_ERROR will be returned if the server's responses were invalid. Subclasses of #GDataService can override
+ * parsing the authentication response, and may return their own error codes. See their documentation for more details.
+ *
+ * Return value: %TRUE if authentication was successful, %FALSE otherwise
+ **/
 gboolean
 gdata_service_authenticate (GDataService *self, const gchar *username, const gchar *password, GCancellable *cancellable, GError **error)
 {
@@ -605,6 +707,26 @@ query_thread (GSimpleAsyncResult *result, GDataService *service, GCancellable *c
 	}
 }
 
+/**
+ * gdata_service_query_async:
+ * @self: a #GDataService
+ * @feed_uri: the feed URI to query, including the host name and protocol
+ * @query: a #GDataQuery with the query parameters, or %NULL
+ * @parser_func: a #GDataEntryParserFunc to build a #GDataEntry from the XML
+ * @cancellable: optional #GCancellable object, or %NULL
+ * @progress_callback: a #GDataQueryProgressCallback to call when an entry is loaded, or %NULL
+ * @progress_user_data: data to pass to the @progress_callback function
+ * @callback: a #GAsyncReadyCallback to call when authentication is finished
+ * @user_data: data to pass to the @callback function
+ *
+ * Queries the service's @feed_uri feed to build a #GDataFeed. @self, @feed_uri and
+ * @query are all reffed/copied when this function is called, so can safely be freed after this function returns.
+ *
+ * For more details, see gdata_service_query(), which is the synchronous version of this function.
+ *
+ * When the operation is finished, @callback will be called. You can then call gdata_service_query_finish()
+ * to get the results of the operation.
+ **/
 void
 gdata_service_query_async (GDataService *self, const gchar *feed_uri, GDataQuery *query, GDataEntryParserFunc parser_func, GCancellable *cancellable,
 			   GDataQueryProgressCallback progress_callback, gpointer progress_user_data,
@@ -631,6 +753,16 @@ gdata_service_query_async (GDataService *self, const gchar *feed_uri, GDataQuery
 	g_object_unref (result);
 }
 
+/**
+ * gdata_service_query_finish:
+ * @self: a #GDataService
+ * @async_result: a #GAsyncResult
+ * @error: a #GError, or %NULL
+ *
+ * Finishes an asynchronous query operation started with gdata_service_query_async().
+ *
+ * Return value: a #GDataFeed of query results; unref with g_object_unref()
+ **/
 GDataFeed *
 gdata_service_query_finish (GDataService *self, GAsyncResult *async_result, GError **error)
 {
@@ -652,6 +784,33 @@ gdata_service_query_finish (GDataService *self, GAsyncResult *async_result, GErr
 	g_assert_not_reached ();
 }
 
+/**
+ * gdata_service_query:
+ * @self: a #GDataService
+ * @feed_uri: the feed URI to query, including the host name and protocol
+ * @query: a #GDataQuery with the query parameters, or %NULL
+ * @parser_func: a #GDataEntryParserFunc to build a #GDataEntry from the XML
+ * @cancellable: optional #GCancellable object, or %NULL
+ * @progress_callback: a #GDataQueryProgressCallback to call when an entry is loaded, or %NULL
+ * @progress_user_data: data to pass to the @progress_callback function
+ * @error: a #GError, or %NULL
+ *
+ * Queries the service's @feed_uri feed to build a #GDataFeed.
+ *
+ * If @cancellable is not %NULL, then the operation can be cancelled by triggering the @cancellable object from another thread.
+ * If the operation was cancelled, the error %G_IO_ERROR_CANCELLED will be returned.
+ *
+ * A %GDATA_SERVICE_ERROR_WITH_QUERY will be returned if the server indicates there is a problem with the query, but subclasses may override
+ * this and return their own errors. See their documentation for more details.
+ *
+ * For each entry in the response feed, @progress_callback will be called in the main thread. If there was an error parsing the XML response,
+ * a #GDataParserError will be returned.
+ *
+ * If the query is successful and the feed supports pagination, @query will be updated with the pagination URIs, and the next or previous page
+ * can then be loaded by calling gdata_query_next_page() or gdata_query_previous_page() before running the query again.
+ *
+ * Return value: a #GDataFeed of query results; unref with g_object_unref()
+ **/
 GDataFeed *
 gdata_service_query (GDataService *self, const gchar *feed_uri, GDataQuery *query, GDataEntryParserFunc parser_func,
 		     GCancellable *cancellable, GDataQueryProgressCallback progress_callback, gpointer progress_user_data, GError **error)
@@ -714,6 +873,29 @@ gdata_service_query (GDataService *self, const gchar *feed_uri, GDataQuery *quer
 	return feed;
 }
 
+/**
+ * gdata_service_insert_entry:
+ * @self: a #GDataService
+ * @upload_uri: the URI to which the upload should be sent
+ * @entry: the #GDataEntry to upload
+ * @cancellable: optional #GCancellable object, or %NULL
+ * @error: a #GError, or %NULL
+ *
+ * Inserts @entry by uploading it to the online service at @upload_uri. For more information about the concept of inserting entries, see
+ * the <ulink type="http" url="http://code.google.com/apis/gdata/docs/2.0/reference.html#Queries">online documentation</ulink> for the GData
+ * protocol.
+ *
+ * If @cancellable is not %NULL, then the operation can be cancelled by triggering the @cancellable object from another thread.
+ * If the operation was cancelled, the error %G_IO_ERROR_CANCELLED will be returned.
+ *
+ * If the entry is marked as already having been inserted a %GDATA_SERVICE_ERROR_ENTRY_ALREADY_INSERTED error will be returned immediately
+ * (there will be no network requests).
+ *
+ * If there is an error inserting the entry, a %GDATA_SERVICE_ERROR_WITH_INSERTION error will be returned. Currently, subclasses
+ * <emphasis>cannot</emphasis> cannot override this or provide more specific errors.
+ *
+ * Return value: %TRUE on success, %FALSE otherwise
+ **/
 gboolean
 gdata_service_insert_entry (GDataService *self, const gchar *upload_uri, GDataEntry *entry, GCancellable *cancellable, GError **error)
 {
@@ -762,10 +944,20 @@ gdata_service_insert_entry (GDataService *self, const gchar *upload_uri, GDataEn
 	}
 
 	g_assert (message->response_body->data != NULL);
+	/* TODO: Update the entry such that it looks like it's been inserted */
 
 	return TRUE;
 }
 
+/**
+ * gdata_service_is_authenticated:
+ * @self: a #GDataService
+ *
+ * Returns whether a user is authenticated with the online service through @self.
+ * Authentication is performed by calling gdata_service_authenticate() or gdata_service_authenticate_async().
+ *
+ * Return value: %TRUE if a user is authenticated, %FALSE otherwise
+ **/
 gboolean
 gdata_service_is_authenticated (GDataService *self)
 {
@@ -774,12 +966,20 @@ gdata_service_is_authenticated (GDataService *self)
 }
 
 void
-gdata_service_set_authenticated (GDataService *self, gboolean authenticated)
+_gdata_service_set_authenticated (GDataService *self, gboolean authenticated)
 {
 	g_assert (GDATA_IS_SERVICE (self));
 	self->priv->authenticated = authenticated;
 }
 
+/**
+ * gdata_service_get_client_id:
+ * @self: a #GDataService
+ *
+ * Returns the service's client ID, as specified on constructing the #GDataService.
+ *
+ * Return value: the service's client ID
+ **/
 const gchar *
 gdata_service_get_client_id (GDataService *self)
 {
@@ -787,6 +987,14 @@ gdata_service_get_client_id (GDataService *self)
 	return self->priv->client_id;
 }
 
+/**
+ * gdata_service_get_username:
+ * @self: a #GDataService
+ *
+ * Returns the username of the currently-authenticated user, or %NULL if nobody is authenticated.
+ *
+ * Return value: the username of the currently-authenticated user, or %NULL
+ **/
 const gchar *
 gdata_service_get_username (GDataService *self)
 {
@@ -794,6 +1002,14 @@ gdata_service_get_username (GDataService *self)
 	return self->priv->username;
 }
 
+/**
+ * gdata_service_get_password:
+ * @self: a #GDataService
+ *
+ * Returns the password of the currently-authenticated user, or %NULL if nobody is authenticated.
+ *
+ * Return value: the password of the currently-authenticated user, or %NULL
+ **/
 const gchar *
 gdata_service_get_password (GDataService *self)
 {
@@ -801,6 +1017,14 @@ gdata_service_get_password (GDataService *self)
 	return self->priv->password;
 }
 
+/**
+ * gdata_service_get_session:
+ * @self: a #GDataService
+ *
+ * Returns the #SoupSession which @self is using to communicate with the online service.
+ *
+ * Return value: a #SoupSession
+ **/
 SoupSession *
 gdata_service_get_session (GDataService *self)
 {

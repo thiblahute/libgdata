@@ -27,6 +27,9 @@
 
 G_BEGIN_DECLS
 
+#include "gdata-service.h"
+void _gdata_service_set_authenticated (GDataService *self, gboolean authenticated);
+
 #include "gdata-query.h"
 void _gdata_query_set_next_uri (GDataQuery *self, const gchar *next_uri);
 void _gdata_query_set_previous_uri (GDataQuery *self, const gchar *previous_uri);

@@ -1,7 +1,7 @@
 /* -*- Mode: C; indent-tabs-mode: t; c-basic-offset: 8; tab-width: 8 -*- */
 /*
  * GData Client
- * Copyright (C) Philip Withnall 2008 <philip@tecnocode.co.uk>
+ * Copyright (C) Philip Withnall 2008-2009 <philip@tecnocode.co.uk>
  * 
  * GData Client is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,12 +37,24 @@ G_BEGIN_DECLS
 
 typedef struct _GDataFeedPrivate	GDataFeedPrivate;
 
+/**
+ * GDataFeed:
+ *
+ * All the fields in the #GDataFeed structure are private and should never be accessed directly.
+ **/
 typedef struct {
+	/*< private >*/
 	GObject parent;
 	GDataFeedPrivate *priv;
 } GDataFeed;
 
+/**
+ * GDataFeedClass:
+ *
+ * All the fields in the #GDataFeedClass structure are private and should never be accessed directly.
+ **/
 typedef struct {
+	/*< private >*/
 	GObjectClass parent;
 } GDataFeedClass;
 

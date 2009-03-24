@@ -260,7 +260,7 @@ parse_error_response (GDataService *self, guint status, const gchar *reason_phra
 					     _("This service is not available at the moment."));
 			} else if (xmlStrcmp (domain, (xmlChar*) "yt:authentication") == 0) {
 				/* Authentication problem; make sure to set our status as unauthenticated */
-				gdata_service_set_authenticated (GDATA_SERVICE (self), FALSE);
+				_gdata_service_set_authenticated (GDATA_SERVICE (self), FALSE);
 				g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_AUTHENTICATION_REQUIRED,
 					     _("You must be authenticated to do this."));
 			} else if (xmlStrcmp (domain, (xmlChar*) "yt:quota") == 0) {

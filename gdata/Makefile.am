@@ -24,8 +24,8 @@ gdata-enums.h: $(gdatainclude_HEADERS) Makefile
 			--fprod "/* enumerations from \"@filename@\" */\n" \
 			--vhead "GType @enum_name@_get_type (void) G_GNUC_CONST;\n#define GDATA_TYPE_@ENUMSHORT@ (@enum_name@_get_type())\n" \
 			--ftail "G_END_DECLS\n\n#endif /* !GDATA_ENUMS_H */" $(gdatainclude_HEADERS)) > gdata-enums.h.tmp \
-	&& mv gdata-enums.h.tmp gdata-enums.h \
-	|| rm -f gdata-enums.h.tmp
+	&& sed "s/g_data/gdata/" gdata-enums.h.tmp > gdata-enums.h \
+	&& rm -f gdata-enums.h.tmp
 
 gdata-enums.c: $(gdatainclude_HEADERS) Makefile gdata-enums.h
 	(cd $(srcdir) && $(GLIB_MKENUMS) \
@@ -35,8 +35,8 @@ gdata-enums.c: $(gdatainclude_HEADERS) Makefile gdata-enums.h
 			--vprod "      { @VALUENAME@, \"@VALUENAME@\", \"@valuenick@\" }," \
 			--vtail "      { 0, NULL, NULL }\n    };\n    etype = g_@type@_register_static (\"@EnumName@\", values);\n  }\n  return etype;\n}\n" \
 		$(gdatainclude_HEADERS)) > gdata-enums.c.tmp \
-	&& mv gdata-enums.c.tmp gdata-enums.c \
-	|| rm -f gdata-enums.c.tmp
+	&& sed "s/g_data/gdata/" gdata-enums.c.tmp > gdata-enums.c \
+	&& rm -f gdata-enums.c.tmp
 
 # libgdata library
 lib_LTLIBRARIES = libgdata.la

@@ -32,7 +32,7 @@ G_BEGIN_DECLS
 /**
  * GDataServiceError:
  * @GDATA_SERVICE_ERROR_UNAVAILABLE: The service is unavailable due to maintainence or other reasons
- * @GDATA_SERVICE_ERROR_PROTOCOL: The client or server unexpectedly strayed from the protocol (fatal error)
+ * @GDATA_SERVICE_ERROR_PROTOCOL_ERROR: The client or server unexpectedly strayed from the protocol (fatal error)
  * @GDATA_SERVICE_ERROR_WITH_QUERY: TODO
  * @GDATA_SERVICE_ERROR_ENTRY_ALREADY_INSERTED: An entry has already been inserted, and cannot be re-inserted
  * @GDATA_SERVICE_ERROR_WITH_INSERTION: TODO
@@ -90,11 +90,31 @@ typedef void *(*GDataQueryProgressCallback) (GDataEntry *entry, guint entry_key,
 
 typedef struct _GDataServicePrivate	GDataServicePrivate;
 
+/**
+ * GDataService:
+ *
+ * All the fields in the #GDataService structure are private and should never be accessed directly.
+ **/
 typedef struct {
 	GObject parent;
 	GDataServicePrivate *priv;
 } GDataService;
 
+/**
+ * GDataServiceClass:
+ * @parent: the parent class
+ * @service_name: the name of the service (for subclasses) as given in the service's GData API documentation
+ * @authentication_uri: the authentication URI (for subclasses) if different from the Google ClientLogin default
+ * @parse_authentication_response: a function to parse the response from the online service to an authentication request as
+ * issued by gdata_service_authenticate(). It should return %TRUE if authentication was successful, and %FALSE if there was
+ * an error.
+ * @append_query_headers: a function to allow subclasses to append their own headers to queries before they are submitted
+ * to the online service
+ * @parse_error_response: a function to parse error responses to queries from the online service. It should set the error
+ * from the status, reason phrase and response body it is passed.
+ *
+ * The class structure for the #GDataService type.
+ **/
 typedef struct {
 	GObjectClass parent;
 
@@ -131,7 +151,6 @@ gboolean gdata_service_insert_entry (GDataService *self, const gchar *upload_uri
 /* TODO: async versions */
 
 gboolean gdata_service_is_authenticated (GDataService *self);
-void gdata_service_set_authenticated (GDataService *self, gboolean authenticated);
 const gchar *gdata_service_get_client_id (GDataService *self);
 const gchar *gdata_service_get_username (GDataService *self);
 const gchar *gdata_service_get_password (GDataService *self);
