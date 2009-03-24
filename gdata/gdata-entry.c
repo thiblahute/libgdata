@@ -1,7 +1,7 @@
 /* -*- Mode: C; indent-tabs-mode: t; c-basic-offset: 8; tab-width: 8 -*- */
 /*
  * GData Client
- * Copyright (C) Philip Withnall 2008 <philip@tecnocode.co.uk>
+ * Copyright (C) Philip Withnall 2008-2009 <philip@tecnocode.co.uk>
  * 
  * GData Client is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,6 +16,17 @@
  * You should have received a copy of the GNU General Public License
  * along with GData Client.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+/**
+ * SECTION:gdata-entry
+ * @short_description: GData entry object
+ * @stability: Unstable
+ * @include: gdata/gdata-entry.h
+ *
+ * #GDataEntry represents a single object on the online service, such as a playlist, video or calendar event. It is a snapshot of the
+ * state of that object at the time of querying the service, so modifications made to a #GDataEntry will not be automatically or
+ * magically propagated to the server.
+ **/
 
 #include <config.h>
 #include <glib.h>
@@ -51,7 +62,8 @@ enum {
 	PROP_ID,
 	PROP_UPDATED,
 	PROP_PUBLISHED,
-	PROP_CONTENT
+	PROP_CONTENT,
+	PROP_IS_INSERTED
 };
 
 G_DEFINE_TYPE (GDataEntry, gdata_entry, G_TYPE_OBJECT)
@@ -79,22 +91,27 @@ gdata_entry_class_init (GDataEntryClass *klass)
 				g_param_spec_string ("id",
 					"ID", "The ID for this entry.",
 					NULL,
-					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 	g_object_class_install_property (gobject_class, PROP_UPDATED,
 				g_param_spec_boxed ("updated",
 					"Updated", "The last update time for this entry.",
 					G_TYPE_TIME_VAL,
-					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 	g_object_class_install_property (gobject_class, PROP_PUBLISHED,
 				g_param_spec_boxed ("published",
 					"Published", "The time this entry was published.",
 					G_TYPE_TIME_VAL,
-					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 	g_object_class_install_property (gobject_class, PROP_CONTENT,
 				g_param_spec_string ("content",
 					"Content", "The textual content of this entry.",
 					NULL,
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+	g_object_class_install_property (gobject_class, PROP_IS_INSERTED,
+				g_param_spec_boolean ("is-inserted",
+					"Inserted?", "Whether the entry has been inserted on the server.",
+					FALSE,
+					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 }
 
 static void
@@ -109,7 +126,7 @@ gdata_entry_finalize (GObject *object)
 	GDataEntryPrivate *priv = GDATA_ENTRY_GET_PRIVATE (object);
 
 	g_free (priv->title);
-	g_free (priv->id);
+	xmlFree (priv->id);
 	g_list_foreach (priv->categories, (GFunc) gdata_category_free, NULL);
 	g_list_free (priv->categories);
 	g_free (priv->content);
@@ -143,6 +160,9 @@ gdata_entry_get_property (GObject *object, guint property_id, GValue *value, GPa
 		case PROP_CONTENT:
 			g_value_set_string (value, priv->content);
 			break;
+		case PROP_IS_INSERTED:
+			g_value_set_boolean (value, gdata_entry_is_inserted (GDATA_ENTRY (object)));
+			break;
 		default:
 			/* We don't have any other property... */
 			G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
@@ -158,15 +178,6 @@ gdata_entry_set_property (GObject *object, guint property_id, const GValue *valu
 	switch (property_id) {
 		case PROP_TITLE:
 			gdata_entry_set_title (self, g_value_get_string (value));
-			break;
-		case PROP_ID:
-			gdata_entry_set_id (self, g_value_get_string (value));
-			break;
-		case PROP_UPDATED:
-			gdata_entry_set_updated (self, g_value_get_boxed (value));
-			break;
-		case PROP_PUBLISHED:
-			gdata_entry_set_published (self, g_value_get_boxed (value));
 			break;
 		case PROP_CONTENT:
 			gdata_entry_set_content (self, g_value_get_string (value));
@@ -272,15 +283,37 @@ real_get_xml (GDataEntry *self, GString *xml_string)
 	}
 }
 
+/**
+ * gdata_entry_new:
+ *
+ * Creates a new #GDataEntry with default properties.
+ *
+ * Return value: a new #GDataEntry
+ **/
 GDataEntry *
 gdata_entry_new (void)
 {
 	return g_object_new (GDATA_TYPE_ENTRY, NULL);
 }
 
+/**
+ * gdata_entry_new_from_xml:
+ * @xml: the XML for just the entry, with full namespace declarations
+ * @length: the length of @xml, or -1
+ * @error: a #GError, or %NULL
+ *
+ * Creates a new #GDataEntry from the provided @xml.
+ *
+ * If @length is -1, @xml will be assumed to be nul-terminated.
+ *
+ * If an error occurs during parsing, a suitable error from #GDataParserError will be returned.
+ *
+ * Return value: a new #GDataEntry, or %NULL
+ **/
 GDataEntry *
 gdata_entry_new_from_xml (const gchar *xml, gint length, GError **error)
 {
+	/* TODO: Shouldn't this be private? */
 	xmlDoc *doc;
 	xmlNode *node;
 
@@ -357,38 +390,31 @@ _gdata_entry_parse_xml_node (GDataEntry *self, xmlDoc *doc, xmlNode *node, GErro
 		xmlFree (title);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "id") == 0) {
 		/* atom:id */
-		xmlChar *id = xmlNodeListGetString (doc, node->xmlChildrenNode, TRUE);
-		gdata_entry_set_id (self, (gchar*) id);
-		xmlFree (id);
+		xmlFree (self->priv->id);
+		self->priv->id = (gchar*) xmlNodeListGetString (doc, node->xmlChildrenNode, TRUE);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "updated") == 0) {
 		/* atom:updated */
 		xmlChar *updated;
-		GTimeVal updated_timeval;
 
 		updated = xmlNodeListGetString (doc, node->xmlChildrenNode, TRUE);
-		if (g_time_val_from_iso8601 ((gchar*) updated, &updated_timeval) == FALSE) {
+		if (g_time_val_from_iso8601 ((gchar*) updated, &(self->priv->updated)) == FALSE) {
 			/* Error */
 			gdata_parser_error_not_iso8601_format ("entry", "updated", (gchar*) updated, error);
 			xmlFree (updated);
 			return FALSE;
 		}
-
-		gdata_entry_set_updated (self, &updated_timeval);
 		xmlFree (updated);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "published") == 0) {
 		/* atom:published */
 		xmlChar *published;
-		GTimeVal published_timeval;
 
 		published = xmlNodeListGetString (doc, node->xmlChildrenNode, TRUE);
-		if (g_time_val_from_iso8601 ((gchar*) published, &published_timeval) == FALSE) {
+		if (g_time_val_from_iso8601 ((gchar*) published, &(self->priv->published)) == FALSE) {
 			/* Error */
 			gdata_parser_error_not_iso8601_format ("entry", "published", (gchar*) published, error);
 			xmlFree (published);
 			return FALSE;
 		}
-
-		gdata_entry_set_published (self, &published_timeval);
 		xmlFree (published);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "category") == 0) {
 		/* atom:category */
@@ -478,6 +504,14 @@ _gdata_entry_parse_xml_node (GDataEntry *self, xmlDoc *doc, xmlNode *node, GErro
 	return TRUE;
 }
 
+/**
+ * gdata_entry_get_title:
+ * @self: a #GDataEntry
+ *
+ * Returns the title of the entry.
+ *
+ * Return value: the entry's title
+ **/
 const gchar *
 gdata_entry_get_title (GDataEntry *self)
 {
@@ -485,6 +519,13 @@ gdata_entry_get_title (GDataEntry *self)
 	return self->priv->title;
 }
 
+/**
+ * gdata_entry_set_title:
+ * @self: a #GDataEntry
+ * @title: the new entry title
+ *
+ * Sets the title of the entry.
+ **/
 void
 gdata_entry_set_title (GDataEntry *self, const gchar *title)
 {
@@ -496,6 +537,14 @@ gdata_entry_set_title (GDataEntry *self, const gchar *title)
 	g_object_notify (G_OBJECT (self), "title");
 }
 
+/**
+ * gdata_entry_get_id:
+ * @self: a #GDataEntry
+ *
+ * Returns the URN ID of the entry; a unique and permanent identifier for the object the entry represents.
+ *
+ * Return value: the entry's ID
+ **/
 const gchar *
 gdata_entry_get_id (GDataEntry *self)
 {
@@ -503,17 +552,13 @@ gdata_entry_get_id (GDataEntry *self)
 	return self->priv->id;
 }
 
-void
-gdata_entry_set_id (GDataEntry *self, const gchar *id)
-{
-	g_return_if_fail (GDATA_IS_ENTRY (self));
-	g_return_if_fail (id != NULL);
-
-	g_free (self->priv->id);
-	self->priv->id = g_strdup (id);
-	g_object_notify (G_OBJECT (self), "id");
-}
-
+/**
+ * gdata_entry_get_updated:
+ * @self: a #GDataEntry
+ * @updated: a #GTimeVal
+ *
+ * Puts the time the entry was last updated into @updated.
+ **/
 void
 gdata_entry_get_updated (GDataEntry *self, GTimeVal *updated)
 {
@@ -524,17 +569,13 @@ gdata_entry_get_updated (GDataEntry *self, GTimeVal *updated)
 	updated->tv_usec = self->priv->updated.tv_usec;
 }
 
-void
-gdata_entry_set_updated (GDataEntry *self, GTimeVal *updated)
-{
-	g_return_if_fail (GDATA_IS_ENTRY (self));
-	g_return_if_fail (updated != NULL);
-
-	self->priv->updated.tv_sec = updated->tv_sec;
-	self->priv->updated.tv_usec = updated->tv_usec;
-	g_object_notify (G_OBJECT (self), "updated");
-}
-
+/**
+ * gdata_entry_get_published:
+ * @self: a #GDataEntry
+ * @published: a #GTimeVal
+ *
+ * Puts the time the entry was originally published into @published.
+ **/
 void
 gdata_entry_get_published (GDataEntry *self, GTimeVal *published)
 {
@@ -545,27 +586,31 @@ gdata_entry_get_published (GDataEntry *self, GTimeVal *published)
 	published->tv_usec = self->priv->published.tv_usec;
 }
 
-void
-gdata_entry_set_published (GDataEntry *self, GTimeVal *published)
-{
-	g_return_if_fail (GDATA_IS_ENTRY (self));
-	g_return_if_fail (published != NULL);
-
-	self->priv->published.tv_sec = published->tv_sec;
-	self->priv->published.tv_usec = published->tv_usec;
-	g_object_notify (G_OBJECT (self), "published");
-}
-
-/* TODO: More category API */
+/**
+ * gdata_entry_add_category:
+ * @self: a #GDataEntry
+ * @category: a #GDataCategory to add
+ *
+ * Adds @category to the list of categories in the given #GDataEntry.
+ **/
 void
 gdata_entry_add_category (GDataEntry *self, GDataCategory *category)
 {
+	/* TODO: More category API */
 	g_return_if_fail (GDATA_IS_ENTRY (self));
 	g_return_if_fail (category != NULL);
 
 	self->priv->categories = g_list_prepend (self->priv->categories, category);
 }
 
+/**
+ * gdata_entry_get_content:
+ * @self: a #GDataEntry
+ *
+ * Returns the textual content in this entry.
+ *
+ * Return value: the entry's content, or %NULL
+ **/
 const gchar *
 gdata_entry_get_content (GDataEntry *self)
 {
@@ -573,6 +618,13 @@ gdata_entry_get_content (GDataEntry *self)
 	return self->priv->content;
 }
 
+/**
+ * gdata_entry_set_content:
+ * @self: a #GDataEntry
+ * @content: the new content for the entry
+ *
+ * Sets the entry's content to @content.
+ **/
 void
 gdata_entry_set_content (GDataEntry *self, const gchar *content)
 {
@@ -583,10 +635,17 @@ gdata_entry_set_content (GDataEntry *self, const gchar *content)
 	g_object_notify (G_OBJECT (self), "content");
 }
 
-/* TODO: More link API */
+/**
+ * gdata_entry_add_link:
+ * @self: a #GDataEntry
+ * @link: a #GDataLink to add
+ *
+ * Adds @link to the list of links in the given #GDataEntry.
+ **/
 void
 gdata_entry_add_link (GDataEntry *self, GDataLink *link)
 {
+	/* TODO: More link API */
 	g_return_if_fail (GDATA_IS_ENTRY (self));
 	g_return_if_fail (link != NULL);
 
@@ -599,6 +658,15 @@ link_compare_cb (const GDataLink *link, const gchar *rel)
 	return strcmp (link->rel, rel);
 }
 
+/**
+ * gdata_entry_lookup_link:
+ * @self: a #GDataEntry
+ * @rel: the value of the <structfield>rel</structfield> attribute of the desired link
+ *
+ * Looks up a link by <structfield>rel</structfield> value from the list of links in the entry.
+ *
+ * Return value: a #GDataLink, or %NULL if one was not found
+ **/
 GDataLink *
 gdata_entry_lookup_link (GDataEntry *self, const gchar *rel)
 {
@@ -613,18 +681,33 @@ gdata_entry_lookup_link (GDataEntry *self, const gchar *rel)
 	return (GDataLink*) (element->data);
 }
 
-/* TODO: More author API */
+/**
+ * gdata_entry_add_author:
+ * @self: a #GDataEntry
+ * @author: a #GDataAuthor to add
+ *
+ * Adds @author to the list of authors in the given #GDataEntry.
+ **/
 void
 gdata_entry_add_author (GDataEntry *self, GDataAuthor *author)
 {
+	/* TODO: More author API */
 	g_return_if_fail (GDATA_IS_ENTRY (self));
 	g_return_if_fail (author != NULL);
 
 	self->priv->authors = g_list_prepend (self->priv->authors, author);
 }
 
+/**
+ * gdata_entry_is_inserted:
+ * @self: a #GDataEntry
+ *
+ * Returns whether the entry is marked as having been inserted on (uploaded to) the server already.
+ *
+ * Return value: %TRUE if the entry has been inserted already, %FALSE otherwise
+ **/
 gboolean
-gdata_entry_inserted (GDataEntry *self)
+gdata_entry_is_inserted (GDataEntry *self)
 {
 	g_return_val_if_fail (GDATA_IS_ENTRY (self), FALSE);
 
@@ -635,6 +718,16 @@ gdata_entry_inserted (GDataEntry *self)
 	return FALSE;
 }
 
+/**
+ * gdata_entry_get_xml:
+ * @self: a #GDataEntry
+ *
+ * Builds an XML representation of the #GDataEntry in its current state, such that it could be inserted on the server.
+ * The XML is guaranteed to have all its namespaces declared properly in a self-contained fashion. The root element is
+ * guaranteed to be <literal>&lt;entry&gt;</literal>.
+ *
+ * Return value: the entry's XML; free with g_free()
+ **/
 gchar *
 gdata_entry_get_xml (GDataEntry *self)
 {

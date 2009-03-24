@@ -908,7 +908,7 @@ gdata_service_insert_entry (GDataService *self, const gchar *upload_uri, GDataEn
 	g_return_val_if_fail (upload_uri != NULL, FALSE);
 	g_return_val_if_fail (GDATA_IS_ENTRY (entry), FALSE);
 
-	if (gdata_entry_inserted (entry) == TRUE) {
+	if (gdata_entry_is_inserted (entry) == TRUE) {
 		g_set_error_literal (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_ENTRY_ALREADY_INSERTED,
 				     _("The entry has already been inserted."));
 		return FALSE;

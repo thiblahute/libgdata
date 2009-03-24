@@ -24,7 +24,7 @@
 static void
 test_entry_get_xml (void)
 {
-	GTimeVal updated, published, updated2, published2;
+	/*GTimeVal updated, published, updated2, published2;*/
 	GDataEntry *entry, *entry2;
 	GDataCategory *category;
 	GDataLink *link;
@@ -34,14 +34,13 @@ test_entry_get_xml (void)
 
 	entry = gdata_entry_new ();
 	gdata_entry_set_title (entry, "Testing title & escaping");
-	gdata_entry_set_id (entry, "tag:youtube,2008:video:24Ryj1ywosw");
 	gdata_entry_set_content (entry, "This is some sample content testing, amongst other things, <markup> & odd characters‽");
 
-	g_time_val_from_iso8601 ("2009-01-25T14:07:37.880860Z", &updated);
+	/*g_time_val_from_iso8601 ("2009-01-25T14:07:37.880860Z", &updated);
 	gdata_entry_set_updated (entry, &updated);
 
 	g_time_val_from_iso8601 ("2009-01-23T14:06:37.880860Z", &published);
-	gdata_entry_set_published (entry, &published);
+	gdata_entry_set_published (entry, &published);*/
 
 	/* Categories */
 	category = gdata_category_new ("test", NULL, NULL);
@@ -72,9 +71,8 @@ test_entry_get_xml (void)
 	g_assert_cmpstr (xml, ==,
 			 "<entry xmlns='http://www.w3.org/2005/Atom' >"
 				 "<title type='text'>Testing title &amp; escaping</title>"
-				 "<id>tag:youtube,2008:video:24Ryj1ywosw</id>"
-				 "<updated>2009-01-25T14:07:37.880860Z</updated>"
-				 "<published>2009-01-23T14:06:37.880860Z</published>"
+				 /*"<updated>2009-01-25T14:07:37.880860Z</updated>"
+				 "<published>2009-01-23T14:06:37.880860Z</published>"*/
 				 "<content type='text'>This is some sample content testing, amongst other things, &lt;markup&gt; &amp; odd characters\342\200\275</content>"
 				 "<category term='Film' scheme='http://gdata.youtube.com/schemas/2007/categories.cat' label='Film &amp; Animation'/>"
 				 "<category term='example' label='Example stuff'/>"
@@ -95,10 +93,10 @@ test_entry_get_xml (void)
 	g_free (xml);
 
 	g_assert_cmpstr (gdata_entry_get_title (entry), ==, gdata_entry_get_title (entry2));
-	g_assert_cmpstr (gdata_entry_get_id (entry), ==, gdata_entry_get_id (entry2));
+	g_assert_cmpstr (gdata_entry_get_id (entry), ==, gdata_entry_get_id (entry2)); /* should both be NULL */
 	g_assert_cmpstr (gdata_entry_get_content (entry), ==, gdata_entry_get_content (entry2));
 
-	gdata_entry_get_updated (entry, &updated);
+	/*gdata_entry_get_updated (entry, &updated);
 	gdata_entry_get_updated (entry2, &updated2);
 	g_assert_cmpuint (updated.tv_sec, ==, updated2.tv_sec);
 	g_assert_cmpuint (updated.tv_usec, ==, updated2.tv_usec);
@@ -106,7 +104,7 @@ test_entry_get_xml (void)
 	gdata_entry_get_published (entry, &published);
 	gdata_entry_get_published (entry2, &published2);
 	g_assert_cmpuint (published.tv_sec, ==, published2.tv_sec);
-	g_assert_cmpuint (published.tv_usec, ==, published2.tv_usec);
+	g_assert_cmpuint (published.tv_usec, ==, published2.tv_usec);*/
 
 	/* TODO: Check categories, links and authors */
 

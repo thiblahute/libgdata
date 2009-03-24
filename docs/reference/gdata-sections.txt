@@ -58,3 +58,30 @@ gdata_feed_get_type
 <SUBSECTION Private>
 GDataFeedPrivate
 </SECTION>
+
+<SECTION>
+<FILE>gdata-entry</FILE>
+<TITLE>GDataEntry</TITLE>
+GDataEntry
+GDataEntryClass
+GDataEntryParserFunc
+gdata_entry_new
+gdata_entry_new_from_xml
+gdata_entry_get_title
+gdata_entry_set_title
+gdata_entry_get_id
+gdata_entry_get_content
+gdata_entry_set_content
+gdata_entry_get_published
+gdata_entry_get_updated
+gdata_entry_add_author
+gdata_entry_add_category
+gdata_entry_add_link
+gdata_entry_lookup_link
+gdata_entry_is_inserted
+gdata_entry_get_xml
+<SUBSECTION Standard>
+gdata_entry_get_type
+<SUBSECTION Private>
+GDataEntryPrivate
+</SECTION>

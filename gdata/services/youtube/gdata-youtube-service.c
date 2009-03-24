@@ -449,7 +449,7 @@ gdata_youtube_service_upload_video (GDataYouTubeService *self, GDataYouTubeVideo
 	g_return_val_if_fail (GDATA_IS_YOUTUBE_SERVICE (self), NULL);
 	g_return_val_if_fail (GDATA_IS_YOUTUBE_VIDEO (video), NULL);
 
-	if (gdata_entry_inserted (GDATA_ENTRY (video)) == TRUE) {
+	if (gdata_entry_is_inserted (GDATA_ENTRY (video)) == TRUE) {
 		g_set_error_literal (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_ENTRY_ALREADY_INSERTED,
 				     _("The entry has already been inserted."));
 		return NULL;

@@ -15,6 +15,7 @@
 		<title>Core API</title>
 		<xi:include href="xml/gdata-service.xml"/>
 		<xi:include href="xml/gdata-feed.xml"/>
+		<xi:include href="xml/gdata-entry.xml"/>
 	</chapter>
 
 	<chapter>

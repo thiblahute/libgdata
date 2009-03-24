@@ -75,7 +75,20 @@ typedef enum {
 	GDATA_AUTHENTICATION_ERROR_SERVICE_DISABLED
 } GDataAuthenticationError;
 
+/**
+ * GDataEntryParserFunc:
+ * @doc: the XML document
+ * @node: the XML node for an element; the <literal>&lt;entry&gt;</literal> element
+ * @error: a #GError, or %NULL
+ *
+ * Callback function for operations which parse feeds, which should produce a new #GDataEntry from the provided entry XML.
+ *
+ * It can return any error, but #GDataParserError errors are most likely and most expected.
+ *
+ * Return value: a new #GDataEntry, or %NULL
+ **/
 typedef GDataEntry *(*GDataEntryParserFunc) (xmlDoc *doc, xmlNode *node, GError **error);
+
 typedef void *(*GDataQueryProgressCallback) (GDataEntry *entry, guint entry_key, guint entry_count, gpointer user_data);
 
 #define GDATA_TYPE_SERVICE		(gdata_service_get_type ())

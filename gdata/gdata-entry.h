@@ -1,7 +1,7 @@
 /* -*- Mode: C; indent-tabs-mode: t; c-basic-offset: 8; tab-width: 8 -*- */
 /*
  * GData Client
- * Copyright (C) Philip Withnall 2008 <philip@tecnocode.co.uk>
+ * Copyright (C) Philip Withnall 2008-2009 <philip@tecnocode.co.uk>
  * 
  * GData Client is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,11 +37,26 @@ G_BEGIN_DECLS
 
 typedef struct _GDataEntryPrivate	GDataEntryPrivate;
 
+/**
+ * GDataEntry:
+ *
+ * All the fields in the #GDataEntry structure are private and should never be accessed directly.
+ **/
 typedef struct {
 	GObject parent;
 	GDataEntryPrivate *priv;
 } GDataEntry;
 
+/**
+ * GDataEntryClass:
+ * @parent: the parent class
+ * @get_xml: a function to build an XML representation of the #GDataEntry in its current state, appending it to the provided
+ * #GString
+ * @get_namespaces: a function to return a string containing the namespace declarations used by the entry when represented
+ * in XML form
+ *
+ * The class structure for the #GDataEntry type.
+ **/
 typedef struct {
 	GObjectClass parent;
 
@@ -57,11 +72,8 @@ GDataEntry *gdata_entry_new_from_xml (const gchar *xml, gint length, GError **er
 const gchar *gdata_entry_get_title (GDataEntry *self);
 void gdata_entry_set_title (GDataEntry *self, const gchar *title);
 const gchar *gdata_entry_get_id (GDataEntry *self);
-void gdata_entry_set_id (GDataEntry *self, const gchar *id);
 void gdata_entry_get_updated (GDataEntry *self, GTimeVal *updated);
-void gdata_entry_set_updated (GDataEntry *self, GTimeVal *updated);
 void gdata_entry_get_published (GDataEntry *self, GTimeVal *published);
-void gdata_entry_set_published (GDataEntry *self, GTimeVal *published);
 void gdata_entry_add_category (GDataEntry *self, GDataCategory *category);
 const gchar *gdata_entry_get_content (GDataEntry *self);
 void gdata_entry_set_content (GDataEntry *self, const gchar *content);
@@ -69,7 +81,7 @@ void gdata_entry_add_link (GDataEntry *self, GDataLink *link);
 GDataLink *gdata_entry_lookup_link (GDataEntry *self, const gchar *rel);
 void gdata_entry_add_author (GDataEntry *self, GDataAuthor *author);
 
-gboolean gdata_entry_inserted (GDataEntry *self);
+gboolean gdata_entry_is_inserted (GDataEntry *self);
 gchar *gdata_entry_get_xml (GDataEntry *self);
 
 G_END_DECLS
