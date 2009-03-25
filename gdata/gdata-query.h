@@ -25,21 +25,6 @@
 
 G_BEGIN_DECLS
 
-typedef enum {
-	GDATA_QUERY_PARAM_Q = 1 << 0,
-	GDATA_QUERY_PARAM_CATEGORIES = 1 << 1,
-	GDATA_QUERY_PARAM_AUTHOR = 1 << 2,
-	GDATA_QUERY_PARAM_UPDATED_MIN = 1 << 3,
-	GDATA_QUERY_PARAM_UPDATED_MAX = 1 << 4,
-	GDATA_QUERY_PARAM_PUBLISHED_MIN = 1 << 5,
-	GDATA_QUERY_PARAM_PUBLISHED_MAX = 1 << 6,
-	GDATA_QUERY_PARAM_START_INDEX = 1 << 7,
-	GDATA_QUERY_PARAM_STRICT = 1 << 8,
-	GDATA_QUERY_PARAM_MAX_RESULTS = 1 << 9,
-	GDATA_QUERY_PARAM_ENTRY_ID = 1 << 10,
-	GDATA_QUERY_PARAM_ALL = (1 << 11) - 1
-} GDataQueryParam;
-
 #define GDATA_TYPE_QUERY		(gdata_query_get_type ())
 #define GDATA_QUERY(o)			(G_TYPE_CHECK_INSTANCE_CAST ((o), GDATA_TYPE_QUERY, GDataQuery))
 #define GDATA_QUERY_CLASS(k)		(G_TYPE_CHECK_CLASS_CAST((k), GDATA_TYPE_QUERY, GDataQueryClass))
@@ -60,18 +45,13 @@ typedef struct {
 
 GType gdata_query_get_type (void);
 
-#include <gdata/gdata-service.h>
-
-GDataQuery *gdata_query_new (GDataService *service, const gchar *q);
-GDataQuery *gdata_query_new_with_limits (GDataService *service, const gchar *q, gint start_index, gint max_results);
-GDataQuery *gdata_query_new_for_id (GDataService *service, const gchar *entry_id);
-GDataQuery *gdata_query_new_for_id_with_limits (GDataService *service, const gchar *entry_id, gint start_index, gint max_results);
+GDataQuery *gdata_query_new (const gchar *q);
+GDataQuery *gdata_query_new_with_limits (const gchar *q, gint start_index, gint max_results);
+GDataQuery *gdata_query_new_for_id (const gchar *entry_id);
 
 gchar *gdata_query_get_query_uri (GDataQuery *self, const gchar *feed_uri);
 void gdata_query_next_page (GDataQuery *self);
 gboolean gdata_query_previous_page (GDataQuery *self);
-
-GDataService *gdata_query_get_service (GDataQuery *self);
 
 const gchar *gdata_query_get_q (GDataQuery *self);
 void gdata_query_set_q (GDataQuery *self, const gchar *q);

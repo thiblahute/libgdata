@@ -221,19 +221,15 @@ gdata_calendar_query_set_property (GObject *object, guint property_id, const GVa
 }
 
 GDataCalendarQuery *
-gdata_calendar_query_new (GDataCalendarService *service, const gchar *q)
+gdata_calendar_query_new (const gchar *q)
 {
-	return g_object_new (GDATA_TYPE_CALENDAR_QUERY,
-			     "service", service,
-			     "q", q,
-			     NULL);
+	return g_object_new (GDATA_TYPE_CALENDAR_QUERY, "q", q, NULL);
 }
 
 GDataCalendarQuery *
-gdata_calendar_query_new_with_limits (GDataCalendarService *service, const gchar *q, GTimeVal *start_min, GTimeVal *start_max)
+gdata_calendar_query_new_with_limits (const gchar *q, GTimeVal *start_min, GTimeVal *start_max)
 {
 	return g_object_new (GDATA_TYPE_CALENDAR_QUERY,
-			     "service", service,
 			     "q", q,
 			     "start-min", start_min,
 			     "start-max", start_max,

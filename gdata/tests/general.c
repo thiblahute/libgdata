@@ -112,6 +112,45 @@ test_entry_get_xml (void)
 	g_object_unref (entry2);
 }
 
+static void
+test_query_categories (void)
+{
+	GDataQuery *query;
+	gchar *query_uri;
+
+	query = gdata_query_new ("foobar");
+
+	/* AND */
+	gdata_query_set_categories (query, "Fritz/Laurie");
+	query_uri = gdata_query_get_query_uri (query, "http://example.com");
+
+	g_assert_cmpstr (query_uri, ==, "http://example.com/-/Fritz/Laurie?q=foobar");
+	g_free (query_uri);
+
+	/* OR */
+	gdata_query_set_categories (query, "Fritz|Laurie");
+	query_uri = gdata_query_get_query_uri (query, "http://example.com");
+
+	g_assert_cmpstr (query_uri, ==, "http://example.com/-/Fritz%7CLaurie?q=foobar");
+	g_free (query_uri);
+
+	/* Combination */
+	gdata_query_set_categories (query, "A|-{urn:google.com}B/-C");
+	query_uri = gdata_query_get_query_uri (query, "http://example.com/gdata_test");
+
+	g_assert_cmpstr (query_uri, ==, "http://example.com/gdata_test/-/A%7C-%7Burn%3Agoogle.com%7DB/-C?q=foobar");
+	g_free (query_uri);
+
+	/* Same combination without q param */
+	gdata_query_set_q (query, NULL);
+	query_uri = gdata_query_get_query_uri (query, "http://example.com");
+
+	g_assert_cmpstr (query_uri, ==, "http://example.com/-/A%7C-%7Burn%3Agoogle.com%7DB/-C");
+	g_free (query_uri);
+
+	g_object_unref (query);
+}
+
 int
 main (int argc, char *argv[])
 {
@@ -120,6 +159,7 @@ main (int argc, char *argv[])
 	g_test_bug_base ("http://bugzilla.gnome.org/show_bug.cgi?id=");
 
 	g_test_add_func ("/entry/get_xml", test_entry_get_xml);
+	g_test_add_func ("/query/categories", test_query_categories);
 
 	return g_test_run ();
 }

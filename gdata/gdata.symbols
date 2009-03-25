@@ -47,11 +47,9 @@ gdata_query_get_type
 gdata_query_new
 gdata_query_new_with_limits
 gdata_query_new_for_id
-gdata_query_new_for_id_with_limits
 gdata_query_get_query_uri
 gdata_query_next_page
 gdata_query_previous_page
-gdata_query_get_service
 gdata_query_get_q
 gdata_query_set_q
 gdata_query_get_categories

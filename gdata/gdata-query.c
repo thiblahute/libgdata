@@ -17,22 +17,47 @@
  * along with GData Client.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * SECTION:gdata-query
+ * @short_description: GData query object
+ * @stability: Unstable
+ * @include: gdata/gdata-query.h
+ *
+ * #GDataQuery represents a collection of query parameters used in a series of queries on a #GDataService. It allows the query parameters to be
+ * set, with the aim of building a query URI using gdata_query_get_query_uri(). Pagination is supported using gdata_query_next_page() and
+ * gdata_query_previous_page().
+ *
+ * For more information on the standard GData query parameters supported by #GDataQuery, see the <ulink type="http"
+ * url="http://code.google.com/apis/gdata/docs/2.0/reference.html#Queries">online documentation</ulink>.
+ **/
+
 #include <glib.h>
 #include <string.h>
 
 #include "gdata-query.h"
-#include "gdata-service.h"
 #include "gdata-private.h"
 
-static void gdata_query_dispose (GObject *object);
+typedef enum {
+	GDATA_QUERY_PARAM_Q = 1 << 0,
+	GDATA_QUERY_PARAM_CATEGORIES = 1 << 1,
+	GDATA_QUERY_PARAM_AUTHOR = 1 << 2,
+	GDATA_QUERY_PARAM_UPDATED_MIN = 1 << 3,
+	GDATA_QUERY_PARAM_UPDATED_MAX = 1 << 4,
+	GDATA_QUERY_PARAM_PUBLISHED_MIN = 1 << 5,
+	GDATA_QUERY_PARAM_PUBLISHED_MAX = 1 << 6,
+	GDATA_QUERY_PARAM_START_INDEX = 1 << 7,
+	GDATA_QUERY_PARAM_STRICT = 1 << 8,
+	GDATA_QUERY_PARAM_MAX_RESULTS = 1 << 9,
+	GDATA_QUERY_PARAM_ENTRY_ID = 1 << 10,
+	GDATA_QUERY_PARAM_ALL = (1 << 11) - 1
+} GDataQueryParam;
+
 static void gdata_query_finalize (GObject *object);
 static void gdata_query_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec);
 static void gdata_query_set_property (GObject *object, guint property_id, const GValue *value, GParamSpec *pspec);
 
 struct _GDataQueryPrivate {
-	GDataService *service;
-
-	guint parameter_mask;
+	guint parameter_mask; /* GDataQueryParam */
 
 	/* Standard query parameters (see: http://code.google.com/apis/gdata/docs/2.0/reference.html#Queries) */
 	gchar *q;
@@ -54,8 +79,7 @@ struct _GDataQueryPrivate {
 };
 
 enum {
-	PROP_SERVICE = 1,
-	PROP_Q,
+	PROP_Q = 1,
 	PROP_CATEGORIES,
 	PROP_AUTHOR,
 	PROP_UPDATED_MIN,
@@ -80,66 +104,159 @@ gdata_query_class_init (GDataQueryClass *klass)
 
 	gobject_class->set_property = gdata_query_set_property;
 	gobject_class->get_property = gdata_query_get_property;
-	gobject_class->dispose = gdata_query_dispose;
 	gobject_class->finalize = gdata_query_finalize;
 
-	/* TODO: Document these much better */
-	g_object_class_install_property (gobject_class, PROP_SERVICE,
-				g_param_spec_object ("service",
-					"Service", "The service for which this query was created.",
-					GDATA_TYPE_SERVICE,
-					G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
-
+	/**
+	 * GDataQuery:q:
+	 *
+	 * A full-text query string.
+	 *
+	 * When creating a query, list search terms separated by spaces, in the form <userinput>term1 term2 term3</userinput>.
+	 * (As with all of the query parameter values, the spaces must be URL encoded.) The service returns all entries that match all of the
+	 * search terms (like using AND between terms). Like Google's web search, a service searches on complete words (and related words with
+	 * the same stem), not substrings.
+	 *
+	 * To search for an exact phrase, enclose the phrase in quotation marks: <userinput>"exact phrase"</userinput>.
+	 *
+	 * To exclude entries that match a given term, use the form <userinput>-term</userinput>.
+	 *
+	 * The search is case-insensitive.
+	 *
+	 * Example: to search for all entries that contain the exact phrase "Elizabeth Bennet" and the word "Darcy" but don't contain the
+	 * word "Austen", use the following query: <userinput>"Elizabeth Bennet" Darcy -Austen</userinput>.
+	 **/
 	g_object_class_install_property (gobject_class, PROP_Q,
 				g_param_spec_string ("q",
 					"Query terms", "Query terms for which to search.",
 					NULL,
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * GDataQuery:categories:
+	 *
+	 * A category filter.
+	 *
+	 * You can query on multiple categories by listing multiple categories separated by slashes. The service returns all entries that match all
+	 * of the categories (like using AND between terms). For example: <userinput>Fritz/Laurie</userinput> returns
+	 * entries that match both categories ("Fritz" and "Laurie").
+	 *
+	 * To do an OR between terms, use a pipe character (<literal>|</literal>). For example: <userinput>Fritz%%7CLaurie</userinput> returns
+	 * entries that match either category.
+	 *
+	 * An entry matches a specified category if the entry is in a category that has a matching term or label, as defined in the Atom specification.
+	 * (Roughly, the "term" is the internal string used by the software to identify the category, while the "label" is the human-readable string
+	 * presented to a user in a user interface.)
+	 *
+	 * To exclude entries that match a given category, use the form <userinput>-categoryname</userinput>.
+	 *
+	 * To query for a category that has a scheme – such as <literal>&lt;category scheme="urn:google.com" term="public"/&gt;</literal> – you must
+	 * place the scheme in curly braces before the category name. For example: <userinput>{urn:google.com}public</userinput>. To match a category
+	 * that has no scheme, use an empty pair of curly braces. If you don't specify curly braces, then categories in any scheme will match.
+	 *
+	 * The above features can be combined. For example: <userinput>A|-{urn:google.com}B/-C</userinput> means (A OR (NOT B)) AND (NOT C).
+	 **/
 	g_object_class_install_property (gobject_class, PROP_CATEGORIES,
 				g_param_spec_string ("categories",
 					"Category string", "Category search string.",
 					NULL,
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * GDataQuery:author:
+	 *
+	 * An entry author. The service returns entries where the author name and/or e-mail address match your query string.
+	 **/
 	g_object_class_install_property (gobject_class, PROP_AUTHOR,
 				g_param_spec_string ("author",
 					"Author", "Author search string.",
 					NULL,
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * GDataQuery:updated-min:
+	 *
+	 * Lower bound on the entry update date, inclusive.
+	 **/
 	g_object_class_install_property (gobject_class, PROP_UPDATED_MIN,
 				g_param_spec_string ("updated-min",
 					"Minimum update date", "Minimum date for updates on returned entries.",
 					NULL,
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * GDataQuery:updated-max:
+	 *
+	 * Upper bound on the entry update date, exclusive.
+	 **/
 	g_object_class_install_property (gobject_class, PROP_UPDATED_MAX,
 				g_param_spec_string ("updated-max",
 					"Maximum update date", "Maximum date for updates on returned entries.",
 					NULL,
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * GDataQuery:published-min:
+	 *
+	 * Lower bound on the entry publish date, inclusive.
+	 **/
 	g_object_class_install_property (gobject_class, PROP_PUBLISHED_MIN,
 				g_param_spec_string ("published-min",
 					"Minimum publish date", "Minimum date for returned entries to be published.",
 					NULL,
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * GDataQuery:published-max:
+	 *
+	 * Upper bound on the entry publish date, exclusive.
+	 **/
 	g_object_class_install_property (gobject_class, PROP_PUBLISHED_MAX,
 				g_param_spec_string ("published-max",
 					"Maximum publish date", "Maximum date for returned entries to be published.",
 					NULL,
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * GDataQuery:start-index:
+	 *
+	 * The one-based index of the first result to be retrieved. Use gdata_query_next_page() and gdata_query_previous_page() to
+	 * implement pagination, rather than manually changing #GDataQuery:start-index.
+	 **/
 	g_object_class_install_property (gobject_class, PROP_START_INDEX,
 				g_param_spec_int ("start-index",
 					"Start index", "Zero-based result start index.",
 					-1, G_MAXINT, -1,
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * GDataQuery:strict:
+	 *
+	 * Strict query parameter checking. If this is enabled, an error will be returned by the online service if a parameter is
+	 * not recognised.
+	 **/
 	g_object_class_install_property (gobject_class, PROP_STRICT,
 				g_param_spec_boolean ("strict",
 					"Strict?", "Should the server be strict about the query?",
 					FALSE,
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * GDataQuery:max-results:
+	 *
+	 * Maximum number of results to be retrieved. Most services have a default #GDataQuery:max-results size imposed by the server; if you wish
+	 * to receive the entire feed, specify a large number such as %G_MAXINT for this property.
+	 **/
 	g_object_class_install_property (gobject_class, PROP_MAX_RESULTS,
 				g_param_spec_int ("max-results",
 					"Maximum number of results", "The maximum number of entries to return.",
 					-1, G_MAXINT, -1,
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * GDataQuery:entry-id:
+	 *
+	 * The ID of a specific entry to be retrieved. If you specify an entry ID, you cannot specify any other parameters.
+	 **/
 	g_object_class_install_property (gobject_class, PROP_ENTRY_ID,
 				g_param_spec_string ("entry-id",
 					"Entry ID", "A specific entry ID to return.",
@@ -153,19 +270,6 @@ gdata_query_init (GDataQuery *self)
 	self->priv = G_TYPE_INSTANCE_GET_PRIVATE (self, GDATA_TYPE_QUERY, GDataQueryPrivate);
 	self->priv->start_index = -1;
 	self->priv->max_results = -1;
-}
-
-static void
-gdata_query_dispose (GObject *object)
-{
-	GDataQueryPrivate *priv = GDATA_QUERY_GET_PRIVATE (object);
-
-	if (priv->service != NULL)
-		g_object_unref (priv->service);
-	priv->service = NULL;
-
-	/* Chain up to the parent class */
-	G_OBJECT_CLASS (gdata_query_parent_class)->dispose (object);
 }
 
 static void
@@ -195,9 +299,6 @@ gdata_query_get_property (GObject *object, guint property_id, GValue *value, GPa
 	GDataQueryPrivate *priv = GDATA_QUERY_GET_PRIVATE (object);
 
 	switch (property_id) {
-		case PROP_SERVICE:
-			g_value_set_object (value, priv->service);
-			break;
 		case PROP_Q:
 			g_value_set_string (value, priv->q);
 			break;
@@ -241,44 +342,41 @@ gdata_query_get_property (GObject *object, guint property_id, GValue *value, GPa
 static void
 gdata_query_set_property (GObject *object, guint property_id, const GValue *value, GParamSpec *pspec)
 {
-	GDataQueryPrivate *priv = GDATA_QUERY_GET_PRIVATE (object);
+	GDataQuery *self = GDATA_QUERY (object);
 
 	switch (property_id) {
-		case PROP_SERVICE:
-			priv->service = g_value_dup_object (value);
-			break;
 		case PROP_Q:
-			gdata_query_set_q (GDATA_QUERY (object), g_value_get_string (value));
+			gdata_query_set_q (self, g_value_get_string (value));
 			break;
 		case PROP_CATEGORIES:
-			gdata_query_set_categories (GDATA_QUERY (object), g_value_get_string (value));
+			gdata_query_set_categories (self, g_value_get_string (value));
 			break;
 		case PROP_AUTHOR:
-			gdata_query_set_author (GDATA_QUERY (object), g_value_get_string (value));
+			gdata_query_set_author (self, g_value_get_string (value));
 			break;
 		case PROP_UPDATED_MIN:
-			gdata_query_set_updated_min (GDATA_QUERY (object), g_value_get_string (value));
+			gdata_query_set_updated_min (self, g_value_get_string (value));
 			break;
 		case PROP_UPDATED_MAX:
-			gdata_query_set_updated_max (GDATA_QUERY (object), g_value_get_string (value));
+			gdata_query_set_updated_max (self, g_value_get_string (value));
 			break;
 		case PROP_PUBLISHED_MIN:
-			gdata_query_set_published_min (GDATA_QUERY (object), g_value_get_string (value));
+			gdata_query_set_published_min (self, g_value_get_string (value));
 			break;
 		case PROP_PUBLISHED_MAX:
-			gdata_query_set_published_max (GDATA_QUERY (object), g_value_get_string (value));
+			gdata_query_set_published_max (self, g_value_get_string (value));
 			break;
 		case PROP_START_INDEX:
-			gdata_query_set_start_index (GDATA_QUERY (object), g_value_get_int (value));
+			gdata_query_set_start_index (self, g_value_get_int (value));
 			break;
 		case PROP_STRICT:
-			gdata_query_set_strict (GDATA_QUERY (object), g_value_get_boolean (value));
+			gdata_query_set_strict (self, g_value_get_boolean (value));
 			break;
 		case PROP_MAX_RESULTS:
-			gdata_query_set_max_results (GDATA_QUERY (object), g_value_get_int (value));
+			gdata_query_set_max_results (self, g_value_get_int (value));
 			break;
 		case PROP_ENTRY_ID:
-			gdata_query_set_entry_id (GDATA_QUERY (object), g_value_get_string (value));
+			gdata_query_set_entry_id (self, g_value_get_string (value));
 			break;
 		default:
 			/* We don't have any other property... */
@@ -287,46 +385,67 @@ gdata_query_set_property (GObject *object, guint property_id, const GValue *valu
 	}
 }
 
+/**
+ * gdata_query_new:
+ * @q: a query string
+ *
+ * Creates a new #GDataQuery with its #GDataQuery:q property set to @q.
+ *
+ * Return value: a new #GDataQuery
+ **/
 GDataQuery *
-gdata_query_new (GDataService *service, const gchar *q)
+gdata_query_new (const gchar *q)
 {
-	return g_object_new (GDATA_TYPE_QUERY,
-			     "service", service,
-			     "q", q,
-			     NULL);
+	return g_object_new (GDATA_TYPE_QUERY, "q", q, NULL);
 }
 
+/**
+ * gdata_query_new_with_limits:
+ * @q: a query string
+ * @start_index: a one-based start index for the results
+ * @max_results: the maximum number of results to return
+ *
+ * Creates a new #GDataQuery with its #GDataQuery:q property set to @q, and the limits @start_index and @max_results
+ * applied.
+ *
+ * Return value: a new #GDataQuery
+ **/
 GDataQuery *
-gdata_query_new_with_limits (GDataService *service, const gchar *q, gint start_index, gint max_results)
+gdata_query_new_with_limits (const gchar *q, gint start_index, gint max_results)
 {
 	return g_object_new (GDATA_TYPE_QUERY,
-			     "service", service,
 			     "q", q,
 			     "start-index", start_index,
 			     "max-results", max_results,
 			     NULL);
 }
 
+/**
+ * gdata_query_new_for_id:
+ * @entry_id: an entry URN ID
+ *
+ * Creates a new #GDataQuery to query for @entry_id.
+ *
+ * Return value: a new #GDataQuery
+ **/
 GDataQuery *
-gdata_query_new_for_id (GDataService *service, const gchar *entry_id)
+gdata_query_new_for_id (const gchar *entry_id)
 {
-	return g_object_new (GDATA_TYPE_QUERY,
-			     "service", service,
-			     "entry-id", entry_id,
-			     NULL);
+	return g_object_new (GDATA_TYPE_QUERY, "entry-id", entry_id, NULL);
 }
 
-GDataQuery *
-gdata_query_new_for_id_with_limits (GDataService *service, const gchar *entry_id, gint start_index, gint max_results)
-{
-	return g_object_new (GDATA_TYPE_QUERY,
-			     "service", service,
-			     "entry-id", entry_id,
-			     "start-index", start_index,
-			     "max-results", max_results,
-			     NULL);
-}
-
+/**
+ * gdata_query_get_query_uri:
+ * @self: a #GDataQuery
+ * @feed_uri: the feed URI on which to build the query URI
+ *
+ * Builds a query URI from the given base feed URI, using the properties of the #GDataQuery. This function will take care
+ * of all necessary URI escaping, so it should <emphasis>not</emphasis> be done beforehand.
+ *
+ * The query URI is what functions like gdata_service_query() use to query the online service.
+ *
+ * Return value: a query URI; free with g_free()
+ **/
 gchar *
 gdata_query_get_query_uri (GDataQuery *self, const gchar *feed_uri)
 {
@@ -422,13 +541,14 @@ gdata_query_get_query_uri (GDataQuery *self, const gchar *feed_uri)
 	return g_string_free (query_uri, FALSE);
 }
 
-GDataService *
-gdata_query_get_service (GDataQuery *self)
-{
-	g_return_val_if_fail (GDATA_IS_QUERY (self), NULL);
-	return self->priv->service;
-}
-
+/**
+ * gdata_query_get_q:
+ * @self: a #GDataQuery
+ *
+ * Gets the #GDataQuery:q property.
+ *
+ * Return value: the q property
+ **/
 const gchar *
 gdata_query_get_q (GDataQuery *self)
 {
@@ -436,6 +556,13 @@ gdata_query_get_q (GDataQuery *self)
 	return self->priv->q;
 }
 
+/**
+ * gdata_query_set_q:
+ * @self: a #GDataQuery
+ * @q: a new query string
+ *
+ * Sets the #GDataQuery:q property of the #GDataQuery to the new query string, @q.
+ **/
 void
 gdata_query_set_q (GDataQuery *self, const gchar *q)
 {

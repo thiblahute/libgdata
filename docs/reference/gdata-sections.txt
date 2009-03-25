@@ -4,6 +4,7 @@
 GDataService
 GDataServiceClass
 GDataServiceError
+GDataQueryProgressCallback
 gdata_service_authenticate
 gdata_service_authenticate_async
 gdata_service_authenticate_finish
@@ -29,6 +30,48 @@ gdata_service_error_get_type
 GDATA_SERVICE_ERROR
 <SUBSECTION Private>
 GDataServicePrivate
+</SECTION>
+
+<SECTION>
+<FILE>gdata-query</FILE>
+<TITLE>GDataQuery</TITLE>
+GDataQuery
+GDataQueryClass
+gdata_query_new
+gdata_query_new_with_limits
+gdata_query_new_for_id
+gdata_query_get_query_uri
+gdata_query_next_page
+gdata_query_previous_page
+gdata_query_get_q
+gdata_query_set_q
+gdata_query_get_entry_id
+gdata_query_set_entry_id
+gdata_query_get_author
+gdata_query_set_author
+gdata_query_get_categories
+gdata_query_set_categories
+gdata_query_get_published_min
+gdata_query_set_published_min
+gdata_query_get_published_max
+gdata_query_set_published_max
+gdata_query_get_updated_min
+gdata_query_set_updated_min
+gdata_query_get_updated_max
+gdata_query_set_updated_max
+gdata_query_get_start_index
+gdata_query_set_start_index
+gdata_query_get_max_results
+gdata_query_set_max_results
+gdata_query_get_strict
+gdata_query_set_strict
+<SUBSECTION Standard>
+gdata_query_get_type
+GDATA_QUERY
+GDATA_QUERY_CLASS
+GDATA_QUERY_GET_CLASS
+<SUBSECTION Private>
+GDataQueryPrivate
 </SECTION>
 
 <SECTION>
