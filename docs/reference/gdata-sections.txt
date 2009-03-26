@@ -128,3 +128,33 @@ gdata_entry_get_type
 <SUBSECTION Private>
 GDataEntryPrivate
 </SECTION>
+
+<SECTION>
+<FILE>gdata-youtube-service</FILE>
+<TITLE>GDataYouTubeService</TITLE>
+GDataYouTubeService
+GDataYouTubeServiceClass
+GDataYouTubeServiceError
+GDataYouTubeStandardFeedType
+gdata_youtube_service_new
+gdata_youtube_service_query_videos
+gdata_youtube_service_query_videos_async
+gdata_youtube_service_query_related
+gdata_youtube_service_query_related_async
+gdata_youtube_service_query_standard_feed
+gdata_youtube_service_query_standard_feed_async
+gdata_youtube_service_upload_video
+gdata_youtube_service_get_developer_key
+gdata_youtube_service_get_youtube_user
+<SUBSECTION Standard>
+GDATA_YOUTUBE_SERVICE
+GDATA_YOUTUBE_SERVICE_CLASS
+GDATA_YOUTUBE_SERVICE_ERROR
+GDATA_YOUTUBE_SERVICE_GET_CLASS
+gdata_youtube_service_get_type
+gdata_youtube_standard_feed_type_get_type
+gdata_youtube_service_error_get_type
+gdata_youtube_service_error_quark
+<SUBSECTION Private>
+GDataYouTubeServicePrivate
+</SECTION>

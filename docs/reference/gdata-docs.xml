@@ -21,7 +21,7 @@
 
 	<chapter>
 		<title>YouTube Service API</title>
-		<!-- TODO -->
+		<xi:include href="xml/gdata-youtube-service.xml"/>
 	</chapter>
 
 	<chapter id="object-tree">

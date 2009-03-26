@@ -17,6 +17,19 @@
  * along with GData Client.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * SECTION:gdata-youtube-service
+ * @short_description: GData YouTube service object
+ * @stability: Unstable
+ * @include: gdata/services/youtube/gdata-youtube-service.h
+ *
+ * #GDataYouTubeService is a subclass of #GDataService for communicating with the GData API of YouTube. It supports querying for and
+ * uploading videos.
+ *
+ * For more details of YouTube's GData API, see the <ulink type="http" url="http://code.google.com/apis/youtube/2.0/reference.html">
+ * online documentation</ulink>.
+ **/
+
 #include <config.h>
 #include <glib.h>
 #include <glib/gi18n-lib.h>

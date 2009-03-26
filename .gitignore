@@ -22,10 +22,10 @@ version.xml
 po/POTFILES
 config.status.lineno
 libgdata.pc
-gdata/gdata-marshal.c
-gdata/gdata-marshal.h
-gdata/gdata-enums.c
-gdata/gdata-enums.h
+*-marshal.c
+*-marshal.h
+*-enums.c
+*-enums.h
 *.lo
 *.la
 gdata/tests/general

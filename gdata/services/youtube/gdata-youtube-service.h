@@ -29,7 +29,23 @@
 
 G_BEGIN_DECLS
 
-/* TODO: Make this a proper GObject enum */
+/**
+ * GDataYouTubeStandardFeedType:
+ * @GDATA_YOUTUBE_TOP_RATED_FEED: This feed contains the most highly rated YouTube videos.
+ * @GDATA_YOUTUBE_TOP_FAVORITES_FEED: This feed contains videos most frequently flagged as favorite videos.
+ * @GDATA_YOUTUBE_MOST_VIEWED_FEED: This feed contains the most frequently watched YouTube videos.
+ * @GDATA_YOUTUBE_MOST_POPULAR_FEED: This feed contains the most popular YouTube videos, selected using an algorithm that combines many
+ * different signals to determine overall popularity.
+ * @GDATA_YOUTUBE_MOST_RECENT_FEED: This feed contains the videos most recently submitted to YouTube.
+ * @GDATA_YOUTUBE_MOST_DISCUSSED_FEED: This feed contains the YouTube videos that have received the most comments.
+ * @GDATA_YOUTUBE_MOST_LINKED_FEED: This feed contains the YouTube videos that receive the most links from other websites.
+ * @GDATA_YOUTUBE_MOST_RESPONDED_FEED: This feed contains YouTube videos that receive the most video responses.
+ * @GDATA_YOUTUBE_RECENTLY_FEATURED_FEED: This feed contains videos recently featured on the YouTube home page or featured videos tab.
+ * @GDATA_YOUTUBE_WATCH_ON_MOBILE_FEED: This feed contains videos suitable for playback on mobile devices.
+ *
+ * Standard feed types for standard feed queries with gata_youtube_service_query_standard_feed(). For more information, see
+ * the <ulink type="http" url="http://code.google.com/apis/youtube/2.0/developers_guide_protocol.html#Standard_feeds">online documentation</ulink>.
+ **/
 typedef enum {
 	GDATA_YOUTUBE_TOP_RATED_FEED,
 	GDATA_YOUTUBE_TOP_FAVORITES_FEED,
@@ -43,7 +59,13 @@ typedef enum {
 	GDATA_YOUTUBE_WATCH_ON_MOBILE_FEED
 } GDataYouTubeStandardFeedType;
 
-/* TODO: make this a proper enum */
+/**
+ * GDataYouTubeServiceError:
+ * @GDATA_YOUTUBE_SERVICE_ERROR_API_QUOTA_EXCEEDED: the API request quota for this developer account has been exceeded
+ * @GDATA_YOUTUBE_SERVICE_ERROR_ENTRY_QUOTA_EXCEEDED: the entry (e.g. video) quota for this user account has been exceeded
+ *
+ * Error codes for #GDataYouTubeService operations.
+ **/
 typedef enum {
 	GDATA_YOUTUBE_SERVICE_ERROR_API_QUOTA_EXCEEDED,
 	GDATA_YOUTUBE_SERVICE_ERROR_ENTRY_QUOTA_EXCEEDED
@@ -60,12 +82,23 @@ typedef enum {
 
 typedef struct _GDataYouTubeServicePrivate	GDataYouTubeServicePrivate;
 
+/**
+ * GDataYouTubeService:
+ *
+ * All the fields in the #GDataYouTubeService structure are private and should never be accessed directly.
+ **/
 typedef struct {
 	GDataService parent;
 	GDataYouTubeServicePrivate *priv;
 } GDataYouTubeService;
 
+/**
+ * GDataYouTubeServiceClass:
+ *
+ * All the fields in the #GDataYouTubeServiceClass structure are private and should never be accessed directly.
+ **/
 typedef struct {
+	/*< private >*/
 	GDataServiceClass parent;
 } GDataYouTubeServiceClass;
 
