@@ -89,7 +89,20 @@ typedef enum {
  **/
 typedef GDataEntry *(*GDataEntryParserFunc) (xmlDoc *doc, xmlNode *node, GError **error);
 
-typedef void *(*GDataQueryProgressCallback) (GDataEntry *entry, guint entry_key, guint entry_count, gpointer user_data);
+/**
+ * GDataQueryProgressCallback:
+ * @entry: a new #GDataEntry
+ * @entry_key: the key of the entry (zero-based index of its position in the feed)
+ * @entry_count: the total number of entries in the feed
+ * @user_data: user data passed to the callback
+ *
+ * Callback function called for each #GDataEntry parsed in a #GDataFeed when loading the results of a query.
+ *
+ * It is called in the main thread, so there is no guarantee on the order in which the callbacks are executed,
+ * or whether they will be called in a timely manner. It is, however, guaranteed that they will all be called before
+ * the #GAsyncReadyCallback which signals the completion of the query is called.
+ **/
+typedef void (*GDataQueryProgressCallback) (GDataEntry *entry, guint entry_key, guint entry_count, gpointer user_data);
 
 #define GDATA_TYPE_SERVICE		(gdata_service_get_type ())
 #define GDATA_SERVICE(o)		(G_TYPE_CHECK_INSTANCE_CAST ((o), GDATA_TYPE_SERVICE, GDataService))

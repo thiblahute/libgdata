@@ -34,12 +34,23 @@ G_BEGIN_DECLS
 
 typedef struct _GDataQueryPrivate	GDataQueryPrivate;
 
+/**
+ * GDataQuery:
+ *
+ * All the fields in the #GDataQuery structure are private and should never be accessed directly.
+ **/
 typedef struct {
 	GObject parent;
 	GDataQueryPrivate *priv;
 } GDataQuery;
 
+/**
+ * GDataQueryClass:
+ *
+ * All the fields in the #GDataQueryClass structure are private and should never be accessed directly.
+ **/
 typedef struct {
+	/*< private >*/
 	GObjectClass parent;
 } GDataQueryClass;
 
@@ -59,14 +70,14 @@ const gchar *gdata_query_get_categories (GDataQuery *self);
 void gdata_query_set_categories (GDataQuery *self, const gchar *categories);
 const gchar *gdata_query_get_author (GDataQuery *self);
 void gdata_query_set_author (GDataQuery *self, const gchar *author);
-const gchar *gdata_query_get_updated_min (GDataQuery *self);
-void gdata_query_set_updated_min (GDataQuery *self, const gchar *updated_min);
-const gchar *gdata_query_get_updated_max (GDataQuery *self);
-void gdata_query_set_updated_max (GDataQuery *self, const gchar *updated_max);
-const gchar *gdata_query_get_published_min (GDataQuery *self);
-void gdata_query_set_published_min (GDataQuery *self, const gchar *published_min);
-const gchar *gdata_query_get_published_max (GDataQuery *self);
-void gdata_query_set_published_max (GDataQuery *self, const gchar *published_max);
+void gdata_query_get_updated_min (GDataQuery *self, GTimeVal *updated_min);
+void gdata_query_set_updated_min (GDataQuery *self, GTimeVal *updated_min);
+void gdata_query_get_updated_max (GDataQuery *self, GTimeVal *updated_max);
+void gdata_query_set_updated_max (GDataQuery *self, GTimeVal *updated_max);
+void gdata_query_get_published_min (GDataQuery *self, GTimeVal *published_min);
+void gdata_query_set_published_min (GDataQuery *self, GTimeVal *published_min);
+void gdata_query_get_published_max (GDataQuery *self, GTimeVal *published_max);
+void gdata_query_set_published_max (GDataQuery *self, GTimeVal *published_max);
 gint gdata_query_get_start_index (GDataQuery *self);
 void gdata_query_set_start_index (GDataQuery *self, gint start_index);
 gboolean gdata_query_get_strict (GDataQuery *self);

@@ -63,10 +63,10 @@ struct _GDataQueryPrivate {
 	gchar *q;
 	gchar *categories;
 	gchar *author;
-	gchar *updated_min; /* TODO: better type for these four? */
-	gchar *updated_max;
-	gchar *published_min;
-	gchar *published_max;
+	GTimeVal updated_min;
+	GTimeVal updated_max;
+	GTimeVal published_min;
+	GTimeVal published_max;
 	gint start_index;
 	gboolean strict;
 	gint max_results;
@@ -178,9 +178,9 @@ gdata_query_class_init (GDataQueryClass *klass)
 	 * Lower bound on the entry update date, inclusive.
 	 **/
 	g_object_class_install_property (gobject_class, PROP_UPDATED_MIN,
-				g_param_spec_string ("updated-min",
+				g_param_spec_boxed ("updated-min",
 					"Minimum update date", "Minimum date for updates on returned entries.",
-					NULL,
+					G_TYPE_TIME_VAL,
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
 	/**
@@ -189,9 +189,9 @@ gdata_query_class_init (GDataQueryClass *klass)
 	 * Upper bound on the entry update date, exclusive.
 	 **/
 	g_object_class_install_property (gobject_class, PROP_UPDATED_MAX,
-				g_param_spec_string ("updated-max",
+				g_param_spec_boxed ("updated-max",
 					"Maximum update date", "Maximum date for updates on returned entries.",
-					NULL,
+					G_TYPE_TIME_VAL,
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
 	/**
@@ -200,9 +200,9 @@ gdata_query_class_init (GDataQueryClass *klass)
 	 * Lower bound on the entry publish date, inclusive.
 	 **/
 	g_object_class_install_property (gobject_class, PROP_PUBLISHED_MIN,
-				g_param_spec_string ("published-min",
+				g_param_spec_boxed ("published-min",
 					"Minimum publish date", "Minimum date for returned entries to be published.",
-					NULL,
+					G_TYPE_TIME_VAL,
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
 	/**
@@ -211,9 +211,9 @@ gdata_query_class_init (GDataQueryClass *klass)
 	 * Upper bound on the entry publish date, exclusive.
 	 **/
 	g_object_class_install_property (gobject_class, PROP_PUBLISHED_MAX,
-				g_param_spec_string ("published-max",
+				g_param_spec_boxed ("published-max",
 					"Maximum publish date", "Maximum date for returned entries to be published.",
-					NULL,
+					G_TYPE_TIME_VAL,
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
 	/**
@@ -280,10 +280,6 @@ gdata_query_finalize (GObject *object)
 	g_free (priv->q);
 	g_free (priv->categories);
 	g_free (priv->author);
-	g_free (priv->updated_min);
-	g_free (priv->updated_max);
-	g_free (priv->published_min);
-	g_free (priv->published_max);
 	g_free (priv->entry_id);
 
 	g_free (priv->next_uri);
@@ -309,16 +305,16 @@ gdata_query_get_property (GObject *object, guint property_id, GValue *value, GPa
 			g_value_set_string (value, priv->author);
 			break;
 		case PROP_UPDATED_MIN:
-			g_value_set_string (value, priv->updated_min);
+			g_value_set_boxed (value, &(priv->updated_min));
 			break;
 		case PROP_UPDATED_MAX:
-			g_value_set_string (value, priv->updated_max);
+			g_value_set_boxed (value, &(priv->updated_max));
 			break;
 		case PROP_PUBLISHED_MIN:
-			g_value_set_string (value, priv->published_min);
+			g_value_set_boxed (value, &(priv->published_min));
 			break;
 		case PROP_PUBLISHED_MAX:
-			g_value_set_string (value, priv->published_max);
+			g_value_set_boxed (value, &(priv->published_max));
 			break;
 		case PROP_START_INDEX:
 			g_value_set_int (value, priv->start_index);
@@ -355,16 +351,16 @@ gdata_query_set_property (GObject *object, guint property_id, const GValue *valu
 			gdata_query_set_author (self, g_value_get_string (value));
 			break;
 		case PROP_UPDATED_MIN:
-			gdata_query_set_updated_min (self, g_value_get_string (value));
+			gdata_query_set_updated_min (self, g_value_get_boxed (value));
 			break;
 		case PROP_UPDATED_MAX:
-			gdata_query_set_updated_max (self, g_value_get_string (value));
+			gdata_query_set_updated_max (self, g_value_get_boxed (value));
 			break;
 		case PROP_PUBLISHED_MIN:
-			gdata_query_set_published_min (self, g_value_get_string (value));
+			gdata_query_set_published_min (self, g_value_get_boxed (value));
 			break;
 		case PROP_PUBLISHED_MAX:
-			gdata_query_set_published_max (self, g_value_get_string (value));
+			gdata_query_set_published_max (self, g_value_get_boxed (value));
 			break;
 		case PROP_START_INDEX:
 			gdata_query_set_start_index (self, g_value_get_int (value));
@@ -499,28 +495,44 @@ gdata_query_get_query_uri (GDataQuery *self, const gchar *feed_uri)
 		g_string_append_uri_escaped (query_uri, priv->author, NULL, TRUE);
 	}
 
-	if (priv->updated_min != NULL) {
+	if (priv->updated_min.tv_sec != 0 || priv->updated_min.tv_usec != 0) {
+		gchar *updated_min;
+
 		APPEND_SEP
 		g_string_append (query_uri, "updated-min=");
-		g_string_append_uri_escaped (query_uri, priv->updated_max, NULL, TRUE);
+		updated_min = g_time_val_to_iso8601 (&(priv->updated_min));
+		g_string_append (query_uri, updated_min);
+		g_free (updated_min);
 	}
 
-	if (priv->updated_max != NULL) {
+	if (priv->updated_max.tv_sec != 0 || priv->updated_max.tv_usec != 0) {
+		gchar *updated_max;
+
 		APPEND_SEP
 		g_string_append (query_uri, "updated-max=");
-		g_string_append_uri_escaped (query_uri, priv->updated_max, NULL, TRUE);
+		updated_max = g_time_val_to_iso8601 (&(priv->updated_max));
+		g_string_append (query_uri, updated_max);
+		g_free (updated_max);
 	}
 
-	if (priv->published_min != NULL) {
+	if (priv->published_min.tv_sec != 0 || priv->published_min.tv_usec != 0) {
+		gchar *published_min;
+
 		APPEND_SEP
 		g_string_append (query_uri, "published-min=");
-		g_string_append_uri_escaped (query_uri, priv->published_min, NULL, TRUE);
+		published_min = g_time_val_to_iso8601 (&(priv->published_min));
+		g_string_append (query_uri, published_min);
+		g_free (published_min);
 	}
 
-	if (priv->published_max != NULL) {
+	if (priv->published_max.tv_sec != 0 || priv->published_max.tv_usec != 0) {
+		gchar *published_max;
+
 		APPEND_SEP
 		g_string_append (query_uri, "published-max=");
-		g_string_append_uri_escaped (query_uri, priv->published_max, NULL, TRUE);
+		published_max = g_time_val_to_iso8601 (&(priv->published_max));
+		g_string_append (query_uri, published_max);
+		g_free (published_max);
 	}
 
 	if (priv->start_index > 0) {
@@ -547,7 +559,7 @@ gdata_query_get_query_uri (GDataQuery *self, const gchar *feed_uri)
  *
  * Gets the #GDataQuery:q property.
  *
- * Return value: the q property
+ * Return value: the q property, or %NULL if it is unset
  **/
 const gchar *
 gdata_query_get_q (GDataQuery *self)
@@ -559,9 +571,11 @@ gdata_query_get_q (GDataQuery *self)
 /**
  * gdata_query_set_q:
  * @self: a #GDataQuery
- * @q: a new query string
+ * @q: a new query string, or %NULL
  *
  * Sets the #GDataQuery:q property of the #GDataQuery to the new query string, @q.
+ *
+ * Set @q to %NULL to unset the property in the query URI.
  **/
 void
 gdata_query_set_q (GDataQuery *self, const gchar *q)
@@ -579,6 +593,14 @@ gdata_query_set_q (GDataQuery *self, const gchar *q)
 	g_object_notify (G_OBJECT (self), "q");
 }
 
+/**
+ * gdata_query_get_categories:
+ * @self: a #GDataQuery
+ *
+ * Gets the #GDataQuery:categories property.
+ *
+ * Return value: the categories property, or %NULL if it is unset
+ **/
 const gchar *
 gdata_query_get_categories (GDataQuery *self)
 {
@@ -586,6 +608,15 @@ gdata_query_get_categories (GDataQuery *self)
 	return self->priv->categories;
 }
 
+/**
+ * gdata_query_set_categories:
+ * @self: a #GDataQuery
+ * @categories: the new category string, or %NULL
+ *
+ * Sets the #GDataQuery:categories property of the #GDataQuery to the new category string, @categories.
+ *
+ * Set @categories to %NULL to unset the property in the query URI.
+ **/
 void
 gdata_query_set_categories (GDataQuery *self, const gchar *categories)
 {
@@ -602,6 +633,14 @@ gdata_query_set_categories (GDataQuery *self, const gchar *categories)
 	g_object_notify (G_OBJECT (self), "categories");
 }
 
+/**
+ * gdata_query_get_author:
+ * @self: a #GDataQuery
+ *
+ * Gets the #GDataQuery:author property.
+ *
+ * Return value: the author property, or %NULL if it is unset
+ **/
 const gchar *
 gdata_query_get_author (GDataQuery *self)
 {
@@ -609,6 +648,15 @@ gdata_query_get_author (GDataQuery *self)
 	return self->priv->author;
 }
 
+/**
+ * gdata_query_set_author:
+ * @self: a #GDataQuery
+ * @author: the new author string, or %NULL
+ *
+ * Sets the #GDataQuery:author property of the #GDataQuery to the new author string, @author.
+ *
+ * Set @author to %NULL to unset the property in the query URI.
+ **/
 void
 gdata_query_set_author (GDataQuery *self, const gchar *author)
 {
@@ -625,98 +673,194 @@ gdata_query_set_author (GDataQuery *self, const gchar *author)
 	g_object_notify (G_OBJECT (self), "author");
 }
 
-const gchar *
-gdata_query_get_updated_min (GDataQuery *self)
+/**
+ * gdata_query_get_updated_min:
+ * @self: a #GDataQuery
+ * @updated_min: a #GTimeVal
+ *
+ * Gets the #GDataQuery:updated-min property and puts it in @updated_min. If the property is unset,
+ * both fields in the #GTimeVal will be set to 0.
+ **/
+void
+gdata_query_get_updated_min (GDataQuery *self, GTimeVal *updated_min)
 {
-	g_return_val_if_fail (GDATA_IS_QUERY (self), NULL);
-	return self->priv->updated_min;
+	g_return_if_fail (GDATA_IS_QUERY (self));
+	g_return_if_fail (updated_min != NULL);
+
+	updated_min->tv_sec = self->priv->updated_min.tv_sec;
+	updated_min->tv_usec = self->priv->updated_min.tv_usec;
 }
 
+/**
+ * gdata_query_set_updated_min:
+ * @self: a #GDataQuery
+ * @updated_min: the new minimum update time, or %NULL
+ *
+ * Sets the #GDataQuery:updated-min property of the #GDataQuery to the new minimum update time, @updated_min.
+ *
+ * Set @updated_min to %NULL to unset the property in the query URI.
+ **/
 void
-gdata_query_set_updated_min (GDataQuery *self, const gchar *updated_min)
+gdata_query_set_updated_min (GDataQuery *self, GTimeVal *updated_min)
 {
 	g_return_if_fail (GDATA_IS_QUERY (self));
 
-	g_free (self->priv->updated_min);
-	self->priv->updated_min = g_strdup (updated_min);
-
-	if (updated_min == NULL)
+	if (updated_min == NULL) {
+		self->priv->updated_min.tv_sec = 0;
+		self->priv->updated_min.tv_usec = 0;
 		self->priv->parameter_mask &= (GDATA_QUERY_PARAM_ALL ^ GDATA_QUERY_PARAM_UPDATED_MIN);
-	else
+	} else {
+		self->priv->updated_min.tv_sec = updated_min->tv_sec;
+		self->priv->updated_min.tv_usec = updated_min->tv_usec;
 		self->priv->parameter_mask |= GDATA_QUERY_PARAM_UPDATED_MIN;
+	}
 
 	g_object_notify (G_OBJECT (self), "updated-min");
 }
 
-const gchar *
-gdata_query_get_updated_max (GDataQuery *self)
+/**
+ * gdata_query_get_updated_max:
+ * @self: a #GDataQuery
+ * @updated_max: a #GTimeVal
+ *
+ * Gets the #GDataQuery:updated-max property and puts it in @updated_max. If the property is unset,
+ * both fields in the #GTimeVal will be set to 0.
+ **/
+void
+gdata_query_get_updated_max (GDataQuery *self, GTimeVal *updated_max)
 {
-	g_return_val_if_fail (GDATA_IS_QUERY (self), NULL);
-	return self->priv->updated_max;
+	g_return_if_fail (GDATA_IS_QUERY (self));
+	g_return_if_fail (updated_max != NULL);
+
+	updated_max->tv_sec = self->priv->updated_max.tv_sec;
+	updated_max->tv_usec = self->priv->updated_max.tv_usec;
 }
 
+/**
+ * gdata_query_set_updated_max:
+ * @self: a #GDataQuery
+ * @updated_max: the new maximum update time, or %NULL
+ *
+ * Sets the #GDataQuery:updated-max property of the #GDataQuery to the new maximum update time, @updated_max.
+ *
+ * Set @updated_max to %NULL to unset the property in the query URI.
+ **/
 void
-gdata_query_set_updated_max (GDataQuery *self, const gchar *updated_max)
+gdata_query_set_updated_max (GDataQuery *self, GTimeVal *updated_max)
 {
 	g_return_if_fail (GDATA_IS_QUERY (self));
 
-	g_free (self->priv->updated_max);
-	self->priv->updated_max = g_strdup (updated_max);
-
-	if (updated_max == NULL)
+	if (updated_max == NULL) {
+		self->priv->updated_max.tv_sec = 0;
+		self->priv->updated_max.tv_usec = 0;
 		self->priv->parameter_mask &= (GDATA_QUERY_PARAM_ALL ^ GDATA_QUERY_PARAM_UPDATED_MAX);
-	else
+	} else {
+		self->priv->updated_max.tv_sec = updated_max->tv_sec;
+		self->priv->updated_max.tv_usec = updated_max->tv_usec;
 		self->priv->parameter_mask |= GDATA_QUERY_PARAM_UPDATED_MAX;
+	}
 
 	g_object_notify (G_OBJECT (self), "updated-max");
 }
 
-const gchar *
-gdata_query_get_published_min (GDataQuery *self)
+/**
+ * gdata_query_get_published_min:
+ * @self: a #GDataQuery
+ * @published_min: a #GTimeVal
+ *
+ * Gets the #GDataQuery:published-min property and puts it in @published_min. If the property is unset,
+ * both fields in the #GTimeVal will be set to 0.
+ **/
+void
+gdata_query_get_published_min (GDataQuery *self, GTimeVal *published_min)
 {
-	g_return_val_if_fail (GDATA_IS_QUERY (self), NULL);
-	return self->priv->published_min;
+	g_return_if_fail (GDATA_IS_QUERY (self));
+	g_return_if_fail (published_min != NULL);
+
+	published_min->tv_sec = self->priv->published_min.tv_sec;
+	published_min->tv_usec = self->priv->published_min.tv_usec;
 }
 
+/**
+ * gdata_query_set_published_min:
+ * @self: a #GDataQuery
+ * @published_min: the new minimum publish time, or %NULL
+ *
+ * Sets the #GDataQuery:published-min property of the #GDataQuery to the new minimum publish time, @published_min.
+ *
+ * Set @published_min to %NULL to unset the property in the query URI.
+ **/
 void
-gdata_query_set_published_min (GDataQuery *self, const gchar *published_min)
+gdata_query_set_published_min (GDataQuery *self, GTimeVal *published_min)
 {
 	g_return_if_fail (GDATA_IS_QUERY (self));
 
-	g_free (self->priv->published_min);
-	self->priv->published_min = g_strdup (published_min);
-
-	if (published_min == NULL)
+	if (published_min == NULL) {
+		self->priv->published_min.tv_sec = 0;
+		self->priv->published_min.tv_usec = 0;
 		self->priv->parameter_mask &= (GDATA_QUERY_PARAM_ALL ^ GDATA_QUERY_PARAM_PUBLISHED_MIN);
-	else
+	} else {
+		self->priv->published_min.tv_sec = published_min->tv_sec;
+		self->priv->published_min.tv_usec = published_min->tv_usec;
 		self->priv->parameter_mask |= GDATA_QUERY_PARAM_PUBLISHED_MIN;
+	}
 
 	g_object_notify (G_OBJECT (self), "published-min");
 }
 
-const gchar *
-gdata_query_get_published_max (GDataQuery *self)
+/**
+ * gdata_query_get_published_max:
+ * @self: a #GDataQuery
+ * @published_max: a #GTimeVal
+ *
+ * Gets the #GDataQuery:published-max property and puts it in @published_max. If the property is unset,
+ * both fields in the #GTimeVal will be set to 0.
+ **/
+void
+gdata_query_get_published_max (GDataQuery *self, GTimeVal *published_max)
 {
-	g_return_val_if_fail (GDATA_IS_QUERY (self), NULL);
-	return self->priv->published_max;
+	g_return_if_fail (GDATA_IS_QUERY (self));
+	g_return_if_fail (published_max != NULL);
+
+	published_max->tv_sec = self->priv->published_max.tv_sec;
+	published_max->tv_usec = self->priv->published_max.tv_usec;
 }
 
+/**
+ * gdata_query_set_published_max:
+ * @self: a #GDataQuery
+ * @published_max: the new maximum publish time, or %NULL
+ *
+ * Sets the #GDataQuery:published-max property of the #GDataQuery to the new maximum publish time, @published_max.
+ *
+ * Set @published_max to %NULL to unset the property in the query URI.
+ **/
 void
-gdata_query_set_published_max (GDataQuery *self, const gchar *published_max)
+gdata_query_set_published_max (GDataQuery *self, GTimeVal *published_max)
 {
 	g_return_if_fail (GDATA_IS_QUERY (self));
 
-	g_free (self->priv->published_max);
-	self->priv->published_max = g_strdup (published_max);
-
-	if (published_max == NULL)
+	if (published_max == NULL) {
+		self->priv->published_max.tv_sec = 0;
+		self->priv->published_max.tv_usec = 0;
 		self->priv->parameter_mask &= (GDATA_QUERY_PARAM_ALL ^ GDATA_QUERY_PARAM_PUBLISHED_MAX);
-	else
+	} else {
+		self->priv->published_max.tv_sec = published_max->tv_sec;
+		self->priv->published_max.tv_usec = published_max->tv_usec;
 		self->priv->parameter_mask |= GDATA_QUERY_PARAM_PUBLISHED_MAX;
+	}
 
 	g_object_notify (G_OBJECT (self), "published-max");
 }
 
+/**
+ * gdata_query_get_start_index:
+ * @self: a #GDataQuery
+ *
+ * Gets the #GDataQuery:start-index property.
+ *
+ * Return value: the start index property, or %-1 if it is unset
+ **/
 gint
 gdata_query_get_start_index (GDataQuery *self)
 {
@@ -724,11 +868,24 @@ gdata_query_get_start_index (GDataQuery *self)
 	return self->priv->start_index;
 }
 
+/**
+ * gdata_query_set_start_index:
+ * @self: a #GDataQuery
+ * @start_index: the new start index
+ *
+ * Sets the #GDataQuery:start-index property of the #GDataQuery to the new one-based start index, @start_index.
+ *
+ * Set @start_index to %-1 or %0 to unset the property in the query URI.
+ **/
 void
 gdata_query_set_start_index (GDataQuery *self, gint start_index)
 {
 	g_return_if_fail (GDATA_IS_QUERY (self));
 	g_return_if_fail (start_index >= -1);
+
+	/* Normalise it first */
+	if (start_index <= 0)
+		start_index = -1;
 
 	self->priv->start_index = start_index;
 
@@ -740,6 +897,14 @@ gdata_query_set_start_index (GDataQuery *self, gint start_index)
 	g_object_notify (G_OBJECT (self), "start-index");
 }
 
+/**
+ * gdata_query_get_strict:
+ * @self: a #GDataQuery
+ *
+ * Gets the #GDataQuery:strict property.
+ *
+ * Return value: the strict property
+ **/
 gboolean
 gdata_query_get_strict (GDataQuery *self)
 {
@@ -747,6 +912,13 @@ gdata_query_get_strict (GDataQuery *self)
 	return self->priv->strict;
 }
 
+/**
+ * gdata_query_set_strict:
+ * @self: a #GDataQuery
+ * @strict: the new strict value
+ *
+ * Sets the #GDataQuery:strict property of the #GDataQuery to the new strict value, @strict.
+ **/
 void
 gdata_query_set_strict (GDataQuery *self, gboolean strict)
 {
@@ -762,6 +934,14 @@ gdata_query_set_strict (GDataQuery *self, gboolean strict)
 	g_object_notify (G_OBJECT (self), "strict");
 }
 
+/**
+ * gdata_query_get_max_results:
+ * @self: a #GDataQuery
+ *
+ * Gets the #GDataQuery:max-results property.
+ *
+ * Return value: the maximum results property, or %-1 if it is unset
+ **/
 gint
 gdata_query_get_max_results (GDataQuery *self)
 {
@@ -769,6 +949,15 @@ gdata_query_get_max_results (GDataQuery *self)
 	return self->priv->max_results;
 }
 
+/**
+ * gdata_query_set_max_results:
+ * @self: a #GDataQuery
+ * @max_results: the new maximum results value
+ *
+ * Sets the #GDataQuery:max-results property of the #GDataQuery to the new maximum results value, @max_results.
+ *
+ * Set @max_results to %-1 to unset the property in the query URI.
+ **/
 void
 gdata_query_set_max_results (GDataQuery *self, gint max_results)
 {
@@ -785,6 +974,14 @@ gdata_query_set_max_results (GDataQuery *self, gint max_results)
 	g_object_notify (G_OBJECT (self), "max-results");
 }
 
+/**
+ * gdata_query_get_entry_id:
+ * @self: a #GDataQuery
+ *
+ * Gets the #GDataQuery:entry-id property.
+ *
+ * Return value: the entry ID property, or %NULL if it is unset
+ **/
 const gchar *
 gdata_query_get_entry_id (GDataQuery *self)
 {
@@ -792,6 +989,15 @@ gdata_query_get_entry_id (GDataQuery *self)
 	return self->priv->entry_id;
 }
 
+/**
+ * gdata_query_set_entry_id:
+ * @self: a #GDataQuery
+ * @entry_id: the new entry ID string
+ *
+ * Sets the #GDataQuery:entry-id property of the #GDataQuery to the new entry ID string, @entry_id.
+ *
+ * Set @entry_id to %NULL to unset the property in the query URI.
+ **/
 void
 gdata_query_set_entry_id (GDataQuery *self, const gchar *entry_id)
 {
@@ -828,6 +1034,18 @@ _gdata_query_set_previous_uri (GDataQuery *self, const gchar *previous_uri)
 	self->priv->use_previous_uri = FALSE;
 }
 
+/**
+ * gdata_query_next_page:
+ * @self: a #GDataQuery
+ *
+ * Changes the state of the #GDataQuery such that when gdata_query_get_query_uri() is next called, it will build the
+ * query URI for the next page in the result set.
+ *
+ * Ideally, the URI of the next page is retrieved from a feed automatically when gdata_service_query() is called, but
+ * gdata_query_next_page() will fall back to using #GDataQuery:start-index to emulate true pagination if this fails.
+ *
+ * You <emphasis>should not</emphasis> implement pagination manually using #GDataQuery:start-index.
+ **/
 void
 gdata_query_next_page (GDataQuery *self)
 {
@@ -839,6 +1057,17 @@ gdata_query_next_page (GDataQuery *self)
 	}
 }
 
+/**
+ * gdata_query_previous_page:
+ * @self: a #GDataQuery
+ *
+ * Changes the state of the #GDataQuery such that when gdata_query_get_query_uri() is next called, it will build the
+ * query URI for the previous page in the result set.
+ *
+ * See the documentation for gdata_query_next_page() for an explanation of how query URIs from the feeds are used to this end.
+ *
+ * Return value: %TRUE if there is a previous page and it has been switched to, %FALSE otherwise
+ **/
 gboolean
 gdata_query_previous_page (GDataQuery *self)
 {
