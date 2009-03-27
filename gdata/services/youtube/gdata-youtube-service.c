@@ -88,11 +88,26 @@ gdata_youtube_service_class_init (GDataYouTubeServiceClass *klass)
 	service_class->append_query_headers = append_query_headers;
 	service_class->parse_error_response = parse_error_response;
 
+	/**
+	 * GDataYouTubeService:developer-key:
+	 *
+	 * The developer key your application has registered with the YouTube API. For more information, see the <ulink type="http"
+	 * url="http://code.google.com/apis/youtube/2.0/developers_guide_protocol.html#Developer_Key">online documentation</ulink>.
+	 *
+	 * The matching #GDataService:client-id property belongs to #GDataService.
+	 **/
 	g_object_class_install_property (gobject_class, PROP_DEVELOPER_KEY,
 				g_param_spec_string ("developer-key",
 					"Developer key", "Your YouTube developer API key.",
 					NULL,
 					G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * GDataYouTubeService:youtube-user:
+	 *
+	 * The YouTube username of the authenticated user, or %NULL. This may differ from #GDataService:username, due to the work done when
+	 * YouTube was converted to use Google's centralised login system.
+	 **/
 	g_object_class_install_property (gobject_class, PROP_YOUTUBE_USER,
 				g_param_spec_string ("youtube-user",
 					"YouTube username", "The YouTube account username.",
@@ -318,6 +333,16 @@ parent:
 	return;
 }
 
+/**
+ * gdata_youtube_service_new:
+ * @developer_key: your application's developer API key
+ * @client_id: your application's client ID
+ *
+ * Creates a new #GDataYouTubeService. The @developer_key and @client_id must be unique for your application, and as
+ * <ulink type="http" url="http://code.google.com/apis/youtube/2.0/developers_guide_protocol.html#Developer_Key">registered with Google</ulink>.
+ *
+ * Return value: a new #GDataYouTubeService, or %NULL
+ **/
 GDataYouTubeService *
 gdata_youtube_service_new (const gchar *developer_key, const gchar *client_id)
 {
@@ -359,6 +384,22 @@ standard_feed_type_to_feed_uri (GDataYouTubeStandardFeedType feed_type)
 	}
 }
 
+/**
+ * gdata_youtube_service_query_standard_feed:
+ * @self: a #GDataYouTubeService
+ * @feed_type: the feed type to query, from #GDataYouTubeStandardFeedType
+ * @query: a #GDataQuery with the query parameters, or %NULL
+ * @cancellable: optional #GCancellable object, or %NULL
+ * @progress_callback: a #GDataQueryProgressCallback to call when an entry is loaded, or %NULL
+ * @progress_user_data: data to pass to the @progress_callback function
+ * @error: a #GError, or %NULL
+ *
+ * Queries the service's standard @feed_type feed to build a #GDataFeed.
+ *
+ * Parameters and errors are as for gdata_service_query().
+ *
+ * Return value: a #GDataFeed of query results; unref with g_object_unref()
+ **/
 GDataFeed *
 gdata_youtube_service_query_standard_feed (GDataYouTubeService *self, GDataYouTubeStandardFeedType feed_type, GDataQuery *query,
 					   GCancellable *cancellable, GDataQueryProgressCallback progress_callback, gpointer progress_user_data,
@@ -370,6 +411,25 @@ gdata_youtube_service_query_standard_feed (GDataYouTubeService *self, GDataYouTu
 				    progress_callback, progress_user_data, error);
 }
 
+/**
+ * gdata_youtube_service_query_standard_feed_async:
+ * @self: a #GDataService
+ * @feed_type: the feed type to query, from #GDataYouTubeStandardFeedType
+ * @query: a #GDataQuery with the query parameters, or %NULL
+ * @cancellable: optional #GCancellable object, or %NULL
+ * @progress_callback: a #GDataQueryProgressCallback to call when an entry is loaded, or %NULL
+ * @progress_user_data: data to pass to the @progress_callback function
+ * @callback: a #GAsyncReadyCallback to call when authentication is finished
+ * @user_data: data to pass to the @callback function
+ *
+ * Queries the service's standard @feed_type feed to build a #GDataFeed. @self and
+ * @query are both reffed when this function is called, so can safely be freed after this function returns.
+ *
+ * For more details, see gdata_youtube_service_query_standard_feed(), which is the synchronous version of this function.
+ *
+ * When the operation is finished, @callback will be called. You can then call gdata_service_query_finish()
+ * to get the results of the operation.
+ **/
 void
 gdata_youtube_service_query_standard_feed_async (GDataYouTubeService *self, GDataYouTubeStandardFeedType feed_type, GDataQuery *query,
 						 GCancellable *cancellable, GDataQueryProgressCallback progress_callback, gpointer progress_user_data,
@@ -380,6 +440,22 @@ gdata_youtube_service_query_standard_feed_async (GDataYouTubeService *self, GDat
 				   callback, user_data);
 }
 
+/**
+ * gdata_youtube_service_query_videos:
+ * @self: a #GDataYouTubeService
+ * @query: a #GDataQuery with the query parameters, or %NULL
+ * @cancellable: optional #GCancellable object, or %NULL
+ * @progress_callback: a #GDataQueryProgressCallback to call when an entry is loaded, or %NULL
+ * @progress_user_data: data to pass to the @progress_callback function
+ * @error: a #GError, or %NULL
+ *
+ * Queries the service for videos matching the parameters set on the #GDataQuery. This searches site-wide, and imposes no other restrictions or
+ * parameters on the query.
+ *
+ * Parameters and errors are as for gdata_service_query().
+ *
+ * Return value: a #GDataFeed of query results; unref with g_object_unref()
+ **/
 GDataFeed *
 gdata_youtube_service_query_videos (GDataYouTubeService *self, GDataQuery *query,
 				    GCancellable *cancellable, GDataQueryProgressCallback progress_callback, gpointer progress_user_data,
@@ -390,6 +466,24 @@ gdata_youtube_service_query_videos (GDataYouTubeService *self, GDataQuery *query
 				    progress_callback, progress_user_data, error);
 }
 
+/**
+ * gdata_youtube_service_query_videos_async:
+ * @self: a #GDataService
+ * @query: a #GDataQuery with the query parameters, or %NULL
+ * @cancellable: optional #GCancellable object, or %NULL
+ * @progress_callback: a #GDataQueryProgressCallback to call when an entry is loaded, or %NULL
+ * @progress_user_data: data to pass to the @progress_callback function
+ * @callback: a #GAsyncReadyCallback to call when authentication is finished
+ * @user_data: data to pass to the @callback function
+ *
+ * Queries the service for videos matching the parameters set on the #GDataQuery. This searches site-wide, and imposes no other restrictions or
+ * parameters on the query. @self and @query are both reffed when this function is called, so can safely be freed after this function returns.
+ *
+ * For more details, see gdata_youtube_service_query_videos(), which is the synchronous version of this function.
+ *
+ * When the operation is finished, @callback will be called. You can then call gdata_service_query_finish()
+ * to get the results of the operation.
+ **/
 void
 gdata_youtube_service_query_videos_async (GDataYouTubeService *self, GDataQuery *query,
 					  GCancellable *cancellable, GDataQueryProgressCallback progress_callback, gpointer progress_user_data,
@@ -400,6 +494,23 @@ gdata_youtube_service_query_videos_async (GDataYouTubeService *self, GDataQuery 
 				   callback, user_data);
 }
 
+/**
+ * gdata_youtube_service_query_related:
+ * @self: a #GDataYouTubeService
+ * @video: a #GDataYouTubeVideo for which to find related videos
+ * @query: a #GDataQuery with the query parameters, or %NULL
+ * @cancellable: optional #GCancellable object, or %NULL
+ * @progress_callback: a #GDataQueryProgressCallback to call when an entry is loaded, or %NULL
+ * @progress_user_data: data to pass to the @progress_callback function
+ * @error: a #GError, or %NULL
+ *
+ * Queries the service for videos related to @video. The algorithm determining which videos are related is on the server side.
+ *
+ * If @video does not have a link with rel value <literal>http://gdata.youtube.com/schemas/2007#video.related</literal>, a
+ * %GDATA_SERVICE_ERROR_PROTOCOL_ERROR error will be thrown. Parameters and other errors are as for gdata_service_query().
+ *
+ * Return value: a #GDataFeed of query results; unref with g_object_unref()
+ **/
 GDataFeed *
 gdata_youtube_service_query_related (GDataYouTubeService *self, GDataYouTubeVideo *video, GDataQuery *query,
 				     GCancellable *cancellable, GDataQueryProgressCallback progress_callback, gpointer progress_user_data,
@@ -422,6 +533,25 @@ gdata_youtube_service_query_related (GDataYouTubeService *self, GDataYouTubeVide
 				    progress_callback, progress_user_data, error);
 }
 
+/**
+ * gdata_youtube_service_query_related_async:
+ * @self: a #GDataService
+ * @video: a #GDataYouTubeVideo for which to find related videos
+ * @query: a #GDataQuery with the query parameters, or %NULL
+ * @cancellable: optional #GCancellable object, or %NULL
+ * @progress_callback: a #GDataQueryProgressCallback to call when an entry is loaded, or %NULL
+ * @progress_user_data: data to pass to the @progress_callback function
+ * @callback: a #GAsyncReadyCallback to call when authentication is finished
+ * @user_data: data to pass to the @callback function
+ *
+ * Queries the service for videos related to @video. The algorithm determining which videos are related is on the server side.
+ * @self and @query are both reffed when this function is called, so can safely be freed after this function returns.
+ *
+ * For more details, see gdata_youtube_service_query_related(), which is the synchronous version of this function.
+ *
+ * When the operation is finished, @callback will be called. You can then call gdata_service_query_finish()
+ * to get the results of the operation.
+ **/
 void
 gdata_youtube_service_query_related_async (GDataYouTubeService *self, GDataYouTubeVideo *video, GDataQuery *query,
 					   GCancellable *cancellable, GDataQueryProgressCallback progress_callback, gpointer progress_user_data,
@@ -444,11 +574,29 @@ gdata_youtube_service_query_related_async (GDataYouTubeService *self, GDataYouTu
 				   callback, user_data);
 }
 
-/* TODO: Async variant */
+/**
+ * gdata_youtube_service_upload_video:
+ * @self: a #GDataYouTubeService
+ * @video: a #GDataYouTubeVideo to insert
+ * @video_file: the video file to upload
+ * @cancellable: optional #GCancellable object, or %NULL
+ * @error: a #GError, or %NULL
+ *
+ * Uploads a video to YouTube, using the properties from @video and the video file pointed to by @video_file.
+ *
+ * If @video has already been inserted, a %GDATA_SERVICE_ERROR_ENTRY_ALREADY_INSERTED error will be returned. If no user is authenticated
+ * with the service, %GDATA_SERVICE_ERROR_AUTHENTICATION_REQUIRED will be returned.
+ *
+ * If there is a problem reading @video_file, an error from g_file_load_contents() or g_file_query_info() will be returned. Other errors from
+ * #GDataServiceError can be returned for other exceptional conditions, as determined by the server.
+ *
+ * Return value: the inserted #GDataYouTubeVideo with updated properties from @video; unref with g_object_unref()
+ **/
 GDataYouTubeVideo *
 gdata_youtube_service_upload_video (GDataYouTubeService *self, GDataYouTubeVideo *video, GFile *video_file,
 				    GCancellable *cancellable, GError **error)
 {
+	/* TODO: Async variant */
 	#define BOUNDARY_STRING "0xdeadbeef6e0808d5e6ed8bc168390bcc"
 
 	GDataServiceClass *klass;
@@ -575,6 +723,14 @@ gdata_youtube_service_upload_video (GDataYouTubeService *self, GDataYouTubeVideo
 	return gdata_youtube_video_new_from_xml (message->response_body->data, (gint) message->response_body->length, error);
 }
 
+/**
+ * gdata_youtube_service_get_developer_key:
+ * @self: a #GDataYouTubeService
+ *
+ * Gets the #GDataYouTubeService:developer-key property from the #GDataYouTubeService.
+ *
+ * Return value: the developer key property
+ **/
 const gchar *
 gdata_youtube_service_get_developer_key (GDataYouTubeService *self)
 {
@@ -582,6 +738,14 @@ gdata_youtube_service_get_developer_key (GDataYouTubeService *self)
 	return self->priv->developer_key;
 }
 
+/**
+ * gdata_youtube_service_get_youtube_user:
+ * @self: a #GDataYouTubeService
+ *
+ * Gets the #GDataYouTubeService:youtube-user property from the #GDataYouTubeService.
+ *
+ * Return value: the YouTube username property
+ **/
 const gchar *
 gdata_youtube_service_get_youtube_user (GDataYouTubeService *self)
 {
