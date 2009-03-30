@@ -41,14 +41,6 @@ typedef enum {
 #define GDATA_PARSER_ERROR gdata_parser_error_quark ()
 GQuark gdata_parser_error_quark (void);
 
-gboolean gdata_parser_error_required_content_missing (const gchar *element_name, GError **error);
-gboolean gdata_parser_error_not_iso8601_format (const gchar *parent_element_name, const gchar *element_name, const gchar *actual_value, GError **error);
-gboolean gdata_parser_error_unhandled_element (const gchar *element_namespace, const gchar *element_name, const gchar *parent_element_name, GError **error);
-gboolean gdata_parser_error_unknown_property_value (const gchar *element_name, const gchar *property_name, const gchar *actual_value, GError **error);
-gboolean gdata_parser_error_required_property_missing (const gchar *element_name, const gchar *property_name, GError **error);
-gboolean gdata_parser_error_required_element_missing (const gchar *element_name, const gchar *parent_element_name, GError **error);
-gboolean gdata_parser_error_duplicate_element (const gchar *element_name, const gchar *parent_element_name, GError **error);
-
 G_END_DECLS
 
 #endif /* !GDATA_PARSER_H */

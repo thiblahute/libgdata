@@ -457,7 +457,7 @@ _gdata_feed_new_from_xml (const gchar *xml, gint length, GDataEntryParserFunc pa
 			/* Parse the string */
 			updated_string = xmlNodeListGetString (doc, node->xmlChildrenNode, TRUE);
 			if (g_time_val_from_iso8601 ((gchar*) updated_string, &updated) == FALSE) {
-				gdata_parser_error_not_iso8601_format ("feed", "updated", (gchar*) updated_string, error);
+				gdata_parser_error_not_iso8601_format ("updated", "feed", (gchar*) updated_string, error);
 				xmlFree (updated_string);
 				goto error;
 			}

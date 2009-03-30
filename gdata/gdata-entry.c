@@ -399,7 +399,7 @@ _gdata_entry_parse_xml_node (GDataEntry *self, xmlDoc *doc, xmlNode *node, GErro
 		updated = xmlNodeListGetString (doc, node->xmlChildrenNode, TRUE);
 		if (g_time_val_from_iso8601 ((gchar*) updated, &(self->priv->updated)) == FALSE) {
 			/* Error */
-			gdata_parser_error_not_iso8601_format ("entry", "updated", (gchar*) updated, error);
+			gdata_parser_error_not_iso8601_format ("updated", "entry", (gchar*) updated, error);
 			xmlFree (updated);
 			return FALSE;
 		}
@@ -411,7 +411,7 @@ _gdata_entry_parse_xml_node (GDataEntry *self, xmlDoc *doc, xmlNode *node, GErro
 		published = xmlNodeListGetString (doc, node->xmlChildrenNode, TRUE);
 		if (g_time_val_from_iso8601 ((gchar*) published, &(self->priv->published)) == FALSE) {
 			/* Error */
-			gdata_parser_error_not_iso8601_format ("entry", "published", (gchar*) published, error);
+			gdata_parser_error_not_iso8601_format ("published", "entry", (gchar*) published, error);
 			xmlFree (published);
 			return FALSE;
 		}

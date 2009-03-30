@@ -669,7 +669,7 @@ parse_media_group_xml_node (GDataYouTubeVideo *self, xmlDoc *doc, xmlNode *node,
 		uploaded = xmlNodeListGetString (doc, node->xmlChildrenNode, TRUE);
 		if (g_time_val_from_iso8601 ((gchar*) uploaded, &uploaded_timeval) == FALSE) {
 			/* Error */
-			gdata_parser_error_not_iso8601_format ("media:group", "uploaded", (gchar*) uploaded, error);
+			gdata_parser_error_not_iso8601_format ("uploaded", "media:group", (gchar*) uploaded, error);
 			xmlFree (uploaded);
 			return FALSE;
 		}

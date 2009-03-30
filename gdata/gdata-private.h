@@ -42,6 +42,15 @@ GDataFeed *_gdata_feed_new_from_xml (const gchar *xml, gint length, GDataEntryPa
 GDataEntry *_gdata_entry_new_from_xml_node (xmlDoc *doc, xmlNode *node, GError **error);
 gboolean _gdata_entry_parse_xml_node (GDataEntry *self, xmlDoc *doc, xmlNode *node, GError **error);
 
+#include "gdata-parser.h"
+gboolean gdata_parser_error_required_content_missing (const gchar *element_name, GError **error);
+gboolean gdata_parser_error_not_iso8601_format (const gchar *element_name, const gchar *parent_element_name, const gchar *actual_value, GError **error);
+gboolean gdata_parser_error_unhandled_element (const gchar *element_namespace, const gchar *element_name, const gchar *parent_element_name, GError **error);
+gboolean gdata_parser_error_unknown_property_value (const gchar *element_name, const gchar *property_name, const gchar *actual_value, GError **error);
+gboolean gdata_parser_error_required_property_missing (const gchar *element_name, const gchar *property_name, GError **error);
+gboolean gdata_parser_error_required_element_missing (const gchar *element_name, const gchar *parent_element_name, GError **error);
+gboolean gdata_parser_error_duplicate_element (const gchar *element_name, const gchar *parent_element_name, GError **error);
+
 #include "services/youtube/gdata-youtube-video.h"
 GDataYouTubeVideo *_gdata_youtube_video_new_from_xml_node (xmlDoc *doc, xmlNode *node, GError **error);
 gboolean _gdata_youtube_video_parse_xml_node (GDataYouTubeVideo *self, xmlDoc *doc, xmlNode *node, GError **error);

@@ -374,7 +374,7 @@ _gdata_calendar_event_parse_xml_node (GDataCalendarEvent *self, xmlDoc *doc, xml
 		edited = xmlNodeListGetString (doc, node->xmlChildrenNode, TRUE);
 		if (g_time_val_from_iso8601 ((gchar*) edited, &edited_timeval) == FALSE) {
 			/* Error */
-			gdata_parser_error_not_iso8601_format ("entry", "app:edited", (gchar*) edited, error);
+			gdata_parser_error_not_iso8601_format ("app:edited", "entry", (gchar*) edited, error);
 			xmlFree (edited);
 			return FALSE;
 		}
@@ -454,7 +454,7 @@ _gdata_calendar_event_parse_xml_node (GDataCalendarEvent *self, xmlDoc *doc, xml
 		start_time = xmlGetProp (node, (xmlChar*) "startTime");
 		if (g_time_val_from_iso8601 ((gchar*) start_time, &start_time_timeval) == FALSE) {
 			/* Error */
-			gdata_parser_error_not_iso8601_format ("entry", "gd:when", (gchar*) start_time, error);
+			gdata_parser_error_not_iso8601_format ("gd:when", "entry", (gchar*) start_time, error);
 			xmlFree (start_time);
 			return FALSE;
 		}
@@ -468,7 +468,7 @@ _gdata_calendar_event_parse_xml_node (GDataCalendarEvent *self, xmlDoc *doc, xml
 		else {
 			if (g_time_val_from_iso8601 ((gchar*) end_time, &end_time_timeval) == FALSE) {
 				/* Error */
-				gdata_parser_error_not_iso8601_format ("entry", "gd:when", (gchar*) end_time, error);
+				gdata_parser_error_not_iso8601_format ("gd:when", "entry", (gchar*) end_time, error);
 				xmlFree (end_time);
 				return FALSE;
 			}

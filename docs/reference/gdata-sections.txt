@@ -4,6 +4,7 @@
 GDataService
 GDataServiceClass
 GDataServiceError
+GDataParserError
 GDataQueryProgressCallback
 gdata_service_authenticate
 gdata_service_authenticate_async
@@ -28,6 +29,9 @@ GDATA_IS_SERVICE_CLASS
 gdata_service_error_quark
 gdata_service_error_get_type
 GDATA_SERVICE_ERROR
+GDATA_PARSER_ERROR
+gdata_parser_error_get_type
+gdata_parser_error_quark
 <SUBSECTION Private>
 GDataServicePrivate
 </SECTION>

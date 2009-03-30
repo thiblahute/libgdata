@@ -340,7 +340,7 @@ _gdata_calendar_calendar_parse_xml_node (GDataCalendarCalendar *self, xmlDoc *do
 		edited = xmlNodeListGetString (doc, node->xmlChildrenNode, TRUE);
 		if (g_time_val_from_iso8601 ((gchar*) edited, &edited_timeval) == FALSE) {
 			/* Error */
-			gdata_parser_error_not_iso8601_format ("entry", "app:edited", (gchar*) edited, error);
+			gdata_parser_error_not_iso8601_format ("app:edited", "entry", (gchar*) edited, error);
 			xmlFree (edited);
 			return FALSE;
 		}

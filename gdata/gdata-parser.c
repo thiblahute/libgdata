@@ -23,6 +23,7 @@
 
 #include "gdata-service.h"
 #include "gdata-parser.h"
+#include "gdata-private.h"
 
 GQuark
 gdata_parser_error_quark (void)
@@ -39,9 +40,8 @@ gdata_parser_error_required_content_missing (const gchar *element_name, GError *
 	return FALSE;
 }
 
-/* TODO: parameters are in the wrong order */
 gboolean
-gdata_parser_error_not_iso8601_format (const gchar *parent_element_name, const gchar *element_name, const gchar *actual_value, GError **error)
+gdata_parser_error_not_iso8601_format (const gchar *element_name, const gchar *parent_element_name, const gchar *actual_value, GError **error)
 {
 	g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
 		     _("A <%s>'s <%s> element (\"%s\") was not in ISO8601 format."),
