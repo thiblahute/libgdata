@@ -4,6 +4,7 @@
 GDataService
 GDataServiceClass
 GDataServiceError
+GDataAuthenticationError
 GDataParserError
 GDataQueryProgressCallback
 gdata_service_authenticate
@@ -27,11 +28,11 @@ GDATA_SERVICE_GET_CLASS
 GDATA_SERVICE_CLASS
 GDATA_IS_SERVICE_CLASS
 gdata_service_error_quark
-gdata_service_error_get_type
 GDATA_SERVICE_ERROR
 GDATA_PARSER_ERROR
-gdata_parser_error_get_type
 gdata_parser_error_quark
+GDATA_AUTHENTICATION_ERROR
+gdata_authentication_error_quark
 <SUBSECTION Private>
 GDataServicePrivate
 </SECTION>
@@ -74,6 +75,9 @@ gdata_query_get_type
 GDATA_QUERY
 GDATA_QUERY_CLASS
 GDATA_QUERY_GET_CLASS
+GDATA_TYPE_QUERY
+GDATA_IS_QUERY
+GDATA_IS_QUERY_CLASS
 <SUBSECTION Private>
 GDataQueryPrivate
 </SECTION>
@@ -102,6 +106,9 @@ GDATA_FEED
 GDATA_FEED_CLASS
 GDATA_FEED_GET_CLASS
 gdata_feed_get_type
+GDATA_IS_FEED
+GDATA_IS_FEED_CLASS
+GDATA_TYPE_FEED
 <SUBSECTION Private>
 GDataFeedPrivate
 </SECTION>
@@ -129,6 +136,12 @@ gdata_entry_is_inserted
 gdata_entry_get_xml
 <SUBSECTION Standard>
 gdata_entry_get_type
+GDATA_ENTRY
+GDATA_ENTRY_CLASS
+GDATA_ENTRY_GET_CLASS
+GDATA_IS_ENTRY
+GDATA_IS_ENTRY_CLASS
+GDATA_TYPE_ENTRY
 <SUBSECTION Private>
 GDataEntryPrivate
 </SECTION>
@@ -189,10 +202,74 @@ GDATA_YOUTUBE_SERVICE
 GDATA_YOUTUBE_SERVICE_CLASS
 GDATA_YOUTUBE_SERVICE_ERROR
 GDATA_YOUTUBE_SERVICE_GET_CLASS
+GDATA_IS_YOUTUBE_SERVICE
+GDATA_IS_YOUTUBE_SERVICE_CLASS
+GDATA_TYPE_YOUTUBE_SERVICE
 gdata_youtube_service_get_type
 gdata_youtube_standard_feed_type_get_type
 gdata_youtube_service_error_get_type
 gdata_youtube_service_error_quark
 <SUBSECTION Private>
 GDataYouTubeServicePrivate
+</SECTION>
+
+<SECTION>
+<FILE>gdata-youtube-video</FILE>
+<TITLE>GDataYouTubeVideo</TITLE>
+GDataYouTubeVideo
+GDataYouTubeVideoClass
+gdata_youtube_video_new
+gdata_youtube_video_new_from_xml
+gdata_youtube_video_add_content
+gdata_youtube_video_lookup_content
+gdata_youtube_video_add_thumbnail
+gdata_youtube_video_get_thumbnails
+gdata_youtube_video_get_category
+gdata_youtube_video_set_category
+gdata_youtube_video_get_credit
+gdata_youtube_video_set_credit
+gdata_youtube_video_get_description
+gdata_youtube_video_set_description
+gdata_youtube_video_get_duration
+gdata_youtube_video_set_duration
+gdata_youtube_video_get_favorite_count
+gdata_youtube_video_set_favorite_count
+gdata_youtube_video_get_keywords
+gdata_youtube_video_set_keywords
+gdata_youtube_video_get_location
+gdata_youtube_video_set_location
+gdata_youtube_video_get_media_rating
+gdata_youtube_video_set_media_rating
+gdata_youtube_video_get_no_embed
+gdata_youtube_video_set_no_embed
+gdata_youtube_video_get_player_uri
+gdata_youtube_video_set_player_uri
+gdata_youtube_video_is_private
+gdata_youtube_video_set_is_private
+gdata_youtube_video_get_rating
+gdata_youtube_video_set_rating
+gdata_youtube_video_get_restriction
+gdata_youtube_video_set_restriction
+gdata_youtube_video_get_state
+gdata_youtube_video_set_state
+gdata_youtube_video_get_title
+gdata_youtube_video_set_title
+gdata_youtube_video_get_uploaded
+gdata_youtube_video_set_uploaded
+gdata_youtube_video_get_video_id
+gdata_youtube_video_set_video_id
+gdata_youtube_video_get_view_count
+gdata_youtube_video_set_view_count
+gdata_youtube_video_is_draft
+gdata_youtube_video_set_is_draft
+<SUBSECTION Standard>
+GDATA_IS_YOUTUBE_VIDEO
+GDATA_IS_YOUTUBE_VIDEO_CLASS
+GDATA_TYPE_YOUTUBE_VIDEO
+GDATA_YOUTUBE_VIDEO
+GDATA_YOUTUBE_VIDEO_CLASS
+GDATA_YOUTUBE_VIDEO_GET_CLASS
+gdata_youtube_video_get_type
+<SUBSECTION Private>
+GDataYouTubeVideoPrivate
 </SECTION>

@@ -39,12 +39,23 @@ G_BEGIN_DECLS
 
 typedef struct _GDataYouTubeVideoPrivate	GDataYouTubeVideoPrivate;
 
+/**
+ * GDataYouTubeVideo:
+ *
+ * All the fields in the #GDataYouTubeVideo structure are private and should never be accessed directly.
+ **/
 typedef struct {
 	GDataEntry parent;
 	GDataYouTubeVideoPrivate *priv;
 } GDataYouTubeVideo;
 
+/**
+ * GDataYouTubeVideoClass:
+ *
+ * All the fields in the #GDataYouTubeVideoClass structure are private and should never be accessed directly.
+ **/
 typedef struct {
+	/*< private >*/
 	GDataEntryClass parent;
 } GDataYouTubeVideoClass;
 
@@ -85,8 +96,8 @@ void gdata_youtube_video_add_thumbnail (GDataYouTubeVideo *self, GDataMediaThumb
 GList *gdata_youtube_video_get_thumbnails (GDataYouTubeVideo *self);
 gint gdata_youtube_video_get_duration (GDataYouTubeVideo *self);
 void gdata_youtube_video_set_duration (GDataYouTubeVideo *self, gint duration);
-gboolean gdata_youtube_video_get_private (GDataYouTubeVideo *self);
-void gdata_youtube_video_set_private (GDataYouTubeVideo *self, gboolean private);
+gboolean gdata_youtube_video_is_private (GDataYouTubeVideo *self);
+void gdata_youtube_video_set_is_private (GDataYouTubeVideo *self, gboolean is_private);
 void gdata_youtube_video_get_uploaded (GDataYouTubeVideo *self, GTimeVal *uploaded);
 void gdata_youtube_video_set_uploaded (GDataYouTubeVideo *self, GTimeVal *uploaded);
 const gchar *gdata_youtube_video_get_video_id (GDataYouTubeVideo *self);

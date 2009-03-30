@@ -17,6 +17,20 @@
  * along with GData Client.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * SECTION:gdata-youtube-video
+ * @short_description: GData YouTube video object
+ * @stability: Unstable
+ * @include: gdata/services/youtube/gdata-youtube-video.h
+ *
+ * #GDataYouTubeVideo is a subclass of #GDataEntry to represent a single video on YouTube, either when uploading or querying.
+ *
+ * For more details of YouTube's GData API, see the <ulink type="http" url="http://code.google.com/apis/youtube/2.0/reference.html">
+ * online documentation</ulink>.
+ **/
+
+/* TODO: Go through and see which pieces of API aren't allowed (ones which set server-side-only data) */
+
 #include <config.h>
 #include <glib.h>
 #include <glib/gi18n-lib.h>
@@ -58,7 +72,7 @@ struct _GDataYouTubeVideoPrivate {
 
 	/* YouTube-specific media:group properties */
 	gint duration;
-	gboolean private;
+	gboolean is_private;
 	GTimeVal uploaded;
 	gchar *video_id;
 
@@ -82,7 +96,7 @@ enum {
 	PROP_CREDIT,
 	PROP_DESCRIPTION,
 	PROP_DURATION,
-	PROP_PRIVATE,
+	PROP_IS_PRIVATE,
 	PROP_UPLOADED,
 	PROP_VIDEO_ID,
 	PROP_IS_DRAFT,
@@ -107,93 +121,272 @@ gdata_youtube_video_class_init (GDataYouTubeVideoClass *klass)
 	entry_class->get_xml = get_xml;
 	entry_class->get_namespaces = get_namespaces;
 
+	/**
+	 * GDataYouTubeVideo:view-count:
+	 *
+	 * The number of times the video has been viewed.
+	 *
+	 * For more information, see the <ulink type="http"
+	 * url="http://code.google.com/apis/youtube/2.0/reference.html#youtube_data_api_tag_yt:statistics">online documentation</ulink>.
+	 **/
 	g_object_class_install_property (gobject_class, PROP_VIEW_COUNT,
 				g_param_spec_uint ("view-count",
-					"View count", "TODO",
+					"View count", "The number of times the video has been viewed.",
 					0, G_MAXUINT, 0,
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * GDataYouTubeVideo:favorite-count:
+	 *
+	 * The number of YouTube users who have added the video to their list of favorite videos.
+	 *
+	 * For more information, see the <ulink type="http"
+	 * url="http://code.google.com/apis/youtube/2.0/reference.html#youtube_data_api_tag_yt:statistics">online documentation</ulink>.
+	 **/
 	g_object_class_install_property (gobject_class, PROP_FAVORITE_COUNT,
 				g_param_spec_uint ("favorite-count",
-					"Favorite count", "TODO",
+					"Favorite count", "The number of YouTube users who have added the video to their list of favorite videos.",
 					0, G_MAXUINT, 0,
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * GDataYouTubeVideo:location:
+	 *
+	 * Descriptive text about the location where the video was taken.
+	 *
+	 * For more information, see the <ulink type="http"
+	 * url="http://code.google.com/apis/youtube/2.0/reference.html#youtube_data_api_tag_yt:location">online documentation</ulink>.
+	 **/
 	g_object_class_install_property (gobject_class, PROP_LOCATION,
 				g_param_spec_string ("location",
-					"Location", "TODO",
+					"Location", "Descriptive text about the location where the video was taken.",
 					NULL,
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * GDataYouTubeVideo:no-embed:
+	 *
+	 * Specifies whether the video may not be embedded on other websites.
+	 *
+	 * For more information, see the <ulink type="http"
+	 * url="http://code.google.com/apis/youtube/2.0/reference.html#youtube_data_api_tag_yt:noembed">online documentation</ulink>.
+	 **/
 	g_object_class_install_property (gobject_class, PROP_NO_EMBED,
 				g_param_spec_boolean ("no-embed",
-					"No embed", "TODO",
+					"No embed?", "Specifies whether the video may not be embedded on other websites.",
 					FALSE,
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * GDataYouTubeVideo:rating:
+	 *
+	 * Specifies the current average rating of the video based on aggregated YouTube user ratings.
+	 *
+	 * It is a pointer to a #GDataGDRating.
+	 *
+	 * For more information, see the <ulink type="http"
+	 * url="http://code.google.com/apis/youtube/2.0/reference.html#youtube_data_api_tag_gd:rating">online documentation</ulink>.
+	 **/
 	g_object_class_install_property (gobject_class, PROP_RATING,
 				g_param_spec_pointer ("rating",
-					"Rating", "TODO",
+					"Rating", "Specifies the current average rating of the video based on aggregated YouTube user ratings.",
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * GDataYouTubeVideo:keywords:
+	 *
+	 * A comma-separated list of words associated with the video.
+	 *
+	 * For more information, see the <ulink type="http"
+	 * url="http://code.google.com/apis/youtube/2.0/reference.html#youtube_data_api_tag_media:keywords">online documentation</ulink>.
+	 **/
 	g_object_class_install_property (gobject_class, PROP_KEYWORDS,
 				g_param_spec_string ("keywords",
-					"Keywords", "TODO",
+					"Keywords", "A comma-separated list of words associated with the video.",
 					NULL,
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * GDataYouTubeVideo:player-uri:
+	 *
+	 * Specifies a URI where the full-length video is available through a media player that runs inside a web browser
+	 * (i.e. the video's page on YouTube).
+	 *
+	 * For more information, see the <ulink type="http"
+	 * url="http://code.google.com/apis/youtube/2.0/reference.html#youtube_data_api_tag_media:player">online documentation</ulink>.
+	 **/
 	g_object_class_install_property (gobject_class, PROP_PLAYER_URI,
 				g_param_spec_string ("player-uri",
-					"Player URI", "TODO",
+					"Player URI", "Specifies a URI where the full-length video is available through a media player"
+					"that runs inside a web browser.",
 					NULL,
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * GDataYouTubeVideo:media-rating:
+	 *
+	 * Indicates that the video contains restricted content, although such restrictions might not apply in your country.
+	 *
+	 * It is a pointer to a #GDataMediaRating.
+	 *
+	 * For more information, see the <ulink type="http"
+	 * url="http://code.google.com/apis/youtube/2.0/reference.html#youtube_data_api_tag_media:rating">online documentation</ulink>.
+	 **/
 	g_object_class_install_property (gobject_class, PROP_MEDIA_RATING,
 				g_param_spec_pointer ("media-rating",
-					"Media rating", "TODO",
+					"Media rating", "Indicates that the video contains restricted content, although such restrictions"
+					"might not apply in your country.",
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * GDataYouTubeVideo:restriction:
+	 *
+	 * Identifies the country or countries where the video may or may not be played.
+	 * The attribute value is a space-delimited list of ISO 3166 two-letter country codes.
+	 *
+	 * For more information, see the <ulink type="http"
+	 * url="http://code.google.com/apis/youtube/2.0/reference.html#youtube_data_api_tag_media:restriction">online documentation</ulink>.
+	 **/
 	g_object_class_install_property (gobject_class, PROP_RESTRICTION,
 				g_param_spec_pointer ("restriction",
-					"Restriction", "TODO",
+					"Restriction", "Identifies the country or countries where the video may or may not be played.",
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * GDataYouTubeVideo:title:
+	 *
+	 * Identifies the title of the video. This field has a maximum length of 60 characters or 100 bytes, whichever is reached first.
+	 *
+	 * For more information, see the <ulink type="http"
+	 * url="http://code.google.com/apis/youtube/2.0/reference.html#youtube_data_api_tag_media:title">online documentation</ulink>.
+	 **/
 	g_object_class_install_property (gobject_class, PROP_TITLE,
 				g_param_spec_string ("title",
-					"Title", "TODO",
+					"Title", "Identifies the title of the video.",
 					NULL,
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * GDataYouTubeVideo:category:
+	 *
+	 * Specifies a genre or developer tag that describes the video.
+	 *
+	 * For more information, see the <ulink type="http"
+	 * url="http://code.google.com/apis/youtube/2.0/reference.html#youtube_data_api_tag_media:category">online documentation</ulink>.
+	 **/
 	g_object_class_install_property (gobject_class, PROP_CATEGORY,
 				g_param_spec_pointer ("category",
-					"Category", "TODO",
+					"Category", "Specifies a genre or developer tag that describes the video.",
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * GDataYouTubeVideo:credit:
+	 *
+	 * Identifies the owner of the video.
+	 *
+	 * For more information, see the <ulink type="http"
+	 * url="http://code.google.com/apis/youtube/2.0/reference.html#youtube_data_api_tag_media:credit">online documentation</ulink>.
+	 **/
 	g_object_class_install_property (gobject_class, PROP_CREDIT,
 				g_param_spec_pointer ("credit",
-					"Credit", "TODO",
+					"Credit", "Identifies the owner of the video.",
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * GDataYouTubeVideo:description:
+	 *
+	 * A summary or description of the video.
+	 *
+	 * For more information, see the <ulink type="http"
+	 * url="http://code.google.com/apis/youtube/2.0/reference.html#youtube_data_api_tag_media:description">online documentation</ulink>.
+	 **/
 	g_object_class_install_property (gobject_class, PROP_DESCRIPTION,
 				g_param_spec_string ("description",
-					"Description", "TODO",
+					"Description", "A summary or description of the video.",
 					NULL,
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * GDataYouTubeVideo:duration:
+	 *
+	 * The duration of the video in seconds.
+	 *
+	 * For more information, see the <ulink type="http"
+	 * url="http://code.google.com/apis/youtube/2.0/reference.html#youtube_data_api_tag_yt:duration">online documentation</ulink>.
+	 **/
 	g_object_class_install_property (gobject_class, PROP_DURATION,
 				g_param_spec_int ("duration",
-					"Duration", "The video duration, in seconds.",
+					"Duration", "The duration of the video in seconds.",
 					0, G_MAXINT, 0,
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
-	g_object_class_install_property (gobject_class, PROP_PRIVATE,
-				g_param_spec_boolean ("private",
-					"Private", "Whether the video is private.",
+
+	/**
+	 * GDataYouTubeVideo:private:
+	 *
+	 * Indicates whether the video is private, meaning that it will not be publicly visible on YouTube's website.
+	 *
+	 * For more information, see the <ulink type="http"
+	 * url="http://code.google.com/apis/youtube/2.0/reference.html#youtube_data_api_tag_yt:private">online documentation</ulink>.
+	 **/
+	g_object_class_install_property (gobject_class, PROP_IS_PRIVATE,
+				g_param_spec_boolean ("is-private",
+					"Private?", "Indicates whether the video is private.",
 					FALSE,
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * GDataYouTubeVideo:uploaded:
+	 *
+	 * Specifies the time the video was originally uploaded to YouTube.
+	 *
+	 * For more information, see the <ulink type="http"
+	 * url="http://code.google.com/apis/youtube/2.0/reference.html#youtube_data_api_tag_yt:uploaded">online documentation</ulink>.
+	 **/
 	g_object_class_install_property (gobject_class, PROP_UPLOADED,
 				g_param_spec_boxed ("uploaded",
-					"Uploaded", "The time the video was uploaded.",
+					"Uploaded", "Specifies the time the video was originally uploaded to YouTube.",
 					G_TYPE_TIME_VAL,
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * GDataYouTubeVideo:video-id:
+	 *
+	 * Specifies a unique ID which YouTube uses to identify the video. For example: <literal>qz8EfkS4KK0</literal>.
+	 *
+	 * For more information, see the <ulink type="http"
+	 * url="http://code.google.com/apis/youtube/2.0/reference.html#youtube_data_api_tag_yt:videoid">online documentation</ulink>.
+	 **/
 	g_object_class_install_property (gobject_class, PROP_VIDEO_ID,
 				g_param_spec_string ("video-id",
-					"Video ID", "The video's unique ID.",
+					"Video ID", "Specifies a unique ID which YouTube uses to identify the video.",
 					NULL,
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * GDataYouTubeVideo:is-draft:
+	 *
+	 * Indicates whether the video is in draft, or unpublished, status.
+	 *
+	 * For more information, see the <ulink type="http"
+	 * url="http://code.google.com/apis/youtube/2.0/reference.html#youtube_data_api_tag_app:draft">online documentation</ulink>.
+	 **/
 	g_object_class_install_property (gobject_class, PROP_IS_DRAFT,
 				g_param_spec_boolean ("is-draft",
-					"Draft?", "Whether the video's marked as a draft.",
+					"Draft?", "Indicates whether the video is in draft, or unpublished, status.",
 					FALSE, G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * GDataYouTubeVideo:state:
+	 *
+	 * Information describing the state of the video. If this is non-%NULL, the video is not playable.
+	 * Otherwise, it points to a #GDataYouTubeState.
+	 *
+	 * For more information, see the <ulink type="http"
+	 * url="http://code.google.com/apis/youtube/2.0/reference.html#youtube_data_api_tag_yt:state">online documentation</ulink>.
+	 **/
 	g_object_class_install_property (gobject_class, PROP_STATE,
 				g_param_spec_pointer ("state",
-					"State", "TODO",
+					"State", "Information describing the state of the video.",
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 }
 
@@ -279,8 +472,8 @@ gdata_youtube_video_get_property (GObject *object, guint property_id, GValue *va
 		case PROP_DURATION:
 			g_value_set_int (value, priv->duration);
 			break;
-		case PROP_PRIVATE:
-			g_value_set_boolean (value, priv->private);
+		case PROP_IS_PRIVATE:
+			g_value_set_boolean (value, priv->is_private);
 			break;
 		case PROP_UPLOADED:
 			g_value_set_boxed (value, &(priv->uploaded));
@@ -349,8 +542,8 @@ gdata_youtube_video_set_property (GObject *object, guint property_id, const GVal
 		case PROP_DURATION:
 			gdata_youtube_video_set_duration (self, g_value_get_int (value));
 			break;
-		case PROP_PRIVATE:
-			gdata_youtube_video_set_private (self, g_value_get_boolean (value));
+		case PROP_IS_PRIVATE:
+			gdata_youtube_video_set_is_private (self, g_value_get_boolean (value));
 			break;
 		case PROP_UPLOADED:
 			gdata_youtube_video_set_uploaded (self, g_value_get_boxed (value));
@@ -660,7 +853,7 @@ parse_media_group_xml_node (GDataYouTubeVideo *self, xmlDoc *doc, xmlNode *node,
 		gdata_youtube_video_set_duration (self, duration_int);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "private") == 0) {
 		/* yt:private */
-		gdata_youtube_video_set_private (self, TRUE);
+		gdata_youtube_video_set_is_private (self, TRUE);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "uploaded") == 0) {
 		/* yt:uploaded */
 		xmlChar *uploaded;
@@ -979,7 +1172,7 @@ get_xml (GDataEntry *entry, GString *xml_string)
 	if (priv->duration != -1)
 		g_string_append_printf (xml_string, "<yt:duration seconds='%i'/>", priv->duration);
 
-	if (priv->private == TRUE)
+	if (priv->is_private == TRUE)
 		g_string_append (xml_string, "<yt:private/>");
 
 	if (priv->uploaded.tv_sec != 0 || priv->uploaded.tv_usec != 0) {
@@ -1300,18 +1493,18 @@ gdata_youtube_video_set_duration (GDataYouTubeVideo *self, gint duration)
 }
 
 gboolean
-gdata_youtube_video_get_private (GDataYouTubeVideo *self)
+gdata_youtube_video_is_private (GDataYouTubeVideo *self)
 {
 	g_return_val_if_fail (GDATA_IS_YOUTUBE_VIDEO (self), FALSE);
-	return self->priv->private;
+	return self->priv->is_private;
 }
 
 void
-gdata_youtube_video_set_private (GDataYouTubeVideo *self, gboolean private)
+gdata_youtube_video_set_is_private (GDataYouTubeVideo *self, gboolean is_private)
 {
 	g_return_if_fail (GDATA_IS_YOUTUBE_VIDEO (self));
-	self->priv->private = private;
-	g_object_notify (G_OBJECT (self), "private");
+	self->priv->is_private = is_private;
+	g_object_notify (G_OBJECT (self), "is-private");
 }
 
 void
