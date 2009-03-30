@@ -24,6 +24,17 @@
 
 G_BEGIN_DECLS
 
+/**
+ * GDataCategory:
+ * @term: a category identifier
+ * @scheme: an IRI to define the categorisation scheme, or %NULL
+ * @label: a human-readable label for the category, or %NULL
+ *
+ * A structure fully representing an Atom "category" element. The @term field is required, but the others are optional.
+ *
+ * See the <ulink type="http" url="http://www.atomenabled.org/developers/syndication/atom-format-spec.php#element.category">Atom specification</ulink>
+ * for more information.
+ **/
 typedef struct {
 	gchar *term;
 	gchar *scheme;
@@ -33,18 +44,43 @@ typedef struct {
 GDataCategory *gdata_category_new (const gchar *term, const gchar *scheme, const gchar *label);
 void gdata_category_free (GDataCategory *self);
 
+/**
+ * GDataLink:
+ * @href: the link's IRI
+ * @rel: the relationship of the link to the current document, or %NULL
+ * @type: an advisory media type for the @href page, or %NULL
+ * @hreflang: the language of the @href page, or %NULL
+ * @title: human-readable information about the link, or %NULL
+ * @length: an advisory content length, in octets, for the @href page, or %-1
+ *
+ * A structure fully representing an Atom "link" element. The @href field is required, but the others are optional.
+ *
+ * See the <ulink type="http" url="http://www.atomenabled.org/developers/syndication/atom-format-spec.php#element.link">Atom specification</ulink>
+ * for more information.
+ **/
 typedef struct {
 	gchar *href;
 	gchar *rel;
 	gchar *type;
 	gchar *hreflang;
 	gchar *title;
-	gint length; /* TODO: guint? */
+	gint length;
 } GDataLink;
 
 GDataLink *gdata_link_new (const gchar *href, const gchar *rel, const gchar *type, const gchar *hreflang, const gchar *title, gint length);
 void gdata_link_free (GDataLink *self);
 
+/**
+ * GDataAuthor:
+ * @name: the author's name
+ * @uri: an IRI describing the author, or %NULL
+ * @email: the author's e-mail address, or %NULL
+ *
+ * A structure fully representing an Atom "author" element. The @name field is required, but the others are optional.
+ *
+ * See the <ulink type="http" url="http://www.atomenabled.org/developers/syndication/atom-format-spec.php#element.author">Atom specification</ulink>
+ * for more information.
+ **/
 typedef struct {
 	gchar *name;
 	gchar *uri;
@@ -54,6 +90,17 @@ typedef struct {
 GDataAuthor *gdata_author_new (const gchar *name, const gchar *uri, const gchar *email);
 void gdata_author_free (GDataAuthor *self);
 
+/**
+ * GDataGenerator:
+ * @name: the human-readable generator's name
+ * @uri: an IRI describing the generator, or %NULL
+ * @version: the version of the generator, or %NULL
+ *
+ * A structure fully representing an Atom "generator" element. The @name field is required, but the others are optional.
+ *
+ * See the <ulink type="http" url="http://www.atomenabled.org/developers/syndication/atom-format-spec.php#element.generator">Atom specification</ulink>
+ * for more information.
+ **/
 typedef struct {
 	gchar *uri;
 	gchar *version;

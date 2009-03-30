@@ -20,6 +20,12 @@
 	</chapter>
 
 	<chapter>
+		<title>Namespace API</title>
+		<xi:include href="xml/gdata-atom.xml"/>
+		<xi:include href="xml/gdata-gdata.xml"/>
+	</chapter>
+
+	<chapter>
 		<title>YouTube Service API</title>
 		<xi:include href="xml/gdata-youtube-service.xml"/>
 	</chapter>

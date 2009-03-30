@@ -130,6 +130,40 @@ GDataEntryPrivate
 </SECTION>
 
 <SECTION>
+<FILE>gdata-atom</FILE>
+<TITLE>Atom API</TITLE>
+GDataAuthor
+gdata_author_new
+gdata_author_free
+GDataCategory
+gdata_category_new
+gdata_category_free
+GDataLink
+gdata_link_new
+gdata_link_free
+GDataGenerator
+gdata_generator_new
+gdata_generator_free
+</SECTION>
+
+<SECTION>
+<FILE>gdata-gdata</FILE>
+<TITLE>GData API</TITLE>
+GDataGDFeedLink
+gdata_gd_feed_link_new
+gdata_gd_feed_link_free
+GDataGDRating
+gdata_gd_rating_new
+gdata_gd_rating_free
+GDataGDWhere
+gdata_gd_where_new
+gdata_gd_where_free
+GDataGDWho
+gdata_gd_who_new
+gdata_gd_who_free
+</SECTION>
+
+<SECTION>
 <FILE>gdata-youtube-service</FILE>
 <TITLE>GDataYouTubeService</TITLE>
 GDataYouTubeService
