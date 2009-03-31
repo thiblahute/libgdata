@@ -273,9 +273,7 @@ gdata_calendar_query_get_recurrence_expansion_start (GDataCalendarQuery *self, G
 {
 	g_return_if_fail (GDATA_IS_CALENDAR_QUERY (self));
 	g_return_if_fail (start != NULL);
-
-	start->tv_sec = self->priv->recurrence_expansion_start.tv_sec;
-	start->tv_usec = self->priv->recurrence_expansion_start.tv_usec;
+	*start = self->priv->recurrence_expansion_start;
 }
 
 void
@@ -283,9 +281,7 @@ gdata_calendar_query_set_recurrence_expansion_start (GDataCalendarQuery *self, G
 {
 	g_return_if_fail (GDATA_IS_CALENDAR_QUERY (self));
 	g_return_if_fail (start != NULL);
-
-	self->priv->recurrence_expansion_start.tv_sec = start->tv_sec;
-	self->priv->recurrence_expansion_start.tv_usec = start->tv_usec;
+	self->priv->recurrence_expansion_start = *start;
 	g_object_notify (G_OBJECT (self), "recurrence-expansion-start");
 }
 
@@ -294,9 +290,7 @@ gdata_calendar_query_get_recurrence_expansion_end (GDataCalendarQuery *self, GTi
 {
 	g_return_if_fail (GDATA_IS_CALENDAR_QUERY (self));
 	g_return_if_fail (end != NULL);
-
-	end->tv_sec = self->priv->recurrence_expansion_start.tv_sec;
-	end->tv_usec = self->priv->recurrence_expansion_start.tv_usec;
+	*end = self->priv->recurrence_expansion_end;
 }
 
 void
@@ -304,9 +298,7 @@ gdata_calendar_query_set_recurrence_expansion_end (GDataCalendarQuery *self, GTi
 {
 	g_return_if_fail (GDATA_IS_CALENDAR_QUERY (self));
 	g_return_if_fail (end != NULL);
-
-	self->priv->recurrence_expansion_start.tv_sec = end->tv_sec;
-	self->priv->recurrence_expansion_start.tv_usec = end->tv_usec;
+	self->priv->recurrence_expansion_end = *end;
 	g_object_notify (G_OBJECT (self), "recurrence-expansion-end");
 }
 
@@ -347,9 +339,7 @@ gdata_calendar_query_get_start_min (GDataCalendarQuery *self, GTimeVal *start_mi
 {
 	g_return_if_fail (GDATA_IS_CALENDAR_QUERY (self));
 	g_return_if_fail (start_min != NULL);
-
-	start_min->tv_sec = self->priv->start_min.tv_sec;
-	start_min->tv_usec = self->priv->start_min.tv_usec;
+	*start_min = self->priv->start_min;
 }
 
 void
@@ -362,9 +352,7 @@ gdata_calendar_query_set_start_min (GDataCalendarQuery *self, GTimeVal *start_mi
 		return;
 	}
 	self->priv->start_min_set = TRUE;
-
-	self->priv->start_min.tv_sec = start_min->tv_sec;
-	self->priv->start_min.tv_usec = start_min->tv_usec;
+	self->priv->start_min = *start_min;
 	g_object_notify (G_OBJECT (self), "start-min");
 }
 
@@ -373,9 +361,7 @@ gdata_calendar_query_get_start_max (GDataCalendarQuery *self, GTimeVal *start_ma
 {
 	g_return_if_fail (GDATA_IS_CALENDAR_QUERY (self));
 	g_return_if_fail (start_max != NULL);
-
-	start_max->tv_sec = self->priv->start_max.tv_sec;
-	start_max->tv_usec = self->priv->start_max.tv_usec;
+	*start_max = self->priv->start_max;
 }
 
 void
@@ -388,9 +374,7 @@ gdata_calendar_query_set_start_max (GDataCalendarQuery *self, GTimeVal *start_ma
 		return;
 	}
 	self->priv->start_max_set = TRUE;
-
-	self->priv->start_max.tv_sec = start_max->tv_sec;
-	self->priv->start_max.tv_usec = start_max->tv_usec;
+	self->priv->start_max = *start_max;
 	g_object_notify (G_OBJECT (self), "start-max");
 }
 

@@ -564,9 +564,7 @@ gdata_entry_get_updated (GDataEntry *self, GTimeVal *updated)
 {
 	g_return_if_fail (GDATA_IS_ENTRY (self));
 	g_return_if_fail (updated != NULL);
-
-	updated->tv_sec = self->priv->updated.tv_sec;
-	updated->tv_usec = self->priv->updated.tv_usec;
+	*updated = self->priv->updated;
 }
 
 /**
@@ -581,9 +579,7 @@ gdata_entry_get_published (GDataEntry *self, GTimeVal *published)
 {
 	g_return_if_fail (GDATA_IS_ENTRY (self));
 	g_return_if_fail (published != NULL);
-
-	published->tv_sec = self->priv->published.tv_sec;
-	published->tv_usec = self->priv->published.tv_usec;
+	*published = self->priv->published;
 }
 
 /**

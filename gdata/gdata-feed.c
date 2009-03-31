@@ -305,8 +305,7 @@ gdata_feed_set_property (GObject *object, guint property_id, const GValue *value
 			break;
 		case PROP_UPDATED:
 			timeval = g_value_get_boxed (value);
-			priv->updated.tv_sec = timeval->tv_sec;
-			priv->updated.tv_usec = timeval->tv_usec;
+			priv->updated = *timeval;
 			break;
 		case PROP_LOGO:
 			priv->logo = g_value_dup_string (value);
@@ -839,9 +838,7 @@ gdata_feed_get_updated (GDataFeed *self, GTimeVal *updated)
 {
 	g_return_if_fail (GDATA_IS_FEED (self));
 	g_return_if_fail (updated != NULL);
-
-	updated->tv_sec = self->priv->updated.tv_sec;
-	updated->tv_usec = self->priv->updated.tv_usec;
+	*updated = self->priv->updated;
 }
 
 /**

@@ -686,9 +686,7 @@ gdata_query_get_updated_min (GDataQuery *self, GTimeVal *updated_min)
 {
 	g_return_if_fail (GDATA_IS_QUERY (self));
 	g_return_if_fail (updated_min != NULL);
-
-	updated_min->tv_sec = self->priv->updated_min.tv_sec;
-	updated_min->tv_usec = self->priv->updated_min.tv_usec;
+	*updated_min = self->priv->updated_min;
 }
 
 /**
@@ -710,8 +708,7 @@ gdata_query_set_updated_min (GDataQuery *self, GTimeVal *updated_min)
 		self->priv->updated_min.tv_usec = 0;
 		self->priv->parameter_mask &= (GDATA_QUERY_PARAM_ALL ^ GDATA_QUERY_PARAM_UPDATED_MIN);
 	} else {
-		self->priv->updated_min.tv_sec = updated_min->tv_sec;
-		self->priv->updated_min.tv_usec = updated_min->tv_usec;
+		self->priv->updated_min = *updated_min;
 		self->priv->parameter_mask |= GDATA_QUERY_PARAM_UPDATED_MIN;
 	}
 
@@ -731,9 +728,7 @@ gdata_query_get_updated_max (GDataQuery *self, GTimeVal *updated_max)
 {
 	g_return_if_fail (GDATA_IS_QUERY (self));
 	g_return_if_fail (updated_max != NULL);
-
-	updated_max->tv_sec = self->priv->updated_max.tv_sec;
-	updated_max->tv_usec = self->priv->updated_max.tv_usec;
+	*updated_max = self->priv->updated_max;
 }
 
 /**
@@ -755,8 +750,7 @@ gdata_query_set_updated_max (GDataQuery *self, GTimeVal *updated_max)
 		self->priv->updated_max.tv_usec = 0;
 		self->priv->parameter_mask &= (GDATA_QUERY_PARAM_ALL ^ GDATA_QUERY_PARAM_UPDATED_MAX);
 	} else {
-		self->priv->updated_max.tv_sec = updated_max->tv_sec;
-		self->priv->updated_max.tv_usec = updated_max->tv_usec;
+		self->priv->updated_max = *updated_max;
 		self->priv->parameter_mask |= GDATA_QUERY_PARAM_UPDATED_MAX;
 	}
 
@@ -776,9 +770,7 @@ gdata_query_get_published_min (GDataQuery *self, GTimeVal *published_min)
 {
 	g_return_if_fail (GDATA_IS_QUERY (self));
 	g_return_if_fail (published_min != NULL);
-
-	published_min->tv_sec = self->priv->published_min.tv_sec;
-	published_min->tv_usec = self->priv->published_min.tv_usec;
+	*published_min = self->priv->published_min;
 }
 
 /**
@@ -800,8 +792,7 @@ gdata_query_set_published_min (GDataQuery *self, GTimeVal *published_min)
 		self->priv->published_min.tv_usec = 0;
 		self->priv->parameter_mask &= (GDATA_QUERY_PARAM_ALL ^ GDATA_QUERY_PARAM_PUBLISHED_MIN);
 	} else {
-		self->priv->published_min.tv_sec = published_min->tv_sec;
-		self->priv->published_min.tv_usec = published_min->tv_usec;
+		self->priv->published_min = *published_min;
 		self->priv->parameter_mask |= GDATA_QUERY_PARAM_PUBLISHED_MIN;
 	}
 
@@ -821,9 +812,7 @@ gdata_query_get_published_max (GDataQuery *self, GTimeVal *published_max)
 {
 	g_return_if_fail (GDATA_IS_QUERY (self));
 	g_return_if_fail (published_max != NULL);
-
-	published_max->tv_sec = self->priv->published_max.tv_sec;
-	published_max->tv_usec = self->priv->published_max.tv_usec;
+	*published_max = self->priv->published_max;
 }
 
 /**
@@ -845,8 +834,7 @@ gdata_query_set_published_max (GDataQuery *self, GTimeVal *published_max)
 		self->priv->published_max.tv_usec = 0;
 		self->priv->parameter_mask &= (GDATA_QUERY_PARAM_ALL ^ GDATA_QUERY_PARAM_PUBLISHED_MAX);
 	} else {
-		self->priv->published_max.tv_sec = published_max->tv_sec;
-		self->priv->published_max.tv_usec = published_max->tv_usec;
+		self->priv->published_max = *published_max;
 		self->priv->parameter_mask |= GDATA_QUERY_PARAM_PUBLISHED_MAX;
 	}
 

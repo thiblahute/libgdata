@@ -495,9 +495,7 @@ gdata_calendar_calendar_get_edited (GDataCalendarCalendar *self, GTimeVal *edite
 {
 	g_return_if_fail (GDATA_IS_CALENDAR_CALENDAR (self));
 	g_return_if_fail (edited != NULL);
-
-	edited->tv_sec = self->priv->edited.tv_sec;
-	edited->tv_usec = self->priv->edited.tv_usec;
+	*edited = self->priv->edited;
 }
 
 void
@@ -505,8 +503,6 @@ gdata_calendar_calendar_set_edited (GDataCalendarCalendar *self, GTimeVal *edite
 {
 	g_return_if_fail (GDATA_IS_CALENDAR_CALENDAR (self));
 	g_return_if_fail (edited != NULL);
-
-	self->priv->edited.tv_sec = edited->tv_sec;
-	self->priv->edited.tv_usec = edited->tv_usec;
+	self->priv->edited = *edited;
 	g_object_notify (G_OBJECT (self), "edited");
 }

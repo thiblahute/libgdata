@@ -588,9 +588,7 @@ gdata_calendar_event_get_edited (GDataCalendarEvent *self, GTimeVal *edited)
 {
 	g_return_if_fail (GDATA_IS_CALENDAR_EVENT (self));
 	g_return_if_fail (edited != NULL);
-
-	edited->tv_sec = self->priv->edited.tv_sec;
-	edited->tv_usec = self->priv->edited.tv_usec;
+	*edited = self->priv->edited;
 }
 
 void
@@ -598,9 +596,7 @@ gdata_calendar_event_set_edited (GDataCalendarEvent *self, GTimeVal *edited)
 {
 	g_return_if_fail (GDATA_IS_CALENDAR_EVENT (self));
 	g_return_if_fail (edited != NULL);
-
-	self->priv->edited.tv_sec = edited->tv_sec;
-	self->priv->edited.tv_usec = edited->tv_usec;
+	self->priv->edited = *edited;
 	g_object_notify (G_OBJECT (self), "edited");
 }
 
@@ -692,9 +688,7 @@ gdata_calendar_event_get_start_time (GDataCalendarEvent *self, GTimeVal *start_t
 {
 	g_return_if_fail (GDATA_IS_CALENDAR_EVENT (self));
 	g_return_if_fail (start_time != NULL);
-
-	start_time->tv_sec = self->priv->start_time.tv_sec;
-	start_time->tv_usec = self->priv->start_time.tv_usec;
+	*start_time = self->priv->start_time;
 }
 
 void
@@ -702,9 +696,7 @@ gdata_calendar_event_set_start_time (GDataCalendarEvent *self, GTimeVal *start_t
 {
 	g_return_if_fail (GDATA_IS_CALENDAR_EVENT (self));
 	g_return_if_fail (start_time != NULL);
-
-	self->priv->start_time.tv_sec = start_time->tv_sec;
-	self->priv->start_time.tv_usec = start_time->tv_usec;
+	self->priv->start_time = *start_time;
 	g_object_notify (G_OBJECT (self), "start-time");
 }
 
@@ -713,9 +705,7 @@ gdata_calendar_event_get_end_time (GDataCalendarEvent *self, GTimeVal *end_time)
 {
 	g_return_if_fail (GDATA_IS_CALENDAR_EVENT (self));
 	g_return_if_fail (end_time != NULL);
-
-	end_time->tv_sec = self->priv->end_time.tv_sec;
-	end_time->tv_usec = self->priv->end_time.tv_usec;
+	*end_time = self->priv->end_time;
 }
 
 void
@@ -727,8 +717,7 @@ gdata_calendar_event_set_end_time (GDataCalendarEvent *self, GTimeVal *end_time)
 		self->priv->end_time.tv_sec = 0;
 		self->priv->end_time.tv_usec = 0;
 	} else {
-		self->priv->end_time.tv_sec = end_time->tv_sec;
-		self->priv->end_time.tv_usec = end_time->tv_usec;
+		self->priv->end_time = *end_time;
 	}
 	g_object_notify (G_OBJECT (self), "end-time");
 }

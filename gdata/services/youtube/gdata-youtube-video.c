@@ -71,7 +71,7 @@ struct _GDataYouTubeVideoPrivate {
 	gchar *description;
 
 	/* YouTube-specific media:group properties */
-	gint duration;
+	guint duration;
 	gboolean is_private;
 	GTimeVal uploaded;
 	gchar *video_id;
@@ -236,7 +236,7 @@ gdata_youtube_video_class_init (GDataYouTubeVideoClass *klass)
 				g_param_spec_pointer ("media-rating",
 					"Media rating", "Indicates that the video contains restricted content, although such restrictions"
 					"might not apply in your country.",
-					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * GDataYouTubeVideo:restriction:
@@ -251,7 +251,7 @@ gdata_youtube_video_class_init (GDataYouTubeVideoClass *klass)
 	g_object_class_install_property (gobject_class, PROP_RESTRICTION,
 				g_param_spec_pointer ("restriction",
 					"Restriction", "Identifies the country or countries where the video may or may not be played.",
-					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * GDataYouTubeVideo:title:
@@ -291,7 +291,7 @@ gdata_youtube_video_class_init (GDataYouTubeVideoClass *klass)
 	g_object_class_install_property (gobject_class, PROP_CREDIT,
 				g_param_spec_pointer ("credit",
 					"Credit", "Identifies the owner of the video.",
-					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * GDataYouTubeVideo:description:
@@ -316,10 +316,10 @@ gdata_youtube_video_class_init (GDataYouTubeVideoClass *klass)
 	 * url="http://code.google.com/apis/youtube/2.0/reference.html#youtube_data_api_tag_yt:duration">online documentation</ulink>.
 	 **/
 	g_object_class_install_property (gobject_class, PROP_DURATION,
-				g_param_spec_int ("duration",
+				g_param_spec_uint ("duration",
 					"Duration", "The duration of the video in seconds.",
 					0, G_MAXINT, 0,
-					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * GDataYouTubeVideo:private:
@@ -347,7 +347,7 @@ gdata_youtube_video_class_init (GDataYouTubeVideoClass *klass)
 				g_param_spec_boxed ("uploaded",
 					"Uploaded", "Specifies the time the video was originally uploaded to YouTube.",
 					G_TYPE_TIME_VAL,
-					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * GDataYouTubeVideo:video-id:
@@ -361,7 +361,7 @@ gdata_youtube_video_class_init (GDataYouTubeVideoClass *klass)
 				g_param_spec_string ("video-id",
 					"Video ID", "Specifies a unique ID which YouTube uses to identify the video.",
 					NULL,
-					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * GDataYouTubeVideo:is-draft:
@@ -380,7 +380,7 @@ gdata_youtube_video_class_init (GDataYouTubeVideoClass *klass)
 	 * GDataYouTubeVideo:state:
 	 *
 	 * Information describing the state of the video. If this is non-%NULL, the video is not playable.
-	 * Otherwise, it points to a #GDataYouTubeState.
+	 * It points to a #GDataYouTubeState.
 	 *
 	 * For more information, see the <ulink type="http"
 	 * url="http://code.google.com/apis/youtube/2.0/reference.html#youtube_data_api_tag_yt:state">online documentation</ulink>.
@@ -388,7 +388,7 @@ gdata_youtube_video_class_init (GDataYouTubeVideoClass *klass)
 	g_object_class_install_property (gobject_class, PROP_STATE,
 				g_param_spec_pointer ("state",
 					"State", "Information describing the state of the video.",
-					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 }
 
 static void
@@ -471,7 +471,7 @@ gdata_youtube_video_get_property (GObject *object, guint property_id, GValue *va
 			g_value_set_string (value, priv->description);
 			break;
 		case PROP_DURATION:
-			g_value_set_int (value, priv->duration);
+			g_value_set_uint (value, priv->duration);
 			break;
 		case PROP_IS_PRIVATE:
 			g_value_set_boolean (value, priv->is_private);
@@ -513,41 +513,20 @@ gdata_youtube_video_set_property (GObject *object, guint property_id, const GVal
 		case PROP_KEYWORDS:
 			gdata_youtube_video_set_keywords (self, g_value_get_string (value));
 			break;
-		case PROP_MEDIA_RATING:
-			gdata_youtube_video_set_media_rating (self, g_value_get_pointer (value));
-			break;
-		case PROP_RESTRICTION:
-			gdata_youtube_video_set_restriction (self, g_value_get_pointer (value));
-			break;
 		case PROP_TITLE:
 			gdata_youtube_video_set_title (self, g_value_get_string (value));
 			break;
 		case PROP_CATEGORY:
 			gdata_youtube_video_set_category (self, g_value_get_pointer (value));
 			break;
-		case PROP_CREDIT:
-			gdata_youtube_video_set_credit (self, g_value_get_pointer (value));
-			break;
 		case PROP_DESCRIPTION:
 			gdata_youtube_video_set_description (self, g_value_get_string (value));
-			break;
-		case PROP_DURATION:
-			gdata_youtube_video_set_duration (self, g_value_get_int (value));
 			break;
 		case PROP_IS_PRIVATE:
 			gdata_youtube_video_set_is_private (self, g_value_get_boolean (value));
 			break;
-		case PROP_UPLOADED:
-			gdata_youtube_video_set_uploaded (self, g_value_get_boxed (value));
-			break;
-		case PROP_VIDEO_ID:
-			gdata_youtube_video_set_video_id (self, g_value_get_string (value));
-			break;
 		case PROP_IS_DRAFT:
 			gdata_youtube_video_set_is_draft (self, g_value_get_boolean (value));
-			break;
-		case PROP_STATE:
-			gdata_youtube_video_set_state (self, g_value_get_pointer (value));
 			break;
 		default:
 			/* We don't have any other property... */
@@ -731,11 +710,10 @@ parse_media_group_xml_node (GDataYouTubeVideo *self, xmlDoc *doc, xmlNode *node,
 		type = xmlGetProp (node, (xmlChar*) "type");
 
 		content = gdata_media_content_new ((gchar*) uri, (gchar*) type, is_default_bool, expression_enum, duration_int, format_int);
-		gdata_youtube_video_add_content (self, content);
+		self->priv->contents = g_list_prepend (self->priv->contents, content);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "credit") == 0) {
 		/* media:credit */
 		xmlChar *role, *type, *content;
-		GDataMediaCredit *credit;
 
 		/* Check the role property is "uploader" */
 		role = xmlGetProp (node, (xmlChar*) "role");
@@ -756,8 +734,9 @@ parse_media_group_xml_node (GDataYouTubeVideo *self, xmlDoc *doc, xmlNode *node,
 
 		content = xmlNodeListGetString (doc, node->xmlChildrenNode, TRUE);
 
-		credit = gdata_media_credit_new ((gchar*) content, (type != NULL) ? TRUE : FALSE);
-		gdata_youtube_video_set_credit (self, credit);
+		gdata_media_credit_free (self->priv->credit);
+		self->priv->credit = gdata_media_credit_new ((gchar*) content, (type != NULL) ? TRUE : FALSE);
+		g_object_notify (G_OBJECT (self), "credit");
 
 		xmlFree (type);
 		xmlFree (content);
@@ -766,20 +745,20 @@ parse_media_group_xml_node (GDataYouTubeVideo *self, xmlDoc *doc, xmlNode *node,
 		xmlChar *player_uri = xmlGetProp (node, (xmlChar*) "url");
 
 		g_free (self->priv->player_uri);
-		self->priv->player_uri = (gchar*) player_uri);
+		self->priv->player_uri = g_strdup ((gchar*) player_uri);
 		g_object_notify (G_OBJECT (self), "player-uri");
 
 		xmlFree (player_uri);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "rating") == 0) {
 		/* media:rating */
 		xmlChar *scheme, *country;
-		GDataMediaRating *rating;
 
 		scheme = xmlGetProp (node, (xmlChar*) "scheme");
 		country = xmlGetProp (node, (xmlChar*) "country");
 
-		rating = gdata_media_rating_new ((gchar*) scheme, (gchar*) country);
-		gdata_youtube_video_set_media_rating (self, rating);
+		gdata_media_rating_free (self->priv->media_rating);
+		self->priv->media_rating = gdata_media_rating_new ((gchar*) scheme, (gchar*) country);
+		g_object_notify (G_OBJECT (self), "media-rating");
 
 		xmlFree (scheme);
 		xmlFree (country);
@@ -787,7 +766,6 @@ parse_media_group_xml_node (GDataYouTubeVideo *self, xmlDoc *doc, xmlNode *node,
 		/* media:restriction */
 		xmlChar *type, *countries, *relationship;
 		gboolean relationship_bool;
-		GDataMediaRestriction *restriction;
 
 		/* Check the type property is "country" */
 		type = xmlGetProp (node, (xmlChar*) "type");
@@ -812,8 +790,9 @@ parse_media_group_xml_node (GDataYouTubeVideo *self, xmlDoc *doc, xmlNode *node,
 		}
 		xmlFree (relationship);
 
-		restriction = gdata_media_restriction_new ((gchar*) countries, relationship_bool);
-		gdata_youtube_video_set_restriction (self, restriction);
+		gdata_media_restriction_free (self->priv->restriction);
+		self->priv->restriction = gdata_media_restriction_new ((gchar*) countries, relationship_bool);
+		g_object_notify (G_OBJECT (self), "restriction");
 	} else if (xmlStrcmp (node->name, (xmlChar*) "thumbnail") == 0) {
 		/* media:thumbnail */
 		xmlChar *uri, *width, *height, *time;
@@ -853,20 +832,16 @@ parse_media_group_xml_node (GDataYouTubeVideo *self, xmlDoc *doc, xmlNode *node,
 		uri = xmlGetProp (node, (xmlChar*) "url");
 
 		thumbnail = gdata_media_thumbnail_new ((gchar*) uri, width_uint, height_uint, time_int);
-		gdata_youtube_video_add_thumbnail (self, thumbnail);
+		self->priv->thumbnails = g_list_prepend (self->priv->thumbnails, thumbnail);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "duration") == 0) {
 		/* yt:duration */
-		xmlChar *duration;
-		gint duration_int;
-
-		duration = xmlGetProp (node, (xmlChar*) "seconds");
+		xmlChar *duration = xmlGetProp (node, (xmlChar*) "seconds");
 		if (duration == NULL)
-			duration_int = -1;
-		else
-			duration_int = strtoul ((gchar*) duration, NULL, 10);
-		xmlFree (duration);
+			return gdata_parser_error_required_property_missing ("yt:duration", "seconds", error);
 
-		gdata_youtube_video_set_duration (self, duration_int);
+		self->priv->duration = strtoul ((gchar*) duration, NULL, 10);
+		g_object_notify (G_OBJECT (self), "duration");
+		xmlFree (duration);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "private") == 0) {
 		/* yt:private */
 		gdata_youtube_video_set_is_private (self, TRUE);
@@ -882,13 +857,16 @@ parse_media_group_xml_node (GDataYouTubeVideo *self, xmlDoc *doc, xmlNode *node,
 			xmlFree (uploaded);
 			return FALSE;
 		}
-
-		gdata_youtube_video_set_uploaded (self, &uploaded_timeval);
 		xmlFree (uploaded);
+
+		self->priv->uploaded = uploaded_timeval;
+		g_object_notify (G_OBJECT (self), "uploaded");
 	} else if (xmlStrcmp (node->name, (xmlChar*) "videoid") == 0) {
 		/* yt:videoid */
 		xmlChar *video_id = xmlNodeListGetString (doc, node->xmlChildrenNode, TRUE);
-		gdata_youtube_video_set_video_id (self, (gchar*) video_id);
+		g_free (self->priv->video_id);
+		self->priv->video_id = g_strdup ((gchar*) video_id);
+		g_object_notify (G_OBJECT (self), "video-id");
 		xmlFree (video_id);
 	} else {
 		return gdata_parser_error_unhandled_element ((gchar*) node->ns->prefix, (gchar*) node->name, "media:group", error);
@@ -1021,7 +999,6 @@ _gdata_youtube_video_parse_xml_node (GDataYouTubeVideo *self, xmlDoc *doc, xmlNo
 			} else if (xmlStrcmp (child_node->name, (xmlChar*) "state") == 0) {
 				/* yt:state */
 				xmlChar *name, *message, *reason_code, *help_uri;
-				GDataYouTubeState *state;
 
 				name = xmlGetProp (child_node, (xmlChar*) "name");
 				if (name == NULL)
@@ -1031,8 +1008,9 @@ _gdata_youtube_video_parse_xml_node (GDataYouTubeVideo *self, xmlDoc *doc, xmlNo
 				reason_code = xmlGetProp (child_node, (xmlChar*) "reasonCode");
 				help_uri = xmlGetProp (child_node, (xmlChar*) "helpUrl");
 
-				state = gdata_youtube_state_new ((gchar*) name, (gchar*) message, (gchar*) reason_code, (gchar*) help_uri);
-				gdata_youtube_video_set_state (self, state);
+				gdata_youtube_state_free (self->priv->state);
+				self->priv->state = gdata_youtube_state_new ((gchar*) name, (gchar*) message, (gchar*) reason_code, (gchar*) help_uri);
+				g_object_notify (G_OBJECT (self), "state");
 
 				xmlFree (name);
 				xmlFree (message);
@@ -1067,6 +1045,7 @@ get_xml (GDataEntry *entry, GString *xml_string)
 	gchar *category;
 	GList *contents, *thumbnails;
 
+	/* TODO: Make sure read-only properties aren't represented here */
 	/* Chain up to the parent class */
 	GDATA_ENTRY_CLASS (gdata_youtube_video_parent_class)->get_xml (entry, xml_string);
 
@@ -1137,42 +1116,10 @@ get_xml (GDataEntry *entry, GString *xml_string)
 		g_string_append (xml_string, "/>");
 	}
 
-	if (priv->credit != NULL) {
-		gchar *credit;
-
-		g_string_append (xml_string, "<media:credit role='uploader' scheme='urn:youtube'");
-		if (priv->credit->partner == TRUE)
-			g_string_append (xml_string, " yt:type='partner'");
-
-		credit = g_markup_escape_text (priv->credit->credit, -1);
-		g_string_append_printf (xml_string, ">%s</media:credit>", credit);
-		g_free (credit);
-	}
-
 	if (priv->player_uri != NULL) {
 		gchar *player_uri = g_markup_escape_text (priv->player_uri, -1);
 		g_string_append_printf (xml_string, "<media:player url='%s'/>", player_uri);
 		g_free (player_uri);
-	}
-
-	if (priv->media_rating != NULL) {
-		gchar *scheme, *country;
-		scheme = g_markup_escape_text (priv->media_rating->scheme, -1);
-		country = g_markup_escape_text (priv->media_rating->country, -1);
-		g_string_append_printf (xml_string, "<media:rating scheme='%s' country='%s'>1</media:rating>",
-					scheme, country);
-		g_free (scheme);
-		g_free (country);
-	}
-
-	if (priv->restriction != NULL) {
-		gchar *countries = g_markup_escape_text (priv->restriction->countries, -1);
-		g_string_append (xml_string, "<media:restriction type='country' relationship='");
-		if (priv->restriction->relationship == TRUE)
-			g_string_append_printf (xml_string, "allow'>%s</media:restriction>", countries);
-		else
-			g_string_append_printf (xml_string, "deny'>%s</media:restriction>", countries);
-		g_free (countries);
 	}
 
 	for (thumbnails = priv->thumbnails; thumbnails != NULL; thumbnails = thumbnails->next) {
@@ -1187,23 +1134,8 @@ get_xml (GDataEntry *entry, GString *xml_string)
 		g_free (time);
 	}
 
-	if (priv->duration != -1)
-		g_string_append_printf (xml_string, "<yt:duration seconds='%i'/>", priv->duration);
-
 	if (priv->is_private == TRUE)
 		g_string_append (xml_string, "<yt:private/>");
-
-	if (priv->uploaded.tv_sec != 0 || priv->uploaded.tv_usec != 0) {
-		gchar *uploaded = g_time_val_to_iso8601 (&(priv->uploaded));
-		g_string_append_printf (xml_string, "<yt:uploaded>%s</yt:uploaded>", uploaded);
-		g_free (uploaded);
-	}
-
-	if (priv->video_id != NULL) {
-		gchar *video_id = g_markup_escape_text (priv->video_id, -1);
-		g_string_append_printf (xml_string, "<yt:videoid>%s</yt:videoid>", video_id);
-		g_free (video_id);
-	}
 
 	if (priv->no_embed == TRUE)
 		g_string_append (xml_string, "<yt:noembed/>");
@@ -1342,15 +1274,15 @@ gdata_youtube_video_get_rating (GDataYouTubeVideo *self)
 }
 
 /* TODO: The only use for this is for adding a new rating, but there must be a better interface for that */
-void
+/*void
 gdata_youtube_video_set_rating (GDataYouTubeVideo *self, GDataGDRating *rating)
 {
 	g_return_if_fail (GDATA_IS_YOUTUBE_VIDEO (self));
 
-	gdata_gd_rating_free (self->priv->rating); /* TODO: Not so happy about this memory management */
+	gdata_gd_rating_free (self->priv->rating);  TODO: Not so happy about this memory management 
 	self->priv->rating = rating;
 	g_object_notify (G_OBJECT (self), "rating");
-}
+}*/
 
 /**
  * gdata_youtube_video_get_keywords:
@@ -1418,17 +1350,6 @@ gdata_youtube_video_get_media_rating (GDataYouTubeVideo *self)
 	return self->priv->media_rating;
 }
 
-/* TODO: Is this allowed? */
-void
-gdata_youtube_video_set_media_rating (GDataYouTubeVideo *self, GDataMediaRating *rating)
-{
-	g_return_if_fail (GDATA_IS_YOUTUBE_VIDEO (self));
-
-	gdata_media_rating_free (self->priv->media_rating); /* TODO: not so happy about this memory management */
-	self->priv->media_rating = rating;
-	g_object_notify (G_OBJECT (self), "media-rating");
-}
-
 /**
  * gdata_youtube_video_get_restriction:
  * @self: a #GDataYouTubeVideo
@@ -1444,16 +1365,14 @@ gdata_youtube_video_get_restriction (GDataYouTubeVideo *self)
 	return self->priv->restriction;
 }
 
-void
-gdata_youtube_video_set_restriction (GDataYouTubeVideo *self, GDataMediaRestriction *restriction)
-{
-	g_return_if_fail (GDATA_IS_YOUTUBE_VIDEO (self));
-
-	gdata_media_restriction_free (self->priv->restriction); /* TODO: not so happy about this memory management */
-	self->priv->restriction = restriction;
-	g_object_notify (G_OBJECT (self), "restriction");
-}
-
+/**
+ * gdata_youtube_video_get_title:
+ * @self: a #GDataYouTubeVideo
+ *
+ * Gets the #GDataYouTubeVideo:title property.
+ *
+ * Return value: the video's title, or %NULL
+ **/
 const gchar *
 gdata_youtube_video_get_title (GDataYouTubeVideo *self)
 {
@@ -1461,6 +1380,15 @@ gdata_youtube_video_get_title (GDataYouTubeVideo *self)
 	return self->priv->title;
 }
 
+/**
+ * gdata_youtube_video_set_title:
+ * @self: a #GDataYouTubeVideo
+ * @title: the new video title
+ *
+ * Sets the #GDataYouTubeVideo:title property to the new title, @title.
+ *
+ * Set @title to %NULL to unset the video's title.
+ **/
 void
 gdata_youtube_video_set_title (GDataYouTubeVideo *self, const gchar *title)
 {
@@ -1471,6 +1399,14 @@ gdata_youtube_video_set_title (GDataYouTubeVideo *self, const gchar *title)
 	g_object_notify (G_OBJECT (self), "title");
 }
 
+/**
+ * gdata_youtube_video_get_category:
+ * @self: a #GDataYouTubeVideo
+ *
+ * Gets the #GDataYouTubeVideo:category property.
+ *
+ * Return value: a #GDataMediaCategory giving the video's single and mandatory category
+ **/
 GDataMediaCategory *
 gdata_youtube_video_get_category (GDataYouTubeVideo *self)
 {
@@ -1478,9 +1414,20 @@ gdata_youtube_video_get_category (GDataYouTubeVideo *self)
 	return self->priv->category;
 }
 
+/**
+ * gdata_youtube_video_set_category:
+ * @self: a #GDataYouTubeVideo
+ * @category: a new #GDataMediaCategory
+ *
+ * Sets the #GDataYouTubeVideo:category property to the new category, @category.
+ *
+ * @category must not be %NULL. For more information, see the <ulink type="http"
+ * url="http://code.google.com/apis/youtube/2.0/reference.html#youtube_data_api_tag_media:category">online documentation</ulink>.
+ **/
 void
 gdata_youtube_video_set_category (GDataYouTubeVideo *self, GDataMediaCategory *category)
 {
+	g_return_if_fail (category != NULL);
 	g_return_if_fail (GDATA_IS_YOUTUBE_VIDEO (self));
 
 	gdata_media_category_free (self->priv->category); /* TODO: not so happy about this memory management */
@@ -1488,6 +1435,14 @@ gdata_youtube_video_set_category (GDataYouTubeVideo *self, GDataMediaCategory *c
 	g_object_notify (G_OBJECT (self), "category");
 }
 
+/**
+ * gdata_youtube_video_get_credit:
+ * @self: a #GDataYouTubeVideo
+ *
+ * Gets the #GDataYouTubeVideo:credit property.
+ *
+ * Return value: a #GDataMediaCredit giving information on who to credit for the video, or %NULL
+ **/
 GDataMediaCredit *
 gdata_youtube_video_get_credit (GDataYouTubeVideo *self)
 {
@@ -1495,16 +1450,14 @@ gdata_youtube_video_get_credit (GDataYouTubeVideo *self)
 	return self->priv->credit;
 }
 
-void
-gdata_youtube_video_set_credit (GDataYouTubeVideo *self, GDataMediaCredit *credit)
-{
-	g_return_if_fail (GDATA_IS_YOUTUBE_VIDEO (self));
-
-	gdata_media_credit_free (self->priv->credit); /* TODO: not so happy about this memory management */
-	self->priv->credit = credit;
-	g_object_notify (G_OBJECT (self), "credit");
-}
-
+/**
+ * gdata_youtube_video_get_description:
+ * @self: a #GDataYouTubeVideo
+ *
+ * Gets the #GDataYouTubeVideo:description property.
+ *
+ * Return value: the video's long text description, or %NULL
+ **/
 const gchar *
 gdata_youtube_video_get_description (GDataYouTubeVideo *self)
 {
@@ -1512,6 +1465,15 @@ gdata_youtube_video_get_description (GDataYouTubeVideo *self)
 	return self->priv->description;
 }
 
+/**
+ * gdata_youtube_video_set_description:
+ * @self: a #GDataYouTubeVideo
+ * @description: the video's new description
+ *
+ * Sets the #GDataYouTubeVideo:description property to the new description, @description.
+ *
+ * Set @description to %NULL to unset the video's description.
+ **/
 void
 gdata_youtube_video_set_description (GDataYouTubeVideo *self, const gchar *description)
 {
@@ -1522,24 +1484,24 @@ gdata_youtube_video_set_description (GDataYouTubeVideo *self, const gchar *descr
 	g_object_notify (G_OBJECT (self), "keywords");
 }
 
-/* TODO: More content API */
-void
-gdata_youtube_video_add_content (GDataYouTubeVideo *self, GDataMediaContent *content)
-{
-	g_return_if_fail (GDATA_IS_YOUTUBE_VIDEO (self));
-	g_return_if_fail (content != NULL);
-
-	self->priv->contents = g_list_prepend (self->priv->contents, content);
-}
-
 static gint
 content_compare_cb (const GDataMediaContent *content, const gchar *type)
 {
 	return strcmp (content->type, type);
 }
 
+/**
+ * gdata_youtube_video_look_up_content:
+ * @self: a #GDataYouTubeVideo
+ * @type: the MIME type of the content desired
+ *
+ * Looks up a #GDataMediaContent from the video with the given MIME type. The video's list of contents is
+ * a list of URIs to various formats of the video itself, such as its SWF URI or RTSP stream.
+ *
+ * Return value: a #GDataMediaContent matching @type, or %NULL
+ **/
 GDataMediaContent *
-gdata_youtube_video_lookup_content (GDataYouTubeVideo *self, const gchar *type)
+gdata_youtube_video_look_up_content (GDataYouTubeVideo *self, const gchar *type)
 {
 	GList *element;
 
@@ -1553,16 +1515,14 @@ gdata_youtube_video_lookup_content (GDataYouTubeVideo *self, const gchar *type)
 	return (GDataMediaContent*) (element->data);
 }
 
-/* TODO: More thumbnail API */
-void
-gdata_youtube_video_add_thumbnail (GDataYouTubeVideo *self, GDataMediaThumbnail *thumbnail)
-{
-	g_return_if_fail (GDATA_IS_YOUTUBE_VIDEO (self));
-	g_return_if_fail (thumbnail != NULL);
-
-	self->priv->thumbnails = g_list_prepend (self->priv->thumbnails, thumbnail);
-}
-
+/**
+ * gdata_youtube_video_get_thumbnails:
+ * @self: a #GDataYouTubeVideo
+ *
+ * Gets a list of the thumbnails available for the video.
+ *
+ * Return value: a #GList of #GDataMediaThumbnail<!-- -->s, or %NULL
+ **/
 GList *
 gdata_youtube_video_get_thumbnails (GDataYouTubeVideo *self)
 {
@@ -1570,21 +1530,29 @@ gdata_youtube_video_get_thumbnails (GDataYouTubeVideo *self)
 	return self->priv->thumbnails;
 }
 
-gint
+/**
+ * gdata_youtube_video_get_duration:
+ * @self: a #GDataYouTubeVideo
+ *
+ * Gets the #GDataYouTubeVideo:duration property.
+ *
+ * Return value: the video duration in seconds, or %0 if unknown
+ **/
+guint
 gdata_youtube_video_get_duration (GDataYouTubeVideo *self)
 {
-	g_return_val_if_fail (GDATA_IS_YOUTUBE_VIDEO (self), -1);
+	g_return_val_if_fail (GDATA_IS_YOUTUBE_VIDEO (self), 0);
 	return self->priv->duration;
 }
 
-void
-gdata_youtube_video_set_duration (GDataYouTubeVideo *self, gint duration)
-{
-	g_return_if_fail (GDATA_IS_YOUTUBE_VIDEO (self));
-	self->priv->duration = duration;
-	g_object_notify (G_OBJECT (self), "duration");
-}
-
+/**
+ * gdata_youtube_video_is_private:
+ * @self: a #GDataYouTubeVideo
+ *
+ * Gets the #GDataYouTubeVideo:is-private property.
+ *
+ * Return value: %TRUE if the video is private, %FALSE otherwise
+ **/
 gboolean
 gdata_youtube_video_is_private (GDataYouTubeVideo *self)
 {
@@ -1592,6 +1560,13 @@ gdata_youtube_video_is_private (GDataYouTubeVideo *self)
 	return self->priv->is_private;
 }
 
+/**
+ * gdata_youtube_video_set_is_private:
+ * @self: a #GDataYouTubeVideo
+ * @is_private: whether the video is private
+ *
+ * Sets the #GDataYouTubeVideo:is-private property to decide whether the video is publicly viewable.
+ **/
 void
 gdata_youtube_video_set_is_private (GDataYouTubeVideo *self, gboolean is_private)
 {
@@ -1600,24 +1575,29 @@ gdata_youtube_video_set_is_private (GDataYouTubeVideo *self, gboolean is_private
 	g_object_notify (G_OBJECT (self), "is-private");
 }
 
+/**
+ * gdata_youtube_video_get_uploaded:
+ * @self: a #GDataYouTubeVideo
+ * @uploaded: a #GTimeVal
+ *
+ * Gets the #GDataYouTubeVideo:uploaded property and puts it in @uploaded. If the property is unset,
+ * both fields in the #GTimeVal will be set to 0.
+ **/
 void
 gdata_youtube_video_get_uploaded (GDataYouTubeVideo *self, GTimeVal *uploaded)
 {
 	g_return_if_fail (GDATA_IS_YOUTUBE_VIDEO (self));
-
-	uploaded->tv_sec = self->priv->uploaded.tv_sec;
-	uploaded->tv_usec = self->priv->uploaded.tv_usec;
+	*uploaded = self->priv->uploaded;
 }
 
-void
-gdata_youtube_video_set_uploaded (GDataYouTubeVideo *self, GTimeVal *uploaded)
-{
-	g_return_if_fail (GDATA_IS_YOUTUBE_VIDEO (self));
-	self->priv->uploaded.tv_sec = uploaded->tv_sec;
-	self->priv->uploaded.tv_usec = uploaded->tv_usec;
-	g_object_notify (G_OBJECT (self), "uploaded");
-}
-
+/**
+ * gdata_youtube_video_get_video_id:
+ * @self: a #GDataYouTubeVideo
+ *
+ * Gets the #GDataYouTubeVideo:video-id property.
+ *
+ * Return value: the video's unique and permanent ID
+ **/
 const gchar *
 gdata_youtube_video_get_video_id (GDataYouTubeVideo *self)
 {
@@ -1625,16 +1605,14 @@ gdata_youtube_video_get_video_id (GDataYouTubeVideo *self)
 	return self->priv->video_id;
 }
 
-void
-gdata_youtube_video_set_video_id (GDataYouTubeVideo *self, const gchar *video_id)
-{
-	g_return_if_fail (GDATA_IS_YOUTUBE_VIDEO (self));
-
-	g_free (self->priv->video_id);
-	self->priv->video_id = g_strdup (video_id);
-	g_object_notify (G_OBJECT (self), "video-id");
-}
-
+/**
+ * gdata_youtube_video_is_draft:
+ * @self: a #GDataYouTubeVideo
+ *
+ * Gets the #GDataYouTubeVideo:is-draft property.
+ *
+ * Return value: %TRUE if the video is a draft, %FALSE otherwise
+ **/
 gboolean
 gdata_youtube_video_is_draft (GDataYouTubeVideo *self)
 {
@@ -1642,6 +1620,13 @@ gdata_youtube_video_is_draft (GDataYouTubeVideo *self)
 	return self->priv->is_draft;
 }
 
+/**
+ * gdata_youtube_video_set_is_draft:
+ * @self: a #GDataYouTubeVideo
+ * @is_draft: whether the video is a draft
+ *
+ * Sets the #GDataYouTubeVideo:is-draft property to decide whether the video is a draft.
+ **/
 void
 gdata_youtube_video_set_is_draft (GDataYouTubeVideo *self, gboolean is_draft)
 {
@@ -1650,19 +1635,20 @@ gdata_youtube_video_set_is_draft (GDataYouTubeVideo *self, gboolean is_draft)
 	g_object_notify (G_OBJECT (self), "is-draft");
 }
 
+/**
+ * gdata_youtube_video_get_state:
+ * @self: a #GDataYouTubeVideo
+ *
+ * Gets the #GDataYouTubeVideo:state property.
+ *
+ * For more information, see the <ulink type="http"
+ * url="http://code.google.com/apis/youtube/2.0/reference.html#youtube_data_api_tag_yt:state">online documentation</ulink>.
+ *
+ * Return value: a #GDataYouTubeState showing the state of the video, or %NULL
+ **/
 GDataYouTubeState *
 gdata_youtube_video_get_state (GDataYouTubeVideo *self)
 {
 	g_return_val_if_fail (GDATA_IS_YOUTUBE_VIDEO (self), NULL);
 	return self->priv->state;
-}
-
-void
-gdata_youtube_video_set_state (GDataYouTubeVideo *self, GDataYouTubeState *state)
-{
-	g_return_if_fail (GDATA_IS_YOUTUBE_VIDEO (self));
-
-	gdata_youtube_state_free (self->priv->state);
-	self->priv->state = state;
-	g_object_notify (G_OBJECT (self), "state");
 }
