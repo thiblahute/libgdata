@@ -133,7 +133,7 @@ gdata_youtube_video_class_init (GDataYouTubeVideoClass *klass)
 				g_param_spec_uint ("view-count",
 					"View count", "The number of times the video has been viewed.",
 					0, G_MAXUINT, 0,
-					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * GDataYouTubeVideo:favorite-count:
@@ -147,7 +147,7 @@ gdata_youtube_video_class_init (GDataYouTubeVideoClass *klass)
 				g_param_spec_uint ("favorite-count",
 					"Favorite count", "The number of YouTube users who have added the video to their list of favorite videos.",
 					0, G_MAXUINT, 0,
-					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * GDataYouTubeVideo:location:
@@ -220,7 +220,7 @@ gdata_youtube_video_class_init (GDataYouTubeVideoClass *klass)
 					"Player URI", "Specifies a URI where the full-length video is available through a media player"
 					"that runs inside a web browser.",
 					NULL,
-					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * GDataYouTubeVideo:media-rating:
@@ -242,7 +242,8 @@ gdata_youtube_video_class_init (GDataYouTubeVideoClass *klass)
 	 * GDataYouTubeVideo:restriction:
 	 *
 	 * Identifies the country or countries where the video may or may not be played.
-	 * The attribute value is a space-delimited list of ISO 3166 two-letter country codes.
+	 *
+	 * It is a pointer to a #GDataMediaRestriction.
 	 *
 	 * For more information, see the <ulink type="http"
 	 * url="http://code.google.com/apis/youtube/2.0/reference.html#youtube_data_api_tag_media:restriction">online documentation</ulink>.
@@ -500,12 +501,6 @@ gdata_youtube_video_set_property (GObject *object, guint property_id, const GVal
 	GDataYouTubeVideo *self = GDATA_YOUTUBE_VIDEO (object);
 
 	switch (property_id) {
-		case PROP_VIEW_COUNT:
-			gdata_youtube_video_set_view_count (self, g_value_get_uint (value));
-			break;
-		case PROP_FAVORITE_COUNT:
-			gdata_youtube_video_set_favorite_count (self, g_value_get_uint (value));
-			break;
 		case PROP_LOCATION:
 			gdata_youtube_video_set_location (self, g_value_get_string (value));
 			break;
@@ -517,9 +512,6 @@ gdata_youtube_video_set_property (GObject *object, guint property_id, const GVal
 			break;
 		case PROP_KEYWORDS:
 			gdata_youtube_video_set_keywords (self, g_value_get_string (value));
-			break;
-		case PROP_PLAYER_URI:
-			gdata_youtube_video_set_player_uri (self, g_value_get_string (value));
 			break;
 		case PROP_MEDIA_RATING:
 			gdata_youtube_video_set_media_rating (self, g_value_get_pointer (value));
@@ -564,12 +556,32 @@ gdata_youtube_video_set_property (GObject *object, guint property_id, const GVal
 	}
 }
 
+/**
+ * gdata_youtube_video_new:
+ *
+ * Creates a new #GDataYouTubeVideo with default properties.
+ *
+ * Return value: a new #GDataYouTubeVideo; unref with g_object_unref()
+ **/
 GDataYouTubeVideo *
 gdata_youtube_video_new (void)
 {
 	return g_object_new (GDATA_TYPE_YOUTUBE_VIDEO, NULL);
 }
 
+/**
+ * gdata_youtube_video_new_from_xml:
+ * @xml: an XML string
+ * @length: the length in characters of @xml, or %-1
+ * @error: a #GError, or %NULL
+ *
+ * Creates a new #GDataYouTubeVideo from an XML string. If @length is %-1, the length of
+ * the string will be calculated.
+ *
+ * Errors from #GDataParserError can be returned if problems are found in the XML.
+ *
+ * Return value: a new #GDataYouTubeVideo, or %NULL; unref with g_object_unref()
+ **/
 GDataYouTubeVideo *
 gdata_youtube_video_new_from_xml (const gchar *xml, gint length, GError **error)
 {
@@ -752,7 +764,11 @@ parse_media_group_xml_node (GDataYouTubeVideo *self, xmlDoc *doc, xmlNode *node,
 	} else if (xmlStrcmp (node->name, (xmlChar*) "player") == 0) {
 		/* media:player */
 		xmlChar *player_uri = xmlGetProp (node, (xmlChar*) "url");
-		gdata_youtube_video_set_player_uri (self, (gchar*) player_uri);
+
+		g_free (self->priv->player_uri);
+		self->priv->player_uri = (gchar*) player_uri);
+		g_object_notify (G_OBJECT (self), "player-uri");
+
 		xmlFree (player_uri);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "rating") == 0) {
 		/* media:rating */
@@ -967,15 +983,17 @@ _gdata_youtube_video_parse_xml_node (GDataYouTubeVideo *self, xmlDoc *doc, xmlNo
 		view_count = xmlGetProp (node, (xmlChar*) "viewCount");
 		if (view_count == NULL)
 			return gdata_parser_error_required_property_missing ("yt:statistics", "viewCount", error);
-		gdata_youtube_video_set_view_count (self, strtoul ((gchar*) view_count, NULL, 10));
+		self->priv->view_count = strtoul ((gchar*) view_count, NULL, 10);
+		g_object_notify (G_OBJECT (self), "view-count");
 		xmlFree (view_count);
 
 		/* Favourite count */
 		favorite_count = xmlGetProp (node, (xmlChar*) "favoriteCount");
 		if (favorite_count == NULL)
-			gdata_youtube_video_set_favorite_count (self, 0);
+			self->priv->favorite_count = 0;
 		else
-			gdata_youtube_video_set_favorite_count (self, strtoul ((gchar*) favorite_count, NULL, 10));
+			self->priv->favorite_count = strtoul ((gchar*) favorite_count, NULL, 10);
+		g_object_notify (G_OBJECT (self), "favorite-count");
 		xmlFree (favorite_count);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "location") == 0) {
 		/* yt:location */
@@ -1214,6 +1232,14 @@ get_namespaces (GDataEntry *entry)
 	return "xmlns:media='http://search.yahoo.com/mrss/' xmlns:yt='http://gdata.youtube.com/schemas/2007'";
 }
 
+/**
+ * gdata_youtube_video_get_view_count:
+ * @self: a #GDataYouTubeVideo
+ *
+ * Gets the #GDataYouTubeVideo:view-count property.
+ *
+ * Return value: the number of times the video has been viewed
+ **/
 guint
 gdata_youtube_video_get_view_count (GDataYouTubeVideo *self)
 {
@@ -1221,14 +1247,14 @@ gdata_youtube_video_get_view_count (GDataYouTubeVideo *self)
 	return self->priv->view_count;
 }
 
-void
-gdata_youtube_video_set_view_count (GDataYouTubeVideo *self, guint view_count)
-{
-	g_return_if_fail (GDATA_IS_YOUTUBE_VIDEO (self));
-	self->priv->view_count = view_count;
-	g_object_notify (G_OBJECT (self), "view-count");
-}
-
+/**
+ * gdata_youtube_video_get_favorite_count:
+ * @self: a #GDataYouTubeVideo
+ *
+ * Gets the #GDataYouTubeVideo:favorite-count property.
+ *
+ * Return value: the number of users who have added the video to their favorites list
+ **/
 guint
 gdata_youtube_video_get_favorite_count (GDataYouTubeVideo *self)
 {
@@ -1236,14 +1262,14 @@ gdata_youtube_video_get_favorite_count (GDataYouTubeVideo *self)
 	return self->priv->favorite_count;
 }
 
-void
-gdata_youtube_video_set_favorite_count (GDataYouTubeVideo *self, guint favorite_count)
-{
-	g_return_if_fail (GDATA_IS_YOUTUBE_VIDEO (self));
-	self->priv->favorite_count = favorite_count;
-	g_object_notify (G_OBJECT (self), "favorite-count");
-}
-
+/**
+ * gdata_youtube_video_get_location:
+ * @self: a #GDataYouTubeVideo
+ *
+ * Gets the #GDataYouTubeVideo:location property.
+ *
+ * Return value: a string describing the video's location, or %NULL
+ **/
 const gchar *
 gdata_youtube_video_get_location (GDataYouTubeVideo *self)
 {
@@ -1251,6 +1277,15 @@ gdata_youtube_video_get_location (GDataYouTubeVideo *self)
 	return self->priv->location;
 }
 
+/**
+ * gdata_youtube_video_set_location:
+ * @self: a #GDataYouTubeVideo
+ * @location: a new location, or %NULL
+ *
+ * Sets the #GDataYouTubeVideo:location property to the new location string, @location.
+ *
+ * Set @location to %NULL to unset the property in the video.
+ **/
 void
 gdata_youtube_video_set_location (GDataYouTubeVideo *self, const gchar *location)
 {
@@ -1261,6 +1296,14 @@ gdata_youtube_video_set_location (GDataYouTubeVideo *self, const gchar *location
 	g_object_notify (G_OBJECT (self), "location");
 }
 
+/**
+ * gdata_youtube_video_get_no_embed:
+ * @self: a #GDataYouTubeVideo
+ *
+ * Gets the #GDataYouTubeVideo:no-embed property.
+ *
+ * Return value: %TRUE if the video cannot be embedded on web pages, %FALSE otherwise
+ **/
 gboolean
 gdata_youtube_video_get_no_embed (GDataYouTubeVideo *self)
 {
@@ -1268,6 +1311,13 @@ gdata_youtube_video_get_no_embed (GDataYouTubeVideo *self)
 	return self->priv->no_embed;
 }
 
+/**
+ * gdata_youtube_video_set_no_embed:
+ * @self: a #GDataYouTubeVideo
+ * @no_embed: whether the video can be embedded 
+ *
+ * Sets the #GDataYouTubeVideo:no-embed property to @no_embed.
+ **/
 void
 gdata_youtube_video_set_no_embed (GDataYouTubeVideo *self, gboolean no_embed)
 {
@@ -1276,6 +1326,14 @@ gdata_youtube_video_set_no_embed (GDataYouTubeVideo *self, gboolean no_embed)
 	g_object_notify (G_OBJECT (self), "no-embed");
 }
 
+/**
+ * gdata_youtube_video_get_rating:
+ * @self: a #GDataYouTubeVideo
+ *
+ * Gets the #GDataYouTubeVideo:rating property.
+ *
+ * Return value: a #GDataGDRating describing the popularity of the video, or %NULL
+ **/
 GDataGDRating *
 gdata_youtube_video_get_rating (GDataYouTubeVideo *self)
 {
@@ -1283,6 +1341,7 @@ gdata_youtube_video_get_rating (GDataYouTubeVideo *self)
 	return self->priv->rating;
 }
 
+/* TODO: The only use for this is for adding a new rating, but there must be a better interface for that */
 void
 gdata_youtube_video_set_rating (GDataYouTubeVideo *self, GDataGDRating *rating)
 {
@@ -1293,6 +1352,14 @@ gdata_youtube_video_set_rating (GDataYouTubeVideo *self, GDataGDRating *rating)
 	g_object_notify (G_OBJECT (self), "rating");
 }
 
+/**
+ * gdata_youtube_video_get_keywords:
+ * @self: a #GDataYouTubeVideo
+ *
+ * Gets the #GDataYouTubeVideo:keywords property.
+ *
+ * Return value: a comma-separated list of words associated with the video
+ **/
 const gchar *
 gdata_youtube_video_get_keywords (GDataYouTubeVideo *self)
 {
@@ -1300,9 +1367,20 @@ gdata_youtube_video_get_keywords (GDataYouTubeVideo *self)
 	return self->priv->keywords;
 }
 
+/**
+ * gdata_youtube_video_set_keywords:
+ * @self: a #GDataYouTubeVideo
+ * @keywords: a new comma-separated list of keywords
+ *
+ * Sets the #GDataYouTubeVideo:keywords property to the new keyword list, @keywords.
+ *
+ * @keywords must not be %NULL. For more information, see the <ulink type="http"
+ * url="http://code.google.com/apis/youtube/2.0/reference.html#youtube_data_api_tag_media:keywords">online documentation</ulink>.
+ **/
 void
 gdata_youtube_video_set_keywords (GDataYouTubeVideo *self, const gchar *keywords)
 {
+	g_return_if_fail (keywords != NULL);
 	g_return_if_fail (GDATA_IS_YOUTUBE_VIDEO (self));
 
 	g_free (self->priv->keywords);
@@ -1310,6 +1388,14 @@ gdata_youtube_video_set_keywords (GDataYouTubeVideo *self, const gchar *keywords
 	g_object_notify (G_OBJECT (self), "keywords");
 }
 
+/**
+ * gdata_youtube_video_get_player_uri:
+ * @self: a #GDataYouTubeVideo
+ *
+ * Gets the #GDataYouTubeVideo:player-uri property.
+ *
+ * Return value: a URI where the video is playable in a web browser, or %NULL
+ **/
 const gchar *
 gdata_youtube_video_get_player_uri (GDataYouTubeVideo *self)
 {
@@ -1317,16 +1403,14 @@ gdata_youtube_video_get_player_uri (GDataYouTubeVideo *self)
 	return self->priv->player_uri;
 }
 
-void
-gdata_youtube_video_set_player_uri (GDataYouTubeVideo *self, const gchar *player_uri)
-{
-	g_return_if_fail (GDATA_IS_YOUTUBE_VIDEO (self));
-
-	g_free (self->priv->player_uri);
-	self->priv->player_uri = g_strdup (player_uri);
-	g_object_notify (G_OBJECT (self), "player-uri");
-}
-
+/**
+ * gdata_youtube_video_get_media_rating:
+ * @self: a #GDataYouTubeVideo
+ *
+ * Gets the #GDataYouTubeVideo:media-rating property.
+ *
+ * Return value: a #GDataMediaRating giving information about restrictions on the video, or %NULL if there are none
+ **/
 GDataMediaRating *
 gdata_youtube_video_get_media_rating (GDataYouTubeVideo *self)
 {
@@ -1334,6 +1418,7 @@ gdata_youtube_video_get_media_rating (GDataYouTubeVideo *self)
 	return self->priv->media_rating;
 }
 
+/* TODO: Is this allowed? */
 void
 gdata_youtube_video_set_media_rating (GDataYouTubeVideo *self, GDataMediaRating *rating)
 {
@@ -1344,6 +1429,14 @@ gdata_youtube_video_set_media_rating (GDataYouTubeVideo *self, GDataMediaRating 
 	g_object_notify (G_OBJECT (self), "media-rating");
 }
 
+/**
+ * gdata_youtube_video_get_restriction:
+ * @self: a #GDataYouTubeVideo
+ *
+ * Gets the #GDataYouTubeVideo:restriction property.
+ *
+ * Return value: a #GDataMediaRestriction giving information on countries where the video is restricted, or %NULL if there are none
+ **/
 GDataMediaRestriction *
 gdata_youtube_video_get_restriction (GDataYouTubeVideo *self)
 {
