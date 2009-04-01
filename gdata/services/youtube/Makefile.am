@@ -45,10 +45,10 @@ libgdatayoutube_la_SOURCES = \
 	gdata-youtube.h
 
 libgdatayoutube_la_CPPFLAGS = \
-	-I$(top_srcdir)					\
-	-I$(top_builddir)/gdata				\
-	-I$(top_builddir)/gdata/services/youtube	\
-	$(DISABLE_DEPRECATED)				\
+	-I$(top_srcdir)				\
+	-I$(top_srcdir)/gdata			\
+	-I$(top_srcdir)/gdata/services/youtube	\
+	$(DISABLE_DEPRECATED)			\
 	$(AM_CPPFLAGS)
 
 libgdatayoutube_la_CFLAGS = \

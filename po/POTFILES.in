@@ -3,7 +3,10 @@
 [encoding: UTF-8]
 gdata/gdata-entry.c
 gdata/gdata-feed.c
+gdata/gdata-parser.c
 gdata/gdata-service.c
-gdata/services/gdata-youtube-service.c
-gdata/services/gdata-youtube-video-feed.c
-gdata/services/gdata-youtube-video.c
+gdata/services/calendar/gdata-calendar-calendar.c
+gdata/services/calendar/gdata-calendar-event.c
+gdata/services/calendar/gdata-calendar-service.c
+gdata/services/youtube/gdata-youtube-service.c
+gdata/services/youtube/gdata-youtube-video.c

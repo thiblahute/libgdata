@@ -190,7 +190,7 @@ gdata_youtube_video_class_init (GDataYouTubeVideoClass *klass)
 	g_object_class_install_property (gobject_class, PROP_RATING,
 				g_param_spec_pointer ("rating",
 					"Rating", "Specifies the current average rating of the video based on aggregated YouTube user ratings.",
-					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * GDataYouTubeVideo:keywords:
@@ -507,9 +507,9 @@ gdata_youtube_video_set_property (GObject *object, guint property_id, const GVal
 		case PROP_NO_EMBED:
 			gdata_youtube_video_set_no_embed (self, g_value_get_boolean (value));
 			break;
-		case PROP_RATING:
+		/*case PROP_RATING:
 			gdata_youtube_video_set_rating (self, g_value_get_pointer (value));
-			break;
+			break;*/
 		case PROP_KEYWORDS:
 			gdata_youtube_video_set_keywords (self, g_value_get_string (value));
 			break;
@@ -899,7 +899,7 @@ _gdata_youtube_video_parse_xml_node (GDataYouTubeVideo *self, xmlDoc *doc, xmlNo
 		xmlChar *min, *max, *num_raters, *average;
 		guint num_raters_uint;
 		gdouble average_double;
-		GDataGDRating *rating;
+		/*GDataGDRating *rating;*/
 
 		min = xmlGetProp (node, (xmlChar*) "min");
 		if (min == NULL)
@@ -926,29 +926,34 @@ _gdata_youtube_video_parse_xml_node (GDataYouTubeVideo *self, xmlDoc *doc, xmlNo
 			average_double = strtod ((gchar*) average, NULL);
 		xmlFree (average);
 
-		rating = gdata_gd_rating_new (strtoul ((gchar*) min, NULL, 10),
-					      strtoul ((gchar*) max, NULL, 10),
-					      num_raters_uint, average_double);
-		gdata_youtube_video_set_rating (self, rating);
+		gdata_gd_rating_free (self->priv->rating);
+		self->priv->rating = gdata_gd_rating_new (strtoul ((gchar*) min, NULL, 10),
+							  strtoul ((gchar*) max, NULL, 10),
+							  num_raters_uint, average_double);
+		g_object_notify (G_OBJECT (self), "rating");
+		/*gdata_youtube_video_set_rating (self, rating);*/
 	} else if (xmlStrcmp (node->name, (xmlChar*) "comments") == 0) {
 		/* gd:comments */
 		xmlChar *rel, *href, *count_hint;
+		xmlNode *child_node;
 		guint count_hint_uint;
-		GDataGDFeedLink *feed_link;
+		/*GDataGDFeedLink *feed_link;*/
 
-		/* TODO: This is actually the child of the <comments> element */
+		/* This is actually the child of the <comments> element */
+		child_node = node->xmlChildrenNode;
 
-		count_hint = xmlGetProp (node, (xmlChar*) "countHint");
+		count_hint = xmlGetProp (child_node, (xmlChar*) "countHint");
 		if (count_hint == NULL)
 			count_hint_uint = 0;
 		else
 			count_hint_uint = strtoul ((gchar*) count_hint, NULL, 10);
 		xmlFree (count_hint);
 
-		rel = xmlGetProp (node, (xmlChar*) "rel");
-		href = xmlGetProp (node, (xmlChar*) "href");
+		rel = xmlGetProp (child_node, (xmlChar*) "rel");
+		href = xmlGetProp (child_node, (xmlChar*) "href");
 
-		feed_link = gdata_gd_feed_link_new ((gchar*) href, (gchar*) rel, count_hint_uint);
+		/* TODO */
+		/*feed_link = gdata_gd_feed_link_new ((gchar*) href, (gchar*) rel, count_hint_uint);*/
 		/*gdata_youtube_video_set_comments_feed_link (self, feed_link);*/
 
 		xmlFree (rel);

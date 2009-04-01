@@ -20,10 +20,10 @@ libgdatacalendar_la_SOURCES = \
 	gdata-calendar-query.h
 
 libgdatacalendar_la_CPPFLAGS = \
-	-I$(top_srcdir)					\
-	-I$(top_builddir)/gdata				\
-	-I$(top_builddir)/gdata/services/calendar	\
-	$(DISABLE_DEPRECATED)				\
+	-I$(top_srcdir)				\
+	-I$(top_srcdir)/gdata			\
+	-I$(top_srcdir)/gdata/services/calendar	\
+	$(DISABLE_DEPRECATED)			\
 	$(AM_CPPFLAGS)
 
 libgdatacalendar_la_CFLAGS = \

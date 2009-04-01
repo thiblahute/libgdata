@@ -78,7 +78,7 @@ test_entry_get_xml (void)
 				 "<category term='example' label='Example stuff'/>"
 				 "<category term='test'/>"
 				 "<link href='http://test.mn/' title='A treatise on Mongolian test websites &amp; other stuff.' rel='related' type='text/html' hreflang='mn' length='5010'/>"
-				 "<link href='http://example.com/'/>"
+				 "<link href='http://example.com/' rel='alternate'/>"
 				 "<link href='http://test.com/' rel='self' type='application/atom+xml'/>"
 				 "<author><name>F. Barr\330\237</name></author>"
 				 "<author><name>John Smith</name><email>smith.john@example.com</email></author>"

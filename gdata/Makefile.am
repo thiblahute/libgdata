@@ -72,7 +72,7 @@ libgdata_la_SOURCES = \
 
 libgdata_la_CPPFLAGS = \
 	-I$(top_srcdir)			\
-	-I$(top_builddir)/gdata		\
+	-I$(top_srcdir)/gdata		\
 	$(DISABLE_DEPRECATED)		\
 	$(AM_CPPFLAGS)
 

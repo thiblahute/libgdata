@@ -1,1 +1,6 @@
+Major new features in version...
 
+0.1.0:
+* Create project
+* Add mostly-complete support for YouTube queries and video uploads
+* Add basic and incomplete support for Google Calendar queries

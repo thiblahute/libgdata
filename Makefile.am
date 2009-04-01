@@ -8,7 +8,7 @@ EXTRA_DIST =			\
 	intltool-update.in	\
 	AUTHORS NEWS		\
 	gtk-doc.make		\
-	gdata.pc.in
+	libgdata.pc.in
 
 CLEANFILES = gdata.pc
 

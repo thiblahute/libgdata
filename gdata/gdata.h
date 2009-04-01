@@ -27,6 +27,8 @@
 #include <gdata/gdata-types.h>
 #include <gdata/gdata-parser.h>
 #include <gdata/gdata-query.h>
+#include <gdata/gdata-enums.h>
+#include <gdata/gdata-marshal.h>
 
 /* Namespaces */
 #include <gdata/gdata-atom.h>
@@ -39,9 +41,12 @@
 #include <gdata/services/youtube/gdata-youtube-service.h>
 #include <gdata/services/youtube/gdata-youtube-video.h>
 #include <gdata/services/youtube/gdata-youtube.h>
+#include <gdata/services/youtube/gdata-youtube-enums.h>
 
 /* Google Calendar */
 #include <gdata/services/calendar/gdata-calendar-service.h>
 #include <gdata/services/calendar/gdata-calendar-calendar.h>
+#include <gdata/services/calendar/gdata-calendar-event.h>
+#include <gdata/services/calendar/gdata-calendar-query.h>
 
 #endif /* !GDATA_H */

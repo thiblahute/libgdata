@@ -39,7 +39,9 @@ SOUP_REQS=2.24.0
 # - If binary compatibility has been broken (eg removed or changed interfaces)
 #   change to C+1:0:0
 # - If the interface is the same as the previous version, change to C:R+1:A
-GDATA_LT_VERSION=1:0:0
+# Note that versioning started at 2:0:0 to ensure no conflicts with e-d-s' libgdata
+# library, maximum whose version was 1:0:0
+GDATA_LT_VERSION=2:0:0
 AC_SUBST(GDATA_LT_VERSION)
 
 GDATA_VERSION_MAJOR=gdata_major_version
