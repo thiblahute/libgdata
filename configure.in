@@ -2,7 +2,7 @@ AC_PREREQ(2.52)
 
 m4_define(gdata_major_version, 0)
 m4_define(gdata_minor_version, 1)
-m4_define(gdata_micro_version, 0)
+m4_define(gdata_micro_version, 1)
 
 AC_INIT([libgdata],
         [gdata_major_version.gdata_minor_version.gdata_micro_version])

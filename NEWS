@@ -1,5 +1,10 @@
 Major new features in version...
 
+0.1.1:
+* Fixed licencing issues
+* Renamed gdata_entry_lookup_link to gdata_entry_look_up_link
+* Renamed gdata_feed_lookup_link to gdata_feed_look_up_link
+
 0.1.0:
 * Create project
 * Add mostly-complete support for YouTube queries and video uploads

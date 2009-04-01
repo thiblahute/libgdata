@@ -862,10 +862,10 @@ gdata_service_query (GDataService *self, const gchar *feed_uri, GDataQuery *quer
 
 	/* Update the query with the next and previous URIs from the feed */
 	if (query != NULL) {
-		link = gdata_feed_lookup_link (feed, "next");
+		link = gdata_feed_look_up_link (feed, "next");
 		if (link != NULL)
 			_gdata_query_set_next_uri (query, link->href);
-		link = gdata_feed_lookup_link (feed, "previous");
+		link = gdata_feed_look_up_link (feed, "previous");
 		if (link != NULL)
 			_gdata_query_set_previous_uri (query, link->href);
 	}

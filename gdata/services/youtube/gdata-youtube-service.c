@@ -519,7 +519,7 @@ gdata_youtube_service_query_related (GDataYouTubeService *self, GDataYouTubeVide
 	GDataLink *related_link;
 
 	/* See if the video already has a rel="http://gdata.youtube.com/schemas/2007#video.related" link */
-	related_link = gdata_entry_lookup_link (GDATA_ENTRY (video), "http://gdata.youtube.com/schemas/2007#video.related");
+	related_link = gdata_entry_look_up_link (GDATA_ENTRY (video), "http://gdata.youtube.com/schemas/2007#video.related");
 	if (related_link == NULL) {
 		/* Erroring out is probably the safest thing to do */
 		g_set_error_literal (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
@@ -560,7 +560,7 @@ gdata_youtube_service_query_related_async (GDataYouTubeService *self, GDataYouTu
 	GDataLink *related_link;
 
 	/* See if the video already has a rel="http://gdata.youtube.com/schemas/2007#video.related" link */
-	related_link = gdata_entry_lookup_link (GDATA_ENTRY (video), "http://gdata.youtube.com/schemas/2007#video.related");
+	related_link = gdata_entry_look_up_link (GDATA_ENTRY (video), "http://gdata.youtube.com/schemas/2007#video.related");
 	if (related_link == NULL) {
 		/* Erroring out is probably the safest thing to do */
 		g_simple_async_report_error_in_idle (G_OBJECT (self), callback, user_data,
