@@ -95,7 +95,7 @@ gdata_feed_get_categories
 gdata_feed_get_entries
 gdata_feed_get_generator
 gdata_feed_get_links
-gdata_feed_lookup_link
+gdata_feed_look_up_link
 gdata_feed_get_logo
 gdata_feed_get_updated
 gdata_feed_get_start_index
@@ -131,7 +131,7 @@ gdata_entry_get_updated
 gdata_entry_add_author
 gdata_entry_add_category
 gdata_entry_add_link
-gdata_entry_lookup_link
+gdata_entry_look_up_link
 gdata_entry_is_inserted
 gdata_entry_get_xml
 <SUBSECTION Standard>

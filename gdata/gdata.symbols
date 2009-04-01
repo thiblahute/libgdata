@@ -11,7 +11,7 @@ gdata_entry_add_category
 gdata_entry_get_content
 gdata_entry_set_content
 gdata_entry_add_link
-gdata_entry_lookup_link
+gdata_entry_look_up_link
 gdata_entry_add_author
 gdata_entry_is_inserted
 gdata_entry_get_xml
@@ -19,7 +19,7 @@ gdata_feed_get_type
 gdata_feed_get_entries
 gdata_feed_get_categories
 gdata_feed_get_links
-gdata_feed_lookup_link
+gdata_feed_look_up_link
 gdata_feed_get_authors
 gdata_feed_get_title
 gdata_feed_get_subtitle

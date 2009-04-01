@@ -744,7 +744,7 @@ link_compare_cb (const GDataLink *link, const gchar *rel)
 }
 
 /**
- * gdata_feed_lookup_link:
+ * gdata_feed_look_up_link:
  * @self: a #GDataFeed
  * @rel: the value of the <structfield>rel</structfield> attribute of the desired link
  *
@@ -753,7 +753,7 @@ link_compare_cb (const GDataLink *link, const gchar *rel)
  * Return value: a #GDataLink, or %NULL if one was not found
  **/
 GDataLink *
-gdata_feed_lookup_link (GDataFeed *self, const gchar *rel)
+gdata_feed_look_up_link (GDataFeed *self, const gchar *rel)
 {
 	GList *element;
 
