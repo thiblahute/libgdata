@@ -7,6 +7,7 @@ GDataServiceError
 GDataAuthenticationError
 GDataParserError
 GDataQueryProgressCallback
+gdata_service_set_proxy
 gdata_service_authenticate
 gdata_service_authenticate_async
 gdata_service_authenticate_finish

@@ -1151,6 +1151,21 @@ gdata_service_delete_entry (GDataService *self, GDataEntry *entry, GCancellable 
 }
 
 /**
+ * gdata_service_set_proxy:
+ * @self: a #GDataService
+ * @proxy_uri: the proxy URI
+ *
+ * Sets the proxy URI on the #SoupSession used internally by the given #GDataService.
+ * This forces all requests through the given proxy.
+ **/
+void
+gdata_service_set_proxy (GDataService *self, SoupURI *proxy_uri)
+{
+	g_return_if_fail (GDATA_IS_SERVICE (self));
+	g_object_set (self->priv->session, SOUP_SESSION_PROXY_URI, proxy_uri, NULL); 
+}
+
+/**
  * gdata_service_is_authenticated:
  * @self: a #GDataService
  *
