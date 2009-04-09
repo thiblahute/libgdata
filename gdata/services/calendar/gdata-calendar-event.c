@@ -287,9 +287,9 @@ gdata_calendar_event_set_property (GObject *object, guint property_id, const GVa
 }
 
 GDataCalendarEvent *
-gdata_calendar_event_new (void)
+gdata_calendar_event_new (const gchar *id)
 {
-	return g_object_new (GDATA_TYPE_CALENDAR_EVENT, NULL);
+	return g_object_new (GDATA_TYPE_CALENDAR_EVENT, "id", id, NULL);
 }
 
 GDataCalendarEvent *

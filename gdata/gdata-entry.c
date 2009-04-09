@@ -91,7 +91,7 @@ gdata_entry_class_init (GDataEntryClass *klass)
 				g_param_spec_string ("id",
 					"ID", "The ID for this entry.",
 					NULL,
-					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
+					G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS));
 	g_object_class_install_property (gobject_class, PROP_UPDATED,
 				g_param_spec_boxed ("updated",
 					"Updated", "The last update time for this entry.",
@@ -285,15 +285,16 @@ real_get_xml (GDataEntry *self, GString *xml_string)
 
 /**
  * gdata_entry_new:
+ * @id: the entry's ID, or %NULL
  *
- * Creates a new #GDataEntry with default properties.
+ * Creates a new #GDataEntry with the given ID and default properties.
  *
- * Return value: a new #GDataEntry
+ * Return value: a new #GDataEntry; unref with g_object_unref()
  **/
 GDataEntry *
-gdata_entry_new (void)
+gdata_entry_new (const gchar *id)
 {
-	return g_object_new (GDATA_TYPE_ENTRY, NULL);
+	return g_object_new (GDATA_TYPE_ENTRY, "id", id, NULL);
 }
 
 /**

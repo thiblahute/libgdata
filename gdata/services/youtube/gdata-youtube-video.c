@@ -535,15 +535,16 @@ gdata_youtube_video_set_property (GObject *object, guint property_id, const GVal
 
 /**
  * gdata_youtube_video_new:
+ * @id: the video's ID, or %NULL
  *
- * Creates a new #GDataYouTubeVideo with default properties.
+ * Creates a new #GDataYouTubeVideo with the given ID and default properties.
  *
  * Return value: a new #GDataYouTubeVideo; unref with g_object_unref()
  **/
 GDataYouTubeVideo *
-gdata_youtube_video_new (void)
+gdata_youtube_video_new (const gchar *id)
 {
-	return g_object_new (GDATA_TYPE_YOUTUBE_VIDEO, NULL);
+	return g_object_new (GDATA_TYPE_YOUTUBE_VIDEO, "id", id, NULL);
 }
 
 /**

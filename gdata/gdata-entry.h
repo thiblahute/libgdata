@@ -66,7 +66,7 @@ typedef struct {
 
 GType gdata_entry_get_type (void);
 
-GDataEntry *gdata_entry_new (void);
+GDataEntry *gdata_entry_new (const gchar *id);
 GDataEntry *gdata_entry_new_from_xml (const gchar *xml, gint length, GError **error);
 
 const gchar *gdata_entry_get_title (GDataEntry *self);

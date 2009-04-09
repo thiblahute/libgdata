@@ -199,9 +199,9 @@ gdata_calendar_calendar_set_property (GObject *object, guint property_id, const 
 }
 
 GDataCalendarCalendar *
-gdata_calendar_calendar_new (void)
+gdata_calendar_calendar_new (const gchar *id)
 {
-	return g_object_new (GDATA_TYPE_CALENDAR_CALENDAR, NULL);
+	return g_object_new (GDATA_TYPE_CALENDAR_CALENDAR, "id", id, NULL);
 }
 
 GDataCalendarCalendar *

@@ -49,7 +49,7 @@ typedef struct {
 
 GType gdata_calendar_calendar_get_type (void);
 
-GDataCalendarCalendar *gdata_calendar_calendar_new (void);
+GDataCalendarCalendar *gdata_calendar_calendar_new (const gchar *id);
 GDataCalendarCalendar *gdata_calendar_calendar_new_from_xml (const gchar *xml, gint length, GError **error);
 
 const gchar *gdata_calendar_calendar_get_timezone (GDataCalendarCalendar *self);
