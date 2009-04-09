@@ -37,6 +37,7 @@ G_BEGIN_DECLS
  * @GDATA_SERVICE_ERROR_ENTRY_ALREADY_INSERTED: An entry has already been inserted, and cannot be re-inserted
  * @GDATA_SERVICE_ERROR_WITH_INSERTION: TODO
  * @GDATA_SERVICE_ERROR_AUTHENTICATION_REQUIRED: The user attempted to do something which required authentication, and they weren't authenticated
+ * @GDATA_SERVICE_ERROR_WITH_UPDATE: TODO
  *
  * Error codes for #GDataService operations.
  **/
@@ -46,7 +47,8 @@ typedef enum {
 	GDATA_SERVICE_ERROR_WITH_QUERY,/* TODO: probably should die */
 	GDATA_SERVICE_ERROR_ENTRY_ALREADY_INSERTED,
 	GDATA_SERVICE_ERROR_WITH_INSERTION,/* TODO: probably should die */
-	GDATA_SERVICE_ERROR_AUTHENTICATION_REQUIRED
+	GDATA_SERVICE_ERROR_AUTHENTICATION_REQUIRED,
+	GDATA_SERVICE_ERROR_WITH_UPDATE,/* TODO: probably should die */
 } GDataServiceError;
 
 /**
@@ -175,7 +177,11 @@ GDataFeed *gdata_service_query_finish (GDataService *self, GAsyncResult *async_r
 
 GDataEntry *gdata_service_insert_entry (GDataService *self, const gchar *upload_uri, GDataEntry *entry, GDataEntryParserFunc parser_func,
 					GCancellable *cancellable, GError **error);
-/* TODO: async versions */
+/* TODO: async version */
+
+GDataEntry *gdata_service_update_entry (GDataService *self, GDataEntry *entry, GDataEntryParserFunc parser_func,
+					GCancellable *cancellable, GError **error);
+/* TODO: async version */
 
 gboolean gdata_service_is_authenticated (GDataService *self);
 const gchar *gdata_service_get_client_id (GDataService *self);

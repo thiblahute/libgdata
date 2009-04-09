@@ -883,7 +883,7 @@ gdata_service_query (GDataService *self, const gchar *feed_uri, GDataQuery *quer
  * @error: a #GError, or %NULL
  *
  * Inserts @entry by uploading it to the online service at @upload_uri. For more information about the concept of inserting entries, see
- * the <ulink type="http" url="http://code.google.com/apis/gdata/docs/2.0/reference.html#Queries">online documentation</ulink> for the GData
+ * the <ulink type="http" url="http://code.google.com/apis/gdata/docs/2.0/basics.html#InsertingEntry">online documentation</ulink> for the GData
  * protocol.
  *
  * The service will return an updated version of the entry, which is the return value of this function on success.
@@ -955,6 +955,112 @@ gdata_service_insert_entry (GDataService *self, const gchar *upload_uri, GDataEn
 
 	/* Parse the XML */
 	doc = xmlReadMemory (message->response_body->data, message->response_body->length, "entry.xml", NULL, 0);
+	g_object_unref (message);
+
+	if (doc == NULL) {
+		xmlError *xml_error = xmlGetLastError ();
+		g_set_error (error, GDATA_PARSER_ERROR, GDATA_PARSER_ERROR_PARSING_STRING,
+			     _("Error parsing XML: %s"),
+			     xml_error->message);
+		return NULL;
+	}
+
+	/* Get the root element */
+	node = xmlDocGetRootElement (doc);
+	if (node == NULL) {
+		/* XML document's empty */
+		xmlFreeDoc (doc);
+		g_set_error (error, GDATA_PARSER_ERROR, GDATA_PARSER_ERROR_EMPTY_DOCUMENT,
+			     _("Error parsing XML: %s"),
+			     _("Empty document."));
+		return NULL;
+	}
+
+	if (xmlStrcmp (node->name, (xmlChar*) "entry") != 0) {
+		/* No <entry> element (required) */
+		xmlFreeDoc (doc);
+		gdata_parser_error_required_element_missing ("entry", "root", error);
+		return NULL;
+	}
+
+	return parser_func (doc, node, error);
+}
+
+/**
+ * gdata_service_update_entry:
+ * @self: a #GDataService
+ * @entry: the #GDataEntry to update
+ * @cancellable: optional #GCancellable object, or %NULL
+ * @error: a #GError, or %NULL
+ *
+ * Updates @entry by PUTting it to its <literal>edit</literal> link's URI. For more information about the concept of updating entries, see
+ * the <ulink type="http" url="http://code.google.com/apis/gdata/docs/2.0/basics.html#UpdatingEntry">online documentation</ulink> for the GData
+ * protocol.
+ *
+ * The service will return an updated version of the entry, which is the return value of this function on success.
+ *
+ * If @cancellable is not %NULL, then the operation can be cancelled by triggering the @cancellable object from another thread.
+ * If the operation was cancelled, the error %G_IO_ERROR_CANCELLED will be returned.
+ *
+ * If there is an error updating the entry, a %GDATA_SERVICE_ERROR_WITH_UPDATE error will be returned. Currently, subclasses
+ * <emphasis>cannot</emphasis> cannot override this or provide more specific errors.
+ *
+ * Return value: an updated #GDataEntry, or %NULL
+ **/
+GDataEntry *
+gdata_service_update_entry (GDataService *self, GDataEntry *entry, GDataEntryParserFunc parser_func, GCancellable *cancellable, GError **error)
+{
+	GDataServiceClass *klass;
+	GDataLink *link;
+	SoupMessage *message;
+	gchar *upload_data;
+	guint status;
+	xmlDoc *doc;
+	xmlNode *node;
+
+	g_return_val_if_fail (GDATA_IS_SERVICE (self), NULL);
+	g_return_val_if_fail (GDATA_IS_ENTRY (entry), NULL);
+	g_return_val_if_fail (parser_func != NULL, NULL);
+
+	link = gdata_entry_look_up_link (entry, "edit");
+	g_assert (link != NULL);
+	message = soup_message_new (SOUP_METHOD_PUT, link->href);
+
+	/* Make sure subclasses set their headers */
+	klass = GDATA_SERVICE_GET_CLASS (self);
+	if (klass->append_query_headers != NULL)
+		klass->append_query_headers (self, message);
+
+	/* Append the data */
+	upload_data = gdata_entry_get_xml (entry);
+	soup_message_set_request (message, "application/atom+xml", SOUP_MEMORY_TAKE, upload_data, strlen (upload_data));
+
+	/* Send the message */
+	status = soup_session_send_message (self->priv->session, message);
+	g_object_unref (message);
+
+	/* Check for cancellation */
+	if (g_cancellable_set_error_if_cancelled (cancellable, error) == TRUE) {
+		g_object_unref (message);
+		return NULL;
+	}
+
+	if (status != 200) {
+		/* Error */
+		/* TODO: Handle errors more specifically, making sure to set authenticated where appropriate */
+		g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_WITH_UPDATE,
+			     _("TODO: error code %u when updating"), status);
+		g_object_unref (message);
+		return NULL;
+	}
+
+	/* Build the updated entry */
+	g_assert (message->response_body->data != NULL);
+
+	/* Parse the XML */
+	doc = xmlReadMemory (message->response_body->data, message->response_body->length, "entry.xml", NULL, 0);
+	g_object_unref (message);
+
 	if (doc == NULL) {
 		xmlError *xml_error = xmlGetLastError ();
 		g_set_error (error, GDATA_PARSER_ERROR, GDATA_PARSER_ERROR_PARSING_STRING,

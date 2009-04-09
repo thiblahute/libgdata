@@ -710,7 +710,7 @@ gdata_feed_get_entries (GDataFeed *self)
 static gint
 entry_compare_cb (const GDataEntry *entry, const gchar *id)
 {
-	return strcmp (entry->priv->id, id);
+	return strcmp (gdata_entry_get_id (GDATA_ENTRY (entry)), id);
 }
 
 /**
@@ -733,7 +733,7 @@ gdata_feed_look_up_entry (GDataFeed *self, const gchar *id)
 	element = g_list_find_custom (self->priv->entries, id, (GCompareFunc) entry_compare_cb);
 	if (element == NULL)
 		return NULL;
-	return (GDataLink*) (element->data);
+	return GDATA_ENTRY (element->data);
 }
 
 /**
