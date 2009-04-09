@@ -173,7 +173,8 @@ void gdata_service_query_async (GDataService *self, const gchar *feed_uri, GData
 				GAsyncReadyCallback callback, gpointer user_data);
 GDataFeed *gdata_service_query_finish (GDataService *self, GAsyncResult *async_result, GError **error);
 
-gboolean gdata_service_insert_entry (GDataService *self, const gchar *upload_uri, GDataEntry *entry, GCancellable *cancellable, GError **error);
+GDataEntry *gdata_service_insert_entry (GDataService *self, const gchar *upload_uri, GDataEntry *entry, GDataEntryParserFunc parser_func,
+					GCancellable *cancellable, GError **error);
 /* TODO: async versions */
 
 gboolean gdata_service_is_authenticated (GDataService *self);

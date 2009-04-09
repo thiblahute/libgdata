@@ -878,12 +878,15 @@ gdata_service_query (GDataService *self, const gchar *feed_uri, GDataQuery *quer
  * @self: a #GDataService
  * @upload_uri: the URI to which the upload should be sent
  * @entry: the #GDataEntry to upload
+ * @parser_func: a #GDataEntryParserFunc to build a #GDataEntry from the updated XML
  * @cancellable: optional #GCancellable object, or %NULL
  * @error: a #GError, or %NULL
  *
  * Inserts @entry by uploading it to the online service at @upload_uri. For more information about the concept of inserting entries, see
  * the <ulink type="http" url="http://code.google.com/apis/gdata/docs/2.0/reference.html#Queries">online documentation</ulink> for the GData
  * protocol.
+ *
+ * The service will return an updated version of the entry, which is the return value of this function on success.
  *
  * If @cancellable is not %NULL, then the operation can be cancelled by triggering the @cancellable object from another thread.
  * If the operation was cancelled, the error %G_IO_ERROR_CANCELLED will be returned.
@@ -894,24 +897,28 @@ gdata_service_query (GDataService *self, const gchar *feed_uri, GDataQuery *quer
  * If there is an error inserting the entry, a %GDATA_SERVICE_ERROR_WITH_INSERTION error will be returned. Currently, subclasses
  * <emphasis>cannot</emphasis> cannot override this or provide more specific errors.
  *
- * Return value: %TRUE on success, %FALSE otherwise
+ * Return value: an updated #GDataEntry, or %NULL
  **/
-gboolean
-gdata_service_insert_entry (GDataService *self, const gchar *upload_uri, GDataEntry *entry, GCancellable *cancellable, GError **error)
+GDataEntry *
+gdata_service_insert_entry (GDataService *self, const gchar *upload_uri, GDataEntry *entry, GDataEntryParserFunc parser_func,
+			    GCancellable *cancellable, GError **error)
 {
 	GDataServiceClass *klass;
 	SoupMessage *message;
 	gchar *upload_data;
 	guint status;
+	xmlDoc *doc;
+	xmlNode *node;
 
-	g_return_val_if_fail (GDATA_IS_SERVICE (self), FALSE);
-	g_return_val_if_fail (upload_uri != NULL, FALSE);
-	g_return_val_if_fail (GDATA_IS_ENTRY (entry), FALSE);
+	g_return_val_if_fail (GDATA_IS_SERVICE (self), NULL);
+	g_return_val_if_fail (upload_uri != NULL, NULL);
+	g_return_val_if_fail (GDATA_IS_ENTRY (entry), NULL);
+	g_return_val_if_fail (parser_func != NULL, NULL);
 
 	if (gdata_entry_is_inserted (entry) == TRUE) {
 		g_set_error_literal (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_ENTRY_ALREADY_INSERTED,
 				     _("The entry has already been inserted."));
-		return FALSE;
+		return NULL;
 	}
 
 	message = soup_message_new (SOUP_METHOD_POST, upload_uri);
@@ -931,7 +938,7 @@ gdata_service_insert_entry (GDataService *self, const gchar *upload_uri, GDataEn
 	/* Check for cancellation */
 	if (g_cancellable_set_error_if_cancelled (cancellable, error) == TRUE) {
 		g_object_unref (message);
-		return FALSE;
+		return NULL;
 	}
 
 	if (status != 201) {
@@ -940,13 +947,41 @@ gdata_service_insert_entry (GDataService *self, const gchar *upload_uri, GDataEn
 		g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_WITH_INSERTION,
 			     _("TODO: error code %u when inserting"), status);
 		g_object_unref (message);
-		return FALSE;
+		return NULL;
 	}
 
+	/* Build the updated entry */
 	g_assert (message->response_body->data != NULL);
-	/* TODO: Update the entry such that it looks like it's been inserted */
 
-	return TRUE;
+	/* Parse the XML */
+	doc = xmlReadMemory (message->response_body->data, message->response_body->length, "entry.xml", NULL, 0);
+	if (doc == NULL) {
+		xmlError *xml_error = xmlGetLastError ();
+		g_set_error (error, GDATA_PARSER_ERROR, GDATA_PARSER_ERROR_PARSING_STRING,
+			     _("Error parsing XML: %s"),
+			     xml_error->message);
+		return NULL;
+	}
+
+	/* Get the root element */
+	node = xmlDocGetRootElement (doc);
+	if (node == NULL) {
+		/* XML document's empty */
+		xmlFreeDoc (doc);
+		g_set_error (error, GDATA_PARSER_ERROR, GDATA_PARSER_ERROR_EMPTY_DOCUMENT,
+			     _("Error parsing XML: %s"),
+			     _("Empty document."));
+		return NULL;
+	}
+
+	if (xmlStrcmp (node->name, (xmlChar*) "entry") != 0) {
+		/* No <entry> element (required) */
+		xmlFreeDoc (doc);
+		gdata_parser_error_required_element_missing ("entry", "root", error);
+		return NULL;
+	}
+
+	return parser_func (doc, node, error);
 }
 
 /**

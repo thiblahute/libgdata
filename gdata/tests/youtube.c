@@ -277,7 +277,7 @@ test_upload_simple (void)
 
 	g_assert (service != NULL);
 
-	video = gdata_youtube_video_new ();
+	video = gdata_youtube_video_new (NULL);
 
 	gdata_entry_set_title (GDATA_ENTRY (video), "Bad Wedding Toast");
 	gdata_youtube_video_set_title (video, "Bad Wedding Toast");

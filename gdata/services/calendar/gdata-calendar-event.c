@@ -343,7 +343,7 @@ _gdata_calendar_event_new_from_xml_node (xmlDoc *doc, xmlNode *node, GError **er
 	g_return_val_if_fail (node != NULL, FALSE);
 	g_return_val_if_fail (xmlStrcmp (node->name, (xmlChar*) "entry") == 0, FALSE);
 
-	event = gdata_calendar_event_new ();
+	event = gdata_calendar_event_new (NULL);
 
 	node = node->xmlChildrenNode;
 	while (node != NULL) {

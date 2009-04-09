@@ -176,6 +176,10 @@ gdata_entry_set_property (GObject *object, guint property_id, const GValue *valu
 	GDataEntry *self = GDATA_ENTRY (object);
 
 	switch (property_id) {
+		case PROP_ID:
+			/* Construct only */
+			self->priv->id = g_value_dup_string (value);
+			break;
 		case PROP_TITLE:
 			gdata_entry_set_title (self, g_value_get_string (value));
 			break;
@@ -363,7 +367,7 @@ _gdata_entry_new_from_xml_node (xmlDoc *doc, xmlNode *node, GError **error)
 	g_return_val_if_fail (node != NULL, FALSE);
 	g_return_val_if_fail (xmlStrcmp (node->name, (xmlChar*) "entry") == 0, FALSE);
 
-	entry = gdata_entry_new ();
+	entry = gdata_entry_new (NULL);
 
 	node = node->xmlChildrenNode;
 	while (node != NULL) {

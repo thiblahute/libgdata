@@ -255,7 +255,7 @@ _gdata_calendar_calendar_new_from_xml_node (xmlDoc *doc, xmlNode *node, GError *
 	g_return_val_if_fail (node != NULL, FALSE);
 	g_return_val_if_fail (xmlStrcmp (node->name, (xmlChar*) "entry") == 0, FALSE);
 
-	calendar = gdata_calendar_calendar_new ();
+	calendar = gdata_calendar_calendar_new (NULL);
 
 	node = node->xmlChildrenNode;
 	while (node != NULL) {

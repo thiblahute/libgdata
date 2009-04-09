@@ -32,7 +32,7 @@ test_entry_get_xml (void)
 	gchar *xml;
 	GError *error = NULL;
 
-	entry = gdata_entry_new ();
+	entry = gdata_entry_new (NULL);
 	gdata_entry_set_title (entry, "Testing title & escaping");
 	gdata_entry_set_content (entry, "This is some sample content testing, amongst other things, <markup> & odd characters‽");
 

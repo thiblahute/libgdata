@@ -611,7 +611,7 @@ _gdata_youtube_video_new_from_xml_node (xmlDoc *doc, xmlNode *node, GError **err
 	g_return_val_if_fail (node != NULL, FALSE);
 	g_return_val_if_fail (xmlStrcmp (node->name, (xmlChar*) "entry") == 0, FALSE);
 
-	video = gdata_youtube_video_new ();
+	video = gdata_youtube_video_new (NULL);
 
 	node = node->xmlChildrenNode;
 	while (node != NULL) {
