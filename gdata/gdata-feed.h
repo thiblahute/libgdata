@@ -61,6 +61,7 @@ typedef struct {
 GType gdata_feed_get_type (void);
 
 GList *gdata_feed_get_entries (GDataFeed *self);
+GDataEntry *gdata_feed_look_up_entry (GDataFeed *self, const gchar *id);
 GList *gdata_feed_get_categories (GDataFeed *self);
 GList *gdata_feed_get_links (GDataFeed *self);
 GDataLink *gdata_feed_look_up_link (GDataFeed *self, const gchar *rel);

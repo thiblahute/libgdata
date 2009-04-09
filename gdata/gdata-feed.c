@@ -707,6 +707,35 @@ gdata_feed_get_entries (GDataFeed *self)
 	return self->priv->entries;
 }
 
+static gint
+entry_compare_cb (const GDataEntry *entry, const gchar *id)
+{
+	return strcmp (entry->priv->id, id);
+}
+
+/**
+ * gdata_feed_look_up_entry:
+ * @self: a #GDataFeed
+ * @id: the entry's ID
+ *
+ * Returns the entry in the feed with the given @id, if found.
+ *
+ * Return value: the #GDataEntry, or %NULL
+ **/
+GDataEntry *
+gdata_feed_look_up_entry (GDataFeed *self, const gchar *id)
+{
+	GList *element;
+
+	g_return_val_if_fail (GDATA_IS_FEED (self), NULL);
+	g_return_val_if_fail (id != NULL, NULL);
+
+	element = g_list_find_custom (self->priv->entries, id, (GCompareFunc) entry_compare_cb);
+	if (element == NULL)
+		return NULL;
+	return (GDataLink*) (element->data);
+}
+
 /**
  * gdata_feed_get_categories:
  * @self: a #GDataFeed

@@ -93,6 +93,7 @@ gdata_feed_get_id
 gdata_feed_get_authors
 gdata_feed_get_categories
 gdata_feed_get_entries
+gdata_feed_look_up_entry
 gdata_feed_get_generator
 gdata_feed_get_links
 gdata_feed_look_up_link

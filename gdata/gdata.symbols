@@ -18,6 +18,7 @@ gdata_entry_is_inserted
 gdata_entry_get_xml
 gdata_feed_get_type
 gdata_feed_get_entries
+gdata_feed_look_up_entry
 gdata_feed_get_categories
 gdata_feed_get_links
 gdata_feed_look_up_link
