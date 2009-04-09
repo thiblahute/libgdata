@@ -592,11 +592,25 @@ gdata_entry_get_published (GDataEntry *self, GTimeVal *published)
 void
 gdata_entry_add_category (GDataEntry *self, GDataCategory *category)
 {
-	/* TODO: More category API */
 	g_return_if_fail (GDATA_IS_ENTRY (self));
 	g_return_if_fail (category != NULL);
 
 	self->priv->categories = g_list_prepend (self->priv->categories, category);
+}
+
+/**
+ * gdata_entry_get_categories:
+ * @self: a #GDataEntry
+ *
+ * Gets a list of the #GDataCategory<!-- -->s containing this entry.
+ *
+ * Return value: a #GList of #GDataCategory<!-- -->s
+ **/
+GList *
+gdata_entry_get_categories (GDataEntry *self)
+{
+	g_return_val_if_fail (GDATA_IS_ENTRY (self), NULL);
+	return self->priv->categories;
 }
 
 /**

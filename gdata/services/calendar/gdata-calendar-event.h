@@ -79,7 +79,9 @@ void gdata_calendar_event_set_guests_can_see_guests (GDataCalendarEvent *self, g
 gboolean gdata_calendar_event_get_anyone_can_add_self (GDataCalendarEvent *self);
 void gdata_calendar_event_set_anyone_can_add_self (GDataCalendarEvent *self, gboolean anyone_can_add_self);
 void gdata_calendar_event_add_person (GDataCalendarEvent *self, GDataGDWho *who);
+GList *gdata_calendar_event_get_people (GDataCalendarEvent *self);
 void gdata_calendar_event_add_place (GDataCalendarEvent *self, GDataGDWhere *where);
+GList *gdata_calendar_event_get_places (GDataCalendarEvent *self);
 
 G_END_DECLS
 

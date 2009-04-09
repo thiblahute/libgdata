@@ -811,6 +811,13 @@ gdata_calendar_event_add_person (GDataCalendarEvent *self, GDataGDWho *who)
 	self->priv->people = g_list_append (self->priv->people, who);
 }
 
+GList *
+gdata_calendar_event_get_people (GDataCalendarEvent *self)
+{
+	g_return_val_if_fail (GDATA_IS_CALENDAR_EVENT (self), NULL);
+	return self->priv->people;
+}
+
 void
 gdata_calendar_event_add_place (GDataCalendarEvent *self, GDataGDWhere *where)
 {
@@ -818,4 +825,11 @@ gdata_calendar_event_add_place (GDataCalendarEvent *self, GDataGDWhere *where)
 	g_return_if_fail (where != NULL);
 
 	self->priv->places = g_list_append (self->priv->places, where);
+}
+
+GList *
+gdata_calendar_event_get_places (GDataCalendarEvent *self)
+{
+	g_return_val_if_fail (GDATA_IS_CALENDAR_EVENT (self), NULL);
+	return self->priv->places;
 }

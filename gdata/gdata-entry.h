@@ -75,6 +75,7 @@ const gchar *gdata_entry_get_id (GDataEntry *self);
 void gdata_entry_get_updated (GDataEntry *self, GTimeVal *updated);
 void gdata_entry_get_published (GDataEntry *self, GTimeVal *published);
 void gdata_entry_add_category (GDataEntry *self, GDataCategory *category);
+GList *gdata_entry_get_categories (GDataEntry *self);
 const gchar *gdata_entry_get_content (GDataEntry *self);
 void gdata_entry_set_content (GDataEntry *self, const gchar *content);
 void gdata_entry_add_link (GDataEntry *self, GDataLink *link);
