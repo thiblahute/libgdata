@@ -990,6 +990,7 @@ gdata_service_insert_entry (GDataService *self, const gchar *upload_uri, GDataEn
  * gdata_service_update_entry:
  * @self: a #GDataService
  * @entry: the #GDataEntry to update
+ * @parser_func: a #GDataEntryParserFunc to build a #GDataEntry from the updated XML
  * @cancellable: optional #GCancellable object, or %NULL
  * @error: a #GError, or %NULL
  *
@@ -1022,6 +1023,7 @@ gdata_service_update_entry (GDataService *self, GDataEntry *entry, GDataEntryPar
 	g_return_val_if_fail (GDATA_IS_ENTRY (entry), NULL);
 	g_return_val_if_fail (parser_func != NULL, NULL);
 
+	/* Get the edit URI */
 	link = gdata_entry_look_up_link (entry, "edit");
 	g_assert (link != NULL);
 	message = soup_message_new (SOUP_METHOD_PUT, link->href);
@@ -1037,7 +1039,6 @@ gdata_service_update_entry (GDataService *self, GDataEntry *entry, GDataEntryPar
 
 	/* Send the message */
 	status = soup_session_send_message (self->priv->session, message);
-	g_object_unref (message);
 
 	/* Check for cancellation */
 	if (g_cancellable_set_error_if_cancelled (cancellable, error) == TRUE) {
@@ -1088,6 +1089,65 @@ gdata_service_update_entry (GDataService *self, GDataEntry *entry, GDataEntryPar
 	}
 
 	return parser_func (doc, node, error);
+}
+
+/**
+ * gdata_service_delete_entry:
+ * @self: a #GDataService
+ * @entry: the #GDataEntry to delete
+ * @cancellable: optional #GCancellable object, or %NULL
+ * @error: a #GError, or %NULL
+ *
+ * Deletes @entry from the server. For more information about the concept of updating entries, see the
+ * <ulink type="http" url="http://code.google.com/apis/gdata/docs/2.0/basics.html#DeletingEntry">online documentation</ulink> for the GData
+ * protocol.
+ *
+ * If @cancellable is not %NULL, then the operation can be cancelled by triggering the @cancellable object from another thread.
+ * If the operation was cancelled, the error %G_IO_ERROR_CANCELLED will be returned.
+ *
+ * If there is an error deleting the entry, a %GDATA_SERVICE_ERROR_WITH_DELETION error will be returned. Currently, subclasses
+ * <emphasis>cannot</emphasis> cannot override this or provide more specific errors.
+ *
+ * Return value: %TRUE on success, %FALSE otherwise
+ **/
+gboolean
+gdata_service_delete_entry (GDataService *self, GDataEntry *entry, GCancellable *cancellable, GError **error)
+{
+	GDataServiceClass *klass;
+	GDataLink *link;
+	SoupMessage *message;
+	guint status;
+
+	g_return_val_if_fail (GDATA_IS_SERVICE (self), FALSE);
+	g_return_val_if_fail (GDATA_IS_ENTRY (entry), FALSE);
+
+	/* Get the edit URI */
+	link = gdata_entry_look_up_link (entry, "edit");
+	g_assert (link != NULL);
+	message = soup_message_new (SOUP_METHOD_DELETE, link->href);
+
+	/* Make sure subclasses set their headers */
+	klass = GDATA_SERVICE_GET_CLASS (self);
+	if (klass->append_query_headers != NULL)
+		klass->append_query_headers (self, message);
+
+	/* Send the message */
+	status = soup_session_send_message (self->priv->session, message);
+	g_object_unref (message);
+
+	/* Check for cancellation */
+	if (g_cancellable_set_error_if_cancelled (cancellable, error) == TRUE)
+		return FALSE;
+
+	if (status != 200) {
+		/* Error */
+		/* TODO: Handle errors more specifically, making sure to set authenticated where appropriate */
+		g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_WITH_DELETION,
+			     _("TODO: error code %u when deleting"), status);
+		return FALSE;
+	}
+
+	return TRUE;
 }
 
 /**

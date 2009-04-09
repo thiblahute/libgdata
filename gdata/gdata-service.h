@@ -38,6 +38,7 @@ G_BEGIN_DECLS
  * @GDATA_SERVICE_ERROR_WITH_INSERTION: TODO
  * @GDATA_SERVICE_ERROR_AUTHENTICATION_REQUIRED: The user attempted to do something which required authentication, and they weren't authenticated
  * @GDATA_SERVICE_ERROR_WITH_UPDATE: TODO
+ * @GDATA_SERVICE_ERROR_WITH_DELETION: TODO
  *
  * Error codes for #GDataService operations.
  **/
@@ -49,6 +50,7 @@ typedef enum {
 	GDATA_SERVICE_ERROR_WITH_INSERTION,/* TODO: probably should die */
 	GDATA_SERVICE_ERROR_AUTHENTICATION_REQUIRED,
 	GDATA_SERVICE_ERROR_WITH_UPDATE,/* TODO: probably should die */
+	GDATA_SERVICE_ERROR_WITH_DELETION/* TODO: probably should die */
 } GDataServiceError;
 
 /**
@@ -181,6 +183,9 @@ GDataEntry *gdata_service_insert_entry (GDataService *self, const gchar *upload_
 
 GDataEntry *gdata_service_update_entry (GDataService *self, GDataEntry *entry, GDataEntryParserFunc parser_func,
 					GCancellable *cancellable, GError **error);
+/* TODO: async version */
+
+gboolean gdata_service_delete_entry (GDataService *self, GDataEntry *entry, GCancellable *cancellable, GError **error);
 /* TODO: async version */
 
 gboolean gdata_service_is_authenticated (GDataService *self);
