@@ -737,12 +737,11 @@ gdata_service_query_async (GDataService *self, const gchar *feed_uri, GDataQuery
 
 	g_return_if_fail (GDATA_IS_SERVICE (self));
 	g_return_if_fail (feed_uri != NULL);
-	g_return_if_fail (GDATA_IS_QUERY (query));
 	g_return_if_fail (parser_func != NULL);
 
 	data = g_slice_new (QueryAsyncData);
 	data->feed_uri = g_strdup (feed_uri);
-	data->query = g_object_ref (query);
+	data->query = (query != NULL) ? g_object_ref (query) : NULL;
 	data->parser_func = parser_func;
 	data->progress_callback = progress_callback;
 	data->progress_user_data = progress_user_data;
