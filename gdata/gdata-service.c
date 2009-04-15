@@ -123,7 +123,7 @@ gdata_service_class_init (GDataServiceClass *klass)
 	/**
 	 * GDataService:username:
 	 *
-	 * The user's Google or YouTube username for authentication.
+	 * The user's Google or YouTube username for authentication. This will always be a full e-mail address.
 	 **/
 	g_object_class_install_property (gobject_class, PROP_USERNAME,
 				g_param_spec_string ("username",
@@ -645,7 +645,8 @@ general_error:
  * @error: a #GError, or %NULL
  *
  * Authenticates the #GDataService with the online service using @username and @password; i.e. logs into the service with the given
- * user account.
+ * user account. @username should be a full e-mail address (e.g. <literal>john.smith@gmail.com</literal>). If a full e-mail address is
+ * not given, @username will have <literal>@gmail.com</literal> appended to create an e-mail address
  *
  * If @cancellable is not %NULL, then the operation can be cancelled by triggering the @cancellable object from another thread.
  * If the operation was cancelled, the error %G_IO_ERROR_CANCELLED will be returned.
