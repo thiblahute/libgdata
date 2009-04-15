@@ -562,14 +562,99 @@ _gdata_calendar_event_parse_xml_node (GDataCalendarEvent *self, xmlDoc *doc, xml
 static void
 get_xml (GDataEntry *entry, GString *xml_string)
 {
-	/*GDataCalendarEventPrivate *priv = GDATA_CALENDAR_EVENT (entry)->priv;*/
+	GDataCalendarEventPrivate *priv = GDATA_CALENDAR_EVENT (entry)->priv;
+	GList *person, *place;
 
 	/* Chain up to the parent class */
 	GDATA_ENTRY_CLASS (gdata_calendar_event_parent_class)->get_xml (entry, xml_string);
 
 	/* Add all the Calendar-specific XML */
-	/*if (priv->timezone != NULL)
-		g_string_append_printf (xml_string, "<gCal:timezone value='%s'/>", priv->timezone);*/
+
+	/* TODO: gd:comments? */
+
+	if (priv->event_status != NULL)
+		g_string_append_printf (xml_string, "<gd:eventStatus value='%s'/>", priv->event_status);
+
+	if (priv->visibility != NULL)
+		g_string_append_printf (xml_string, "<gd:visibility value='%s'/>", priv->visibility);
+
+	if (priv->transparency != NULL)
+		g_string_append_printf (xml_string, "<gd:transparency value='%s'/>", priv->transparency);
+
+	if (priv->uid != NULL)
+		g_string_append_printf (xml_string, "<gCal:uid value='%s'/>", priv->uid);
+
+	if (priv->sequence != 0)
+		g_string_append_printf (xml_string, "<gCal:sequence value='%u'/>", priv->sequence);
+
+	if (priv->start_time.tv_sec != 0 || priv->start_time.tv_usec != 0) {
+		gchar *start_time = g_time_val_to_iso8601 (&(priv->start_time));
+		g_string_append_printf (xml_string, "<gd:when startTime='%s'", start_time);
+		g_free (start_time);
+
+		if (priv->end_time.tv_sec != 0 || priv->end_time.tv_usec != 0) {
+			gchar *end_time = g_time_val_to_iso8601 (&(priv->end_time));
+			g_string_append_printf (xml_string, " endTime='%s'", end_time);
+			g_free (end_time);
+		}
+
+		if (priv->when_value != NULL)
+			g_string_append_printf (xml_string, " value='%s'", priv->when_value);
+
+		g_string_append (xml_string, "/>");
+
+		/* TODO: Deal with reminders (<gd:reminder> child elements) */
+	}
+
+	if (priv->guests_can_modify == TRUE)
+		g_string_append (xml_string, "<gCal:guestsCanModify value='true'/>");
+	else
+		g_string_append (xml_string, "<gCal:guestsCanModify value='false'/>");
+
+	if (priv->guests_can_invite_others == TRUE)
+		g_string_append (xml_string, "<gCal:guestsCanInviteOthers value='true'/>");
+	else
+		g_string_append (xml_string, "<gCal:guestsCanInviteOthers value='false'/>");
+
+	if (priv->guests_can_see_guests == TRUE)
+		g_string_append (xml_string, "<gCal:guestsCanSeeGuests value='true'/>");
+	else
+		g_string_append (xml_string, "<gCal:guestsCanSeeGuests value='false'/>");
+
+	if (priv->anyone_can_add_self == TRUE)
+		g_string_append (xml_string, "<gCal:anyoneCanAddSelf value='true'/>");
+	else
+		g_string_append (xml_string, "<gCal:anyoneCanAddSelf value='false'/>");
+
+	for (person = priv->people; person != NULL; person = person->next) {
+		GDataGDWho *who = (GDataGDWho*) person->data;
+
+		g_string_append (xml_string, "<gd:who");
+		if (who->email != NULL)
+			g_string_append_printf (xml_string, " email='%s'", who->email);
+		if (who->rel != NULL)
+			g_string_append_printf (xml_string, " rel='%s'", who->rel);
+		if (who->value_string != NULL)
+			g_string_append_printf (xml_string, " valueString='%s'", who->value_string);
+		g_string_append (xml_string, "/>");
+
+		/* TODO: deal with the attendeeType, attendeeStatus and entryLink */
+	}
+
+	for (place = priv->places; place != NULL; place = place->next) {
+		GDataGDWhere *where = (GDataGDWhere*) place->data;
+
+		g_string_append (xml_string, "<gd:where");
+		if (where->label != NULL)
+			g_string_append_printf (xml_string, " label='%s'", where->label);
+		if (where->rel != NULL)
+			g_string_append_printf (xml_string, " rel='%s'", where->rel);
+		if (where->value_string != NULL)
+			g_string_append_printf (xml_string, " valueString='%s'", where->value_string);
+		g_string_append (xml_string, "/>");
+
+		/* TODO: deal with the entryLink */
+	}
 
 	/* TODO:
 	 * - Finish supporting all tags
@@ -583,7 +668,7 @@ get_xml (GDataEntry *entry, GString *xml_string)
 static const gchar *
 get_namespaces (GDataEntry *entry)
 {
-	return "xmlns:gCal='http://schemas.google.com/gCal/2005' xmlns:app='http://www.w3.org/2007/app'";
+	return "xmlns:gd='http://schemas.google.com/g/2005' xmlns:gCal='http://schemas.google.com/gCal/2005' xmlns:app='http://www.w3.org/2007/app'";
 }
 
 void

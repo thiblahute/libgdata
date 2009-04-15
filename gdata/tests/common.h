@@ -23,7 +23,7 @@
 G_BEGIN_DECLS
 
 #define CLIENT_ID "ytapi-GNOME-libgdata-444fubtt-0"
-#define USERNAME "libgdata.test"
+#define USERNAME "libgdata.test@gmail.com"
 #define PASSWORD "gdata-libgdata"
 
 G_END_DECLS

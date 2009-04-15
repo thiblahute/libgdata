@@ -67,6 +67,11 @@ GDataFeed *gdata_calendar_service_query_events (GDataCalendarService *self, GDat
 						GCancellable *cancellable, GDataQueryProgressCallback progress_callback, gpointer progress_user_data,
 						GError **error);
 
+#include <gdata/services/calendar/gdata-calendar-event.h>
+
+GDataCalendarEvent *gdata_calendar_service_insert_event (GDataCalendarService *self, GDataCalendarEvent *event,
+							 GCancellable *cancellable, GError **error);
+
 G_END_DECLS
 
 #endif /* !GDATA_CALENDAR_SERVICE_H */

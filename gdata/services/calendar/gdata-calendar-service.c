@@ -152,3 +152,22 @@ gdata_calendar_service_query_events (GDataCalendarService *self, GDataCalendarCa
 				    (GDataEntryParserFunc) _gdata_calendar_event_new_from_xml_node, cancellable,
 				    progress_callback, progress_user_data, error);
 }
+
+/* TODO: Async variant */
+GDataCalendarEvent *
+gdata_calendar_service_insert_event (GDataCalendarService *self, GDataCalendarEvent *event, GCancellable *cancellable, GError **error)
+{
+	gchar *uri;
+	GDataEntry *entry;
+
+	g_return_val_if_fail (GDATA_IS_CALENDAR_SERVICE (self), NULL);
+	g_return_val_if_fail (GDATA_IS_CALENDAR_EVENT (event), NULL);
+
+	uri = g_strdup_printf ("http://www.google.com/calendar/feeds/%s/private/full", gdata_service_get_username (GDATA_SERVICE (self)));
+
+	entry = gdata_service_insert_entry (GDATA_SERVICE (self), uri, GDATA_ENTRY (event),
+					    (GDataEntryParserFunc) _gdata_calendar_event_new_from_xml_node, cancellable, error);
+	g_free (uri);
+
+	return GDATA_CALENDAR_EVENT (entry);
+}

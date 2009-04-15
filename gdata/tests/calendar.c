@@ -219,6 +219,72 @@ test_query_events (void)
 	g_object_unref (calendar);
 }
 
+static void
+test_insert_simple (void)
+{
+	GDataCalendarEvent *event, *new_event;
+	GDataCategory *category;
+	GDataGDWhere *where;
+	GDataGDWho *who;
+	GTimeVal start_time, end_time;
+	gchar *xml;
+	GError *error = NULL;
+
+	g_assert (service != NULL);
+
+	event = gdata_calendar_event_new (NULL);
+
+	gdata_entry_set_title (GDATA_ENTRY (event), "Tennis with Beth");
+	gdata_entry_set_content (GDATA_ENTRY (event), "Meet for a quick lesson.");
+	category = gdata_category_new ("http://schemas.google.com/g/2005#event", "http://schemas.google.com/g/2005#kind", NULL);
+	gdata_entry_add_category (GDATA_ENTRY (event), category);
+	gdata_calendar_event_set_transparency (event, "http://schemas.google.com/g/2005#event.opaque");
+	gdata_calendar_event_set_event_status (event, "http://schemas.google.com/g/2005#event.confirmed");
+	where = gdata_gd_where_new (NULL, "Rolling Lawn Courts", NULL);
+	gdata_calendar_event_add_place (event, where);
+	who = gdata_gd_who_new ("http://schemas.google.com/g/2005#event.organizer", "John Smith‽", "john.smith@example.com");
+	gdata_calendar_event_add_person (event, who);
+	g_time_val_from_iso8601 ("2009-04-17T15:00:00.000Z", &start_time);
+	g_time_val_from_iso8601 ("2009-04-17T17:00:00.000Z", &end_time);
+	gdata_calendar_event_set_start_time (event, &start_time);
+	gdata_calendar_event_set_end_time (event, &end_time);
+
+	/* Check the XML */
+	xml = gdata_entry_get_xml (GDATA_ENTRY (event));
+	g_assert_cmpstr (xml, ==,
+			 "<entry xmlns='http://www.w3.org/2005/Atom' "
+			 	"xmlns:gd='http://schemas.google.com/g/2005' "
+			 	"xmlns:gCal='http://schemas.google.com/gCal/2005' "
+			 	"xmlns:app='http://www.w3.org/2007/app'>"
+			 	"<title type='text'>Tennis with Beth</title>"
+			 	"<content type='text'>Meet for a quick lesson.</content>"
+			 	"<category term='http://schemas.google.com/g/2005#event' scheme='http://schemas.google.com/g/2005#kind'/>"
+			 	"<gd:eventStatus value='http://schemas.google.com/g/2005#event.confirmed'/>"
+			 	"<gd:transparency value='http://schemas.google.com/g/2005#event.opaque'/>"
+			 	"<gd:when startTime='2009-04-17T15:00:00Z' endTime='2009-04-17T17:00:00Z'/>"
+			 	"<gCal:guestsCanModify value='false'/>"
+			 	"<gCal:guestsCanInviteOthers value='false'/>"
+			 	"<gCal:guestsCanSeeGuests value='false'/>"
+			 	"<gCal:anyoneCanAddSelf value='false'/>"
+			 	"<gd:who email='john.smith@example.com' "
+			 		"rel='http://schemas.google.com/g/2005#event.organizer' "
+			 		"valueString='John Smith\342\200\275'/>"
+			 	"<gd:where valueString='Rolling Lawn Courts'/>"
+			 "</entry>");
+	g_free (xml);
+
+	/* Insert the event */
+	new_event = gdata_calendar_service_insert_event (GDATA_CALENDAR_SERVICE (service), event, NULL, &error);
+	g_assert_no_error (error);
+	g_assert (GDATA_IS_CALENDAR_EVENT (new_event));
+	g_clear_error (&error);
+
+	/* TODO: check entries and feed properties */
+
+	g_object_unref (event);
+	g_object_unref (new_event);
+}
+
 int
 main (int argc, char *argv[])
 {
@@ -239,6 +305,8 @@ main (int argc, char *argv[])
 	if (g_test_thorough () == TRUE)
 		g_test_add_func ("/calendar/query/own_calendars_async", test_query_own_calendars_async);
 	g_test_add_func ("/calendar/query/events", test_query_events);
+	if (g_test_slow () == TRUE)
+		g_test_add_func ("/calendar/insert/simple", test_insert_simple);
 
 	retval = g_test_run ();
 	if (service != NULL)
