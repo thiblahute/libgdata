@@ -49,7 +49,6 @@ gdata_service_is_authenticated
 gdata_service_get_client_id
 gdata_service_get_username
 gdata_service_get_password
-gdata_service_get_session
 gdata_query_get_type
 gdata_query_new
 gdata_query_new_with_limits
@@ -197,5 +196,13 @@ gdata_calendar_service_query_own_calendars_async
 gdata_calendar_service_query_events
 gdata_service_error_get_type
 gdata_authentication_error_get_type
+gdata_gd_rating_new
+gdata_gd_rating_free
+gdata_gd_feed_link_new
+gdata_gd_feed_link_free
+gdata_gd_who_new
+gdata_gd_who_free
+gdata_gd_where_new
+gdata_gd_where_free
 gdata_media_expression_get_type
 gdata_parser_error_get_type

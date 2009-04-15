@@ -19,6 +19,7 @@
 
 #include <glib.h>
 #include <libxml/parser.h>
+#include <libsoup/soup.h>
 
 #include <gdata/gdata-service.h>
 
@@ -29,6 +30,7 @@ G_BEGIN_DECLS
 
 #include "gdata-service.h"
 void _gdata_service_set_authenticated (GDataService *self, gboolean authenticated);
+guint _gdata_service_send_message (GDataService *self, SoupMessage *message, GError **error);
 
 #include "gdata-query.h"
 void _gdata_query_set_next_uri (GDataQuery *self, const gchar *next_uri);

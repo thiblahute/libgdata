@@ -21,7 +21,6 @@ gdata_service_delete_entry
 gdata_service_get_client_id
 gdata_service_get_username
 gdata_service_get_password
-gdata_service_get_session
 <SUBSECTION Standard>
 GDATA_SERVICE
 GDATA_IS_SERVICE

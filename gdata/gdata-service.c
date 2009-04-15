@@ -661,6 +661,45 @@ gdata_service_authenticate (GDataService *self, const gchar *username, const gch
 	return authenticate (self, username, password, NULL, NULL, cancellable, error);
 }
 
+guint
+_gdata_service_send_message (GDataService *self, SoupMessage *message, GError **error)
+{
+	/* Based on code from evolution-data-server's libgdata:
+	 *  Ebby Wiselyn <ebbywiselyn@gmail.com>
+	 *  Jason Willis <zenbrother@gmail.com>
+	 *
+	 * Copyright (C) 1999-2008 Novell, Inc. (www.novell.com)
+	 */
+
+	soup_message_set_flags (message, SOUP_MESSAGE_NO_REDIRECT);
+	soup_session_send_message (self->priv->session, message);
+	soup_message_set_flags (message, 0);
+
+	if (SOUP_STATUS_IS_REDIRECTION (message->status_code)) {
+		SoupURI *new_uri;
+		const gchar *new_location;
+
+		new_location = soup_message_headers_get (message->response_headers, "Location");
+		g_return_val_if_fail (new_location != NULL, SOUP_STATUS_NONE);
+
+		new_uri = soup_uri_new_with_base (soup_message_get_uri (message), new_location);
+		if (new_uri == NULL) {
+			gchar *uri_string = soup_uri_to_string (new_uri, FALSE);
+			g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
+				     _("Invalid redirect URI: %s"), uri_string);
+			g_free (uri_string);
+			return SOUP_STATUS_NONE;
+		}
+
+		soup_message_set_uri (message, new_uri);
+		soup_uri_free (new_uri);
+
+		soup_session_send_message (self->priv->session, message);
+	}
+
+	return message->status_code;
+}
+
 typedef struct {
 	/* Input */
 	gchar *feed_uri;
@@ -932,7 +971,11 @@ gdata_service_insert_entry (GDataService *self, const gchar *upload_uri, GDataEn
 	soup_message_set_request (message, "application/atom+xml", SOUP_MEMORY_TAKE, upload_data, strlen (upload_data));
 
 	/* Send the message */
-	status = soup_session_send_message (self->priv->session, message);
+	status = _gdata_service_send_message (self, message, error);
+	if (status == SOUP_STATUS_NONE) {
+		g_object_unref (message);
+		return NULL;
+	}
 
 	/* Check for cancellation */
 	if (g_cancellable_set_error_if_cancelled (cancellable, error) == TRUE) {
@@ -1037,7 +1080,11 @@ gdata_service_update_entry (GDataService *self, GDataEntry *entry, GDataEntryPar
 	soup_message_set_request (message, "application/atom+xml", SOUP_MEMORY_TAKE, upload_data, strlen (upload_data));
 
 	/* Send the message */
-	status = soup_session_send_message (self->priv->session, message);
+	status = _gdata_service_send_message (self, message, error);
+	if (status == SOUP_STATUS_NONE) {
+		g_object_unref (message);
+		return NULL;
+	}
 
 	/* Check for cancellation */
 	if (g_cancellable_set_error_if_cancelled (cancellable, error) == TRUE) {
@@ -1131,8 +1178,10 @@ gdata_service_delete_entry (GDataService *self, GDataEntry *entry, GCancellable 
 		klass->append_query_headers (self, message);
 
 	/* Send the message */
-	status = soup_session_send_message (self->priv->session, message);
+	status = _gdata_service_send_message (self, message, error);
 	g_object_unref (message);
+	if (status == SOUP_STATUS_NONE)
+		return FALSE;
 
 	/* Check for cancellation */
 	if (g_cancellable_set_error_if_cancelled (cancellable, error) == TRUE)
@@ -1230,19 +1279,4 @@ gdata_service_get_password (GDataService *self)
 {
 	g_return_val_if_fail (GDATA_IS_SERVICE (self), NULL);
 	return self->priv->password;
-}
-
-/**
- * gdata_service_get_session:
- * @self: a #GDataService
- *
- * Returns the #SoupSession which @self is using to communicate with the online service.
- *
- * Return value: a #SoupSession
- **/
-SoupSession *
-gdata_service_get_session (GDataService *self)
-{
-	g_return_val_if_fail (GDATA_IS_SERVICE (self), NULL);
-	return self->priv->session;
 }

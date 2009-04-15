@@ -702,7 +702,11 @@ gdata_youtube_service_upload_video (GDataYouTubeService *self, GDataYouTubeVideo
 	soup_message_set_request (message, "multipart/related; boundary=" BOUNDARY_STRING, SOUP_MEMORY_TAKE, upload_data, content_length);
 
 	/* Send the message */
-	status = soup_session_send_message (gdata_service_get_session (GDATA_SERVICE (self)), message);
+	status = _gdata_service_send_message (GDATA_SERVICE (self), message, error);
+	if (status == SOUP_STATUS_NONE) {
+		g_object_unref (message);
+		return NULL;
+	}
 
 	/* Check for cancellation */
 	if (g_cancellable_set_error_if_cancelled (cancellable, error) == TRUE) {

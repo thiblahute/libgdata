@@ -194,7 +194,6 @@ gboolean gdata_service_is_authenticated (GDataService *self);
 const gchar *gdata_service_get_client_id (GDataService *self);
 const gchar *gdata_service_get_username (GDataService *self);
 const gchar *gdata_service_get_password (GDataService *self);
-SoupSession *gdata_service_get_session (GDataService *self);
 
 G_END_DECLS
 
