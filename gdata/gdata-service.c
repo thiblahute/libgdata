@@ -38,6 +38,9 @@
 #include "gdata-private.h"
 #include "gdata-marshal.h"
 
+/* The default e-mail domain to use for usernames */
+#define EMAIL_DOMAIN "gmail.com"
+
 GQuark
 gdata_service_error_quark (void)
 {
@@ -323,7 +326,12 @@ set_authentication_details_cb (AuthenticateAsyncData *data)
 	GDataServicePrivate *priv = data->service->priv;
 
 	g_free (priv->username);
-	priv->username = g_strdup (data->username);
+	/* Ensure the username is always a full e-mail address */
+	if (strchr (data->username, '@') == NULL)
+		priv->username = g_strdup_printf ("%s@" EMAIL_DOMAIN, data->username);
+	else
+		priv->username = g_strdup (data->username);
+
 	g_free (priv->password);
 	priv->password = g_strdup (data->password);
 	priv->authenticated = TRUE;
