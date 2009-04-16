@@ -1102,6 +1102,9 @@ get_xml (GDataEntry *entry, GString *xml_string)
 static void
 get_namespaces (GDataEntry *entry, GHashTable *namespaces)
 {
+	/* Chain up to the parent class */
+	GDATA_ENTRY_CLASS (gdata_youtube_video_parent_class)->get_namespaces (entry, namespaces);
+
 	g_hash_table_insert (namespaces, "media", "http://search.yahoo.com/mrss/");
 	g_hash_table_insert (namespaces, "yt", "http://gdata.youtube.com/schemas/2007");
 }

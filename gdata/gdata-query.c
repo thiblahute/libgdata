@@ -77,6 +77,8 @@ struct _GDataQueryPrivate {
 	gchar *previous_uri;
 	gboolean use_next_uri;
 	gboolean use_previous_uri;
+
+	gchar *etag;
 };
 
 enum {
@@ -90,7 +92,8 @@ enum {
 	PROP_START_INDEX,
 	PROP_STRICT,
 	PROP_MAX_RESULTS,
-	PROP_ENTRY_ID
+	PROP_ENTRY_ID,
+	PROP_ETAG
 };
 
 G_DEFINE_TYPE (GDataQuery, gdata_query, G_TYPE_OBJECT)
@@ -263,6 +266,18 @@ gdata_query_class_init (GDataQueryClass *klass)
 					"Entry ID", "A specific entry ID to return.",
 					NULL,
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * GDataQuery:etag:
+	 *
+	 * The ETag against which to check for updates. If the server-side ETag matches this one, the requested feed hasn't changed, and is not
+	 * returned unnecessarily.
+	 **/
+	g_object_class_install_property (gobject_class, PROP_ETAG,
+				g_param_spec_string ("etag",
+					"ETag", "An ETag against which to check.",
+					NULL,
+					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 }
 
 static void
@@ -285,6 +300,8 @@ gdata_query_finalize (GObject *object)
 
 	g_free (priv->next_uri);
 	g_free (priv->previous_uri);
+
+	g_free (priv->etag);
 
 	/* Chain up to the parent class */
 	G_OBJECT_CLASS (gdata_query_parent_class)->finalize (object);
@@ -328,6 +345,9 @@ gdata_query_get_property (GObject *object, guint property_id, GValue *value, GPa
 			break;
 		case PROP_ENTRY_ID:
 			g_value_set_string (value, priv->entry_id);
+			break;
+		case PROP_ETAG:
+			g_value_set_string (value, priv->etag);
 			break;
 		default:
 			/* We don't have any other property... */
@@ -374,6 +394,9 @@ gdata_query_set_property (GObject *object, guint property_id, const GValue *valu
 			break;
 		case PROP_ENTRY_ID:
 			gdata_query_set_entry_id (self, g_value_get_string (value));
+			break;
+		case PROP_ETAG:
+			gdata_query_set_etag (self, g_value_get_string (value));
 			break;
 		default:
 			/* We don't have any other property... */
@@ -1003,6 +1026,40 @@ gdata_query_set_entry_id (GDataQuery *self, const gchar *entry_id)
 	g_object_notify (G_OBJECT (self), "entry-id");
 }
 
+/**
+ * gdata_query_get_etag:
+ * @self: a #GDataQuery
+ *
+ * Gets the #GDataQuery:etag property.
+ *
+ * Return value: the ETag property, or %NULL if it is unset
+ **/
+const gchar *
+gdata_query_get_etag (GDataQuery *self)
+{
+	g_return_val_if_fail (GDATA_IS_QUERY (self), NULL);
+	return self->priv->etag;
+}
+
+/**
+ * gdata_query_set_etag:
+ * @self: a #GDataQuery
+ * @etag: the new ETag
+ *
+ * Sets the #GDataQuery:etag property of the #GDataQuery to the new ETag, @etag.
+ *
+ * Set @etag to %NULL to not check against the server-side ETag.
+ **/
+void
+gdata_query_set_etag (GDataQuery *self, const gchar *etag)
+{
+	g_return_if_fail (GDATA_IS_QUERY (self));
+
+	g_free (self->priv->etag);
+	self->priv->etag = g_strdup (etag);
+	g_object_notify (G_OBJECT (self), "etag");
+}
+
 void
 _gdata_query_set_next_uri (GDataQuery *self, const gchar *next_uri)
 {
@@ -1038,12 +1095,18 @@ _gdata_query_set_previous_uri (GDataQuery *self, const gchar *previous_uri)
 void
 gdata_query_next_page (GDataQuery *self)
 {
-	if (self->priv->next_uri != NULL) {
-		self->priv->use_next_uri = TRUE;
-		self->priv->use_previous_uri = FALSE;
+	GDataQueryPrivate *priv = self->priv;
+
+	if (priv->next_uri != NULL) {
+		priv->use_next_uri = TRUE;
+		priv->use_previous_uri = FALSE;
 	} else {
-		self->priv->start_index += self->priv->max_results;
+		priv->start_index += priv->max_results;
 	}
+
+	/* Our current ETag will not be relevant */
+	g_free (priv->etag);
+	priv->etag = NULL;
 }
 
 /**
@@ -1060,14 +1123,20 @@ gdata_query_next_page (GDataQuery *self)
 gboolean
 gdata_query_previous_page (GDataQuery *self)
 {
-	if (self->priv->next_uri != NULL) {
-		self->priv->use_previous_uri = TRUE;
-		self->priv->use_next_uri = FALSE;
-	} else if (self->priv->start_index < self->priv->max_results) {
+	GDataQueryPrivate *priv = self->priv;
+
+	if (priv->next_uri != NULL) {
+		priv->use_previous_uri = TRUE;
+		priv->use_next_uri = FALSE;
+	} else if (priv->start_index < priv->max_results) {
 		return FALSE;
 	} else {
-		self->priv->start_index -= self->priv->max_results;
+		priv->start_index -= priv->max_results;
 	}
+
+	/* Our current ETag will not be relevant */
+	g_free (priv->etag);
+	priv->etag = NULL;
 
 	return TRUE;
 }

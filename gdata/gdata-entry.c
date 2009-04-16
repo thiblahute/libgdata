@@ -46,10 +46,12 @@ static void gdata_entry_get_property (GObject *object, guint property_id, GValue
 static void gdata_entry_set_property (GObject *object, guint property_id, const GValue *value, GParamSpec *pspec);
 static void real_get_xml (GDataEntry *self, GString *xml_string);
 static gboolean real_parse_xml (GDataEntry *self, xmlDoc *doc, xmlNode *node, GError **error);
+static void real_get_namespaces (GDataEntry *self, GHashTable *namespaces);
 
 struct _GDataEntryPrivate {
 	gchar *title;
 	gchar *id;
+	gchar *etag;
 	GTimeVal updated;
 	GTimeVal published;
 	GList *categories;
@@ -63,6 +65,7 @@ struct _GDataEntryPrivate {
 
 enum {
 	PROP_TITLE = 1,
+	PROP_ETAG,
 	PROP_ID,
 	PROP_UPDATED,
 	PROP_PUBLISHED,
@@ -86,6 +89,7 @@ gdata_entry_class_init (GDataEntryClass *klass)
 
 	klass->get_xml = real_get_xml;
 	klass->parse_xml = real_parse_xml;
+	klass->get_namespaces = real_get_namespaces;
 
 	g_object_class_install_property (gobject_class, PROP_TITLE,
 				g_param_spec_string ("title",
@@ -95,6 +99,11 @@ gdata_entry_class_init (GDataEntryClass *klass)
 	g_object_class_install_property (gobject_class, PROP_ID,
 				g_param_spec_string ("id",
 					"ID", "The ID for this entry.",
+					NULL,
+					G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS));
+	g_object_class_install_property (gobject_class, PROP_ETAG,
+				g_param_spec_string ("etag",
+					"ETag", "The ETag for this entry.",
 					NULL,
 					G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS));
 	g_object_class_install_property (gobject_class, PROP_UPDATED,
@@ -134,6 +143,7 @@ gdata_entry_finalize (GObject *object)
 
 	g_free (priv->title);
 	xmlFree (priv->id);
+	xmlFree (priv->etag);
 	g_list_foreach (priv->categories, (GFunc) gdata_category_free, NULL);
 	g_list_free (priv->categories);
 	g_free (priv->content);
@@ -160,6 +170,9 @@ gdata_entry_get_property (GObject *object, guint property_id, GValue *value, GPa
 			break;
 		case PROP_ID:
 			g_value_set_string (value, priv->id);
+			break;
+		case PROP_ETAG:
+			g_value_set_string (value, priv->etag);
 			break;
 		case PROP_UPDATED:
 			g_value_set_boxed (value, &(priv->updated));
@@ -189,6 +202,10 @@ gdata_entry_set_property (GObject *object, guint property_id, const GValue *valu
 		case PROP_ID:
 			/* Construct only */
 			self->priv->id = g_value_dup_string (value);
+			break;
+		case PROP_ETAG:
+			/* Construct only */
+			self->priv->etag = g_value_dup_string (value);
 			break;
 		case PROP_TITLE:
 			gdata_entry_set_title (self, g_value_get_string (value));
@@ -300,6 +317,12 @@ real_get_xml (GDataEntry *self, GString *xml_string)
 		g_string_append (xml_string, priv->extra_xml->str);
 }
 
+static void
+real_get_namespaces (GDataEntry *self, GHashTable *namespaces)
+{
+	g_hash_table_insert (namespaces, "gd", "http://schemas.google.com/g/2005");
+}
+
 /**
  * gdata_entry_new:
  * @id: the entry's ID, or %NULL
@@ -393,6 +416,9 @@ _gdata_entry_new_from_xml_node (GType entry_type, xmlDoc *doc, xmlNode *node, GE
 	klass = GDATA_ENTRY_GET_CLASS (entry);
 	if (klass->parse_xml == NULL)
 		return FALSE;
+
+	/* Get the ETag first */
+	entry->priv->etag = (gchar*) xmlGetProp (node, (xmlChar*) "etag");
 
 	node = node->xmlChildrenNode;
 	while (node != NULL) {
@@ -602,6 +628,22 @@ gdata_entry_get_id (GDataEntry *self)
 }
 
 /**
+ * gdata_entry_get_etag:
+ * @self: a #GDataEntry
+ *
+ * Returns the ETag of the entry; a unique identifier for each version of the entry. For more information, see the
+ * <ulink type="http" url="http://code.google.com/apis/gdata/docs/2.0/reference.html#ResourceVersioning">online documentation</ulink>.
+ *
+ * Return value: the entry's ETag
+ **/
+const gchar *
+gdata_entry_get_etag (GDataEntry *self)
+{
+	g_return_val_if_fail (GDATA_IS_ENTRY (self), NULL);
+	return self->priv->etag;
+}
+
+/**
  * gdata_entry_get_updated:
  * @self: a #GDataEntry
  * @updated: a #GTimeVal
@@ -798,24 +840,28 @@ gdata_entry_get_xml (GDataEntry *self)
 {
 	GDataEntryClass *klass;
 	GString *xml_string;
-	GHashTable *namespaces = NULL;
+	GHashTable *namespaces;
 
 	klass = GDATA_ENTRY_GET_CLASS (self);
-	if (klass->get_xml == NULL)
-		return NULL;
+	g_assert (klass->get_xml != NULL);
+	g_assert (klass->get_namespaces != NULL);
 
 	/* Get the namespaces the class uses */
-	if (klass->get_namespaces != NULL) {
-		namespaces = g_hash_table_new (g_str_hash, g_str_equal);
-		klass->get_namespaces (self, namespaces);
-	}
+	namespaces = g_hash_table_new (g_str_hash, g_str_equal);
+	klass->get_namespaces (self, namespaces);
 
 	/* Build up the namespace list */
 	xml_string = g_string_new ("<entry xmlns='http://www.w3.org/2005/Atom'");
-	if (namespaces != NULL)
-		g_hash_table_foreach (namespaces, (GHFunc) build_namespaces_cb, xml_string);
+	g_hash_table_foreach (namespaces, (GHFunc) build_namespaces_cb, xml_string);
 	g_hash_table_foreach (self->priv->extra_namespaces, (GHFunc) build_namespaces_cb, xml_string);
-	g_string_append_c (xml_string, '>');
+
+	/* Add the entry's ETag, if available */
+	if (self->priv->etag != NULL)
+		g_string_append_printf (xml_string, " gd:etag='%s'>", self->priv->etag);
+	else
+		g_string_append_c (xml_string, '>');
+
+	g_hash_table_destroy (namespaces);
 
 	/* Add the rest of the XML */
 	klass->get_xml (self, xml_string);

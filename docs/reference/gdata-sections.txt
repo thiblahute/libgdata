@@ -54,6 +54,8 @@ gdata_query_get_q
 gdata_query_set_q
 gdata_query_get_entry_id
 gdata_query_set_entry_id
+gdata_query_get_etag
+gdata_query_set_etag
 gdata_query_get_author
 gdata_query_set_author
 gdata_query_get_categories
@@ -92,6 +94,7 @@ GDataFeedClass
 gdata_feed_get_title
 gdata_feed_get_subtitle
 gdata_feed_get_id
+gdata_feed_get_etag
 gdata_feed_get_authors
 gdata_feed_get_categories
 gdata_feed_get_entries
@@ -126,6 +129,7 @@ gdata_entry_new_from_xml
 gdata_entry_get_title
 gdata_entry_set_title
 gdata_entry_get_id
+gdata_entry_get_etag
 gdata_entry_get_content
 gdata_entry_set_content
 gdata_entry_get_published

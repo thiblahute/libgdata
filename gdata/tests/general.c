@@ -69,7 +69,7 @@ test_entry_get_xml (void)
 	/* Check the generated XML's OK */
 	xml = gdata_entry_get_xml (entry);
 	g_assert_cmpstr (xml, ==,
-			 "<entry xmlns='http://www.w3.org/2005/Atom'>"
+			 "<entry xmlns='http://www.w3.org/2005/Atom' xmlns:gd='http://schemas.google.com/g/2005'>"
 				 "<title type='text'>Testing title &amp; escaping</title>"
 				 /*"<updated>2009-01-25T14:07:37.880860Z</updated>"
 				 "<published>2009-01-23T14:06:37.880860Z</published>"*/
@@ -121,8 +121,7 @@ test_entry_parse_xml (void)
 
 	/* Create an entry from XML with unhandled elements */
 	entry = gdata_entry_new_from_xml (
-		"<entry xmlns='http://www.w3.org/2005/Atom' "
-			"xmlns:ns='http://example.com/'>"
+		"<entry xmlns='http://www.w3.org/2005/Atom' xmlns:ns='http://example.com/'>"
 			"<title type='text'>Testing unhandled XML</title>"
 			"<updated>2009-01-25T14:07:37.880860Z</updated>"
 			"<published>2009-01-23T14:06:37.880860Z</published>"
@@ -138,8 +137,7 @@ test_entry_parse_xml (void)
 	/* Now check the outputted XML from the entry still has the unhandled elements */
 	xml = gdata_entry_get_xml (entry);
 	g_assert_cmpstr (xml, ==,
-			 "<entry xmlns='http://www.w3.org/2005/Atom' "
-				"xmlns:ns='http://example.com/'>"
+			 "<entry xmlns='http://www.w3.org/2005/Atom' xmlns:gd='http://schemas.google.com/g/2005' xmlns:ns='http://example.com/'>"
 				"<title type='text'>Testing unhandled XML</title>"
 				"<updated>2009-01-25T14:07:37.880860Z</updated>"
 				"<published>2009-01-23T14:06:37.880860Z</published>"

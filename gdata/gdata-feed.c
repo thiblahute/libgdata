@@ -53,6 +53,7 @@ struct _GDataFeedPrivate {
 	gchar *title;
 	gchar *subtitle;
 	gchar *id;
+	gchar *etag;
 	GTimeVal updated;
 	GList *categories;
 	gchar *logo;
@@ -67,6 +68,7 @@ struct _GDataFeedPrivate {
 
 enum {
 	PROP_ID = 1,
+	PROP_ETAG,
 	PROP_UPDATED,
 	PROP_TITLE,
 	PROP_SUBTITLE,
@@ -129,6 +131,20 @@ gdata_feed_class_init (GDataFeedClass *klass)
 					"ID", "The unique and permanent URN ID for the feed.",
 					NULL,
 					G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * GDataFeed:etag:
+	 *
+	 * The unique ETag for this version of the feed. See the
+	 * <ulink type="http" url="http://code.google.com/apis/gdata/docs/2.0/reference.html#ResourceVersioning">online documentation</ulink> for
+	 * more information.
+	 **/
+	g_object_class_install_property (gobject_class, PROP_ETAG,
+				g_param_spec_string ("etag",
+					"ETag", "The unique ETag for this version of the feed.",
+					NULL,
+					G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
 
 	/**
 	 * GDataFeed:updated:
@@ -235,6 +251,7 @@ gdata_feed_finalize (GObject *object)
 	g_free (priv->title);
 	g_free (priv->subtitle);
 	g_free (priv->id);
+	g_free (priv->etag);
 	g_list_foreach (priv->categories, (GFunc) gdata_category_free, NULL);
 	g_list_free (priv->categories);
 	g_free (priv->logo);
@@ -264,6 +281,9 @@ gdata_feed_get_property (GObject *object, guint property_id, GValue *value, GPar
 			break;
 		case PROP_ID:
 			g_value_set_string (value, priv->id);
+			break;
+		case PROP_ETAG:
+			g_value_set_string (value, priv->etag);
 			break;
 		case PROP_UPDATED:
 			g_value_set_boxed (value, &(priv->updated));
@@ -305,6 +325,9 @@ gdata_feed_set_property (GObject *object, guint property_id, const GValue *value
 			break;
 		case PROP_ID:
 			priv->id = g_value_dup_string (value);
+			break;
+		case PROP_ETAG:
+			priv->etag = g_value_dup_string (value);
 			break;
 		case PROP_UPDATED:
 			timeval = g_value_get_boxed (value);
@@ -356,7 +379,7 @@ _gdata_feed_new_from_xml (const gchar *xml, gint length, GType entry_type,
 	GDataFeed *feed = NULL;
 	xmlDoc *doc;
 	xmlNode *node;
-	xmlChar *title = NULL, *subtitle = NULL, *id = NULL, *logo = NULL;
+	xmlChar *title = NULL, *subtitle = NULL, *id = NULL, *logo = NULL, *etag = NULL;
 	GTimeVal updated = { 0, };
 	GDataGenerator *generator = NULL;
 	guint entry_i = 0, total_results = 0, start_index = 0, items_per_page = 0;
@@ -395,6 +418,9 @@ _gdata_feed_new_from_xml (const gchar *xml, gint length, GType entry_type,
 		gdata_parser_error_required_element_missing ("feed", "root", error);
 		return NULL;
 	}
+
+	/* Get the ETag first */
+	etag = xmlGetProp (node, (xmlChar*) "etag");
 
 	extra_xml = g_string_new ("");
 	node = node->xmlChildrenNode;
@@ -663,6 +689,7 @@ _gdata_feed_new_from_xml (const gchar *xml, gint length, GType entry_type,
 			     "title", (gchar*) title,
 			     "subtitle", (gchar*) subtitle,
 			     "id", (gchar*) id,
+			     "etag", (gchar*) etag,
 			     "updated", &updated,
 			     "logo", (gchar*) logo,
 			     "generator", generator,
@@ -684,6 +711,7 @@ error:
 	xmlFree (title);
 	xmlFree (subtitle);
 	xmlFree (id);
+	xmlFree (etag);
 	xmlFree (logo);
 	gdata_generator_free (generator);
 	g_list_foreach (entries, (GFunc) g_object_unref, NULL);
@@ -864,6 +892,21 @@ gdata_feed_get_id (GDataFeed *self)
 {
 	g_return_val_if_fail (GDATA_IS_FEED (self), NULL);
 	return self->priv->id;
+}
+
+/**
+ * gdata_feed_get_etag:
+ * @self: a #GDataFeed
+ *
+ * Returns the feed's unique ETag for this version.
+ *
+ * Return value: the feed's ETag
+ **/
+const gchar *
+gdata_feed_get_etag (GDataFeed *self)
+{
+	g_return_val_if_fail (GDATA_IS_FEED (self), NULL);
+	return self->priv->etag;
 }
 
 /**

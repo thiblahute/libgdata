@@ -856,6 +856,9 @@ gdata_service_query_finish (GDataService *self, GAsyncResult *async_result, GErr
  * If the query is successful and the feed supports pagination, @query will be updated with the pagination URIs, and the next or previous page
  * can then be loaded by calling gdata_query_next_page() or gdata_query_previous_page() before running the query again.
  *
+ * If the #GDataQuery's ETag is set and it finds a match on the server, %FALSE will be returned, but @error will remain unset. Otherwise,
+ * @query's ETag will be updated with the ETag from the returned feed, if available.
+ *
  * Return value: a #GDataFeed of query results; unref with g_object_unref()
  **/
 GDataFeed *
@@ -884,21 +887,29 @@ gdata_service_query (GDataService *self, const gchar *feed_uri, GDataQuery *quer
 	if (klass->append_query_headers != NULL)
 		klass->append_query_headers (self, message);
 
+	/* Append the ETag header if possible */
+	if (query != NULL && gdata_query_get_etag (query) != NULL)
+		soup_message_headers_append (message->request_headers, "If-None-Match", gdata_query_get_etag (query));
+
 	/* Send the message */
 	status = soup_session_send_message (self->priv->session, message);
 
 	/* Check for cancellation */
 	if (g_cancellable_set_error_if_cancelled (cancellable, error) == TRUE) {
 		g_object_unref (message);
-		return FALSE;
+		return NULL;
 	}
 
-	if (status != 200) {
+	if (status == 304) {
+		/* Not modified; ETag has worked */
+		g_object_unref (message);
+		return NULL;
+	} else if (status != 200) {
 		/* Error */
 		g_assert (klass->parse_error_response != NULL);
 		klass->parse_error_response (self, status, message->reason_phrase, message->response_body->data, message->response_body->length, error);
 		g_object_unref (message);
-		return FALSE;
+		return NULL;
 	}
 
 	g_assert (message->response_body->data != NULL);
@@ -906,6 +917,10 @@ gdata_service_query (GDataService *self, const gchar *feed_uri, GDataQuery *quer
 	feed = _gdata_feed_new_from_xml (message->response_body->data, message->response_body->length, entry_type,
 					 progress_callback, progress_user_data, error);
 	g_object_unref (message);
+
+	/* Update the query with the feed's ETag */
+	if (query != NULL && gdata_feed_get_etag (feed) != NULL)
+		gdata_query_set_etag (query, gdata_feed_get_etag (feed));
 
 	/* Update the query with the next and previous URIs from the feed */
 	if (query != NULL) {
@@ -1056,6 +1071,10 @@ gdata_service_update_entry (GDataService *self, GDataEntry *entry, GType entry_t
 	if (klass->append_query_headers != NULL)
 		klass->append_query_headers (self, message);
 
+	/* Append the ETag header if possible */
+	if (gdata_entry_get_etag (entry) != NULL)
+		soup_message_headers_append (message->request_headers, "If-Match", gdata_entry_get_etag (entry));
+
 	/* Append the data */
 	upload_data = gdata_entry_get_xml (entry);
 	soup_message_set_request (message, "application/atom+xml", SOUP_MEMORY_TAKE, upload_data, strlen (upload_data));
@@ -1131,6 +1150,10 @@ gdata_service_delete_entry (GDataService *self, GDataEntry *entry, GCancellable 
 	klass = GDATA_SERVICE_GET_CLASS (self);
 	if (klass->append_query_headers != NULL)
 		klass->append_query_headers (self, message);
+
+	/* Append the ETag header if possible */
+	if (gdata_entry_get_etag (entry) != NULL)
+		soup_message_headers_append (message->request_headers, "If-Match", gdata_entry_get_etag (entry));
 
 	/* Send the message */
 	status = _gdata_service_send_message (self, message, error);

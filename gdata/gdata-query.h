@@ -86,6 +86,8 @@ gint gdata_query_get_max_results (GDataQuery *self);
 void gdata_query_set_max_results (GDataQuery *self, gint max_results);
 const gchar *gdata_query_get_entry_id (GDataQuery *self);
 void gdata_query_set_entry_id (GDataQuery *self, const gchar *entry_id);
+const gchar *gdata_query_get_etag (GDataQuery *self);
+void gdata_query_set_etag (GDataQuery *self, const gchar *etag);
 
 G_END_DECLS
 

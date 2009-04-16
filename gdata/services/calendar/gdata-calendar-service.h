@@ -52,7 +52,7 @@ GDataCalendarService *gdata_calendar_service_new (const gchar *client_id);
 #include <gdata/services/calendar/gdata-calendar-query.h>
 
 GDataFeed *gdata_calendar_service_query_all_calendars (GDataCalendarService *self, GDataCalendarQuery *query, GCancellable *cancellable,
-						       GDataQueryProgressCallback progress_callback, gpointer progress_user_data,GError **error);
+						       GDataQueryProgressCallback progress_callback, gpointer progress_user_data, GError **error);
 void gdata_calendar_service_query_all_calendars_async (GDataCalendarService *self, GDataCalendarQuery *query, GCancellable *cancellable,
 						       GDataQueryProgressCallback progress_callback, gpointer progress_user_data,
 						       GAsyncReadyCallback callback, gpointer user_data);

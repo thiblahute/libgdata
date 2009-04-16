@@ -80,6 +80,7 @@ GDataEntry *gdata_entry_new_from_xml (const gchar *xml, gint length, GError **er
 const gchar *gdata_entry_get_title (GDataEntry *self);
 void gdata_entry_set_title (GDataEntry *self, const gchar *title);
 const gchar *gdata_entry_get_id (GDataEntry *self);
+const gchar *gdata_entry_get_etag (GDataEntry *self);
 void gdata_entry_get_updated (GDataEntry *self, GTimeVal *updated);
 void gdata_entry_get_published (GDataEntry *self, GTimeVal *published);
 void gdata_entry_add_category (GDataEntry *self, GDataCategory *category);
