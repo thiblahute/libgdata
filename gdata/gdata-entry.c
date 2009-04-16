@@ -56,7 +56,9 @@ struct _GDataEntryPrivate {
 	gchar *content;
 	GList *links;
 	GList *authors;
+
 	GString *extra_xml;
+	GHashTable *extra_namespaces;
 };
 
 enum {
@@ -122,6 +124,7 @@ gdata_entry_init (GDataEntry *self)
 {
 	self->priv = G_TYPE_INSTANCE_GET_PRIVATE (self, GDATA_TYPE_ENTRY, GDataEntryPrivate);
 	self->priv->extra_xml = g_string_new ("");
+	self->priv->extra_namespaces = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
 }
 
 static void
@@ -140,6 +143,7 @@ gdata_entry_finalize (GObject *object)
 	g_list_free (priv->authors);
 
 	g_string_free (priv->extra_xml, TRUE);
+	g_hash_table_destroy (priv->extra_namespaces);
 
 	/* Chain up to the parent class */
 	G_OBJECT_CLASS (gdata_entry_parent_class)->finalize (object);
@@ -518,12 +522,26 @@ real_parse_xml (GDataEntry *self, xmlDoc *doc, xmlNode *node, GError **error)
 		xmlFree (uri);
 		xmlFree (email);
 	} else {
+		xmlBuffer *buffer;
+		xmlNs **namespaces, **namespace;
+
 		/* Unhandled XML */
-		xmlBuffer *buffer = xmlBufferCreate();
+		buffer = xmlBufferCreate ();
 		xmlNodeDump (buffer, doc, node, 0, 0);
 		g_string_append (self->priv->extra_xml, (gchar*) xmlBufferContent (buffer));
 		g_message ("Unhandled XML: %s", (gchar*) xmlBufferContent (buffer));
 		xmlBufferFree (buffer);
+
+		/* Get the namespaces */
+		namespaces = xmlGetNsList (doc, node);
+		for (namespace = namespaces; *namespace != NULL; namespace++) {
+			if ((*namespace)->prefix != NULL) {
+				g_hash_table_insert (self->priv->extra_namespaces,
+						     g_strdup ((gchar*) ((*namespace)->prefix)),
+						     g_strdup ((gchar*) ((*namespace)->href)));
+			}
+		}
+		xmlFree (namespaces);
 	}
 
 	return TRUE;
@@ -753,6 +771,12 @@ gdata_entry_is_inserted (GDataEntry *self)
 	return FALSE;
 }
 
+static void
+build_namespaces_cb (gchar *prefix, gchar *href, GString *output)
+{
+	g_string_append_printf (output, " xmlns:%s='%s'", prefix, href);
+}
+
 /**
  * gdata_entry_get_xml:
  * @self: a #GDataEntry
@@ -768,21 +792,26 @@ gdata_entry_get_xml (GDataEntry *self)
 {
 	GDataEntryClass *klass;
 	GString *xml_string;
-	const gchar *namespaces;
+	GHashTable *namespaces = NULL;
 
 	klass = GDATA_ENTRY_GET_CLASS (self);
 	if (klass->get_xml == NULL)
 		return NULL;
 
 	/* Get the namespaces the class uses */
-	if (klass->get_namespaces == NULL)
-		namespaces = "";
-	else
-		namespaces = klass->get_namespaces (self);
+	if (klass->get_namespaces != NULL) {
+		namespaces = g_hash_table_new (g_str_hash, g_str_equal);
+		klass->get_namespaces (self, namespaces);
+	}
 
-	/* Allocate enough space for 300 characters, which is a decent average entry length */
-	xml_string = g_string_sized_new (300);
-	g_string_append_printf (xml_string, "<entry xmlns='http://www.w3.org/2005/Atom' %s>", namespaces);
+	/* Build up the namespace list */
+	xml_string = g_string_new ("<entry xmlns='http://www.w3.org/2005/Atom'");
+	if (namespaces != NULL)
+		g_hash_table_foreach (namespaces, (GHFunc) build_namespaces_cb, xml_string);
+	g_hash_table_foreach (self->priv->extra_namespaces, (GHFunc) build_namespaces_cb, xml_string);
+	g_string_append_c (xml_string, '>');
+
+	/* Add the rest of the XML */
 	klass->get_xml (self, xml_string);
 	g_string_append (xml_string, "</entry>");
 

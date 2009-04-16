@@ -35,7 +35,7 @@ static void gdata_calendar_event_get_property (GObject *object, guint property_i
 static void gdata_calendar_event_set_property (GObject *object, guint property_id, const GValue *value, GParamSpec *pspec);
 static void get_xml (GDataEntry *entry, GString *xml_string);
 static gboolean parse_xml (GDataEntry *entry, xmlDoc *doc, xmlNode *node, GError **error);
-static const gchar *get_namespaces (GDataEntry *entry);
+static void get_namespaces (GDataEntry *entry, GHashTable *namespaces);
 
 struct _GDataCalendarEventPrivate {
 	GTimeVal edited;
@@ -638,10 +638,12 @@ get_xml (GDataEntry *entry, GString *xml_string)
 	 */
 }
 
-static const gchar *
-get_namespaces (GDataEntry *entry)
+static void
+get_namespaces (GDataEntry *entry, GHashTable *namespaces)
 {
-	return "xmlns:gd='http://schemas.google.com/g/2005' xmlns:gCal='http://schemas.google.com/gCal/2005' xmlns:app='http://www.w3.org/2007/app'";
+	g_hash_table_insert (namespaces, "gd", "http://schemas.google.com/g/2005");
+	g_hash_table_insert (namespaces, "gCal", "http://schemas.google.com/gCal/2005");
+	g_hash_table_insert (namespaces, "app", "http://www.w3.org/2007/app");
 }
 
 void

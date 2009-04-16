@@ -69,7 +69,7 @@ test_entry_get_xml (void)
 	/* Check the generated XML's OK */
 	xml = gdata_entry_get_xml (entry);
 	g_assert_cmpstr (xml, ==,
-			 "<entry xmlns='http://www.w3.org/2005/Atom' >"
+			 "<entry xmlns='http://www.w3.org/2005/Atom'>"
 				 "<title type='text'>Testing title &amp; escaping</title>"
 				 /*"<updated>2009-01-25T14:07:37.880860Z</updated>"
 				 "<published>2009-01-23T14:06:37.880860Z</published>"*/

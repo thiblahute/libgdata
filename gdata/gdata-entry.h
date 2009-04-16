@@ -69,7 +69,7 @@ typedef struct {
 
 	void (*get_xml) (GDataEntry *self, GString *xml_string);
 	gboolean (*parse_xml) (GDataEntry *self, xmlDoc *doc, xmlNode *node, GError **error);
-	const gchar *(*get_namespaces) (GDataEntry *self);
+	void (*get_namespaces) (GDataEntry *self, GHashTable *namespaces);
 } GDataEntryClass;
 
 GType gdata_entry_get_type (void);

@@ -48,7 +48,7 @@ static void gdata_youtube_video_get_property (GObject *object, guint property_id
 static void gdata_youtube_video_set_property (GObject *object, guint property_id, const GValue *value, GParamSpec *pspec);
 static void get_xml (GDataEntry *entry, GString *xml_string);
 static gboolean parse_xml (GDataEntry *entry, xmlDoc *doc, xmlNode *node, GError **error);
-static const gchar *get_namespaces (GDataEntry *entry);
+static void get_namespaces (GDataEntry *entry, GHashTable *namespaces);
 
 struct _GDataYouTubeVideoPrivate {
 	guint view_count;
@@ -1135,10 +1135,11 @@ get_xml (GDataEntry *entry, GString *xml_string)
 	 */
 }
 
-static const gchar *
-get_namespaces (GDataEntry *entry)
+static void
+get_namespaces (GDataEntry *entry, GHashTable *namespaces)
 {
-	return "xmlns:media='http://search.yahoo.com/mrss/' xmlns:yt='http://gdata.youtube.com/schemas/2007'";
+	g_hash_table_insert (namespaces, "media", "http://search.yahoo.com/mrss/");
+	g_hash_table_insert (namespaces, "yt", "http://gdata.youtube.com/schemas/2007");
 }
 
 /**
