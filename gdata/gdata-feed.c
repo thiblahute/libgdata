@@ -62,6 +62,7 @@ struct _GDataFeedPrivate {
 	guint items_per_page;
 	guint start_index;
 	guint total_results;
+	gchar *extra_xml;
 };
 
 enum {
@@ -243,6 +244,8 @@ gdata_feed_finalize (GObject *object)
 	g_list_free (priv->authors);
 	gdata_generator_free (priv->generator);
 
+	g_free (priv->extra_xml);
+
 	/* Chain up to the parent class */
 	G_OBJECT_CLASS (gdata_feed_parent_class)->finalize (object);
 }
@@ -347,7 +350,7 @@ progress_callback_idle (ProgressCallbackData *data)
 }
 
 GDataFeed *
-_gdata_feed_new_from_xml (const gchar *xml, gint length, GDataEntryParserFunc parser_func,
+_gdata_feed_new_from_xml (const gchar *xml, gint length, GType entry_type,
 			  GDataQueryProgressCallback progress_callback, gpointer progress_user_data, GError **error)
 {
 	GDataFeed *feed = NULL;
@@ -358,6 +361,7 @@ _gdata_feed_new_from_xml (const gchar *xml, gint length, GDataEntryParserFunc pa
 	GDataGenerator *generator = NULL;
 	guint entry_i = 0, total_results = 0, start_index = 0, items_per_page = 0;
 	GList *entries = NULL, *categories = NULL, *links = NULL, *authors = NULL;
+	GString *extra_xml;
 
 	g_return_val_if_fail (xml != NULL, NULL);
 
@@ -392,11 +396,12 @@ _gdata_feed_new_from_xml (const gchar *xml, gint length, GDataEntryParserFunc pa
 		return NULL;
 	}
 
+	extra_xml = g_string_new ("");
 	node = node->xmlChildrenNode;
 	while (node != NULL) {
 		if (xmlStrcmp (node->name, (xmlChar*) "entry") == 0) {
 			/* atom:entry */
-			GDataEntry *entry = parser_func (doc, node, error);
+			GDataEntry *entry = _gdata_entry_new_from_xml_node (entry_type, doc, node, error);
 			if (entry == NULL)
 				goto error;
 
@@ -621,11 +626,14 @@ _gdata_feed_new_from_xml (const gchar *xml, gint length, GDataEntryParserFunc pa
 
 			items_per_page = strtoul ((gchar*) items_per_page_string, NULL, 10);
 			xmlFree (items_per_page_string);
-		}/* else {
-		TODO
-			gdata_parser_error_unhandled_element ((gchar*) node->ns->prefix, (gchar*) node->name, "feed", error);
-			goto error;
-		}*/
+		} else {
+			/* Unhandled XML */
+			xmlBuffer *buffer = xmlBufferCreate();
+			xmlNodeDump (buffer, doc, node, 0, 0);
+			g_string_append (extra_xml, (gchar*) xmlBufferContent (buffer));
+			g_message ("Unhandled XML: %s", (gchar*) xmlBufferContent (buffer));
+			xmlBufferFree (buffer);
+		}
 
 		node = node->next;
 	}
@@ -686,6 +694,9 @@ error:
 	g_list_free (links);
 	g_list_foreach (authors, (GFunc) gdata_author_free, NULL);
 	g_list_free (authors);
+
+	/* Store any unhandled XML for future use */
+	feed->priv->extra_xml = g_string_free (extra_xml, FALSE);
 
 	xmlFreeDoc (doc);
 

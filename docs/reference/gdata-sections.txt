@@ -121,7 +121,6 @@ GDataFeedPrivate
 <TITLE>GDataEntry</TITLE>
 GDataEntry
 GDataEntryClass
-GDataEntryParserFunc
 gdata_entry_new
 gdata_entry_new_from_xml
 gdata_entry_get_title

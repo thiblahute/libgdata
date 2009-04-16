@@ -36,6 +36,7 @@
 
 #include "gdata-query.h"
 #include "gdata-private.h"
+#include "gdata-types.h"
 
 typedef enum {
 	GDATA_QUERY_PARAM_Q = 1 << 0,

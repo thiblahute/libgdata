@@ -34,6 +34,7 @@ static void gdata_calendar_event_finalize (GObject *object);
 static void gdata_calendar_event_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec);
 static void gdata_calendar_event_set_property (GObject *object, guint property_id, const GValue *value, GParamSpec *pspec);
 static void get_xml (GDataEntry *entry, GString *xml_string);
+static gboolean parse_xml (GDataEntry *entry, xmlDoc *doc, xmlNode *node, GError **error);
 static const gchar *get_namespaces (GDataEntry *entry);
 
 struct _GDataCalendarEventPrivate {
@@ -87,6 +88,7 @@ gdata_calendar_event_class_init (GDataCalendarEventClass *klass)
 	gobject_class->finalize = gdata_calendar_event_finalize;
 
 	entry_class->get_xml = get_xml;
+	entry_class->parse_xml = parse_xml;
 	entry_class->get_namespaces = get_namespaces;
 
 	g_object_class_install_property (gobject_class, PROP_EDITED,
@@ -331,36 +333,13 @@ gdata_calendar_event_new_from_xml (const gchar *xml, gint length, GError **error
 		return NULL;
 	}
 
-	return _gdata_calendar_event_new_from_xml_node (doc, node, error);
+	return GDATA_CALENDAR_EVENT (_gdata_entry_new_from_xml_node (GDATA_TYPE_CALENDAR_EVENT, doc, node, error));
 }
 
-GDataCalendarEvent *
-_gdata_calendar_event_new_from_xml_node (xmlDoc *doc, xmlNode *node, GError **error)
+static gboolean
+parse_xml (GDataEntry *entry, xmlDoc *doc, xmlNode *node, GError **error)
 {
-	GDataCalendarEvent *event;
-
-	g_return_val_if_fail (doc != NULL, FALSE);
-	g_return_val_if_fail (node != NULL, FALSE);
-	g_return_val_if_fail (xmlStrcmp (node->name, (xmlChar*) "entry") == 0, FALSE);
-
-	event = gdata_calendar_event_new (NULL);
-
-	node = node->xmlChildrenNode;
-	while (node != NULL) {
-		if (_gdata_calendar_event_parse_xml_node (event, doc, node, error) == FALSE) {
-			g_object_unref (event);
-			return NULL;
-		}
-		node = node->next;
-	}
-
-	return event;
-}
-
-gboolean
-_gdata_calendar_event_parse_xml_node (GDataCalendarEvent *self, xmlDoc *doc, xmlNode *node, GError **error)
-{
-	GError *child_error = NULL;
+	GDataCalendarEvent *self = GDATA_CALENDAR_EVENT (entry);
 
 	g_return_val_if_fail (GDATA_IS_CALENDAR_EVENT (self), FALSE);
 	g_return_val_if_fail (doc != NULL, FALSE);
@@ -545,14 +524,8 @@ _gdata_calendar_event_parse_xml_node (GDataCalendarEvent *self, xmlDoc *doc, xml
 		xmlFree (label);
 
 		gdata_calendar_event_add_place (self, where);
-	} else if (_gdata_entry_parse_xml_node (GDATA_ENTRY (self), doc, node, &child_error) == FALSE) {
-		if (g_error_matches (child_error, GDATA_PARSER_ERROR, GDATA_PARSER_ERROR_UNHANDLED_XML_ELEMENT) == TRUE) {
-			g_error_free (child_error);
-			gdata_parser_error_unhandled_element ((gchar*) node->ns->prefix, (gchar*) node->name, "entry", error);
-		} else {
-			g_propagate_error (error, child_error);
-		}
-
+	} else if (GDATA_ENTRY_CLASS (gdata_calendar_event_parent_class)->parse_xml (entry, doc, node, error) == FALSE) {
+		/* Error! */
 		return FALSE;
 	}
 

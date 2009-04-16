@@ -45,6 +45,7 @@ static void gdata_entry_finalize (GObject *object);
 static void gdata_entry_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec);
 static void gdata_entry_set_property (GObject *object, guint property_id, const GValue *value, GParamSpec *pspec);
 static void real_get_xml (GDataEntry *self, GString *xml_string);
+static gboolean real_parse_xml (GDataEntry *self, xmlDoc *doc, xmlNode *node, GError **error);
 
 struct _GDataEntryPrivate {
 	gchar *title;
@@ -55,6 +56,7 @@ struct _GDataEntryPrivate {
 	gchar *content;
 	GList *links;
 	GList *authors;
+	GString *extra_xml;
 };
 
 enum {
@@ -81,6 +83,7 @@ gdata_entry_class_init (GDataEntryClass *klass)
 	gobject_class->finalize = gdata_entry_finalize;
 
 	klass->get_xml = real_get_xml;
+	klass->parse_xml = real_parse_xml;
 
 	g_object_class_install_property (gobject_class, PROP_TITLE,
 				g_param_spec_string ("title",
@@ -118,6 +121,7 @@ static void
 gdata_entry_init (GDataEntry *self)
 {
 	self->priv = G_TYPE_INSTANCE_GET_PRIVATE (self, GDATA_TYPE_ENTRY, GDataEntryPrivate);
+	self->priv->extra_xml = g_string_new ("");
 }
 
 static void
@@ -134,6 +138,8 @@ gdata_entry_finalize (GObject *object)
 	g_list_free (priv->links);
 	g_list_foreach (priv->authors, (GFunc) gdata_author_free, NULL);
 	g_list_free (priv->authors);
+
+	g_string_free (priv->extra_xml, TRUE);
 
 	/* Chain up to the parent class */
 	G_OBJECT_CLASS (gdata_entry_parent_class)->finalize (object);
@@ -285,6 +291,9 @@ real_get_xml (GDataEntry *self, GString *xml_string)
 
 		g_string_append (xml_string, "</author>");
 	}
+
+	if (priv->extra_xml != NULL && priv->extra_xml->str != NULL)
+		g_string_append (xml_string, priv->extra_xml->str);
 }
 
 /**
@@ -355,23 +364,29 @@ gdata_entry_new_from_xml (const gchar *xml, gint length, GError **error)
 		return NULL;
 	}
 
-	return _gdata_entry_new_from_xml_node (doc, node, error);
+	return _gdata_entry_new_from_xml_node (GDATA_TYPE_ENTRY, doc, node, error);
 }
 
 GDataEntry *
-_gdata_entry_new_from_xml_node (xmlDoc *doc, xmlNode *node, GError **error)
+_gdata_entry_new_from_xml_node (GType entry_type, xmlDoc *doc, xmlNode *node, GError **error)
 {
 	GDataEntry *entry;
+	GDataEntryClass *klass;
 
+	g_return_val_if_fail (g_type_is_a (entry_type, GDATA_TYPE_ENTRY) == TRUE, FALSE);
 	g_return_val_if_fail (doc != NULL, FALSE);
 	g_return_val_if_fail (node != NULL, FALSE);
 	g_return_val_if_fail (xmlStrcmp (node->name, (xmlChar*) "entry") == 0, FALSE);
 
-	entry = gdata_entry_new (NULL);
+	entry = g_object_new (entry_type, NULL);
+
+	klass = GDATA_ENTRY_GET_CLASS (entry);
+	if (klass->parse_xml == NULL)
+		return FALSE;
 
 	node = node->xmlChildrenNode;
 	while (node != NULL) {
-		if (_gdata_entry_parse_xml_node (entry, doc, node, error) == FALSE) {
+		if (klass->parse_xml (entry, doc, node, error) == FALSE) {
 			g_object_unref (entry);
 			return NULL;
 		}
@@ -381,8 +396,8 @@ _gdata_entry_new_from_xml_node (xmlDoc *doc, xmlNode *node, GError **error)
 	return entry;
 }
 
-gboolean
-_gdata_entry_parse_xml_node (GDataEntry *self, xmlDoc *doc, xmlNode *node, GError **error)
+static gboolean
+real_parse_xml (GDataEntry *self, xmlDoc *doc, xmlNode *node, GError **error)
 {
 	g_return_val_if_fail (GDATA_IS_ENTRY (self), FALSE);
 	g_return_val_if_fail (doc != NULL, FALSE);
@@ -503,7 +518,12 @@ _gdata_entry_parse_xml_node (GDataEntry *self, xmlDoc *doc, xmlNode *node, GErro
 		xmlFree (uri);
 		xmlFree (email);
 	} else {
-		return gdata_parser_error_unhandled_element ((gchar*) node->ns->prefix, (gchar*) node->name, "entry", error);
+		/* Unhandled XML */
+		xmlBuffer *buffer = xmlBufferCreate();
+		xmlNodeDump (buffer, doc, node, 0, 0);
+		g_string_append (self->priv->extra_xml, (gchar*) xmlBufferContent (buffer));
+		g_message ("Unhandled XML: %s", (gchar*) xmlBufferContent (buffer));
+		xmlBufferFree (buffer);
 	}
 
 	return TRUE;

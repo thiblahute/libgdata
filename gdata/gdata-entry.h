@@ -47,20 +47,28 @@ typedef struct {
 	GDataEntryPrivate *priv;
 } GDataEntry;
 
-/**
+/*
  * GDataEntryClass:
  * @parent: the parent class
  * @get_xml: a function to build an XML representation of the #GDataEntry in its current state, appending it to the provided
  * #GString
+ * @parse_xml: a function to parse an XML representation of the #GDataEntry to set the properties of the @entry
  * @get_namespaces: a function to return a string containing the namespace declarations used by the entry when represented
  * in XML form
  *
  * The class structure for the #GDataEntry type.
+ */
+/**
+ * GDataEntryClass:
+ *
+ * All the fields in the #GDataEntryClass structure are private and should never be accessed directly.
  **/
 typedef struct {
+	/*< private >*/
 	GObjectClass parent;
 
 	void (*get_xml) (GDataEntry *self, GString *xml_string);
+	gboolean (*parse_xml) (GDataEntry *self, xmlDoc *doc, xmlNode *node, GError **error);
 	const gchar *(*get_namespaces) (GDataEntry *self);
 } GDataEntryClass;
 

@@ -47,6 +47,7 @@ static void gdata_youtube_video_finalize (GObject *object);
 static void gdata_youtube_video_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec);
 static void gdata_youtube_video_set_property (GObject *object, guint property_id, const GValue *value, GParamSpec *pspec);
 static void get_xml (GDataEntry *entry, GString *xml_string);
+static gboolean parse_xml (GDataEntry *entry, xmlDoc *doc, xmlNode *node, GError **error);
 static const gchar *get_namespaces (GDataEntry *entry);
 
 struct _GDataYouTubeVideoPrivate {
@@ -117,6 +118,7 @@ gdata_youtube_video_class_init (GDataYouTubeVideoClass *klass)
 	gobject_class->finalize = gdata_youtube_video_finalize;
 
 	entry_class->get_xml = get_xml;
+	entry_class->parse_xml = parse_xml;
 	entry_class->get_namespaces = get_namespaces;
 
 	/**
@@ -599,30 +601,7 @@ gdata_youtube_video_new_from_xml (const gchar *xml, gint length, GError **error)
 		return NULL;
 	}
 
-	return _gdata_youtube_video_new_from_xml_node (doc, node, error);
-}
-
-GDataYouTubeVideo *
-_gdata_youtube_video_new_from_xml_node (xmlDoc *doc, xmlNode *node, GError **error)
-{
-	GDataYouTubeVideo *video;
-
-	g_return_val_if_fail (doc != NULL, FALSE);
-	g_return_val_if_fail (node != NULL, FALSE);
-	g_return_val_if_fail (xmlStrcmp (node->name, (xmlChar*) "entry") == 0, FALSE);
-
-	video = gdata_youtube_video_new (NULL);
-
-	node = node->xmlChildrenNode;
-	while (node != NULL) {
-		if (_gdata_youtube_video_parse_xml_node (video, doc, node, error) == FALSE) {
-			g_object_unref (video);
-			return NULL;
-		}
-		node = node->next;
-	}
-
-	return video;
+	return GDATA_YOUTUBE_VIDEO (_gdata_entry_new_from_xml_node (GDATA_TYPE_YOUTUBE_VIDEO, doc, node, error));
 }
 
 static gboolean
@@ -874,10 +853,10 @@ parse_media_group_xml_node (GDataYouTubeVideo *self, xmlDoc *doc, xmlNode *node,
 	return TRUE;
 }
 
-gboolean
-_gdata_youtube_video_parse_xml_node (GDataYouTubeVideo *self, xmlDoc *doc, xmlNode *node, GError **error)
+static gboolean
+parse_xml (GDataEntry *entry, xmlDoc *doc, xmlNode *node, GError **error)
 {
-	GError *child_error = NULL;
+	GDataYouTubeVideo *self = GDATA_YOUTUBE_VIDEO (entry);
 
 	g_return_val_if_fail (GDATA_IS_YOUTUBE_VIDEO (self), FALSE);
 	g_return_val_if_fail (doc != NULL, FALSE);
@@ -1028,14 +1007,8 @@ _gdata_youtube_video_parse_xml_node (GDataYouTubeVideo *self, xmlDoc *doc, xmlNo
 
 			child_node = child_node->next;
 		}
-	} else if (_gdata_entry_parse_xml_node (GDATA_ENTRY (self), doc, node, &child_error) == FALSE) {
-		if (g_error_matches (child_error, GDATA_PARSER_ERROR, GDATA_PARSER_ERROR_UNHANDLED_XML_ELEMENT) == TRUE) {
-			g_error_free (child_error);
-			gdata_parser_error_unhandled_element ((gchar*) node->ns->prefix, (gchar*) node->name, "entry", error);
-		} else {
-			g_propagate_error (error, child_error);
-		}
-
+	} else if (GDATA_ENTRY_CLASS (gdata_youtube_video_parent_class)->parse_xml (entry, doc, node, error) == FALSE) {
+		/* Error! */
 		return FALSE;
 	}
 

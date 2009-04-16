@@ -113,6 +113,45 @@ test_entry_get_xml (void)
 }
 
 static void
+test_entry_parse_xml (void)
+{
+	GDataEntry *entry;
+	gchar *xml;
+	GError *error = NULL;
+
+	/* Create an entry from XML with unhandled elements */
+	entry = gdata_entry_new_from_xml (
+		"<entry xmlns='http://www.w3.org/2005/Atom' "
+			"xmlns:ns='http://example.com/'>"
+			"<title type='text'>Testing unhandled XML</title>"
+			"<updated>2009-01-25T14:07:37.880860Z</updated>"
+			"<published>2009-01-23T14:06:37.880860Z</published>"
+			"<content type='text'>Here we test unhandled XML elements.</content>"
+			"<foobar>Test!</foobar>"
+			"<barfoo shizzle='zing'/>"
+			"<ns:barfoo shizzle='zing' fo='shizzle'>How about some characters‽</ns:barfoo>"
+		 "</entry>", -1, &error);
+	g_assert_no_error (error);
+	g_assert (GDATA_IS_ENTRY (entry));
+	g_clear_error (&error);
+
+	/* Now check the outputted XML from the entry still has the unhandled elements */
+	xml = gdata_entry_get_xml (entry);
+	g_assert_cmpstr (xml, ==,
+			 "<entry xmlns='http://www.w3.org/2005/Atom' "
+				"xmlns:ns='http://example.com/'>"
+				"<title type='text'>Testing unhandled XML</title>"
+				"<updated>2009-01-25T14:07:37.880860Z</updated>"
+				"<published>2009-01-23T14:06:37.880860Z</published>"
+				"<content type='text'>Here we test unhandled XML elements.</content>"
+				"<foobar>Test!</foobar>"
+				"<barfoo shizzle=\"zing\"/>"
+				"<ns:barfoo shizzle=\"zing\" fo=\"shizzle\">How about some characters‽</ns:barfoo>"
+			 "</entry>");
+	g_free (xml);
+}
+
+static void
 test_query_categories (void)
 {
 	GDataQuery *query;
@@ -159,6 +198,7 @@ main (int argc, char *argv[])
 	g_test_bug_base ("http://bugzilla.gnome.org/show_bug.cgi?id=");
 
 	g_test_add_func ("/entry/get_xml", test_entry_get_xml);
+	g_test_add_func ("/entry/parse_xml", test_entry_parse_xml);
 	g_test_add_func ("/query/categories", test_query_categories);
 
 	return g_test_run ();

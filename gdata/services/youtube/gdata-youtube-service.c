@@ -407,8 +407,7 @@ gdata_youtube_service_query_standard_feed (GDataYouTubeService *self, GDataYouTu
 {
 	/* TODO: Support the "time" parameter, as well as category- and region-specific feeds */
 	return gdata_service_query (GDATA_SERVICE (self), standard_feed_type_to_feed_uri (feed_type), query,
-				    (GDataEntryParserFunc) _gdata_youtube_video_new_from_xml_node, cancellable,
-				    progress_callback, progress_user_data, error);
+				    GDATA_TYPE_YOUTUBE_VIDEO, cancellable, progress_callback, progress_user_data, error);
 }
 
 /**
@@ -436,8 +435,7 @@ gdata_youtube_service_query_standard_feed_async (GDataYouTubeService *self, GDat
 						 GAsyncReadyCallback callback, gpointer user_data)
 {
 	gdata_service_query_async (GDATA_SERVICE (self), standard_feed_type_to_feed_uri (feed_type), query,
-				   (GDataEntryParserFunc) _gdata_youtube_video_new_from_xml_node, cancellable, progress_callback, progress_user_data,
-				   callback, user_data);
+				   GDATA_TYPE_YOUTUBE_VIDEO, cancellable, progress_callback, progress_user_data, callback, user_data);
 }
 
 /**
@@ -462,8 +460,7 @@ gdata_youtube_service_query_videos (GDataYouTubeService *self, GDataQuery *query
 				    GError **error)
 {
 	return gdata_service_query (GDATA_SERVICE (self), "http://gdata.youtube.com/feeds/api/videos", query,
-				    (GDataEntryParserFunc) _gdata_youtube_video_new_from_xml_node, cancellable,
-				    progress_callback, progress_user_data, error);
+				    GDATA_TYPE_YOUTUBE_VIDEO, cancellable, progress_callback, progress_user_data, error);
 }
 
 /**
@@ -490,8 +487,7 @@ gdata_youtube_service_query_videos_async (GDataYouTubeService *self, GDataQuery 
 					  GAsyncReadyCallback callback, gpointer user_data)
 {
 	gdata_service_query_async (GDATA_SERVICE (self), "http://gdata.youtube.com/feeds/api/videos", query,
-				   (GDataEntryParserFunc) _gdata_youtube_video_new_from_xml_node, cancellable, progress_callback, progress_user_data,
-				   callback, user_data);
+				   GDATA_TYPE_YOUTUBE_VIDEO, cancellable, progress_callback, progress_user_data, callback, user_data);
 }
 
 /**
@@ -529,8 +525,7 @@ gdata_youtube_service_query_related (GDataYouTubeService *self, GDataYouTubeVide
 
 	/* Execute the query */
 	return gdata_service_query (GDATA_SERVICE (self), related_link->href, query,
-				    (GDataEntryParserFunc) _gdata_youtube_video_new_from_xml_node, cancellable,
-				    progress_callback, progress_user_data, error);
+				    GDATA_TYPE_YOUTUBE_VIDEO, cancellable, progress_callback, progress_user_data, error);
 }
 
 /**
@@ -570,8 +565,7 @@ gdata_youtube_service_query_related_async (GDataYouTubeService *self, GDataYouTu
 	}
 
 	gdata_service_query_async (GDATA_SERVICE (self), related_link->href, query,
-				   (GDataEntryParserFunc) _gdata_youtube_video_new_from_xml_node, cancellable, progress_callback, progress_user_data,
-				   callback, user_data);
+				   GDATA_TYPE_YOUTUBE_VIDEO, cancellable, progress_callback, progress_user_data, callback, user_data);
 }
 
 /**

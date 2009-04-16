@@ -80,20 +80,6 @@ typedef enum {
 } GDataAuthenticationError;
 
 /**
- * GDataEntryParserFunc:
- * @doc: the XML document
- * @node: the XML node for an element; the <literal>&lt;entry&gt;</literal> element
- * @error: a #GError, or %NULL
- *
- * Callback function for operations which parse feeds, which should produce a new #GDataEntry from the provided entry XML.
- *
- * It can return any error, but #GDataParserError errors are most likely and most expected.
- *
- * Return value: a new #GDataEntry, or %NULL
- **/
-typedef GDataEntry *(*GDataEntryParserFunc) (xmlDoc *doc, xmlNode *node, GError **error);
-
-/**
  * GDataQueryProgressCallback:
  * @entry: a new #GDataEntry
  * @entry_key: the key of the entry (zero-based index of its position in the feed)
@@ -168,20 +154,20 @@ gboolean gdata_service_authenticate_finish (GDataService *self, GAsyncResult *as
 
 #include <gdata/gdata-query.h>
 
-GDataFeed *gdata_service_query (GDataService *self, const gchar *feed_uri, GDataQuery *query, GDataEntryParserFunc parser_func,
+GDataFeed *gdata_service_query (GDataService *self, const gchar *feed_uri, GDataQuery *query, GType entry_type,
 				GCancellable *cancellable,
 				GDataQueryProgressCallback progress_callback, gpointer progress_user_data, GError **error);
-void gdata_service_query_async (GDataService *self, const gchar *feed_uri, GDataQuery *query, GDataEntryParserFunc parser_func,
+void gdata_service_query_async (GDataService *self, const gchar *feed_uri, GDataQuery *query, GType entry_type,
 				GCancellable *cancellable,
 				GDataQueryProgressCallback progress_callback, gpointer progress_user_data,
 				GAsyncReadyCallback callback, gpointer user_data);
 GDataFeed *gdata_service_query_finish (GDataService *self, GAsyncResult *async_result, GError **error);
 
-GDataEntry *gdata_service_insert_entry (GDataService *self, const gchar *upload_uri, GDataEntry *entry, GDataEntryParserFunc parser_func,
+GDataEntry *gdata_service_insert_entry (GDataService *self, const gchar *upload_uri, GDataEntry *entry, GType entry_type,
 					GCancellable *cancellable, GError **error);
 /* TODO: async version */
 
-GDataEntry *gdata_service_update_entry (GDataService *self, GDataEntry *entry, GDataEntryParserFunc parser_func,
+GDataEntry *gdata_service_update_entry (GDataService *self, GDataEntry *entry, GType entry_type,
 					GCancellable *cancellable, GError **error);
 /* TODO: async version */
 

@@ -713,7 +713,7 @@ typedef struct {
 	/* Input */
 	gchar *feed_uri;
 	GDataQuery *query;
-	GDataEntryParserFunc parser_func;
+	GType entry_type;
 
 	/* Output */
 	GDataFeed *feed;
@@ -747,7 +747,7 @@ query_thread (GSimpleAsyncResult *result, GDataService *service, GCancellable *c
 	}
 
 	/* Execute the query and return */
-	data->feed = gdata_service_query (service, data->feed_uri, data->query, data->parser_func, cancellable,
+	data->feed = gdata_service_query (service, data->feed_uri, data->query, data->entry_type, cancellable,
 					  data->progress_callback, data->progress_user_data, &error);
 	if (data->feed == NULL) {
 		g_simple_async_result_set_from_error (result, error);
@@ -760,7 +760,7 @@ query_thread (GSimpleAsyncResult *result, GDataService *service, GCancellable *c
  * @self: a #GDataService
  * @feed_uri: the feed URI to query, including the host name and protocol
  * @query: a #GDataQuery with the query parameters, or %NULL
- * @parser_func: a #GDataEntryParserFunc to build a #GDataEntry from the XML
+ * @entry_type: a #GType for the #GDataEntry<!-- -->s to build from the XML
  * @cancellable: optional #GCancellable object, or %NULL
  * @progress_callback: a #GDataQueryProgressCallback to call when an entry is loaded, or %NULL
  * @progress_user_data: data to pass to the @progress_callback function
@@ -776,7 +776,7 @@ query_thread (GSimpleAsyncResult *result, GDataService *service, GCancellable *c
  * to get the results of the operation.
  **/
 void
-gdata_service_query_async (GDataService *self, const gchar *feed_uri, GDataQuery *query, GDataEntryParserFunc parser_func, GCancellable *cancellable,
+gdata_service_query_async (GDataService *self, const gchar *feed_uri, GDataQuery *query, GType entry_type, GCancellable *cancellable,
 			   GDataQueryProgressCallback progress_callback, gpointer progress_user_data,
 			   GAsyncReadyCallback callback, gpointer user_data)
 {
@@ -785,12 +785,12 @@ gdata_service_query_async (GDataService *self, const gchar *feed_uri, GDataQuery
 
 	g_return_if_fail (GDATA_IS_SERVICE (self));
 	g_return_if_fail (feed_uri != NULL);
-	g_return_if_fail (parser_func != NULL);
+	g_return_if_fail (entry_type != G_TYPE_INVALID);
 
 	data = g_slice_new (QueryAsyncData);
 	data->feed_uri = g_strdup (feed_uri);
 	data->query = (query != NULL) ? g_object_ref (query) : NULL;
-	data->parser_func = parser_func;
+	data->entry_type = entry_type;
 	data->progress_callback = progress_callback;
 	data->progress_user_data = progress_user_data;
 
@@ -836,7 +836,7 @@ gdata_service_query_finish (GDataService *self, GAsyncResult *async_result, GErr
  * @self: a #GDataService
  * @feed_uri: the feed URI to query, including the host name and protocol
  * @query: a #GDataQuery with the query parameters, or %NULL
- * @parser_func: a #GDataEntryParserFunc to build a #GDataEntry from the XML
+ * @entry_type: a #GType for the #GDataEntry<!-- -->s to build from the XML
  * @cancellable: optional #GCancellable object, or %NULL
  * @progress_callback: a #GDataQueryProgressCallback to call when an entry is loaded, or %NULL
  * @progress_user_data: data to pass to the @progress_callback function
@@ -859,7 +859,7 @@ gdata_service_query_finish (GDataService *self, GAsyncResult *async_result, GErr
  * Return value: a #GDataFeed of query results; unref with g_object_unref()
  **/
 GDataFeed *
-gdata_service_query (GDataService *self, const gchar *feed_uri, GDataQuery *query, GDataEntryParserFunc parser_func,
+gdata_service_query (GDataService *self, const gchar *feed_uri, GDataQuery *query, GType entry_type,
 		     GCancellable *cancellable, GDataQueryProgressCallback progress_callback, gpointer progress_user_data, GError **error)
 {
 	GDataServiceClass *klass;
@@ -903,7 +903,7 @@ gdata_service_query (GDataService *self, const gchar *feed_uri, GDataQuery *quer
 
 	g_assert (message->response_body->data != NULL);
 
-	feed = _gdata_feed_new_from_xml (message->response_body->data, message->response_body->length, parser_func,
+	feed = _gdata_feed_new_from_xml (message->response_body->data, message->response_body->length, entry_type,
 					 progress_callback, progress_user_data, error);
 	g_object_unref (message);
 
@@ -925,7 +925,7 @@ gdata_service_query (GDataService *self, const gchar *feed_uri, GDataQuery *quer
  * @self: a #GDataService
  * @upload_uri: the URI to which the upload should be sent
  * @entry: the #GDataEntry to upload
- * @parser_func: a #GDataEntryParserFunc to build a #GDataEntry from the updated XML
+ * @entry_type: a #GType for the #GDataEntry<!-- -->s to build from the updated XML
  * @cancellable: optional #GCancellable object, or %NULL
  * @error: a #GError, or %NULL
  *
@@ -947,7 +947,7 @@ gdata_service_query (GDataService *self, const gchar *feed_uri, GDataQuery *quer
  * Return value: an updated #GDataEntry, or %NULL
  **/
 GDataEntry *
-gdata_service_insert_entry (GDataService *self, const gchar *upload_uri, GDataEntry *entry, GDataEntryParserFunc parser_func,
+gdata_service_insert_entry (GDataService *self, const gchar *upload_uri, GDataEntry *entry, GType entry_type,
 			    GCancellable *cancellable, GError **error)
 {
 	GDataServiceClass *klass;
@@ -960,7 +960,7 @@ gdata_service_insert_entry (GDataService *self, const gchar *upload_uri, GDataEn
 	g_return_val_if_fail (GDATA_IS_SERVICE (self), NULL);
 	g_return_val_if_fail (upload_uri != NULL, NULL);
 	g_return_val_if_fail (GDATA_IS_ENTRY (entry), NULL);
-	g_return_val_if_fail (parser_func != NULL, NULL);
+	g_return_val_if_fail (entry_type != G_TYPE_INVALID, NULL);
 
 	if (gdata_entry_is_inserted (entry) == TRUE) {
 		g_set_error_literal (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_ENTRY_ALREADY_INSERTED,
@@ -1034,14 +1034,14 @@ gdata_service_insert_entry (GDataService *self, const gchar *upload_uri, GDataEn
 		return NULL;
 	}
 
-	return parser_func (doc, node, error);
+	return _gdata_entry_new_from_xml_node (entry_type, doc, node, error);
 }
 
 /**
  * gdata_service_update_entry:
  * @self: a #GDataService
  * @entry: the #GDataEntry to update
- * @parser_func: a #GDataEntryParserFunc to build a #GDataEntry from the updated XML
+ * @entry_type: a #GType for the #GDataEntry<!-- -->s to build from the updated XML
  * @cancellable: optional #GCancellable object, or %NULL
  * @error: a #GError, or %NULL
  *
@@ -1060,7 +1060,7 @@ gdata_service_insert_entry (GDataService *self, const gchar *upload_uri, GDataEn
  * Return value: an updated #GDataEntry, or %NULL
  **/
 GDataEntry *
-gdata_service_update_entry (GDataService *self, GDataEntry *entry, GDataEntryParserFunc parser_func, GCancellable *cancellable, GError **error)
+gdata_service_update_entry (GDataService *self, GDataEntry *entry, GType entry_type, GCancellable *cancellable, GError **error)
 {
 	GDataServiceClass *klass;
 	GDataLink *link;
@@ -1072,7 +1072,7 @@ gdata_service_update_entry (GDataService *self, GDataEntry *entry, GDataEntryPar
 
 	g_return_val_if_fail (GDATA_IS_SERVICE (self), NULL);
 	g_return_val_if_fail (GDATA_IS_ENTRY (entry), NULL);
-	g_return_val_if_fail (parser_func != NULL, NULL);
+	g_return_val_if_fail (entry_type != G_TYPE_INVALID, NULL);
 
 	/* Get the edit URI */
 	link = gdata_entry_look_up_link (entry, "edit");
@@ -1143,7 +1143,7 @@ gdata_service_update_entry (GDataService *self, GDataEntry *entry, GDataEntryPar
 		return NULL;
 	}
 
-	return parser_func (doc, node, error);
+	return _gdata_entry_new_from_xml_node (entry_type, doc, node, error);
 }
 
 /**
