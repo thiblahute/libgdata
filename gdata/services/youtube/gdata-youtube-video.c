@@ -565,43 +565,7 @@ gdata_youtube_video_new (const gchar *id)
 GDataYouTubeVideo *
 gdata_youtube_video_new_from_xml (const gchar *xml, gint length, GError **error)
 {
-	xmlDoc *doc;
-	xmlNode *node;
-
-	g_return_val_if_fail (xml != NULL, NULL);
-
-	if (length == -1)
-		length = strlen (xml);
-
-	/* Parse the XML */
-	doc = xmlReadMemory (xml, length, "entry.xml", NULL, 0);
-	if (doc == NULL) {
-		xmlError *xml_error = xmlGetLastError ();
-		g_set_error (error, GDATA_PARSER_ERROR, GDATA_PARSER_ERROR_PARSING_STRING,
-			     _("Error parsing XML: %s"),
-			     xml_error->message);
-		return NULL;
-	}
-
-	/* Get the root element */
-	node = xmlDocGetRootElement (doc);
-	if (node == NULL) {
-		/* XML document's empty */
-		xmlFreeDoc (doc);
-		g_set_error (error, GDATA_PARSER_ERROR, GDATA_PARSER_ERROR_EMPTY_DOCUMENT,
-			     _("Error parsing XML: %s"),
-			     _("Empty document."));
-		return NULL;
-	}
-
-	if (xmlStrcmp (node->name, (xmlChar*) "entry") != 0) {
-		/* No <entry> element (required) */
-		xmlFreeDoc (doc);
-		gdata_parser_error_required_element_missing ("entry", "root", error);
-		return NULL;
-	}
-
-	return GDATA_YOUTUBE_VIDEO (_gdata_entry_new_from_xml_node (GDATA_TYPE_YOUTUBE_VIDEO, doc, node, error));
+	return GDATA_YOUTUBE_VIDEO (_gdata_entry_new_from_xml (GDATA_TYPE_YOUTUBE_VIDEO, xml, length, error));
 }
 
 static gboolean

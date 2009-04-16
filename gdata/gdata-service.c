@@ -951,11 +951,10 @@ gdata_service_insert_entry (GDataService *self, const gchar *upload_uri, GDataEn
 			    GCancellable *cancellable, GError **error)
 {
 	GDataServiceClass *klass;
+	GDataEntry *updated_entry;
 	SoupMessage *message;
 	gchar *upload_data;
 	guint status;
-	xmlDoc *doc;
-	xmlNode *node;
 
 	g_return_val_if_fail (GDATA_IS_SERVICE (self), NULL);
 	g_return_val_if_fail (upload_uri != NULL, NULL);
@@ -1005,36 +1004,10 @@ gdata_service_insert_entry (GDataService *self, const gchar *upload_uri, GDataEn
 	g_assert (message->response_body->data != NULL);
 
 	/* Parse the XML */
-	doc = xmlReadMemory (message->response_body->data, message->response_body->length, "entry.xml", NULL, 0);
+	updated_entry = _gdata_entry_new_from_xml (entry_type, message->response_body->data, message->response_body->length, error);
 	g_object_unref (message);
 
-	if (doc == NULL) {
-		xmlError *xml_error = xmlGetLastError ();
-		g_set_error (error, GDATA_PARSER_ERROR, GDATA_PARSER_ERROR_PARSING_STRING,
-			     _("Error parsing XML: %s"),
-			     xml_error->message);
-		return NULL;
-	}
-
-	/* Get the root element */
-	node = xmlDocGetRootElement (doc);
-	if (node == NULL) {
-		/* XML document's empty */
-		xmlFreeDoc (doc);
-		g_set_error (error, GDATA_PARSER_ERROR, GDATA_PARSER_ERROR_EMPTY_DOCUMENT,
-			     _("Error parsing XML: %s"),
-			     _("Empty document."));
-		return NULL;
-	}
-
-	if (xmlStrcmp (node->name, (xmlChar*) "entry") != 0) {
-		/* No <entry> element (required) */
-		xmlFreeDoc (doc);
-		gdata_parser_error_required_element_missing ("entry", "root", error);
-		return NULL;
-	}
-
-	return _gdata_entry_new_from_xml_node (entry_type, doc, node, error);
+	return updated_entry;
 }
 
 /**
@@ -1063,12 +1036,11 @@ GDataEntry *
 gdata_service_update_entry (GDataService *self, GDataEntry *entry, GType entry_type, GCancellable *cancellable, GError **error)
 {
 	GDataServiceClass *klass;
+	GDataEntry *updated_entry;
 	GDataLink *link;
 	SoupMessage *message;
 	gchar *upload_data;
 	guint status;
-	xmlDoc *doc;
-	xmlNode *node;
 
 	g_return_val_if_fail (GDATA_IS_SERVICE (self), NULL);
 	g_return_val_if_fail (GDATA_IS_ENTRY (entry), NULL);
@@ -1114,36 +1086,10 @@ gdata_service_update_entry (GDataService *self, GDataEntry *entry, GType entry_t
 	g_assert (message->response_body->data != NULL);
 
 	/* Parse the XML */
-	doc = xmlReadMemory (message->response_body->data, message->response_body->length, "entry.xml", NULL, 0);
+	updated_entry = _gdata_entry_new_from_xml (entry_type, message->response_body->data, message->response_body->length, error);
 	g_object_unref (message);
 
-	if (doc == NULL) {
-		xmlError *xml_error = xmlGetLastError ();
-		g_set_error (error, GDATA_PARSER_ERROR, GDATA_PARSER_ERROR_PARSING_STRING,
-			     _("Error parsing XML: %s"),
-			     xml_error->message);
-		return NULL;
-	}
-
-	/* Get the root element */
-	node = xmlDocGetRootElement (doc);
-	if (node == NULL) {
-		/* XML document's empty */
-		xmlFreeDoc (doc);
-		g_set_error (error, GDATA_PARSER_ERROR, GDATA_PARSER_ERROR_EMPTY_DOCUMENT,
-			     _("Error parsing XML: %s"),
-			     _("Empty document."));
-		return NULL;
-	}
-
-	if (xmlStrcmp (node->name, (xmlChar*) "entry") != 0) {
-		/* No <entry> element (required) */
-		xmlFreeDoc (doc);
-		gdata_parser_error_required_element_missing ("entry", "root", error);
-		return NULL;
-	}
-
-	return _gdata_entry_new_from_xml_node (entry_type, doc, node, error);
+	return updated_entry;
 }
 
 /**

@@ -314,22 +314,8 @@ gdata_entry_new (const gchar *id)
 	return g_object_new (GDATA_TYPE_ENTRY, "id", id, NULL);
 }
 
-/**
- * gdata_entry_new_from_xml:
- * @xml: the XML for just the entry, with full namespace declarations
- * @length: the length of @xml, or -1
- * @error: a #GError, or %NULL
- *
- * Creates a new #GDataEntry from the provided @xml.
- *
- * If @length is -1, @xml will be assumed to be nul-terminated.
- *
- * If an error occurs during parsing, a suitable error from #GDataParserError will be returned.
- *
- * Return value: a new #GDataEntry, or %NULL
- **/
 GDataEntry *
-gdata_entry_new_from_xml (const gchar *xml, gint length, GError **error)
+_gdata_entry_new_from_xml (GType entry_type, const gchar *xml, gint length, GError **error)
 {
 	/* TODO: Shouldn't this be private? */
 	xmlDoc *doc;
@@ -368,7 +354,27 @@ gdata_entry_new_from_xml (const gchar *xml, gint length, GError **error)
 		return NULL;
 	}
 
-	return _gdata_entry_new_from_xml_node (GDATA_TYPE_ENTRY, doc, node, error);
+	return _gdata_entry_new_from_xml_node (entry_type, doc, node, error);
+}
+
+/**
+ * gdata_entry_new_from_xml:
+ * @xml: the XML for just the entry, with full namespace declarations
+ * @length: the length of @xml, or -1
+ * @error: a #GError, or %NULL
+ *
+ * Creates a new #GDataEntry from the provided @xml.
+ *
+ * If @length is -1, @xml will be assumed to be nul-terminated.
+ *
+ * If an error occurs during parsing, a suitable error from #GDataParserError will be returned.
+ *
+ * Return value: a new #GDataEntry, or %NULL
+ **/
+GDataEntry *
+gdata_entry_new_from_xml (const gchar *xml, gint length, GError **error)
+{
+	return _gdata_entry_new_from_xml (GDATA_TYPE_ENTRY, xml, length, error);
 }
 
 GDataEntry *

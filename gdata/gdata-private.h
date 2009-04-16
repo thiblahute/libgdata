@@ -41,6 +41,7 @@ GDataFeed *_gdata_feed_new_from_xml (const gchar *xml, gint length, GType entry_
 				     GDataQueryProgressCallback progress_callback, gpointer progress_user_data, GError **error);
 
 #include "gdata-entry.h"
+GDataEntry *_gdata_entry_new_from_xml (GType entry_type, const gchar *xml, gint length, GError **error);
 GDataEntry *_gdata_entry_new_from_xml_node (GType entry_type, xmlDoc *doc, xmlNode *node, GError **error);
 
 #include "gdata-parser.h"
