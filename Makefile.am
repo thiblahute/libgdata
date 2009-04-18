@@ -45,10 +45,12 @@ pkgconfig_DATA = libgdata.pc
 DISTCHECK_CONFIGURE_FLAGS = --enable-gtk-doc
 
 # ChangeLog
-ChangeLog:
+ChangeLog: $(srcdir)/ChangeLog
+$(srcdir)/ChangeLog:
 	@echo Creating $@
 	@if test -d "$(srcdir)/.git"; then \
-	  (GIT_DIR=$(top_srcdir)/.git ./missing --run git log --stat) | fmt --split-only > $@.tmp \
+	  (GIT_DIR=$(top_srcdir)/.git ./missing --run \
+	   git log --stat) | fmt --split-only > $@.tmp \
 	  && mv -f $@.tmp $@ \
 	  || ($(RM) $@.tmp; \
 	      echo Failed to generate ChangeLog, your ChangeLog may be outdated >&2; \
@@ -58,6 +60,7 @@ ChangeLog:
 	  (echo A git checkout and git-log is required to generate ChangeLog >&2 && \
 	  echo A git checkout and git-log is required to generate this file >> $@); \
 	fi
-.PHONY: ChangeLog
+.PHONY: $(srcdir)/ChangeLog
+
 
 -include $(top_srcdir)/git.mk
