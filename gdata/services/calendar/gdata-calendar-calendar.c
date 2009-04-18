@@ -223,11 +223,11 @@ parse_xml (GDataEntry *entry, xmlDoc *doc, xmlNode *node, GError **error)
 
 	if (xmlStrcmp (node->name, (xmlChar*) "timezone") == 0) {
 		/* gCal:timezone */
-		xmlChar *timezone = xmlGetProp (node, (xmlChar*) "value");
-		if (timezone == NULL)
+		xmlChar *_timezone = xmlGetProp (node, (xmlChar*) "value");
+		if (_timezone == NULL)
 			return gdata_parser_error_required_property_missing ("gCal:timezone", "value", error);
-		gdata_calendar_calendar_set_timezone (self, (gchar*) timezone);
-		xmlFree (timezone);
+		gdata_calendar_calendar_set_timezone (self, (gchar*) _timezone);
+		xmlFree (_timezone);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "timesCleaned") == 0) {
 		/* gCal:timesCleaned */
 		xmlChar *times_cleaned = xmlGetProp (node, (xmlChar*) "value");
@@ -325,8 +325,8 @@ get_namespaces (GDataEntry *entry, GHashTable *namespaces)
 	/* Chain up to the parent class */
 	GDATA_ENTRY_CLASS (gdata_calendar_calendar_parent_class)->get_namespaces (entry, namespaces);
 
-	g_hash_table_insert (namespaces, "gCal", "http://schemas.google.com/gCal/2005");
-	g_hash_table_insert (namespaces, "app", "http://www.w3.org/2007/app");
+	g_hash_table_insert (namespaces, (gchar*) "gCal", (gchar*) "http://schemas.google.com/gCal/2005");
+	g_hash_table_insert (namespaces, (gchar*) "app", (gchar*) "http://www.w3.org/2007/app");
 }
 
 const gchar *
@@ -336,13 +336,14 @@ gdata_calendar_calendar_get_timezone (GDataCalendarCalendar *self)
 	return self->priv->timezone;
 }
 
+/* Blame "timezone" in /usr/include/time.h:291 for the weird parameter naming */
 void
-gdata_calendar_calendar_set_timezone (GDataCalendarCalendar *self, const gchar *timezone)
+gdata_calendar_calendar_set_timezone (GDataCalendarCalendar *self, const gchar *_timezone)
 {
 	g_return_if_fail (GDATA_IS_CALENDAR_CALENDAR (self));
 
 	g_free (self->priv->timezone);
-	self->priv->timezone = g_strdup (timezone);
+	self->priv->timezone = g_strdup (_timezone);
 	g_object_notify (G_OBJECT (self), "timezone");
 }
 

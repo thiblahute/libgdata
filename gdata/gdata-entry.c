@@ -275,9 +275,9 @@ real_get_xml (GDataEntry *self, GString *xml_string)
 		g_string_append_printf (xml_string, "<link href='%s'", link->href);
 
 		if (G_UNLIKELY (link->title != NULL)) {
-			gchar *title = g_markup_escape_text (link->title, -1);
-			g_string_append_printf (xml_string, " title='%s'", title);
-			g_free (title);
+			gchar *link_title = g_markup_escape_text (link->title, -1);
+			g_string_append_printf (xml_string, " title='%s'", link_title);
+			g_free (link_title);
 		}
 
 		if (G_LIKELY (link->rel != NULL))
@@ -320,7 +320,7 @@ real_get_xml (GDataEntry *self, GString *xml_string)
 static void
 real_get_namespaces (GDataEntry *self, GHashTable *namespaces)
 {
-	g_hash_table_insert (namespaces, "gd", "http://schemas.google.com/g/2005");
+	g_hash_table_insert (namespaces, (gchar*) "gd", (gchar*) "http://schemas.google.com/g/2005");
 }
 
 /**

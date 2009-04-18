@@ -737,7 +737,7 @@ parse_media_group_xml_node (GDataYouTubeVideo *self, xmlDoc *doc, xmlNode *node,
 		g_object_notify (G_OBJECT (self), "restriction");
 	} else if (xmlStrcmp (node->name, (xmlChar*) "thumbnail") == 0) {
 		/* media:thumbnail */
-		xmlChar *uri, *width, *height, *time;
+		xmlChar *uri, *width, *height, *_time;
 		guint width_uint, height_uint;
 		gint time_int;
 		GDataMediaThumbnail *thumbnail;
@@ -756,19 +756,19 @@ parse_media_group_xml_node (GDataYouTubeVideo *self, xmlDoc *doc, xmlNode *node,
 		xmlFree (height);
 
 		/* Get and parse the time */
-		time = xmlGetProp (node, (xmlChar*) "time");
-		if (time == NULL) {
+		_time = xmlGetProp (node, (xmlChar*) "time");
+		if (_time == NULL) {
 			time_int = -1;
 		} else {
-			time_int = gdata_media_thumbnail_parse_time ((gchar*) time);
+			time_int = gdata_media_thumbnail_parse_time ((gchar*) _time);
 			if (time_int == -1) {
 				g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
 					     _("The @time property (\"%s\") of a <media:thumbnail> could not be parsed."),
-					     (gchar*) time);
-				xmlFree (time);
+					     (gchar*) _time);
+				xmlFree (_time);
 				return FALSE;
 			}
-			xmlFree (time);
+			xmlFree (_time);
 		}
 
 		uri = xmlGetProp (node, (xmlChar*) "url");
@@ -1065,14 +1065,14 @@ get_xml (GDataEntry *entry, GString *xml_string)
 
 	for (thumbnails = priv->thumbnails; thumbnails != NULL; thumbnails = thumbnails->next) {
 		GDataMediaThumbnail *thumbnail = (GDataMediaThumbnail*) thumbnails->data;
-		gchar *uri, *time;
+		gchar *uri, *_time;
 
 		uri = g_markup_escape_text (thumbnail->uri, -1);
-		time = gdata_media_thumbnail_build_time (thumbnail->time);
+		_time = gdata_media_thumbnail_build_time (thumbnail->time);
 		g_string_append_printf (xml_string, "<media:thumbnail url='%s' height='%u' width='%u' time='%s'/>",
-					uri, thumbnail->height, thumbnail->width, time);
+					uri, thumbnail->height, thumbnail->width, _time);
 		g_free (uri);
-		g_free (time);
+		g_free (_time);
 	}
 
 	if (priv->is_private == TRUE)
@@ -1105,8 +1105,8 @@ get_namespaces (GDataEntry *entry, GHashTable *namespaces)
 	/* Chain up to the parent class */
 	GDATA_ENTRY_CLASS (gdata_youtube_video_parent_class)->get_namespaces (entry, namespaces);
 
-	g_hash_table_insert (namespaces, "media", "http://search.yahoo.com/mrss/");
-	g_hash_table_insert (namespaces, "yt", "http://gdata.youtube.com/schemas/2007");
+	g_hash_table_insert (namespaces, (gchar*) "media", (gchar*) "http://search.yahoo.com/mrss/");
+	g_hash_table_insert (namespaces, (gchar*) "yt", (gchar*) "http://gdata.youtube.com/schemas/2007");
 }
 
 /**

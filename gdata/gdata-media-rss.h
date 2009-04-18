@@ -82,9 +82,9 @@ typedef struct {
 	gint64 time;
 } GDataMediaThumbnail;
 
-GDataMediaThumbnail *gdata_media_thumbnail_new (const gchar *uri, guint width, guint height, gint64 time);
+GDataMediaThumbnail *gdata_media_thumbnail_new (const gchar *uri, guint width, guint height, gint64 _time);
 gint64 gdata_media_thumbnail_parse_time (const gchar *time_string);
-gchar *gdata_media_thumbnail_build_time (gint64 time);
+gchar *gdata_media_thumbnail_build_time (gint64 _time);
 void gdata_media_thumbnail_free (GDataMediaThumbnail *self);
 
 G_END_DECLS

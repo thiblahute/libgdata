@@ -130,13 +130,13 @@ gdata_media_content_free (GDataMediaContent *self)
 }
 
 GDataMediaThumbnail *
-gdata_media_thumbnail_new (const gchar *uri, guint width, guint height, gint64 time)
+gdata_media_thumbnail_new (const gchar *uri, guint width, guint height, gint64 _time)
 {
 	GDataMediaThumbnail *self = g_slice_new (GDataMediaThumbnail);
 	self->uri = g_strdup (uri);
 	self->width = width;
 	self->height = height;
-	self->time = time;
+	self->time = _time;
 	return self;
 }
 
@@ -165,18 +165,18 @@ gdata_media_thumbnail_parse_time (const gchar *time_string)
 }
 
 gchar *
-gdata_media_thumbnail_build_time (gint64 time)
+gdata_media_thumbnail_build_time (gint64 _time)
 {
 	guint hours, minutes;
 	gfloat seconds;
 
-	hours = time % 3600000;
-	time -= hours * 3600000;
+	hours = _time % 3600000;
+	_time -= hours * 3600000;
 
-	minutes = time % 60000;
-	time -= minutes * 60000;
+	minutes = _time % 60000;
+	_time -= minutes * 60000;
 
-	seconds = time / 1000.0;
+	seconds = _time / 1000.0;
 
 	return g_strdup_printf ("%02u:%02u:%02f", hours, minutes, seconds);
 }

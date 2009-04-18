@@ -608,9 +608,9 @@ get_namespaces (GDataEntry *entry, GHashTable *namespaces)
 	/* Chain up to the parent class */
 	GDATA_ENTRY_CLASS (gdata_calendar_event_parent_class)->get_namespaces (entry, namespaces);
 
-	g_hash_table_insert (namespaces, "gd", "http://schemas.google.com/g/2005");
-	g_hash_table_insert (namespaces, "gCal", "http://schemas.google.com/gCal/2005");
-	g_hash_table_insert (namespaces, "app", "http://www.w3.org/2007/app");
+	g_hash_table_insert (namespaces, (gchar*) "gd", (gchar*) "http://schemas.google.com/g/2005");
+	g_hash_table_insert (namespaces, (gchar*) "gCal", (gchar*) "http://schemas.google.com/gCal/2005");
+	g_hash_table_insert (namespaces, (gchar*) "app", (gchar*) "http://www.w3.org/2007/app");
 }
 
 void

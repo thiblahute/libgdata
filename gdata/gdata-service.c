@@ -500,7 +500,7 @@ authenticate (GDataService *self, const gchar *username, const gchar *password, 
 
 		if (strncmp (error_start, "CaptchaRequired", error_end - error_start) == 0) {
 			const gchar *captcha_base_uri = "http://www.google.com/accounts/";
-			gchar *captcha_start, *captcha_end, *captcha_uri, *captcha_answer;
+			gchar *captcha_start, *captcha_end, *captcha_uri, *new_captcha_answer;
 			guint captcha_base_uri_length;
 
 			/* CAPTCHA required to log in */
@@ -521,10 +521,10 @@ authenticate (GDataService *self, const gchar *username, const gchar *password, 
 			captcha_uri[captcha_base_uri_length + (captcha_end - captcha_start)] = '\0';
 
 			/* Request a CAPTCHA answer from the application */
-			g_signal_emit (self, service_signals[SIGNAL_CAPTCHA_CHALLENGE], 0, captcha_uri, &captcha_answer);
+			g_signal_emit (self, service_signals[SIGNAL_CAPTCHA_CHALLENGE], 0, captcha_uri, &new_captcha_answer);
 			g_free (captcha_uri);
 
-			if (captcha_answer == NULL || *captcha_answer == '\0') {
+			if (new_captcha_answer == NULL || *new_captcha_answer == '\0') {
 				g_set_error_literal (error, GDATA_AUTHENTICATION_ERROR, GDATA_AUTHENTICATION_ERROR_CAPTCHA_REQUIRED,
 						     _("A CAPTCHA must be filled out to log in."));
 				goto login_error;
@@ -543,7 +543,7 @@ authenticate (GDataService *self, const gchar *username, const gchar *password, 
 			/* Save the CAPTCHA token and answer, and attempt to log in with them */
 			g_object_unref (message);
 
-			return authenticate (self, username, password, g_strndup (captcha_start, captcha_end - captcha_start), captcha_answer,
+			return authenticate (self, username, password, g_strndup (captcha_start, captcha_end - captcha_start), new_captcha_answer,
 					     cancellable, error);
 		} else if (strncmp (error_start, "Unknown", error_end - error_start) == 0) {
 			goto protocol_error; /* TODO: is this really a protocol error? It's an error with *our* code */

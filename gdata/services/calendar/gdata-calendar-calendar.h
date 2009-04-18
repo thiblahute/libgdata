@@ -53,7 +53,7 @@ GDataCalendarCalendar *gdata_calendar_calendar_new (const gchar *id);
 GDataCalendarCalendar *gdata_calendar_calendar_new_from_xml (const gchar *xml, gint length, GError **error);
 
 const gchar *gdata_calendar_calendar_get_timezone (GDataCalendarCalendar *self);
-void gdata_calendar_calendar_set_timezone (GDataCalendarCalendar *self, const gchar *timezone);
+void gdata_calendar_calendar_set_timezone (GDataCalendarCalendar *self, const gchar *_timezone);
 guint gdata_calendar_calendar_get_times_cleaned (GDataCalendarCalendar *self);
 void gdata_calendar_calendar_set_times_cleaned (GDataCalendarCalendar *self, guint times_cleaned);
 gboolean gdata_calendar_calendar_get_hidden (GDataCalendarCalendar *self);

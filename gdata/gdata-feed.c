@@ -518,7 +518,7 @@ _gdata_feed_new_from_xml (const gchar *xml, gint length, GType entry_type,
 			logo = xmlNodeListGetString (doc, node->xmlChildrenNode, TRUE);
 		} else if (xmlStrcmp (node->name, (xmlChar*) "link") == 0) {
 			/* atom:link */
-			xmlChar *href, *rel, *type, *hreflang, *title, *length;
+			xmlChar *href, *rel, *type, *hreflang, *link_title, *link_length;
 			gint length_int;
 			GDataLink *link;
 
@@ -526,23 +526,23 @@ _gdata_feed_new_from_xml (const gchar *xml, gint length, GType entry_type,
 			rel = xmlGetProp (node, (xmlChar*) "rel");
 			type = xmlGetProp (node, (xmlChar*) "type");
 			hreflang = xmlGetProp (node, (xmlChar*) "hreflang");
-			title = xmlGetProp (node, (xmlChar*) "title");
-			length = xmlGetProp (node, (xmlChar*) "length");
+			link_title = xmlGetProp (node, (xmlChar*) "title");
+			link_length = xmlGetProp (node, (xmlChar*) "length");
 
-			if (length == NULL)
+			if (link_length == NULL)
 				length_int = -1;
 			else
-				length_int = strtoul ((gchar*) length, NULL, 10);
+				length_int = strtoul ((gchar*) link_length, NULL, 10);
 
-			link = gdata_link_new ((gchar*) href, (gchar*) rel, (gchar*) type, (gchar*) hreflang, (gchar*) title, length_int);
+			link = gdata_link_new ((gchar*) href, (gchar*) rel, (gchar*) type, (gchar*) hreflang, (gchar*) link_title, length_int);
 			links = g_list_prepend (links, link);
 
 			xmlFree (href);
 			xmlFree (rel);
 			xmlFree (type);
 			xmlFree (hreflang);
-			xmlFree (title);
-			xmlFree (length);
+			xmlFree (link_title);
+			xmlFree (link_length);
 		} else if (xmlStrcmp (node->name, (xmlChar*) "author") == 0) {
 			/* atom:author */
 			GDataAuthor *author;
