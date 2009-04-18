@@ -66,3 +66,5 @@ libgdatayoutube_la_LDFLAGS = \
 
 # General cleanup
 CLEANFILES = $(GDATA_YOUTUBE_ENUM_FILES)
+
+-include $(top_srcdir)/git.mk

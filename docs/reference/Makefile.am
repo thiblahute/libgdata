@@ -73,6 +73,23 @@ GTKDOC_LIBS=$(top_builddir)/gdata/libgdata.la
 # This includes the standard gtk-doc make rules, copied by gtkdocize.
 include $(top_srcdir)/gtk-doc.make
 
+# This should be in gtk-doc.make, since we are calling gtkdoc-scan with
+# --rebuild-types
+SCANOBJ_FILES += $(DOC_MODULE).types
+
+# This should also be dealt with elsewhere, but we can't call gtkdocize
+# with --flavour=no-tmpl because of gnome-autogen.sh being out of our
+# control. Grrr.
+distclean-local:
+	cd $(srcdir) && \
+	  rm -rf xml tmpl $(REPORT_FILES) \
+	         $(DOC_MODULE)-decl-list.txt $(DOC_MODULE)-decl.txt
+
+maintainer-clean-local: clean
+	cd $(srcdir) && rm -rf xml tmpl html
+
+GITIGNOREFILES = tmpl/
+
 # Other files to distribute
 # e.g. EXTRA_DIST += version.xml.in
 EXTRA_DIST += version.xml.in
@@ -81,3 +98,5 @@ if ENABLE_GTK_DOC
 TESTS_ENVIRONMENT = cd $(srcdir) && 
 TESTS = $(GTKDOC_CHECK)
 endif
+
+-include $(top_srcdir)/git.mk

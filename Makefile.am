@@ -6,9 +6,12 @@ EXTRA_DIST = \
 	intltool-extract.in	\
 	intltool-merge.in	\
 	intltool-update.in	\
-	AUTHORS NEWS		\
+	AUTHORS 		\
+	NEWS			\
+	MAINTAINERS		\
 	gtk-doc.make		\
-	libgdata.pc.in
+	libgdata.pc.in		\
+	libgdata.doap
 
 CLEANFILES = gdata.pc
 
@@ -19,10 +22,27 @@ DISTCLEANFILES = \
 	gnome-doc-utils.make	\
 	gtk-doc.make
 
+MAINTAINERCLEANFILES = \
+	INSTALL		\
+	aclocal.m4	\
+	compile		\
+	config.guess	\
+	config.h.in	\
+	config.sub	\
+	depcomp		\
+	install-sh	\
+	ltmain.sh	\
+	missing		\
+	mkinstalldirs	\
+	omf.make	\
+	gtk-doc.make	\
+	ChangeLog	\
+	`find "$(srcdir)" -type f -name Makefile.in -print`
+
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libgdata.pc
 
-DISTCHECK_CONFIGURE_FLAGS = --disable-scrollkeeper --enable-gtk-doc
+DISTCHECK_CONFIGURE_FLAGS = --enable-gtk-doc
 
 # ChangeLog
 ChangeLog:
@@ -39,3 +59,5 @@ ChangeLog:
 	  echo A git checkout and git-log is required to generate this file >> $@); \
 	fi
 .PHONY: ChangeLog
+
+-include $(top_srcdir)/git.mk

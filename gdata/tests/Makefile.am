@@ -29,3 +29,5 @@ calendar_SOURCES		 = calendar.c $(TEST_SRCS)
 TEST_PROGS			+= memory
 memory_SOURCES			 = memory.c $(TEST_SRCS)
 
+
+-include $(top_srcdir)/git.mk

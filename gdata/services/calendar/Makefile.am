@@ -38,3 +38,5 @@ libgdatacalendar_la_LIBADD = \
 libgdatacalendar_la_LDFLAGS = \
 	-no-undefined	\
 	$(AM_LDFLAGS)
+
+-include $(top_srcdir)/git.mk

@@ -18,43 +18,46 @@ GDATA_ENUM_FILES = \
 	gdata-enums.c	\
 	gdata-enums.h
 
-gdata-enums.h: $(gdatainclude_HEADERS) Makefile
+gdata-enums.h: $(gdata_headers) Makefile
 	(cd $(srcdir) && $(GLIB_MKENUMS) \
 			--fhead "#ifndef GDATA_ENUMS_H\n#define GDATA_ENUMS_H\n\n#include <glib-object.h>\n\nG_BEGIN_DECLS\n" \
 			--fprod "/* enumerations from \"@filename@\" */\n" \
 			--vhead "GType @enum_name@_get_type (void) G_GNUC_CONST;\n#define GDATA_TYPE_@ENUMSHORT@ (@enum_name@_get_type())\n" \
-			--ftail "G_END_DECLS\n\n#endif /* !GDATA_ENUMS_H */" $(gdatainclude_HEADERS)) > gdata-enums.h.tmp \
+			--ftail "G_END_DECLS\n\n#endif /* !GDATA_ENUMS_H */" $(gdata_headers)) > gdata-enums.h.tmp \
 	&& sed "s/g_data/gdata/" gdata-enums.h.tmp > gdata-enums.h \
 	&& rm -f gdata-enums.h.tmp
 
-gdata-enums.c: $(gdatainclude_HEADERS) Makefile gdata-enums.h
+gdata-enums.c: $(gdata_headers) Makefile gdata-enums.h
 	(cd $(srcdir) && $(GLIB_MKENUMS) \
 			--fhead "#include \"gdata.h\"\n#include \"gdata-enums.h\"" \
 			--fprod "\n/* enumerations from \"@filename@\" */" \
 			--vhead "GType\n@enum_name@_get_type (void)\n{\n  static GType etype = 0;\n  if (etype == 0) {\n    static const G@Type@Value values[] = {" \
 			--vprod "      { @VALUENAME@, \"@VALUENAME@\", \"@valuenick@\" }," \
 			--vtail "      { 0, NULL, NULL }\n    };\n    etype = g_@type@_register_static (\"@EnumName@\", values);\n  }\n  return etype;\n}\n" \
-		$(gdatainclude_HEADERS)) > gdata-enums.c.tmp \
+		$(gdata_headers)) > gdata-enums.c.tmp \
 	&& sed "s/g_data/gdata/" gdata-enums.c.tmp > gdata-enums.c \
 	&& rm -f gdata-enums.c.tmp
 
 # libgdata library
 lib_LTLIBRARIES = libgdata.la
 
-gdataincludedir = $(pkgincludedir)/gdata
-gdatainclude_HEADERS = \
+gdata_headers = \
 	gdata.h			\
 	gdata-entry.h		\
-	gdata-enums.h		\
 	gdata-feed.h		\
 	gdata-service.h		\
-	gdata-types.h		\
 	gdata-query.h		\
-	gdata-marshal.h		\
 	gdata-atom.h		\
 	gdata-media-rss.h	\
 	gdata-gdata.h		\
 	gdata-parser.h
+
+gdataincludedir = $(pkgincludedir)/gdata
+gdatainclude_HEADERS = \
+	$(gdata_headers)	\
+	gdata-enums.h		\
+	gdata-types.h		\
+	gdata-marshal.h
 
 libgdata_la_SOURCES = \
 	$(GDATA_MARSHAL_FILES)	\
@@ -100,3 +103,5 @@ CLEANFILES = \
 EXTRA_DIST = \
 	gdata.symbols	\
 	gdata-marshal.list
+
+-include $(top_srcdir)/git.mk
