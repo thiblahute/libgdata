@@ -626,9 +626,26 @@ gdata_contacts_contact_get_email_addresses (GDataContactsContact *self)
 	return self->priv->email_addresses;
 }
 
+GDataGDEmailAddress *
+gdata_contacts_contact_get_primary_email_address (GDataContactsContact *self)
+{
+	GList *i;
+
+	g_return_val_if_fail (GDATA_IS_CONTACTS_CONTACT (self), NULL);
+
+	for (i = self->priv->email_addresses; i != NULL; i = i->next) {
+		if (((GDataGDEmailAddress*) i->data)->primary == TRUE)
+			return (GDataGDEmailAddress*) i->data;
+	}
+
+	return NULL;
+}
+
 void
 gdata_contacts_contact_add_im_address (GDataContactsContact *self, GDataGDIMAddress *im_address)
 {
+	/* TODO: Note that only one e-mail address can be the primary, but this isn't enforced.
+	 * Same for IM, etc. */
 	g_return_if_fail (GDATA_IS_CONTACTS_CONTACT (self));
 	g_return_if_fail (im_address != NULL);
 
@@ -640,6 +657,21 @@ gdata_contacts_contact_get_im_addresses (GDataContactsContact *self)
 {
 	g_return_val_if_fail (GDATA_IS_CONTACTS_CONTACT (self), NULL);
 	return self->priv->im_addresses;
+}
+
+GDataGDIMAddress *
+gdata_contacts_contact_get_primary_im_address (GDataContactsContact *self)
+{
+	GList *i;
+
+	g_return_val_if_fail (GDATA_IS_CONTACTS_CONTACT (self), NULL);
+
+	for (i = self->priv->im_addresses; i != NULL; i = i->next) {
+		if (((GDataGDIMAddress*) i->data)->primary == TRUE)
+			return (GDataGDIMAddress*) i->data;
+	}
+
+	return NULL;
 }
 
 void
@@ -658,6 +690,21 @@ gdata_contacts_contact_get_phone_numbers (GDataContactsContact *self)
 	return self->priv->phone_numbers;
 }
 
+GDataGDPhoneNumber *
+gdata_contacts_contact_get_primary_phone_number (GDataContactsContact *self)
+{
+	GList *i;
+
+	g_return_val_if_fail (GDATA_IS_CONTACTS_CONTACT (self), NULL);
+
+	for (i = self->priv->phone_numbers; i != NULL; i = i->next) {
+		if (((GDataGDPhoneNumber*) i->data)->primary == TRUE)
+			return (GDataGDPhoneNumber*) i->data;
+	}
+
+	return NULL;
+}
+
 void
 gdata_contacts_contact_add_postal_address (GDataContactsContact *self, GDataGDPostalAddress *postal_address)
 {
@@ -674,6 +721,21 @@ gdata_contacts_contact_get_postal_addresses (GDataContactsContact *self)
 	return self->priv->postal_addresses;
 }
 
+GDataGDPostalAddress *
+gdata_contacts_contact_get_primary_postal_address (GDataContactsContact *self)
+{
+	GList *i;
+
+	g_return_val_if_fail (GDATA_IS_CONTACTS_CONTACT (self), NULL);
+
+	for (i = self->priv->postal_addresses; i != NULL; i = i->next) {
+		if (((GDataGDPostalAddress*) i->data)->primary == TRUE)
+			return (GDataGDPostalAddress*) i->data;
+	}
+
+	return NULL;
+}
+
 void
 gdata_contacts_contact_add_organization (GDataContactsContact *self, GDataGDOrganization *organization)
 {
@@ -688,6 +750,21 @@ gdata_contacts_contact_get_organizations (GDataContactsContact *self)
 {
 	g_return_val_if_fail (GDATA_IS_CONTACTS_CONTACT (self), NULL);
 	return self->priv->organizations;
+}
+
+GDataGDOrganization *
+gdata_contacts_contact_get_primary_organization (GDataContactsContact *self)
+{
+	GList *i;
+
+	g_return_val_if_fail (GDATA_IS_CONTACTS_CONTACT (self), NULL);
+
+	for (i = self->priv->organizations; i != NULL; i = i->next) {
+		if (((GDataGDOrganization*) i->data)->primary == TRUE)
+			return (GDataGDOrganization*) i->data;
+	}
+
+	return NULL;
 }
 
 const gchar *
