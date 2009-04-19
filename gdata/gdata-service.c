@@ -940,7 +940,6 @@ gdata_service_query (GDataService *self, const gchar *feed_uri, GDataQuery *quer
  * @self: a #GDataService
  * @upload_uri: the URI to which the upload should be sent
  * @entry: the #GDataEntry to upload
- * @entry_type: a #GType for the #GDataEntry<!-- -->s to build from the updated XML
  * @cancellable: optional #GCancellable object, or %NULL
  * @error: a #GError, or %NULL
  *
@@ -962,8 +961,7 @@ gdata_service_query (GDataService *self, const gchar *feed_uri, GDataQuery *quer
  * Return value: an updated #GDataEntry, or %NULL
  **/
 GDataEntry *
-gdata_service_insert_entry (GDataService *self, const gchar *upload_uri, GDataEntry *entry, GType entry_type,
-			    GCancellable *cancellable, GError **error)
+gdata_service_insert_entry (GDataService *self, const gchar *upload_uri, GDataEntry *entry, GCancellable *cancellable, GError **error)
 {
 	GDataServiceClass *klass;
 	GDataEntry *updated_entry;
@@ -974,7 +972,6 @@ gdata_service_insert_entry (GDataService *self, const gchar *upload_uri, GDataEn
 	g_return_val_if_fail (GDATA_IS_SERVICE (self), NULL);
 	g_return_val_if_fail (upload_uri != NULL, NULL);
 	g_return_val_if_fail (GDATA_IS_ENTRY (entry), NULL);
-	g_return_val_if_fail (entry_type != G_TYPE_INVALID, NULL);
 
 	if (gdata_entry_is_inserted (entry) == TRUE) {
 		g_set_error_literal (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_ENTRY_ALREADY_INSERTED,
@@ -1018,8 +1015,8 @@ gdata_service_insert_entry (GDataService *self, const gchar *upload_uri, GDataEn
 	/* Build the updated entry */
 	g_assert (message->response_body->data != NULL);
 
-	/* Parse the XML */
-	updated_entry = _gdata_entry_new_from_xml (entry_type, message->response_body->data, message->response_body->length, error);
+	/* Parse the XML; create and return a new GDataEntry of the same type as @entry */
+	updated_entry = _gdata_entry_new_from_xml (G_OBJECT_TYPE (entry), message->response_body->data, message->response_body->length, error);
 	g_object_unref (message);
 
 	return updated_entry;
@@ -1029,7 +1026,6 @@ gdata_service_insert_entry (GDataService *self, const gchar *upload_uri, GDataEn
  * gdata_service_update_entry:
  * @self: a #GDataService
  * @entry: the #GDataEntry to update
- * @entry_type: a #GType for the #GDataEntry<!-- -->s to build from the updated XML
  * @cancellable: optional #GCancellable object, or %NULL
  * @error: a #GError, or %NULL
  *
@@ -1048,7 +1044,7 @@ gdata_service_insert_entry (GDataService *self, const gchar *upload_uri, GDataEn
  * Return value: an updated #GDataEntry, or %NULL
  **/
 GDataEntry *
-gdata_service_update_entry (GDataService *self, GDataEntry *entry, GType entry_type, GCancellable *cancellable, GError **error)
+gdata_service_update_entry (GDataService *self, GDataEntry *entry, GCancellable *cancellable, GError **error)
 {
 	GDataServiceClass *klass;
 	GDataEntry *updated_entry;
@@ -1059,7 +1055,6 @@ gdata_service_update_entry (GDataService *self, GDataEntry *entry, GType entry_t
 
 	g_return_val_if_fail (GDATA_IS_SERVICE (self), NULL);
 	g_return_val_if_fail (GDATA_IS_ENTRY (entry), NULL);
-	g_return_val_if_fail (entry_type != G_TYPE_INVALID, NULL);
 
 	/* Get the edit URI */
 	link = gdata_entry_look_up_link (entry, "edit");
@@ -1104,8 +1099,8 @@ gdata_service_update_entry (GDataService *self, GDataEntry *entry, GType entry_t
 	/* Build the updated entry */
 	g_assert (message->response_body->data != NULL);
 
-	/* Parse the XML */
-	updated_entry = _gdata_entry_new_from_xml (entry_type, message->response_body->data, message->response_body->length, error);
+	/* Parse the XML; create and return a new GDataEntry of the same type as @entry */
+	updated_entry = _gdata_entry_new_from_xml (G_OBJECT_TYPE (entry), message->response_body->data, message->response_body->length, error);
 	g_object_unref (message);
 
 	return updated_entry;

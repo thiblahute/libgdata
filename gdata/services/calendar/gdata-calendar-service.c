@@ -160,7 +160,7 @@ gdata_calendar_service_insert_event (GDataCalendarService *self, GDataCalendarEv
 
 	uri = g_strdup_printf ("http://www.google.com/calendar/feeds/%s/private/full", gdata_service_get_username (GDATA_SERVICE (self)));
 
-	entry = gdata_service_insert_entry (GDATA_SERVICE (self), uri, GDATA_ENTRY (event), GDATA_TYPE_CALENDAR_EVENT, cancellable, error);
+	entry = gdata_service_insert_entry (GDATA_SERVICE (self), uri, GDATA_ENTRY (event), cancellable, error);
 	g_free (uri);
 
 	return GDATA_CALENDAR_EVENT (entry);

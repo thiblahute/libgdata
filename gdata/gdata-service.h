@@ -163,12 +163,10 @@ void gdata_service_query_async (GDataService *self, const gchar *feed_uri, GData
 				GAsyncReadyCallback callback, gpointer user_data);
 GDataFeed *gdata_service_query_finish (GDataService *self, GAsyncResult *async_result, GError **error);
 
-GDataEntry *gdata_service_insert_entry (GDataService *self, const gchar *upload_uri, GDataEntry *entry, GType entry_type,
-					GCancellable *cancellable, GError **error);
+GDataEntry *gdata_service_insert_entry (GDataService *self, const gchar *upload_uri, GDataEntry *entry, GCancellable *cancellable, GError **error);
 /* TODO: async version */
 
-GDataEntry *gdata_service_update_entry (GDataService *self, GDataEntry *entry, GType entry_type,
-					GCancellable *cancellable, GError **error);
+GDataEntry *gdata_service_update_entry (GDataService *self, GDataEntry *entry, GCancellable *cancellable, GError **error);
 /* TODO: async version */
 
 gboolean gdata_service_delete_entry (GDataService *self, GDataEntry *entry, GCancellable *cancellable, GError **error);
