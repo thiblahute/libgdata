@@ -24,7 +24,8 @@
 #include <glib-object.h>
 
 #include <gdata/gdata-service.h>
-#include <gdata/services/contacts/gdata-contacts-contacts.h>
+#include <gdata/services/contacts/gdata-contacts-query.h>
+#include <gdata/services/contacts/gdata-contacts-contact.h>
 
 G_BEGIN_DECLS
 

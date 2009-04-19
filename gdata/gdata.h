@@ -51,6 +51,7 @@
 
 /* Google Contacts */
 #include <gdata/services/contacts/gdata-contacts-service.h>
+#include <gdata/services/contacts/gdata-contacts-contact.h>
 #include <gdata/services/contacts/gdata-contacts-query.h>
 
 #endif /* !GDATA_H */

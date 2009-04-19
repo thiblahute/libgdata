@@ -1,6 +1,7 @@
 gdatacontactsincludedir = $(pkgincludedir)/gdata/services/contacts
 gdatacontactsinclude_HEADERS = \
 	gdata-contacts-service.h	\
+	gdata-contacts-contact.h	\
 	gdata-contacts-query.h
 
 noinst_LTLIBRARIES = libgdatacontacts.la
@@ -10,6 +11,8 @@ libgdatacontacts_headers =
 libgdatacontacts_la_SOURCES = \
 	gdata-contacts-service.c	\
 	gdata-contacts-service.h	\
+	gdata-contacts-contact.c	\
+	gdata-contacts-contact.h	\
 	gdata-contacts-query.c		\
 	gdata-contacts-query.h
 

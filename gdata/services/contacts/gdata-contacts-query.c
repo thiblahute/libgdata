@@ -41,7 +41,7 @@ struct _GDataContactsQueryPrivate {
 
 enum {
 	PROP_ORDER_BY = 1,
-	PROP_SHOW_DELETED
+	PROP_SHOW_DELETED,
 	PROP_SORT_ORDER,
 	PROP_GROUP
 };
@@ -185,7 +185,7 @@ gdata_contacts_query_set_order_by (GDataContactsQuery *self, const gchar *order_
 }
 
 gboolean
-gdata_contacts_query_get_show_deleted (GDataContactsQuery *self)
+gdata_contacts_query_show_deleted (GDataContactsQuery *self)
 {
 	g_return_val_if_fail (GDATA_IS_CONTACTS_QUERY (self), FALSE);
 	return self->priv->show_deleted;
