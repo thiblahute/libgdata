@@ -727,7 +727,7 @@ error:
 	if (feed != NULL)
 		feed->priv->extra_xml = g_string_free (extra_xml, FALSE);
 	else
-		g_string_free (extra_xml, 
+		g_string_free (extra_xml, TRUE);
 
 	xmlFreeDoc (doc);
 
