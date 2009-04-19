@@ -724,7 +724,10 @@ error:
 	g_list_free (authors);
 
 	/* Store any unhandled XML for future use */
-	feed->priv->extra_xml = g_string_free (extra_xml, FALSE);
+	if (feed != NULL)
+		feed->priv->extra_xml = g_string_free (extra_xml, FALSE);
+	else
+		g_string_free (extra_xml, 
 
 	xmlFreeDoc (doc);
 
