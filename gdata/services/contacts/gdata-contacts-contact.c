@@ -186,10 +186,10 @@ parse_xml (GDataEntry *entry, xmlDoc *doc, xmlNode *node, GError **error)
 
 		/* Is it the primary e-mail address? */
 		primary = xmlGetProp (node, (xmlChar*) "primary");
-		if (xmlStrcmp (primary, (xmlChar*) "true") == 0)
-			primary_bool = TRUE;
-		else if (xmlStrcmp (primary, (xmlChar*) "false") == 0)
+		if (primary == NULL || xmlStrcmp (primary, (xmlChar*) "false") == 0)
 			primary_bool = FALSE;
+		else if (xmlStrcmp (primary, (xmlChar*) "true") == 0)
+			primary_bool = TRUE;
 		else {
 			gdata_parser_error_unknown_property_value ("gd:email", "primary", (gchar*) primary, error);
 			xmlFree (primary);
@@ -223,10 +223,10 @@ parse_xml (GDataEntry *entry, xmlDoc *doc, xmlNode *node, GError **error)
 
 		/* Is it the primary IM address? */
 		primary = xmlGetProp (node, (xmlChar*) "primary");
-		if (xmlStrcmp (primary, (xmlChar*) "true") == 0)
-			primary_bool = TRUE;
-		else if (xmlStrcmp (primary, (xmlChar*) "false") == 0)
+		if (primary == NULL || xmlStrcmp (primary, (xmlChar*) "false") == 0)
 			primary_bool = FALSE;
+		else if (xmlStrcmp (primary, (xmlChar*) "true") == 0)
+			primary_bool = TRUE;
 		else {
 			gdata_parser_error_unknown_property_value ("gd:im", "primary", (gchar*) primary, error);
 			xmlFree (primary);
@@ -261,10 +261,10 @@ parse_xml (GDataEntry *entry, xmlDoc *doc, xmlNode *node, GError **error)
 
 		/* Is it the primary phone number? */
 		primary = xmlGetProp (node, (xmlChar*) "primary");
-		if (xmlStrcmp (primary, (xmlChar*) "true") == 0)
-			primary_bool = TRUE;
-		else if (xmlStrcmp (primary, (xmlChar*) "false") == 0)
+		if (primary == NULL || xmlStrcmp (primary, (xmlChar*) "false") == 0)
 			primary_bool = FALSE;
+		else if (xmlStrcmp (primary, (xmlChar*) "true") == 0)
+			primary_bool = TRUE;
 		else {
 			gdata_parser_error_unknown_property_value ("gd:phoneNumber", "primary", (gchar*) primary, error);
 			xmlFree (primary);
@@ -298,10 +298,10 @@ parse_xml (GDataEntry *entry, xmlDoc *doc, xmlNode *node, GError **error)
 
 		/* Is it the primary postal address? */
 		primary = xmlGetProp (node, (xmlChar*) "primary");
-		if (xmlStrcmp (primary, (xmlChar*) "true") == 0)
-			primary_bool = TRUE;
-		else if (xmlStrcmp (primary, (xmlChar*) "false") == 0)
+		if (primary == NULL || xmlStrcmp (primary, (xmlChar*) "false") == 0)
 			primary_bool = FALSE;
+		else if (xmlStrcmp (primary, (xmlChar*) "true") == 0)
+			primary_bool = TRUE;
 		else {
 			gdata_parser_error_unknown_property_value ("gd:postalAddress", "primary", (gchar*) primary, error);
 			xmlFree (primary);
@@ -358,10 +358,10 @@ parse_xml (GDataEntry *entry, xmlDoc *doc, xmlNode *node, GError **error)
 
 		/* Is it the primary organisation? */
 		primary = xmlGetProp (node, (xmlChar*) "primary");
-		if (xmlStrcmp (primary, (xmlChar*) "true") == 0)
-			primary_bool = TRUE;
-		else if (xmlStrcmp (primary, (xmlChar*) "false") == 0)
+		if (primary == NULL || xmlStrcmp (primary, (xmlChar*) "false") == 0)
 			primary_bool = FALSE;
+		else if (xmlStrcmp (primary, (xmlChar*) "true") == 0)
+			primary_bool = TRUE;
 		else {
 			gdata_parser_error_unknown_property_value ("gd:organization", "primary", (gchar*) primary, error);
 			xmlFree (primary);
@@ -411,10 +411,10 @@ parse_xml (GDataEntry *entry, xmlDoc *doc, xmlNode *node, GError **error)
 
 		/* Has it been deleted? */
 		deleted = xmlGetProp (node, (xmlChar*) "deleted");
-		if (xmlStrcmp (deleted, (xmlChar*) "true") == 0)
-			deleted_bool = TRUE;
-		else if (xmlStrcmp (deleted, (xmlChar*) "false") == 0)
+		if (deleted == NULL || xmlStrcmp (deleted, (xmlChar*) "false") == 0)
 			deleted_bool = FALSE;
+		else if (xmlStrcmp (deleted, (xmlChar*) "true") == 0)
+			deleted_bool = TRUE;
 		else {
 			gdata_parser_error_unknown_property_value ("gContact:groupMembershipInfo", "deleted", (gchar*) deleted, error);
 			xmlFree (deleted);

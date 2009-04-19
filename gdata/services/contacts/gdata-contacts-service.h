@@ -55,6 +55,8 @@ GDataFeed *gdata_contacts_service_query_contacts (GDataContactsService *self, GD
 void gdata_contacts_service_query_contacts_async (GDataContactsService *self, GDataContactsQuery *query, GCancellable *cancellable,
 						  GDataQueryProgressCallback progress_callback, gpointer progress_user_data,
 						  GAsyncReadyCallback callback, gpointer user_data);
+GDataContactsContact *gdata_contacts_service_insert_contact (GDataContactsService *self, GDataContactsContact *contact,
+							     GCancellable *cancellable, GError **error);
 
 G_END_DECLS
 

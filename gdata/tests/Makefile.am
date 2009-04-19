@@ -26,8 +26,10 @@ youtube_SOURCES			 = youtube.c $(TEST_SRCS)
 TEST_PROGS			+= calendar
 calendar_SOURCES		 = calendar.c $(TEST_SRCS)
 
+TEST_PROGS			+= contacts
+contacts_SOURCES		 = contacts.c $(TEST_SRCS)
+
 TEST_PROGS			+= memory
 memory_SOURCES			 = memory.c $(TEST_SRCS)
-
 
 -include $(top_srcdir)/git.mk

@@ -87,3 +87,21 @@ gdata_contacts_service_query_contacts_async (GDataContactsService *self, GDataCo
 	gdata_service_query_async (GDATA_SERVICE (self), "http://www.google.com/m8/feeds/contacts/default/full", GDATA_QUERY (query),
 				   GDATA_TYPE_CONTACTS_CONTACT, cancellable, progress_callback, progress_user_data, callback, user_data);
 }
+
+/* TODO: Async variant */
+GDataContactsContact *
+gdata_contacts_service_insert_contact (GDataContactsService *self, GDataContactsContact *contact, GCancellable *cancellable, GError **error)
+{
+	gchar *uri;
+	GDataEntry *entry;
+
+	g_return_val_if_fail (GDATA_IS_CONTACTS_SERVICE (self), NULL);
+	g_return_val_if_fail (GDATA_IS_CONTACTS_CONTACT (contact), NULL);
+
+	uri = g_strdup_printf ("http://www.google.com/m8/feeds/contacts/%s/full", gdata_service_get_username (GDATA_SERVICE (self)));
+
+	entry = gdata_service_insert_entry (GDATA_SERVICE (self), uri, GDATA_ENTRY (contact), cancellable, error);
+	g_free (uri);
+
+	return GDATA_CONTACTS_CONTACT (entry);
+}
