@@ -173,9 +173,24 @@ gdata_generator_free
 <SECTION>
 <FILE>gdata-gdata</FILE>
 <TITLE>GData API</TITLE>
+GDataGDEmailAddress
+gdata_gd_email_address_new
+gdata_gd_email_address_free
 GDataGDFeedLink
 gdata_gd_feed_link_new
 gdata_gd_feed_link_free
+GDataGDIMAddress
+gdata_gd_im_address_new
+gdata_gd_im_address_free
+GDataGDOrganization
+gdata_gd_organization_new
+gdata_gd_organization_free
+GDataGDPhoneNumber
+gdata_gd_phone_number_new
+gdata_gd_phone_number_free
+GDataGDPostalAddress
+gdata_gd_postal_address_new
+gdata_gd_postal_address_free
 GDataGDRating
 gdata_gd_rating_new
 gdata_gd_rating_free

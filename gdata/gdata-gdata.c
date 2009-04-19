@@ -196,3 +196,234 @@ gdata_gd_where_free (GDataGDWhere *self)
 	g_free (self->value_string);
 	g_slice_free (GDataGDWhere, self);
 }
+
+/**
+ * gdata_gd_email_address_new:
+ * @address: the e-mail address
+ * @rel: the relationship between the e-mail address and its owner, or %NULL
+ * @label: a human-readable label for the e-mail address, or %NULL
+ * @primary: %TRUE if this e-mail address is its owner's primary address, %FALSE otherwise
+ *
+ * Creates a new #GDataGDEmailAddress. More information is available in the <ulink type="http"
+ * url="http://code.google.com/apis/gdata/elements.html#gdEmail">GData specification</ulink>.
+ *
+ * Return value: a new #GDataGDEmailAddress, or %NULL on error
+ **/
+GDataGDEmailAddress *
+gdata_gd_email_address_new (const gchar *address, const gchar *rel, const gchar *label, gboolean primary)
+{
+	GDataGDEmailAddress *self;
+
+	g_return_val_if_fail (address != NULL, NULL);
+
+	self = g_slice_new (GDataGDEmailAddress);
+	self->address = g_strdup (address);
+	self->rel = g_strdup (rel);
+	self->label = g_strdup (label);
+	self->primary = primary;
+	return self;
+}
+
+/**
+ * gdata_gd_email_address_free:
+ * @self: a #GDataGDEmailAddress
+ *
+ * Frees a #GDataGDEmailAddress.
+ **/
+void
+gdata_gd_email_address_free (GDataGDEmailAddress *self)
+{
+	if (G_UNLIKELY (self == NULL))
+		return;
+
+	g_free (self->address);
+	g_free (self->rel);
+	g_free (self->label);
+	g_slice_free (GDataGDEmailAddress, self);
+}
+
+/**
+ * gdata_gd_im_address_new:
+ * @address: the IM address
+ * @protocol: a URI identifying the IM protocol, or %NULL
+ * @rel: the relationship between the IM address and its owner, or %NULL
+ * @label: a human-readable label for the IM address, or %NULL
+ * @primary: %TRUE if this IM address is its owner's primary address, %FALSE otherwise
+ *
+ * Creates a new #GDataGDIMAddress. More information is available in the <ulink type="http"
+ * url="http://code.google.com/apis/gdata/elements.html#gdIm">GData specification</ulink>.
+ *
+ * Return value: a new #GDataGDIMAddress, or %NULL on error
+ **/
+GDataGDIMAddress *
+gdata_gd_im_address_new (const gchar *address, const gchar *protocol, const gchar *rel, const gchar *label, gboolean primary)
+{
+	GDataGDIMAddress *self;
+
+	g_return_val_if_fail (address != NULL, NULL);
+
+	self = g_slice_new (GDataGDIMAddress);
+	self->address = g_strdup (address);
+	self->protocol = g_strdup (protocol);
+	self->rel = g_strdup (rel);
+	self->label = g_strdup (label);
+	self->primary = primary;
+	return self;
+}
+
+/**
+ * gdata_gd_im_address_free:
+ * @self: a #GDataGDIMAddress
+ *
+ * Frees a #GDataGDIMAddress.
+ **/
+void
+gdata_gd_im_address_free (GDataGDIMAddress *self)
+{
+	if (G_UNLIKELY (self == NULL))
+		return;
+
+	g_free (self->address);
+	g_free (self->protocol);
+	g_free (self->rel);
+	g_free (self->label);
+	g_slice_free (GDataGDIMAddress, self);
+}
+
+/**
+ * gdata_gd_phone_number_new:
+ * @phone_number: the phone number, in human-readable format
+ * @rel: the relationship between the phone number and its owner, or %NULL
+ * @label: a human-readable label for the phone number, or %NULL
+ * @uri: a "tel URI" to represent the number formally (see
+ * <ulink type="http" url="http://www.ietf.org/rfc/rfc3966.txt">RFC 3966</ulink>), or %NULL
+ * @primary: %TRUE if this phone number is its owner's primary number, %FALSE otherwise
+ *
+ * Creates a new #GDataGDPhoneNumber. More information is available in the <ulink type="http"
+ * url="http://code.google.com/apis/gdata/elements.html#gdPhoneNumber">GData specification</ulink>.
+ *
+ * Return value: a new #GDataGDPhoneNumber, or %NULL on error
+ **/
+GDataGDPhoneNumber *
+gdata_gd_phone_number_new (const gchar *phone_number, const gchar *rel, const gchar *label, const gchar *uri, gboolean primary)
+{
+	GDataGDPhoneNumber *self;
+
+	g_return_val_if_fail (phone_number != NULL, NULL);
+
+	self = g_slice_new (GDataGDPhoneNumber);
+	self->phone_number = g_strdup (phone_number);
+	self->rel = g_strdup (rel);
+	self->label = g_strdup (label);
+	self->uri = g_strdup (uri);
+	self->primary = primary;
+	return self;
+}
+
+/**
+ * gdata_gd_phone_number_free:
+ * @self: a #GDataGDPhoneNumber
+ *
+ * Frees a #GDataGDPhoneNumber.
+ **/
+void
+gdata_gd_phone_number_free (GDataGDPhoneNumber *self)
+{
+	if (G_UNLIKELY (self == NULL))
+		return;
+
+	g_free (self->phone_number);
+	g_free (self->rel);
+	g_free (self->label);
+	g_free (self->uri);
+	g_slice_free (GDataGDPhoneNumber, self);
+}
+
+/**
+ * gdata_gd_postal_address_new:
+ * @address: the postal address, in human-readable format (new lines are significant)
+ * @rel: the relationship between the address and its owner, or %NULL
+ * @label: a human-readable label for the address, or %NULL
+ * @primary: %TRUE if this phone number is its owner's primary number, %FALSE otherwise
+ *
+ * Creates a new #GDataGDPostalAddress. More information is available in the <ulink type="http"
+ * url="http://code.google.com/apis/gdata/elements.html#gdPostalAddress">GData specification</ulink>.
+ *
+ * Return value: a new #GDataGDPostalAddress, or %NULL on error
+ **/
+GDataGDPostalAddress *
+gdata_gd_postal_address_new (const gchar *address, const gchar *rel, const gchar *label, gboolean primary)
+{
+	GDataGDPostalAddress *self;
+
+	g_return_val_if_fail (address != NULL, NULL);
+
+	self = g_slice_new (GDataGDPostalAddress);
+	self->address = g_strdup (address);
+	self->rel = g_strdup (rel);
+	self->label = g_strdup (label);
+	self->primary = primary;
+	return self;
+}
+
+/**
+ * gdata_gd_postal_address_free:
+ * @self: a #GDataGDPostalAddress
+ *
+ * Frees a #GDataGDPostalAddress.
+ **/
+void
+gdata_gd_postal_address_free (GDataGDPostalAddress *self)
+{
+	if (G_UNLIKELY (self == NULL))
+		return;
+
+	g_free (self->address);
+	g_free (self->rel);
+	g_free (self->label);
+	g_slice_free (GDataGDPostalAddress, self);
+}
+
+/**
+ * gdata_gd_organization_new:
+ * @name: the name of the organization, or %NULL
+ * @title: the owner's title within the organization, or %NULL
+ * @rel: the relationship between the organization and its owner, or %NULL
+ * @label: a human-readable label for the organization, or %NULL
+ * @primary: %TRUE if this organization is its owner's primary organization, %FALSE otherwise
+ *
+ * Creates a new #GDataGDOrganization. More information is available in the <ulink type="http"
+ * url="http://code.google.com/apis/gdata/elements.html#gdOrganization">GData specification</ulink>.
+ *
+ * Return value: a new #GDataGDOrganization, or %NULL on error
+ **/
+GDataGDOrganization *
+gdata_gd_organization_new (const gchar *name, const gchar *title, const gchar *rel, const gchar *label, gboolean primary)
+{
+	GDataGDOrganization *self = g_slice_new (GDataGDOrganization);
+	self->name = g_strdup (name);
+	self->title = g_strdup (title);
+	self->rel = g_strdup (rel);
+	self->label = g_strdup (label);
+	self->primary = primary;
+	return self;
+}
+
+/**
+ * gdata_gd_organization_free:
+ * @self: a #GDataGDOrganization
+ *
+ * Frees a #GDataGDOrganization.
+ **/
+void
+gdata_gd_organization_free (GDataGDOrganization *self)
+{
+	if (G_UNLIKELY (self == NULL))
+		return;
+
+	g_free (self->name);
+	g_free (self->title);
+	g_free (self->rel);
+	g_free (self->label);
+	g_slice_free (GDataGDOrganization, self);
+}
