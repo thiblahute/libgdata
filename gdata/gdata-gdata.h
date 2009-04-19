@@ -166,28 +166,28 @@ void gdata_gd_im_address_free (GDataGDIMAddress *self);
 
 /**
  * GDataGDPhoneNumber:
- * @phone_number: the phone number, in human-readable format
+ * @number: the phone number, in human-readable format
  * @rel: the relationship between the phone number and its owner, or %NULL
  * @label: a human-readable label for the phone number, or %NULL
  * @uri: a "tel URI" to represent the number formally (see
  * <ulink type="http" url="http://www.ietf.org/rfc/rfc3966.txt">RFC 3966</ulink>), or %NULL
  * @primary: %TRUE if this phone number is its owner's primary number, %FALSE otherwise
  *
- * A structure fully representing a GData "phoneNumber" element. The @phone_number field is required,
+ * A structure fully representing a GData "phoneNumber" element. The @number field is required,
  * but the others are optional.
  *
  * See the <ulink type="http" url="http://code.google.com/apis/gdata/elements.html#gdPhoneNumber">GData specification</ulink>
  * for more information.
  **/
 typedef struct {
-	gchar *phone_number;
+	gchar *number;
 	gchar *rel;
 	gchar *label;
 	gchar *uri;
 	gboolean primary;
 } GDataGDPhoneNumber;
 
-GDataGDPhoneNumber *gdata_gd_phone_number_new (const gchar *phone_number, const gchar *rel, const gchar *label, const gchar *uri, gboolean primary);
+GDataGDPhoneNumber *gdata_gd_phone_number_new (const gchar *number, const gchar *rel, const gchar *label, const gchar *uri, gboolean primary);
 void gdata_gd_phone_number_free (GDataGDPhoneNumber *self);
 
 /**

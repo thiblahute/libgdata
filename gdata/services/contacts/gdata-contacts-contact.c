@@ -515,7 +515,7 @@ get_xml (GDataEntry *entry, GString *xml_string)
 			g_string_append (xml_string, " primary='false'>");
 
 		/* Append the phone number itself */
-		g_string_append_printf (xml_string, "%s</gd:phoneNumber>", phone_number->phone_number);
+		g_string_append_printf (xml_string, "%s</gd:phoneNumber>", phone_number->number);
 	}
 
 	/* Postal addresses */

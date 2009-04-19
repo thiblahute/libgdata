@@ -292,7 +292,7 @@ gdata_gd_im_address_free (GDataGDIMAddress *self)
 
 /**
  * gdata_gd_phone_number_new:
- * @phone_number: the phone number, in human-readable format
+ * @number: the phone number, in human-readable format
  * @rel: the relationship between the phone number and its owner, or %NULL
  * @label: a human-readable label for the phone number, or %NULL
  * @uri: a "tel URI" to represent the number formally (see
@@ -305,14 +305,14 @@ gdata_gd_im_address_free (GDataGDIMAddress *self)
  * Return value: a new #GDataGDPhoneNumber, or %NULL on error
  **/
 GDataGDPhoneNumber *
-gdata_gd_phone_number_new (const gchar *phone_number, const gchar *rel, const gchar *label, const gchar *uri, gboolean primary)
+gdata_gd_phone_number_new (const gchar *number, const gchar *rel, const gchar *label, const gchar *uri, gboolean primary)
 {
 	GDataGDPhoneNumber *self;
 
-	g_return_val_if_fail (phone_number != NULL, NULL);
+	g_return_val_if_fail (number != NULL, NULL);
 
 	self = g_slice_new (GDataGDPhoneNumber);
-	self->phone_number = g_strdup (phone_number);
+	self->number = g_strdup (number);
 	self->rel = g_strdup (rel);
 	self->label = g_strdup (label);
 	self->uri = g_strdup (uri);
@@ -332,7 +332,7 @@ gdata_gd_phone_number_free (GDataGDPhoneNumber *self)
 	if (G_UNLIKELY (self == NULL))
 		return;
 
-	g_free (self->phone_number);
+	g_free (self->number);
 	g_free (self->rel);
 	g_free (self->label);
 	g_free (self->uri);
