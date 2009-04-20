@@ -48,8 +48,8 @@ typedef struct {
 
 GType gdata_calendar_query_get_type (void) G_GNUC_CONST;
 
-GDataCalendarQuery *gdata_calendar_query_new (const gchar *q);
-GDataCalendarQuery *gdata_calendar_query_new_with_limits (const gchar *q, GTimeVal *start_min, GTimeVal *start_max);
+GDataCalendarQuery *gdata_calendar_query_new (const gchar *q) G_GNUC_WARN_UNUSED_RESULT;
+GDataCalendarQuery *gdata_calendar_query_new_with_limits (const gchar *q, GTimeVal *start_min, GTimeVal *start_max) G_GNUC_WARN_UNUSED_RESULT;
 
 gboolean gdata_calendar_query_get_future_events (GDataCalendarQuery *self);
 void gdata_calendar_query_set_future_events (GDataCalendarQuery *self, gboolean future_events);

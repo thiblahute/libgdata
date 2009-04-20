@@ -29,7 +29,7 @@ typedef struct {
 	gchar *country;
 } GDataMediaRating;
 
-GDataMediaRating *gdata_media_rating_new (const gchar *scheme, const gchar *country);
+GDataMediaRating *gdata_media_rating_new (const gchar *scheme, const gchar *country) G_GNUC_WARN_UNUSED_RESULT;
 void gdata_media_rating_free (GDataMediaRating *self);
 
 typedef struct {
@@ -37,7 +37,7 @@ typedef struct {
 	gchar *countries;
 } GDataMediaRestriction;
 
-GDataMediaRestriction *gdata_media_restriction_new (const gchar *countries, gboolean relationship);
+GDataMediaRestriction *gdata_media_restriction_new (const gchar *countries, gboolean relationship) G_GNUC_WARN_UNUSED_RESULT;
 void gdata_media_restriction_free (GDataMediaRestriction *self);
 
 typedef struct {
@@ -46,7 +46,7 @@ typedef struct {
 	gchar *category;
 } GDataMediaCategory;
 
-GDataMediaCategory *gdata_media_category_new (const gchar *category, const gchar *label, const gchar *scheme);
+GDataMediaCategory *gdata_media_category_new (const gchar *category, const gchar *label, const gchar *scheme) G_GNUC_WARN_UNUSED_RESULT;
 void gdata_media_category_free (GDataMediaCategory *self);
 
 typedef struct {
@@ -54,7 +54,7 @@ typedef struct {
 	gboolean partner;
 } GDataMediaCredit;
 
-GDataMediaCredit *gdata_media_credit_new (const gchar *credit, gboolean partner);
+GDataMediaCredit *gdata_media_credit_new (const gchar *credit, gboolean partner) G_GNUC_WARN_UNUSED_RESULT;
 void gdata_media_credit_free (GDataMediaCredit *self);
 
 typedef enum {
@@ -72,7 +72,8 @@ typedef struct {
 	gint format; /* TODO: YouTube-specific */
 } GDataMediaContent;
 
-GDataMediaContent *gdata_media_content_new (const gchar *uri, const gchar *type, gboolean is_default, GDataMediaExpression expression, gint duration, gint format);
+GDataMediaContent *gdata_media_content_new (const gchar *uri, const gchar *type, gboolean is_default, GDataMediaExpression expression,
+					    gint duration, gint format) G_GNUC_WARN_UNUSED_RESULT;
 void gdata_media_content_free (GDataMediaContent *self);
 
 typedef struct {
@@ -82,9 +83,9 @@ typedef struct {
 	gint64 time;
 } GDataMediaThumbnail;
 
-GDataMediaThumbnail *gdata_media_thumbnail_new (const gchar *uri, guint width, guint height, gint64 _time);
-gint64 gdata_media_thumbnail_parse_time (const gchar *time_string);
-gchar *gdata_media_thumbnail_build_time (gint64 _time);
+GDataMediaThumbnail *gdata_media_thumbnail_new (const gchar *uri, guint width, guint height, gint64 _time) G_GNUC_WARN_UNUSED_RESULT;
+gint64 gdata_media_thumbnail_parse_time (const gchar *time_string) G_GNUC_PURE;
+gchar *gdata_media_thumbnail_build_time (gint64 _time) G_GNUC_WARN_UNUSED_RESULT;
 void gdata_media_thumbnail_free (GDataMediaThumbnail *self);
 
 G_END_DECLS

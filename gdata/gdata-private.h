@@ -38,16 +38,17 @@ void _gdata_query_set_previous_uri (GDataQuery *self, const gchar *previous_uri)
 
 #include "gdata-feed.h"
 GDataFeed *_gdata_feed_new_from_xml (const gchar *xml, gint length, GType entry_type,
-				     GDataQueryProgressCallback progress_callback, gpointer progress_user_data, GError **error);
+				     GDataQueryProgressCallback progress_callback, gpointer progress_user_data, GError **error) G_GNUC_WARN_UNUSED_RESULT;
 
 #include "gdata-entry.h"
-GDataEntry *_gdata_entry_new_from_xml (GType entry_type, const gchar *xml, gint length, GError **error);
-GDataEntry *_gdata_entry_new_from_xml_node (GType entry_type, xmlDoc *doc, xmlNode *node, GError **error);
+GDataEntry *_gdata_entry_new_from_xml (GType entry_type, const gchar *xml, gint length, GError **error) G_GNUC_WARN_UNUSED_RESULT;
+GDataEntry *_gdata_entry_new_from_xml_node (GType entry_type, xmlDoc *doc, xmlNode *node, GError **error) G_GNUC_WARN_UNUSED_RESULT;
 
 #include "gdata-parser.h"
 gboolean gdata_parser_error_required_content_missing (const gchar *element_name, GError **error);
 gboolean gdata_parser_error_not_iso8601_format (const gchar *element_name, const gchar *parent_element_name, const gchar *actual_value, GError **error);
-gboolean gdata_parser_error_unhandled_element (const gchar *element_namespace, const gchar *element_name, const gchar *parent_element_name, GError **error);
+gboolean gdata_parser_error_unhandled_element (const gchar *element_namespace, const gchar *element_name,
+					       const gchar *parent_element_name, GError **error);
 gboolean gdata_parser_error_unknown_property_value (const gchar *element_name, const gchar *property_name, const gchar *actual_value, GError **error);
 gboolean gdata_parser_error_required_property_missing (const gchar *element_name, const gchar *property_name, GError **error);
 gboolean gdata_parser_error_required_element_missing (const gchar *element_name, const gchar *parent_element_name, GError **error);

@@ -45,7 +45,7 @@ typedef struct {
 	gdouble average;
 } GDataGDRating;
 
-GDataGDRating *gdata_gd_rating_new (guint min, guint max, guint num_raters, gdouble average);
+GDataGDRating *gdata_gd_rating_new (guint min, guint max, guint num_raters, gdouble average) G_GNUC_WARN_UNUSED_RESULT;
 void gdata_gd_rating_free (GDataGDRating *self);
 
 /**
@@ -68,7 +68,7 @@ typedef struct {
 	/* TODO: support readOnly and feed */
 } GDataGDFeedLink;
 
-GDataGDFeedLink *gdata_gd_feed_link_new (const gchar *href, const gchar *rel, guint count_hint);
+GDataGDFeedLink *gdata_gd_feed_link_new (const gchar *href, const gchar *rel, guint count_hint) G_GNUC_WARN_UNUSED_RESULT;
 void gdata_gd_feed_link_free (GDataGDFeedLink *self);
 
 /**
@@ -91,7 +91,7 @@ typedef struct {
 	/* TODO: deal with the attendeeType, attendeeStatus and entryLink */
 } GDataGDWho;
 
-GDataGDWho *gdata_gd_who_new (const gchar *rel, const gchar *value_string, const gchar *email);
+GDataGDWho *gdata_gd_who_new (const gchar *rel, const gchar *value_string, const gchar *email) G_GNUC_WARN_UNUSED_RESULT;
 void gdata_gd_who_free (GDataGDWho *self);
 
 /**
@@ -114,7 +114,7 @@ typedef struct {
 	/* TODO: deal with the entryLink */
 } GDataGDWhere;
 
-GDataGDWhere *gdata_gd_where_new (const gchar *rel, const gchar *value_string, const gchar *label);
+GDataGDWhere *gdata_gd_where_new (const gchar *rel, const gchar *value_string, const gchar *label) G_GNUC_WARN_UNUSED_RESULT;
 void gdata_gd_where_free (GDataGDWhere *self);
 
 /**
@@ -137,7 +137,7 @@ typedef struct {
 	gboolean primary;
 } GDataGDEmailAddress;
 
-GDataGDEmailAddress *gdata_gd_email_address_new (const gchar *address, const gchar *rel, const gchar *label, gboolean primary);
+GDataGDEmailAddress *gdata_gd_email_address_new (const gchar *address, const gchar *rel, const gchar *label, gboolean primary) G_GNUC_WARN_UNUSED_RESULT;
 void gdata_gd_email_address_free (GDataGDEmailAddress *self);
 
 /**
@@ -161,7 +161,8 @@ typedef struct {
 	gboolean primary;
 } GDataGDIMAddress;
 
-GDataGDIMAddress *gdata_gd_im_address_new (const gchar *address, const gchar *protocol, const gchar *rel, const gchar *label, gboolean primary);
+GDataGDIMAddress *gdata_gd_im_address_new (const gchar *address, const gchar *protocol, const gchar *rel,
+					   const gchar *label, gboolean primary) G_GNUC_WARN_UNUSED_RESULT;
 void gdata_gd_im_address_free (GDataGDIMAddress *self);
 
 /**
@@ -187,7 +188,8 @@ typedef struct {
 	gboolean primary;
 } GDataGDPhoneNumber;
 
-GDataGDPhoneNumber *gdata_gd_phone_number_new (const gchar *number, const gchar *rel, const gchar *label, const gchar *uri, gboolean primary);
+GDataGDPhoneNumber *gdata_gd_phone_number_new (const gchar *number, const gchar *rel, const gchar *label,
+					       const gchar *uri, gboolean primary) G_GNUC_WARN_UNUSED_RESULT;
 void gdata_gd_phone_number_free (GDataGDPhoneNumber *self);
 
 /**
@@ -210,7 +212,8 @@ typedef struct {
 	gboolean primary;
 } GDataGDPostalAddress;
 
-GDataGDPostalAddress *gdata_gd_postal_address_new (const gchar *address, const gchar *rel, const gchar *label, gboolean primary);
+GDataGDPostalAddress *gdata_gd_postal_address_new (const gchar *address, const gchar *rel, const gchar *label,
+						   gboolean primary) G_GNUC_WARN_UNUSED_RESULT;
 void gdata_gd_postal_address_free (GDataGDPostalAddress *self);
 
 /**
@@ -234,7 +237,8 @@ typedef struct {
 	gboolean primary;
 } GDataGDOrganization;
 
-GDataGDOrganization *gdata_gd_organization_new (const gchar *name, const gchar *title, const gchar *rel, const gchar *label, gboolean primary);
+GDataGDOrganization *gdata_gd_organization_new (const gchar *name, const gchar *title, const gchar *rel,
+						const gchar *label, gboolean primary) G_GNUC_WARN_UNUSED_RESULT;
 void gdata_gd_organization_free (GDataGDOrganization *self);
 
 G_END_DECLS

@@ -156,17 +156,18 @@ gboolean gdata_service_authenticate_finish (GDataService *self, GAsyncResult *as
 
 GDataFeed *gdata_service_query (GDataService *self, const gchar *feed_uri, GDataQuery *query, GType entry_type,
 				GCancellable *cancellable,
-				GDataQueryProgressCallback progress_callback, gpointer progress_user_data, GError **error);
+				GDataQueryProgressCallback progress_callback, gpointer progress_user_data, GError **error) G_GNUC_WARN_UNUSED_RESULT;
 void gdata_service_query_async (GDataService *self, const gchar *feed_uri, GDataQuery *query, GType entry_type,
 				GCancellable *cancellable,
 				GDataQueryProgressCallback progress_callback, gpointer progress_user_data,
 				GAsyncReadyCallback callback, gpointer user_data);
-GDataFeed *gdata_service_query_finish (GDataService *self, GAsyncResult *async_result, GError **error);
+GDataFeed *gdata_service_query_finish (GDataService *self, GAsyncResult *async_result, GError **error) G_GNUC_WARN_UNUSED_RESULT;
 
-GDataEntry *gdata_service_insert_entry (GDataService *self, const gchar *upload_uri, GDataEntry *entry, GCancellable *cancellable, GError **error);
+GDataEntry *gdata_service_insert_entry (GDataService *self, const gchar *upload_uri, GDataEntry *entry,
+					GCancellable *cancellable, GError **error) G_GNUC_WARN_UNUSED_RESULT;
 /* TODO: async version */
 
-GDataEntry *gdata_service_update_entry (GDataService *self, GDataEntry *entry, GCancellable *cancellable, GError **error);
+GDataEntry *gdata_service_update_entry (GDataService *self, GDataEntry *entry, GCancellable *cancellable, GError **error) G_GNUC_WARN_UNUSED_RESULT;
 /* TODO: async version */
 
 gboolean gdata_service_delete_entry (GDataService *self, GDataEntry *entry, GCancellable *cancellable, GError **error);

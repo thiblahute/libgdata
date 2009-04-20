@@ -74,8 +74,8 @@ typedef struct {
 
 GType gdata_entry_get_type (void) G_GNUC_CONST;
 
-GDataEntry *gdata_entry_new (const gchar *id);
-GDataEntry *gdata_entry_new_from_xml (const gchar *xml, gint length, GError **error);
+GDataEntry *gdata_entry_new (const gchar *id) G_GNUC_WARN_UNUSED_RESULT;
+GDataEntry *gdata_entry_new_from_xml (const gchar *xml, gint length, GError **error) G_GNUC_WARN_UNUSED_RESULT;
 
 const gchar *gdata_entry_get_title (GDataEntry *self);
 void gdata_entry_set_title (GDataEntry *self, const gchar *title);
@@ -92,7 +92,7 @@ GDataLink *gdata_entry_look_up_link (GDataEntry *self, const gchar *rel);
 void gdata_entry_add_author (GDataEntry *self, GDataAuthor *author);
 
 gboolean gdata_entry_is_inserted (GDataEntry *self);
-gchar *gdata_entry_get_xml (GDataEntry *self);
+gchar *gdata_entry_get_xml (GDataEntry *self) G_GNUC_WARN_UNUSED_RESULT;
 
 G_END_DECLS
 

@@ -31,7 +31,8 @@ typedef struct {
 	gchar *message;
 } GDataYouTubeState;
 
-GDataYouTubeState *gdata_youtube_state_new (const gchar *name, const gchar *message, const gchar *reason_code, const gchar *help_uri);
+GDataYouTubeState *gdata_youtube_state_new (const gchar *name, const gchar *message, const gchar *reason_code,
+					    const gchar *help_uri) G_GNUC_WARN_UNUSED_RESULT;
 void gdata_youtube_state_free (GDataYouTubeState *self);
 
 G_END_DECLS

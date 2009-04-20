@@ -105,12 +105,12 @@ typedef struct {
 GType gdata_youtube_service_get_type (void) G_GNUC_CONST;
 GQuark gdata_youtube_service_error_quark (void) G_GNUC_CONST;
 
-GDataYouTubeService *gdata_youtube_service_new (const gchar *developer_key, const gchar *client_id);
+GDataYouTubeService *gdata_youtube_service_new (const gchar *developer_key, const gchar *client_id) G_GNUC_WARN_UNUSED_RESULT;
 
 GDataFeed *gdata_youtube_service_query_standard_feed (GDataYouTubeService *self, GDataYouTubeStandardFeedType feed_type, GDataQuery *query,
 						      GCancellable *cancellable,
 						      GDataQueryProgressCallback progress_callback, gpointer progress_user_data,
-						      GError **error);
+						      GError **error) G_GNUC_WARN_UNUSED_RESULT;
 void gdata_youtube_service_query_standard_feed_async (GDataYouTubeService *self, GDataYouTubeStandardFeedType feed_type, GDataQuery *query,
 						      GCancellable *cancellable,
 						      GDataQueryProgressCallback progress_callback, gpointer progress_user_data,
@@ -118,20 +118,20 @@ void gdata_youtube_service_query_standard_feed_async (GDataYouTubeService *self,
 
 GDataFeed *gdata_youtube_service_query_videos (GDataYouTubeService *self, GDataQuery *query,
 					       GCancellable *cancellable, GDataQueryProgressCallback progress_callback, gpointer progress_user_data,
-					       GError **error);
+					       GError **error) G_GNUC_WARN_UNUSED_RESULT;
 void gdata_youtube_service_query_videos_async (GDataYouTubeService *self, GDataQuery *query,
 					       GCancellable *cancellable, GDataQueryProgressCallback progress_callback, gpointer progress_user_data,
 					       GAsyncReadyCallback callback, gpointer user_data);
 
 GDataFeed *gdata_youtube_service_query_related (GDataYouTubeService *self, GDataYouTubeVideo *video, GDataQuery *query,
 						GCancellable *cancellable, GDataQueryProgressCallback progress_callback, gpointer progress_user_data,
-						GError **error);
+						GError **error) G_GNUC_WARN_UNUSED_RESULT;
 void gdata_youtube_service_query_related_async (GDataYouTubeService *self, GDataYouTubeVideo *video, GDataQuery *query,
 						GCancellable *cancellable, GDataQueryProgressCallback progress_callback, gpointer progress_user_data,
 						GAsyncReadyCallback callback, gpointer user_data);
 
 GDataYouTubeVideo *gdata_youtube_service_upload_video (GDataYouTubeService *self, GDataYouTubeVideo *video, GFile *video_file,
-						       GCancellable *cancellable, GError **error);
+						       GCancellable *cancellable, GError **error) G_GNUC_WARN_UNUSED_RESULT;
 
 const gchar *gdata_youtube_service_get_developer_key (GDataYouTubeService *self);
 const gchar *gdata_youtube_service_get_youtube_user (GDataYouTubeService *self);

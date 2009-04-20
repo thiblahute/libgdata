@@ -59,8 +59,8 @@ typedef struct {
 
 GType gdata_contacts_contact_get_type (void) G_GNUC_CONST;
 
-GDataContactsContact *gdata_contacts_contact_new (const gchar *id);
-GDataContactsContact *gdata_contacts_contact_new_from_xml (const gchar *xml, gint length, GError **error);
+GDataContactsContact *gdata_contacts_contact_new (const gchar *id) G_GNUC_WARN_UNUSED_RESULT;
+GDataContactsContact *gdata_contacts_contact_new_from_xml (const gchar *xml, gint length, GError **error) G_GNUC_WARN_UNUSED_RESULT;
 
 void gdata_contacts_contact_get_edited (GDataContactsContact *self, GTimeVal *edited);
 void gdata_contacts_contact_add_email_address (GDataContactsContact *self, GDataGDEmailAddress *email_address);
@@ -83,7 +83,7 @@ gboolean gdata_contacts_contact_set_extended_property (GDataContactsContact *sel
 void gdata_contacts_contact_add_group (GDataContactsContact *self, const gchar *href);
 void gdata_contacts_contact_remove_group (GDataContactsContact *self, const gchar *href);
 gboolean gdata_contacts_contact_is_group_deleted (GDataContactsContact *self, const gchar *href);
-GList *gdata_contacts_contact_get_groups (GDataContactsContact *self);
+GList *gdata_contacts_contact_get_groups (GDataContactsContact *self) G_GNUC_WARN_UNUSED_RESULT;
 gboolean gdata_contacts_contact_is_deleted (GDataContactsContact *self);
 
 G_END_DECLS

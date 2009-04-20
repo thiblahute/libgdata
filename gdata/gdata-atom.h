@@ -41,7 +41,7 @@ typedef struct {
 	gchar *label;
 } GDataCategory;
 
-GDataCategory *gdata_category_new (const gchar *term, const gchar *scheme, const gchar *label);
+GDataCategory *gdata_category_new (const gchar *term, const gchar *scheme, const gchar *label) G_GNUC_WARN_UNUSED_RESULT;
 void gdata_category_free (GDataCategory *self);
 
 /**
@@ -67,7 +67,8 @@ typedef struct {
 	gint length;
 } GDataLink;
 
-GDataLink *gdata_link_new (const gchar *href, const gchar *rel, const gchar *type, const gchar *hreflang, const gchar *title, gint length);
+GDataLink *gdata_link_new (const gchar *href, const gchar *rel, const gchar *type, const gchar *hreflang,
+			   const gchar *title, gint length) G_GNUC_WARN_UNUSED_RESULT;
 void gdata_link_free (GDataLink *self);
 
 /**
@@ -87,7 +88,7 @@ typedef struct {
 	gchar *email;
 } GDataAuthor;
 
-GDataAuthor *gdata_author_new (const gchar *name, const gchar *uri, const gchar *email);
+GDataAuthor *gdata_author_new (const gchar *name, const gchar *uri, const gchar *email) G_GNUC_WARN_UNUSED_RESULT;
 void gdata_author_free (GDataAuthor *self);
 
 /**
@@ -107,7 +108,7 @@ typedef struct {
 	gchar *name;
 } GDataGenerator;
 
-GDataGenerator *gdata_generator_new (const gchar *name, const gchar *uri, const gchar *version);
+GDataGenerator *gdata_generator_new (const gchar *name, const gchar *uri, const gchar *version) G_GNUC_WARN_UNUSED_RESULT;
 void gdata_generator_free (GDataGenerator *self);
 
 G_END_DECLS
