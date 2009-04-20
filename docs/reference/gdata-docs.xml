@@ -35,6 +35,7 @@
 		<title>Google Contacts API</title>
 		<xi:include href="xml/gdata-contacts-service.xml"/>
 		<xi:include href="xml/gdata-contacts-query.xml"/>
+		<xi:include href="xml/gdata-contacts-contact.xml"/>
 	</chapter>
 
 	<chapter id="object-tree">

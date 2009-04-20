@@ -37,12 +37,23 @@ G_BEGIN_DECLS
 
 typedef struct _GDataContactsContactPrivate	GDataContactsContactPrivate;
 
+/**
+ * GDataContactsContact:
+ *
+ * All the fields in the #GDataContactsContact structure are private and should never be accessed directly.
+ **/
 typedef struct {
 	GDataEntry parent;
 	GDataContactsContactPrivate *priv;
 } GDataContactsContact;
 
+/**
+ * GDataContactsContactClass:
+ *
+ * All the fields in the #GDataContactsContactClass structure are private and should never be accessed directly.
+ **/
 typedef struct {
+	/*< private >*/
 	GDataEntryClass parent;
 } GDataContactsContactClass;
 
@@ -52,7 +63,6 @@ GDataContactsContact *gdata_contacts_contact_new (const gchar *id);
 GDataContactsContact *gdata_contacts_contact_new_from_xml (const gchar *xml, gint length, GError **error);
 
 void gdata_contacts_contact_get_edited (GDataContactsContact *self, GTimeVal *edited);
-void gdata_contacts_contact_set_edited (GDataContactsContact *self, GTimeVal *edited);
 void gdata_contacts_contact_add_email_address (GDataContactsContact *self, GDataGDEmailAddress *email_address);
 GList *gdata_contacts_contact_get_email_addresses (GDataContactsContact *self);
 GDataGDEmailAddress *gdata_contacts_contact_get_primary_email_address (GDataContactsContact *self);
