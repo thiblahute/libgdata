@@ -54,7 +54,7 @@ typedef struct {
 	GObjectClass parent;
 } GDataQueryClass;
 
-GType gdata_query_get_type (void);
+GType gdata_query_get_type (void) G_GNUC_CONST;
 
 GDataQuery *gdata_query_new (const gchar *q);
 GDataQuery *gdata_query_new_with_limits (const gchar *q, gint start_index, gint max_results);

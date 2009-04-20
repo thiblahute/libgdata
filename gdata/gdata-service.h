@@ -143,9 +143,9 @@ typedef struct {
 				      const gchar *response_body, gint length, GError **error);
 } GDataServiceClass;
 
-GType gdata_service_get_type (void);
-GQuark gdata_service_error_quark (void);
-GQuark gdata_authentication_error_quark (void);
+GType gdata_service_get_type (void) G_GNUC_CONST;
+GQuark gdata_service_error_quark (void) G_GNUC_CONST;
+GQuark gdata_authentication_error_quark (void) G_GNUC_CONST;
 
 gboolean gdata_service_authenticate (GDataService *self, const gchar *username, const gchar *password, GCancellable *cancellable, GError **error);
 void gdata_service_authenticate_async (GDataService *self, const gchar *username, const gchar *password,

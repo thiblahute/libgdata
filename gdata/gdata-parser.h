@@ -39,7 +39,7 @@ typedef enum {
 } GDataParserError;
 
 #define GDATA_PARSER_ERROR gdata_parser_error_quark ()
-GQuark gdata_parser_error_quark (void);
+GQuark gdata_parser_error_quark (void) G_GNUC_CONST;
 
 G_END_DECLS
 

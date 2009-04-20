@@ -59,7 +59,7 @@ typedef struct {
 	GDataEntryClass parent;
 } GDataYouTubeVideoClass;
 
-GType gdata_youtube_video_get_type (void);
+GType gdata_youtube_video_get_type (void) G_GNUC_CONST;
 
 GDataYouTubeVideo *gdata_youtube_video_new (const gchar *id);
 GDataYouTubeVideo *gdata_youtube_video_new_from_xml (const gchar *xml, gint length, GError **error);

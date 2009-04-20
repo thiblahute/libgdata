@@ -56,7 +56,7 @@ typedef struct {
 	GDataQueryClass parent;
 } GDataContactsQueryClass;
 
-GType gdata_contacts_query_get_type (void);
+GType gdata_contacts_query_get_type (void) G_GNUC_CONST;
 
 GDataContactsQuery *gdata_contacts_query_new (const gchar *q);
 GDataContactsQuery *gdata_contacts_query_new_with_limits (const gchar *q, gint start_index, gint max_results);

@@ -58,7 +58,7 @@ typedef struct {
 	GObjectClass parent;
 } GDataFeedClass;
 
-GType gdata_feed_get_type (void);
+GType gdata_feed_get_type (void) G_GNUC_CONST;
 
 GList *gdata_feed_get_entries (GDataFeed *self);
 GDataEntry *gdata_feed_look_up_entry (GDataFeed *self, const gchar *id);

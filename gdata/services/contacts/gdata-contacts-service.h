@@ -57,7 +57,7 @@ typedef struct {
 	GDataServiceClass parent;
 } GDataContactsServiceClass;
 
-GType gdata_contacts_service_get_type (void);
+GType gdata_contacts_service_get_type (void) G_GNUC_CONST;
 
 GDataContactsService *gdata_contacts_service_new (const gchar *client_id);
 

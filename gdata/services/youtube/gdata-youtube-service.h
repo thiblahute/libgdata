@@ -102,8 +102,8 @@ typedef struct {
 	GDataServiceClass parent;
 } GDataYouTubeServiceClass;
 
-GType gdata_youtube_service_get_type (void);
-GQuark gdata_youtube_service_error_quark (void);
+GType gdata_youtube_service_get_type (void) G_GNUC_CONST;
+GQuark gdata_youtube_service_error_quark (void) G_GNUC_CONST;
 
 GDataYouTubeService *gdata_youtube_service_new (const gchar *developer_key, const gchar *client_id);
 

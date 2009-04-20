@@ -45,7 +45,7 @@ typedef struct {
 	GDataServiceClass parent;
 } GDataCalendarServiceClass;
 
-GType gdata_calendar_service_get_type (void);
+GType gdata_calendar_service_get_type (void) G_GNUC_CONST;
 
 GDataCalendarService *gdata_calendar_service_new (const gchar *client_id);
 

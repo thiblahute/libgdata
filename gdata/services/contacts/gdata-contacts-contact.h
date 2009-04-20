@@ -57,7 +57,7 @@ typedef struct {
 	GDataEntryClass parent;
 } GDataContactsContactClass;
 
-GType gdata_contacts_contact_get_type (void);
+GType gdata_contacts_contact_get_type (void) G_GNUC_CONST;
 
 GDataContactsContact *gdata_contacts_contact_new (const gchar *id);
 GDataContactsContact *gdata_contacts_contact_new_from_xml (const gchar *xml, gint length, GError **error);

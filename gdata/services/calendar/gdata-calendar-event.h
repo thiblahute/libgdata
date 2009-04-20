@@ -47,7 +47,7 @@ typedef struct {
 	GDataEntryClass parent;
 } GDataCalendarEventClass;
 
-GType gdata_calendar_event_get_type (void);
+GType gdata_calendar_event_get_type (void) G_GNUC_CONST;
 
 GDataCalendarEvent *gdata_calendar_event_new (const gchar *id);
 GDataCalendarEvent *gdata_calendar_event_new_from_xml (const gchar *xml, gint length, GError **error);

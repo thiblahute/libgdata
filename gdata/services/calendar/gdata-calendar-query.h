@@ -46,7 +46,7 @@ typedef struct {
 	GDataQueryClass parent;
 } GDataCalendarQueryClass;
 
-GType gdata_calendar_query_get_type (void);
+GType gdata_calendar_query_get_type (void) G_GNUC_CONST;
 
 GDataCalendarQuery *gdata_calendar_query_new (const gchar *q);
 GDataCalendarQuery *gdata_calendar_query_new_with_limits (const gchar *q, GTimeVal *start_min, GTimeVal *start_max);

@@ -72,7 +72,7 @@ typedef struct {
 	void (*get_namespaces) (GDataEntry *self, GHashTable *namespaces);
 } GDataEntryClass;
 
-GType gdata_entry_get_type (void);
+GType gdata_entry_get_type (void) G_GNUC_CONST;
 
 GDataEntry *gdata_entry_new (const gchar *id);
 GDataEntry *gdata_entry_new_from_xml (const gchar *xml, gint length, GError **error);
