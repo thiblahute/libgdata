@@ -41,6 +41,12 @@
 #include "gdata-types.h"
 #include "gdata-private.h"
 
+/* The maximum number of extended properties the server allows us. See
+ * http://code.google.com/apis/contacts/docs/2.0/reference.html#ProjectionsAndExtended.
+ * When updating this, make sure to update the API documentation for gdata_contacts_contact_get_extended_property()
+ * and gdata_contacts_contact_set_extended_property(). */
+#define MAX_N_EXTENDED_PROPERTIES 10
+
 static void gdata_contacts_contact_finalize (GObject *object);
 static void gdata_contacts_contact_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec);
 static void get_xml (GDataEntry *entry, GString *xml_string);
@@ -978,17 +984,33 @@ gdata_contacts_contact_get_extended_property (GDataContactsContact *self, const 
  * A contact may have up to 10 extended properties, and each should be reasonably small (i.e. not a photo or ringtone).
  * For more information, see the <ulink type="http"
  * url="http://code.google.com/apis/contacts/docs/2.0/reference.html#ProjectionsAndExtended">online documentation</ulink>.
+ * %FALSE will be returned if you attempt to add more than 10 extended properties.
+ *
+ * Return value: %TRUE if the property was updated or deleted successfully, %FALSE otherwise
  **/
-void
+gboolean
 gdata_contacts_contact_set_extended_property (GDataContactsContact *self, const gchar *name, const gchar *value)
 {
-	g_return_if_fail (GDATA_IS_CONTACTS_CONTACT (self));
-	g_return_if_fail (name != NULL);
+	GHashTable *extended_properties = self->priv->extended_properties;
 
-	if (value == NULL)
-		g_hash_table_remove (self->priv->extended_properties, name);
-	else
-		g_hash_table_insert (self->priv->extended_properties, g_strdup (name), g_strdup (value));
+	g_return_val_if_fail (GDATA_IS_CONTACTS_CONTACT (self), FALSE);
+	g_return_val_if_fail (name != NULL, FALSE);
+
+	if (value == NULL) {
+		/* Removing a property */
+		g_hash_table_remove (extended_properties, name);
+		return TRUE;
+	}
+
+	/* We can't add more than MAX_N_EXTENDED_PROPERTIES */
+	if (g_hash_table_lookup (extended_properties, name) == NULL &&
+	    g_hash_table_size (extended_properties) >= MAX_N_EXTENDED_PROPERTIES)
+		return FALSE;
+
+	/* Updating an existing property or adding a new one */
+	g_hash_table_insert (extended_properties, g_strdup (name), g_strdup (value));
+
+	return TRUE;
 }
 
 /**
