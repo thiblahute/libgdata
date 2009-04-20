@@ -38,11 +38,22 @@ G_BEGIN_DECLS
 
 typedef struct _GDataContactsServicePrivate	GDataContactsServicePrivate;
 
+/**
+ * GDataContactsService:
+ *
+ * All the fields in the #GDataContactsService structure are private and should never be accessed directly.
+ **/
 typedef struct {
 	GDataService parent;
 } GDataContactsService;
 
+/**
+ * GDataContactsServiceClass:
+ *
+ * All the fields in the #GDataContactsServiceClass structure are private and should never be accessed directly.
+ **/
 typedef struct {
+	/*< private >*/
 	GDataServiceClass parent;
 } GDataContactsServiceClass;
 

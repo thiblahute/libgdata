@@ -282,3 +282,51 @@ gdata_youtube_video_get_type
 <SUBSECTION Private>
 GDataYouTubeVideoPrivate
 </SECTION>
+
+<SECTION>
+<FILE>gdata-contacts-service</FILE>
+<TITLE>GDataContactsService</TITLE>
+GDataContactsService
+GDataContactsServiceClass
+gdata_contacts_service_new
+gdata_contacts_service_query_contacts
+gdata_contacts_service_query_contacts_async
+gdata_contacts_service_insert_contact
+<SUBSECTION Standard>
+gdata_contacts_service_get_type
+GDATA_CONTACTS_SERVICE
+GDATA_CONTACTS_SERVICE_CLASS
+GDATA_CONTACTS_SERVICE_GET_CLASS
+GDATA_IS_CONTACTS_SERVICE
+GDATA_IS_CONTACTS_SERVICE_CLASS
+GDATA_TYPE_CONTACTS_SERVICE
+<SUBSECTION Private>
+GDataContactsServicePrivate
+</SECTION>
+
+<SECTION>
+<FILE>gdata-contacts-query</FILE>
+<TITLE>GDataContactsQuery</TITLE>
+GDataContactsQuery
+GDataContactsQueryClass
+gdata_contacts_query_new
+gdata_contacts_query_new_with_limits
+gdata_contacts_query_get_order_by
+gdata_contacts_query_set_order_by
+gdata_contacts_query_show_deleted
+gdata_contacts_query_set_show_deleted
+gdata_contacts_query_get_sort_order
+gdata_contacts_query_set_sort_order
+gdata_contacts_query_get_group
+gdata_contacts_query_set_group
+<SUBSECTION Standard>
+gdata_contacts_query_get_type
+GDATA_CONTACTS_QUERY
+GDATA_CONTACTS_QUERY_CLASS
+GDATA_CONTACTS_QUERY_GET_CLASS
+GDATA_IS_CONTACTS_QUERY
+GDATA_IS_CONTACTS_QUERY_CLASS
+GDATA_TYPE_CONTACTS_QUERY
+<SUBSECTION Private>
+GDataContactsQueryPrivate
+</SECTION>

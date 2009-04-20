@@ -31,6 +31,12 @@
 		<xi:include href="xml/gdata-youtube-video.xml"/>
 	</chapter>
 
+	<chapter>
+		<title>Google Contacts API</title>
+		<xi:include href="xml/gdata-contacts-service.xml"/>
+		<xi:include href="xml/gdata-contacts-query.xml"/>
+	</chapter>
+
 	<chapter id="object-tree">
 		<title>Object Hierarchy</title>
 		<xi:include href="xml/tree_index.sgml"/>

@@ -17,6 +17,19 @@
  * License along with GData Client.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * SECTION:gdata-contacts-service
+ * @short_description: GData Contacts service object
+ * @stability: Unstable
+ * @include: gdata/services/contacts/gdata-contacts-service.h
+ *
+ * #GDataContactsService is a subclass of #GDataService for communicating with the GData API of Google Contacts. It supports querying
+ * for, inserting, editing and deleting contacts from a Google address book.
+ *
+ * For more details of Google Contacts' GData API, see the <ulink type="http" url="http://code.google.com/apis/contacts/docs/2.0/reference.html">
+ * online documentation</ulink>.
+ **/
+
 #include <config.h>
 #include <glib.h>
 #include <glib/gi18n-lib.h>
@@ -46,6 +59,14 @@ gdata_contacts_service_init (GDataContactsService *self)
 	/* Nothing to see here */
 }
 
+/**
+ * gdata_contacts_service_new:
+ * @client_id: your application's client ID
+ *
+ * Creates a new #GDataContactsService. The @client_id must be unique for your application, and as registered with Google.
+ *
+ * Return value: a new #GDataContactsService, or %NULL
+ **/
 GDataContactsService *
 gdata_contacts_service_new (const gchar *client_id)
 {
@@ -56,6 +77,21 @@ gdata_contacts_service_new (const gchar *client_id)
 			     NULL);
 }
 
+/**
+ * gdata_contacts_service_query_contacts:
+ * @self: a #GDataContactsService
+ * @query: a #GDataContactsQuery with the query parameters, or %NULL
+ * @cancellable: optional #GCancellable object, or %NULL
+ * @progress_callback: a #GDataQueryProgressCallback to call when an entry is loaded, or %NULL
+ * @progress_user_data: data to pass to the @progress_callback function
+ * @error: a #GError, or %NULL
+ *
+ * Queries the service to return a list of contacts matching the given @query.
+ *
+ * For more details, see gdata_service_query().
+ *
+ * Return value: a #GDataFeed of query results; unref with g_object_unref()
+ **/
 GDataFeed *
 gdata_contacts_service_query_contacts (GDataContactsService *self, GDataContactsQuery *query, GCancellable *cancellable,
 				       GDataQueryProgressCallback progress_callback, gpointer progress_user_data, GError **error)
@@ -71,6 +107,22 @@ gdata_contacts_service_query_contacts (GDataContactsService *self, GDataContacts
 				    GDATA_TYPE_CONTACTS_CONTACT, cancellable, progress_callback, progress_user_data, error);
 }
 
+/**
+ * gdata_contacts_service_query_contacts_async:
+ * @self: a #GDataContactsService
+ * @query: a #GDataContactsQuery with the query parameters, or %NULL
+ * @cancellable: optional #GCancellable object, or %NULL
+ * @progress_callback: a #GDataQueryProgressCallback to call when an entry is loaded, or %NULL
+ * @progress_user_data: data to pass to the @progress_callback function
+ * @callback: a #GAsyncReadyCallback to call when authentication is finished
+ * @user_data: data to pass to the @callback function
+ *
+ * Queries the service to return a list of contacts matching the given @query. @self and
+ * @query are all reffed when this function is called, so can safely be unreffed after this function returns.
+ *
+ * For more details, see gdata_contacts_service_query_contacts(), which is the synchronous version of this function,
+ * and gdata_service_query_async(), which is the base asynchronous query function.
+ **/
 void
 gdata_contacts_service_query_contacts_async (GDataContactsService *self, GDataContactsQuery *query, GCancellable *cancellable,
 					     GDataQueryProgressCallback progress_callback, gpointer progress_user_data,
@@ -88,10 +140,23 @@ gdata_contacts_service_query_contacts_async (GDataContactsService *self, GDataCo
 				   GDATA_TYPE_CONTACTS_CONTACT, cancellable, progress_callback, progress_user_data, callback, user_data);
 }
 
-/* TODO: Async variant */
+/**
+ * gdata_contacts_service_insert_contact:
+ * @self: a #GDataContactsService
+ * @contact: the #GDataContactsContact to insert
+ * @cancellable: optional #GCancellable object, or %NULL
+ * @error: a #GError, or %NULL
+ *
+ * Inserts @contact by uploading it to the online contacts service.
+ *
+ * For more details, see gdata_service_insert_entry().
+ *
+ * Return value: an updated #GDataContactsContact, or %NULL
+ **/
 GDataContactsContact *
 gdata_contacts_service_insert_contact (GDataContactsService *self, GDataContactsContact *contact, GCancellable *cancellable, GError **error)
 {
+	/* TODO: Async variant */
 	gchar *uri;
 	GDataEntry *entry;
 

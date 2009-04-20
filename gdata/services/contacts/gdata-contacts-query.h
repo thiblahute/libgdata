@@ -36,19 +36,30 @@ G_BEGIN_DECLS
 
 typedef struct _GDataContactsQueryPrivate	GDataContactsQueryPrivate;
 
+/**
+ * GDataContactsQuery:
+ *
+ * All the fields in the #GDataContactsQuery structure are private and should never be accessed directly.
+ **/
 typedef struct {
 	GDataQuery parent;
 	GDataContactsQueryPrivate *priv;
 } GDataContactsQuery;
 
+/**
+ * GDataContactsQueryClass:
+ *
+ * All the fields in the #GDataContactsQueryClass structure are private and should never be accessed directly.
+ **/
 typedef struct {
+	/*< private >*/
 	GDataQueryClass parent;
 } GDataContactsQueryClass;
 
 GType gdata_contacts_query_get_type (void);
 
 GDataContactsQuery *gdata_contacts_query_new (const gchar *q);
-GDataContactsQuery *gdata_contacts_query_new_with_limits (const gchar *q, GTimeVal *start_min, GTimeVal *start_max);
+GDataContactsQuery *gdata_contacts_query_new_with_limits (const gchar *q, gint start_index, gint max_results);
 
 const gchar *gdata_contacts_query_get_order_by (GDataContactsQuery *self);
 void gdata_contacts_query_set_order_by (GDataContactsQuery *self, const gchar *order_by);

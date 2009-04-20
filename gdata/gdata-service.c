@@ -939,7 +939,7 @@ gdata_service_query (GDataService *self, const gchar *feed_uri, GDataQuery *quer
  * gdata_service_insert_entry:
  * @self: a #GDataService
  * @upload_uri: the URI to which the upload should be sent
- * @entry: the #GDataEntry to upload
+ * @entry: the #GDataEntry to insert
  * @cancellable: optional #GCancellable object, or %NULL
  * @error: a #GError, or %NULL
  *
