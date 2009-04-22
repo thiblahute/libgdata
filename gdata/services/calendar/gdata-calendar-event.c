@@ -17,6 +17,18 @@
  * License along with GData Client.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * SECTION:gdata-calendar-event
+ * @short_description: GData Calendar event object
+ * @stability: Unstable
+ * @include: gdata/services/calendar/gdata-calendar-event.h
+ *
+ * #GDataCalendarEvent is a subclass of #GDataEntry to represent an event on a calendar from Google Calendar.
+ *
+ * For more details of Google Calendar's GData API, see the <ulink type="http" url="http://code.google.com/apis/calendar/docs/2.0/reference.html">
+ * online documentation</ulink>.
+ **/
+
 #include <config.h>
 #include <glib.h>
 #include <glib/gi18n-lib.h>
@@ -39,14 +51,14 @@ static void get_namespaces (GDataEntry *entry, GHashTable *namespaces);
 
 struct _GDataCalendarEventPrivate {
 	GTimeVal edited;
-	gchar *event_status;
+	gchar *status;
 	gchar *visibility;
 	gchar *transparency;
 	gchar *uid;
 	guint sequence;
 	GList *times; /* GDataGDWhen */
 	GList *reminders;
-	gboolean guests_can_modify; /* TODO: Merge these three somehow? */
+	gboolean guests_can_modify; /* TODO: Merge these four somehow? */
 	gboolean guests_can_invite_others;
 	gboolean guests_can_see_guests;
 	gboolean anyone_can_add_self;
@@ -56,7 +68,7 @@ struct _GDataCalendarEventPrivate {
 
 enum {
 	PROP_EDITED = 1,
-	PROP_EVENT_STATUS,
+	PROP_STATUS,
 	PROP_VISIBILITY,
 	PROP_TRANSPARENCY,
 	PROP_UID,
@@ -86,54 +98,137 @@ gdata_calendar_event_class_init (GDataCalendarEventClass *klass)
 	entry_class->parse_xml = parse_xml;
 	entry_class->get_namespaces = get_namespaces;
 
+	/**
+	 * GDataCalendarEvent:edited:
+	 *
+	 * The last time the event was edited. If the event has not been edited yet, the content indicates the time it was created.
+	 *
+	 * For more information, see the <ulink type="http" url="http://www.atomenabled.org/developers/protocol/#appEdited">
+	 * Atom Publishing Protocol specification</ulink>.
+	 **/
 	g_object_class_install_property (gobject_class, PROP_EDITED,
 				g_param_spec_boxed ("edited",
-					"Edited", "TODO",
+					"Edited", "The last time the event was edited.",
 					GDATA_TYPE_G_TIME_VAL,
-					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
-	g_object_class_install_property (gobject_class, PROP_EVENT_STATUS,
-				g_param_spec_string ("event-status",
-					"Event status", "TODO",
+					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * GDataCalendarEvent:status:
+	 *
+	 * The scheduling status of the event.
+	 *
+	 * For more information, see the <ulink type="http" url="http://code.google.com/apis/gdata/elements.html#gdEventStatus">
+	 * GData specification</ulink>.
+	 **/
+	g_object_class_install_property (gobject_class, PROP_STATUS,
+				g_param_spec_string ("status",
+					"Status", "The scheduling status of the event.",
 					NULL,
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * GDataCalendarEvent:visibility:
+	 *
+	 * The event's visibility to calendar users.
+	 *
+	 * For more information, see the <ulink type="http" url="http://code.google.com/apis/gdata/elements.html#gdVisibility">
+	 * GData specification</ulink>.
+	 **/
 	g_object_class_install_property (gobject_class, PROP_VISIBILITY,
 				g_param_spec_string ("visibility",
-					"Visibility", "TODO",
+					"Visibility", "The event's visibility to calendar users.",
 					NULL,
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * GDataCalendarEvent:transparency:
+	 *
+	 * How the event is marked as consuming time on a calendar.
+	 *
+	 * For more information, see the <ulink type="http" url="http://code.google.com/apis/gdata/elements.html#gdTransparency">
+	 * GData specification</ulink>.
+	 **/
 	g_object_class_install_property (gobject_class, PROP_TRANSPARENCY,
 				g_param_spec_string ("transparency",
-					"Transparency", "TODO",
+					"Transparency", "How the event is marked as consuming time on a calendar.",
 					NULL,
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * GDataCalendarEvent:uid:
+	 *
+	 * The globally unique identifier (UID) of the event as defined in Section 4.8.4.7 of <ulink type="http"
+	 * url="http://www.ietf.org/rfc/rfc2445.txt">RFC 2445</ulink>.
+	 **/
 	g_object_class_install_property (gobject_class, PROP_UID,
 				g_param_spec_string ("uid",
-					"UID", "TODO",
+					"UID", "The globally unique identifier (UID) of the event.",
 					NULL,
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * GDataCalendarEvent:sequence:
+	 *
+	 * The revision sequence number of the event as defined in Section 4.8.7.4 of <ulink type="http"
+	 * url="http://www.ietf.org/rfc/rfc2445.txt">RFC 2445</ulink>.
+	 **/
 	g_object_class_install_property (gobject_class, PROP_SEQUENCE,
 				g_param_spec_uint ("sequence",
-					"Sequence", "TODO",
+					"Sequence", "The revision sequence number of the event.",
 					0, G_MAXUINT, 0,
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * GDataCalendarEvent:guests-can-modify:
+	 *
+	 * Indicates whether event attendees may modify the original event, so that changes are visible to organizer and other attendees.
+	 * Otherwise, any changes made by attendees will be restricted to that attendee's calendar.
+	 *
+	 * For more information, see the <ulink type="http" url="http://code.google.com/apis/calendar/docs/2.0/reference.html#gCalguestsCanModify">
+	 * GData specification</ulink>.
+	 **/
 	g_object_class_install_property (gobject_class, PROP_GUESTS_CAN_MODIFY,
 				g_param_spec_boolean ("guests-can-modify",
-					"Guests can modify", "TODO",
+					"Guests can modify", "Indicates whether event attendees may modify the original event.",
 					FALSE,
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * GDataCalendarEvent:guests-can-invite-others:
+	 *
+	 * Indicates whether event attendees may invite other people to the event.
+	 *
+	 * For more information, see the <ulink type="http" url="http://code.google.com/apis/calendar/docs/2.0/reference.html#gCalguestsCanInviteOthers">
+	 * GData specification</ulink>.
+	 **/
 	g_object_class_install_property (gobject_class, PROP_GUESTS_CAN_INVITE_OTHERS,
 				g_param_spec_boolean ("guests-can-invite-others",
-					"Guests can invite others", "TODO",
+					"Guests can invite others", "Indicates whether event attendees may invite other people to the event.",
 					FALSE,
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * GDataCalendarEvent:guests-can-see-guests:
+	 *
+	 * Indicates whether event attendees can see other people invited to the event.
+	 *
+	 * For more information, see the <ulink type="http" url="http://code.google.com/apis/calendar/docs/2.0/reference.html#gCalguestsCanSeeGuests">
+	 * GData specification</ulink>.
+	 **/
 	g_object_class_install_property (gobject_class, PROP_GUESTS_CAN_SEE_GUESTS,
 				g_param_spec_boolean ("guests-can-see-guests",
-					"Guests can see guests", "TODO",
+					"Guests can see guests", "Indicates whether event attendees can see other people invited to the event.",
 					FALSE,
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * GDataCalendarEvent:anyone-can-add-self:
+	 *
+	 * Indicates whether anyone can add themselves to the attendee list of the event.
+	 **/
 	g_object_class_install_property (gobject_class, PROP_ANYONE_CAN_ADD_SELF,
 				g_param_spec_boolean ("anyone-can-add-self",
-					"Anyone can add self", "TODO",
+					"Anyone can add self", "Indicates whether anyone can add themselves to the attendee list of the event.",
 					FALSE,
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 }
@@ -149,7 +244,7 @@ gdata_calendar_event_finalize (GObject *object)
 {
 	GDataCalendarEventPrivate *priv = GDATA_CALENDAR_EVENT_GET_PRIVATE (object);
 
-	g_free (priv->event_status);
+	g_free (priv->status);
 	g_free (priv->visibility);
 	g_free (priv->transparency);
 	g_free (priv->uid);
@@ -173,8 +268,8 @@ gdata_calendar_event_get_property (GObject *object, guint property_id, GValue *v
 		case PROP_EDITED:
 			g_value_set_boxed (value, &(priv->edited));
 			break;
-		case PROP_EVENT_STATUS:
-			g_value_set_string (value, priv->event_status);
+		case PROP_STATUS:
+			g_value_set_string (value, priv->status);
 			break;
 		case PROP_VISIBILITY:
 			g_value_set_string (value, priv->visibility);
@@ -213,11 +308,8 @@ gdata_calendar_event_set_property (GObject *object, guint property_id, const GVa
 	GDataCalendarEvent *self = GDATA_CALENDAR_EVENT (object);
 
 	switch (property_id) {
-		case PROP_EDITED:
-			gdata_calendar_event_set_edited (self, g_value_get_boxed (value));
-			break;
-		case PROP_EVENT_STATUS:
-			gdata_calendar_event_set_event_status (self, g_value_get_string (value));
+		case PROP_STATUS:
+			gdata_calendar_event_set_status (self, g_value_get_string (value));
 			break;
 		case PROP_VISIBILITY:
 			gdata_calendar_event_set_visibility (self, g_value_get_string (value));
@@ -250,12 +342,33 @@ gdata_calendar_event_set_property (GObject *object, guint property_id, const GVa
 	}
 }
 
+/**
+ * gdata_calendar_event_new:
+ * @id: the event's ID, or %NULL
+ *
+ * Creates a new #GDataCalendarEvent with the given ID and default properties.
+ *
+ * Return value: a new #GDataCalendarEvent; unref with g_object_unref()
+ **/
 GDataCalendarEvent *
 gdata_calendar_event_new (const gchar *id)
 {
 	return g_object_new (GDATA_TYPE_CALENDAR_EVENT, "id", id, NULL);
 }
 
+/**
+ * gdata_calendar_event_new_from_xml:
+ * @xml: an XML string
+ * @length: the length in characters of @xml, or %-1
+ * @error: a #GError, or %NULL
+ *
+ * Creates a new #GDataCalendarEvent from an XML string. If @length is %-1, the length of
+ * the string will be calculated.
+ *
+ * Errors from #GDataParserError can be returned if problems are found in the XML.
+ *
+ * Return value: a new #GDataCalendarEvent, or %NULL; unref with g_object_unref()
+ **/
 GDataCalendarEvent *
 gdata_calendar_event_new_from_xml (const gchar *xml, gint length, GError **error)
 {
@@ -273,18 +386,13 @@ parse_xml (GDataEntry *entry, xmlDoc *doc, xmlNode *node, GError **error)
 
 	if (xmlStrcmp (node->name, (xmlChar*) "edited") == 0) {
 		/* app:edited */
-		xmlChar *edited;
-		GTimeVal edited_timeval;
-
-		edited = xmlNodeListGetString (doc, node->xmlChildrenNode, TRUE);
-		if (g_time_val_from_iso8601 ((gchar*) edited, &edited_timeval) == FALSE) {
+		xmlChar *edited = xmlNodeListGetString (doc, node->xmlChildrenNode, TRUE);
+		if (g_time_val_from_iso8601 ((gchar*) edited, &(self->priv->edited)) == FALSE) {
 			/* Error */
 			gdata_parser_error_not_iso8601_format ("app:edited", "entry", (gchar*) edited, error);
 			xmlFree (edited);
 			return FALSE;
 		}
-
-		gdata_calendar_event_set_edited (self, &edited_timeval);
 		xmlFree (edited);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "comments") == 0) {
 		/* gd:comments */
@@ -317,7 +425,7 @@ parse_xml (GDataEntry *entry, xmlDoc *doc, xmlNode *node, GError **error)
 		xmlChar *value = xmlGetProp (node, (xmlChar*) "value");
 		if (value == NULL)
 			return gdata_parser_error_required_property_missing ("gd:eventStatus", "value", error);
-		gdata_calendar_event_set_event_status (self, (gchar*) value);
+		gdata_calendar_event_set_status (self, (gchar*) value);
 		xmlFree (value);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "visibility") == 0) {
 		/* gd:visibility */
@@ -469,8 +577,8 @@ get_xml (GDataEntry *entry, GString *xml_string)
 
 	/* TODO: gd:comments? */
 
-	if (priv->event_status != NULL)
-		g_string_append_printf (xml_string, "<gd:eventStatus value='%s'/>", priv->event_status);
+	if (priv->status != NULL)
+		g_string_append_printf (xml_string, "<gd:eventStatus value='%s'/>", priv->status);
 
 	if (priv->visibility != NULL)
 		g_string_append_printf (xml_string, "<gd:visibility value='%s'/>", priv->visibility);
@@ -575,6 +683,14 @@ get_namespaces (GDataEntry *entry, GHashTable *namespaces)
 	g_hash_table_insert (namespaces, (gchar*) "app", (gchar*) "http://www.w3.org/2007/app");
 }
 
+/**
+ * gdata_calendar_event_get_edited:
+ * @self: a #GDataCalendarEvent
+ * @edited: a #GTimeVal
+ *
+ * Gets the #GDataCalendarEvent:edited property and puts it in @edited. If the property is unset,
+ * both fields in the #GTimeVal will be set to 0.
+ **/
 void
 gdata_calendar_event_get_edited (GDataCalendarEvent *self, GTimeVal *edited)
 {
@@ -583,32 +699,48 @@ gdata_calendar_event_get_edited (GDataCalendarEvent *self, GTimeVal *edited)
 	*edited = self->priv->edited;
 }
 
-void
-gdata_calendar_event_set_edited (GDataCalendarEvent *self, GTimeVal *edited)
-{
-	g_return_if_fail (GDATA_IS_CALENDAR_EVENT (self));
-	g_return_if_fail (edited != NULL);
-	self->priv->edited = *edited;
-	g_object_notify (G_OBJECT (self), "edited");
-}
-
+/**
+ * gdata_calendar_event_get_status:
+ * @self: a #GDataCalendarEvent
+ *
+ * Gets the #GDataCalendarEvent:status property.
+ *
+ * Return value: the event status, or %NULL
+ **/
 const gchar *
-gdata_calendar_event_get_event_status (GDataCalendarEvent *self)
+gdata_calendar_event_get_status (GDataCalendarEvent *self)
 {
 	g_return_val_if_fail (GDATA_IS_CALENDAR_EVENT (self), NULL);
-	return self->priv->event_status;
+	return self->priv->status;
 }
 
+/**
+ * gdata_calendar_event_set_status:
+ * @self: a #GDataCalendarEvent
+ * @status: a new event status, or %NULL
+ *
+ * Sets the #GDataCalendarEvent:status property to the new status, @status.
+ *
+ * Set @status to %NULL to unset the property in the event.
+ **/
 void
-gdata_calendar_event_set_event_status (GDataCalendarEvent *self, const gchar *event_status)
+gdata_calendar_event_set_status (GDataCalendarEvent *self, const gchar *status)
 {
 	g_return_if_fail (GDATA_IS_CALENDAR_EVENT (self));
 
-	g_free (self->priv->event_status);
-	self->priv->event_status = g_strdup (event_status);
-	g_object_notify (G_OBJECT (self), "event-status");
+	g_free (self->priv->status);
+	self->priv->status = g_strdup (status);
+	g_object_notify (G_OBJECT (self), "status");
 }
 
+/**
+ * gdata_calendar_event_get_visibility:
+ * @self: a #GDataCalendarEvent
+ *
+ * Gets the #GDataCalendarEvent:visibility property.
+ *
+ * Return value: the event visibility, or %NULL
+ **/
 const gchar *
 gdata_calendar_event_get_visibility (GDataCalendarEvent *self)
 {
@@ -616,6 +748,15 @@ gdata_calendar_event_get_visibility (GDataCalendarEvent *self)
 	return self->priv->visibility;
 }
 
+/**
+ * gdata_calendar_event_set_visibility:
+ * @self: a #GDataCalendarEvent
+ * @visibility: a new event visibility, or %NULL
+ *
+ * Sets the #GDataCalendarEvent:visibility property to the new visibility, @visibility.
+ *
+ * Set @visibility to %NULL to unset the property in the event.
+ **/
 void
 gdata_calendar_event_set_visibility (GDataCalendarEvent *self, const gchar *visibility)
 {
@@ -626,6 +767,14 @@ gdata_calendar_event_set_visibility (GDataCalendarEvent *self, const gchar *visi
 	g_object_notify (G_OBJECT (self), "visibility");
 }
 
+/**
+ * gdata_calendar_event_get_transparency:
+ * @self: a #GDataCalendarEvent
+ *
+ * Gets the #GDataCalendarEvent:transparency property.
+ *
+ * Return value: the event transparency, or %NULL
+ **/
 const gchar *
 gdata_calendar_event_get_transparency (GDataCalendarEvent *self)
 {
@@ -633,6 +782,15 @@ gdata_calendar_event_get_transparency (GDataCalendarEvent *self)
 	return self->priv->transparency;
 }
 
+/**
+ * gdata_calendar_event_set_transparency:
+ * @self: a #GDataCalendarEvent
+ * @transparency: a new event transparency, or %NULL
+ *
+ * Sets the #GDataCalendarEvent:transparency property to the new transparency, @transparency.
+ *
+ * Set @transparency to %NULL to unset the property in the event.
+ **/
 void
 gdata_calendar_event_set_transparency (GDataCalendarEvent *self, const gchar *transparency)
 {
@@ -643,6 +801,14 @@ gdata_calendar_event_set_transparency (GDataCalendarEvent *self, const gchar *tr
 	g_object_notify (G_OBJECT (self), "transparency");
 }
 
+/**
+ * gdata_calendar_event_get_uid:
+ * @self: a #GDataCalendarEvent
+ *
+ * Gets the #GDataCalendarEvent:uid property.
+ *
+ * Return value: the event's UID, or %NULL
+ **/
 const gchar *
 gdata_calendar_event_get_uid (GDataCalendarEvent *self)
 {
@@ -650,9 +816,19 @@ gdata_calendar_event_get_uid (GDataCalendarEvent *self)
 	return self->priv->uid;
 }
 
+/**
+ * gdata_calendar_event_set_uid:
+ * @self: a #GDataCalendarEvent
+ * @uid: a new event UID, or %NULL
+ *
+ * Sets the #GDataCalendarEvent:uid property to the new UID, @uid.
+ *
+ * Set @uid to %NULL to unset the property in the event.
+ **/
 void
 gdata_calendar_event_set_uid (GDataCalendarEvent *self, const gchar *uid)
 {
+	/* TODO: is modifying this allowed? */
 	g_return_if_fail (GDATA_IS_CALENDAR_EVENT (self));
 
 	g_free (self->priv->uid);
@@ -660,6 +836,14 @@ gdata_calendar_event_set_uid (GDataCalendarEvent *self, const gchar *uid)
 	g_object_notify (G_OBJECT (self), "uid");
 }
 
+/**
+ * gdata_calendar_event_get_sequence:
+ * @self: a #GDataCalendarEvent
+ *
+ * Gets the #GDataCalendarEvent:sequence property.
+ *
+ * Return value: the event's sequence number
+ **/
 guint
 gdata_calendar_event_get_sequence (GDataCalendarEvent *self)
 {
@@ -667,6 +851,13 @@ gdata_calendar_event_get_sequence (GDataCalendarEvent *self)
 	return self->priv->sequence;
 }
 
+/**
+ * gdata_calendar_event_set_sequence:
+ * @self: a #GDataCalendarEvent
+ * @sequence: a new sequence number, or %NULL
+ *
+ * Sets the #GDataCalendarEvent:sequence property to the new sequence number, @sequence.
+ **/
 void
 gdata_calendar_event_set_sequence (GDataCalendarEvent *self, guint sequence)
 {
@@ -675,6 +866,14 @@ gdata_calendar_event_set_sequence (GDataCalendarEvent *self, guint sequence)
 	g_object_notify (G_OBJECT (self), "sequence");
 }
 
+/**
+ * gdata_calendar_event_get_guests_can_modify:
+ * @self: a #GDataCalendarEvent
+ *
+ * Gets the #GDataCalendarEvent:guests-can-modify property.
+ *
+ * Return value: %TRUE if attendees can modify the original event, %FALSE otherwise
+ **/
 gboolean
 gdata_calendar_event_get_guests_can_modify (GDataCalendarEvent *self)
 {
@@ -682,6 +881,13 @@ gdata_calendar_event_get_guests_can_modify (GDataCalendarEvent *self)
 	return self->priv->guests_can_modify;
 }
 
+/**
+ * gdata_calendar_event_set_guests_can_modify:
+ * @self: a #GDataCalendarEvent
+ * @guests_can_modify: %TRUE if attendees can modify the original event, %FALSE otherwise
+ *
+ * Sets the #GDataCalendarEvent:guests-can-modify property to @guests_can_modify.
+ **/
 void
 gdata_calendar_event_set_guests_can_modify (GDataCalendarEvent *self, gboolean guests_can_modify)
 {
@@ -690,6 +896,14 @@ gdata_calendar_event_set_guests_can_modify (GDataCalendarEvent *self, gboolean g
 	g_object_notify (G_OBJECT (self), "guests-can-modify");
 }
 
+/**
+ * gdata_calendar_event_get_guests_can_invite_others:
+ * @self: a #GDataCalendarEvent
+ *
+ * Gets the #GDataCalendarEvent:guests-can-invite-others property.
+ *
+ * Return value: %TRUE if attendees can invite others to the event, %FALSE otherwise
+ **/
 gboolean
 gdata_calendar_event_get_guests_can_invite_others (GDataCalendarEvent *self)
 {
@@ -697,6 +911,13 @@ gdata_calendar_event_get_guests_can_invite_others (GDataCalendarEvent *self)
 	return self->priv->guests_can_invite_others;
 }
 
+/**
+ * gdata_calendar_event_set_guests_can_invite_others:
+ * @self: a #GDataCalendarEvent
+ * @guests_can_invite_others: %TRUE if attendees can invite others to the event, %FALSE otherwise
+ *
+ * Sets the #GDataCalendarEvent:guests-can-invite-others property to @guests_can_invite_others.
+ **/
 void
 gdata_calendar_event_set_guests_can_invite_others (GDataCalendarEvent *self, gboolean guests_can_invite_others)
 {
@@ -705,6 +926,14 @@ gdata_calendar_event_set_guests_can_invite_others (GDataCalendarEvent *self, gbo
 	g_object_notify (G_OBJECT (self), "guests-can-invite-others");
 }
 
+/**
+ * gdata_calendar_event_get_guests_can_see_guests:
+ * @self: a #GDataCalendarEvent
+ *
+ * Gets the #GDataCalendarEvent:guests-can-see-guests property.
+ *
+ * Return value: %TRUE if attendees can see who's attending the event, %FALSE otherwise
+ **/
 gboolean
 gdata_calendar_event_get_guests_can_see_guests (GDataCalendarEvent *self)
 {
@@ -712,6 +941,13 @@ gdata_calendar_event_get_guests_can_see_guests (GDataCalendarEvent *self)
 	return self->priv->guests_can_see_guests;
 }
 
+/**
+ * gdata_calendar_event_set_guests_can_see_guests:
+ * @self: a #GDataCalendarEvent
+ * @guests_can_see_guests: %TRUE if attendees can see who's attending the event, %FALSE otherwise
+ *
+ * Sets the #GDataCalendarEvent:guests-can-see-guests property to @guests_can_see_guests.
+ **/
 void
 gdata_calendar_event_set_guests_can_see_guests (GDataCalendarEvent *self, gboolean guests_can_see_guests)
 {
@@ -720,6 +956,14 @@ gdata_calendar_event_set_guests_can_see_guests (GDataCalendarEvent *self, gboole
 	g_object_notify (G_OBJECT (self), "guests-can-see-guests");
 }
 
+/**
+ * gdata_calendar_event_get_anyone_can_add_self:
+ * @self: a #GDataCalendarEvent
+ *
+ * Gets the #GDataCalendarEvent:anyone-can-add-self property.
+ *
+ * Return value: %TRUE if anyone can add themselves as an attendee to the event, %FALSE otherwise
+ **/
 gboolean
 gdata_calendar_event_get_anyone_can_add_self (GDataCalendarEvent *self)
 {
@@ -727,6 +971,13 @@ gdata_calendar_event_get_anyone_can_add_self (GDataCalendarEvent *self)
 	return self->priv->anyone_can_add_self;
 }
 
+/**
+ * gdata_calendar_event_set_anyone_can_add_self:
+ * @self: a #GDataCalendarEvent
+ * @anyone_can_add_self: %TRUE if anyone can add themselves as an attendee to the event, %FALSE otherwise
+ *
+ * Sets the #GDataCalendarEvent:anyone-can-add-self property to @anyone_can_add_self.
+ **/
 void
 gdata_calendar_event_set_anyone_can_add_self (GDataCalendarEvent *self, gboolean anyone_can_add_self)
 {
@@ -735,6 +986,14 @@ gdata_calendar_event_set_anyone_can_add_self (GDataCalendarEvent *self, gboolean
 	g_object_notify (G_OBJECT (self), "anyone-can-add-self");
 }
 
+/**
+ * gdata_calendar_event_add_person:
+ * @self: a #GDataCalendarEvent
+ * @who: a #GDataGDWho to add
+ *
+ * Adds the person @who to the event as a guest (attendee, organiser, performer, etc.).
+ * The #GDataCalendarEvent takes ownership of @who, so it must not be freed after being added.
+ **/
 void
 gdata_calendar_event_add_person (GDataCalendarEvent *self, GDataGDWho *who)
 {
@@ -744,6 +1003,14 @@ gdata_calendar_event_add_person (GDataCalendarEvent *self, GDataGDWho *who)
 	self->priv->people = g_list_append (self->priv->people, who);
 }
 
+/**
+ * gdata_calendar_event_get_people:
+ * @self: a #GDataCalendarEvent
+ *
+ * Gets a list of the people attending the event.
+ *
+ * Return value: a #GList of #GDataGDWho<!-- -->s, or %NULL
+ **/
 GList *
 gdata_calendar_event_get_people (GDataCalendarEvent *self)
 {
@@ -751,6 +1018,14 @@ gdata_calendar_event_get_people (GDataCalendarEvent *self)
 	return self->priv->people;
 }
 
+/**
+ * gdata_calendar_event_add_place:
+ * @self: a #GDataCalendarEvent
+ * @where: a #GDataGDWhere to add
+ *
+ * Adds the place @where to the event as a location.
+ * The #GDataCalendarEvent takes ownership of @where, so it must not be freed after being added.
+ **/
 void
 gdata_calendar_event_add_place (GDataCalendarEvent *self, GDataGDWhere *where)
 {
@@ -760,6 +1035,14 @@ gdata_calendar_event_add_place (GDataCalendarEvent *self, GDataGDWhere *where)
 	self->priv->places = g_list_append (self->priv->places, where);
 }
 
+/**
+ * gdata_calendar_event_get_places:
+ * @self: a #GDataCalendarEvent
+ *
+ * Gets a list of the locations associated with the event.
+ *
+ * Return value: a #GList of #GDataGDWhere<!-- -->s, or %NULL
+ **/
 GList *
 gdata_calendar_event_get_places (GDataCalendarEvent *self)
 {
@@ -767,6 +1050,14 @@ gdata_calendar_event_get_places (GDataCalendarEvent *self)
 	return self->priv->places;
 }
 
+/**
+ * gdata_calendar_event_add_time:
+ * @self: a #GDataCalendarEvent
+ * @when: a #GDataGDWhen to add
+ *
+ * Adds @when to the event as a time period when the event happens.
+ * The #GDataCalendarEvent takes ownership of @when, so it must not be freed after being added.
+ **/
 void
 gdata_calendar_event_add_time (GDataCalendarEvent *self, GDataGDWhen *when)
 {
@@ -776,6 +1067,14 @@ gdata_calendar_event_add_time (GDataCalendarEvent *self, GDataGDWhen *when)
 	self->priv->times = g_list_append (self->priv->times, when);
 }
 
+/**
+ * gdata_calendar_event_get_times:
+ * @self: a #GDataCalendarEvent
+ *
+ * Gets a list of the time periods associated with the event.
+ *
+ * Return value: a #GList of #GDataGDWhen<!-- -->s, or %NULL
+ **/
 GList *
 gdata_calendar_event_get_times (GDataCalendarEvent *self)
 {

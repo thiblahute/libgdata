@@ -38,12 +38,23 @@ G_BEGIN_DECLS
 
 typedef struct _GDataCalendarEventPrivate	GDataCalendarEventPrivate;
 
+/**
+ * GDataCalendarEvent:
+ *
+ * All the fields in the #GDataCalendarEvent structure are private and should never be accessed directly.
+ **/
 typedef struct {
 	GDataEntry parent;
 	GDataCalendarEventPrivate *priv;
 } GDataCalendarEvent;
 
+/**
+ * GDataCalendarEventClass:
+ *
+ * All the fields in the #GDataCalendarEventClass structure are private and should never be accessed directly.
+ **/
 typedef struct {
+	/*< private >*/
 	GDataEntryClass parent;
 } GDataCalendarEventClass;
 
@@ -53,9 +64,8 @@ GDataCalendarEvent *gdata_calendar_event_new (const gchar *id) G_GNUC_WARN_UNUSE
 GDataCalendarEvent *gdata_calendar_event_new_from_xml (const gchar *xml, gint length, GError **error) G_GNUC_WARN_UNUSED_RESULT;
 
 void gdata_calendar_event_get_edited (GDataCalendarEvent *self, GTimeVal *edited);
-void gdata_calendar_event_set_edited (GDataCalendarEvent *self, GTimeVal *edited);
-const gchar *gdata_calendar_event_get_event_status (GDataCalendarEvent *self);
-void gdata_calendar_event_set_event_status (GDataCalendarEvent *self, const gchar *event_status);
+const gchar *gdata_calendar_event_get_status (GDataCalendarEvent *self);
+void gdata_calendar_event_set_status (GDataCalendarEvent *self, const gchar *status);
 const gchar *gdata_calendar_event_get_visibility (GDataCalendarEvent *self);
 void gdata_calendar_event_set_visibility (GDataCalendarEvent *self, const gchar *visibility);
 const gchar *gdata_calendar_event_get_transparency (GDataCalendarEvent *self);

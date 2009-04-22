@@ -240,7 +240,7 @@ test_insert_simple (void)
 	category = gdata_category_new ("http://schemas.google.com/g/2005#event", "http://schemas.google.com/g/2005#kind", NULL);
 	gdata_entry_add_category (GDATA_ENTRY (event), category);
 	gdata_calendar_event_set_transparency (event, "http://schemas.google.com/g/2005#event.opaque");
-	gdata_calendar_event_set_event_status (event, "http://schemas.google.com/g/2005#event.confirmed");
+	gdata_calendar_event_set_status (event, "http://schemas.google.com/g/2005#event.confirmed");
 	where = gdata_gd_where_new (NULL, "Rolling Lawn Courts", NULL);
 	gdata_calendar_event_add_place (event, where);
 	who = gdata_gd_who_new ("http://schemas.google.com/g/2005#event.organizer", "John Smith‽", "john.smith@example.com");
