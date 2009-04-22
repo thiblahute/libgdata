@@ -195,6 +195,12 @@ gdata_gd_postal_address_free
 GDataGDRating
 gdata_gd_rating_new
 gdata_gd_rating_free
+GDataGDWhen
+gdata_gd_when_new
+gdata_gd_when_free
+GDataGDReminder
+gdata_gd_reminder_new
+gdata_gd_reminder_free
 GDataGDWhere
 gdata_gd_where_new
 gdata_gd_where_free

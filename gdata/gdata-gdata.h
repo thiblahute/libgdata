@@ -72,6 +72,31 @@ GDataGDFeedLink *gdata_gd_feed_link_new (const gchar *href, const gchar *rel, gu
 void gdata_gd_feed_link_free (GDataGDFeedLink *self);
 
 /**
+ * GDataGDWhen:
+ * @start_time: when the event starts or (for zero-duration events) when it occurs
+ * @end_time: when the event ends
+ * @value_string: a string to represent the time period, or %NULL
+ * @reminders: a #GList of #GDataGDReminder<!-- -->s for the time period, or %NULL
+ *
+ * A structure fully representing a GData "when" element. The @start_time field is required, but the others are optional.
+ *
+ * If @end_time is empty (all fields are zero), the structure is considered to represent: an instance in time if
+ * @start_time is a time, or an entire day if @start_time is a date.
+ *
+ * See the <ulink type="http" url="http://code.google.com/apis/gdata/elements.html#gdWhen">GData specification</ulink>
+ * for more information.
+ **/
+typedef struct {
+	GTimeVal start_time;
+	GTimeVal end_time;
+	gchar *value_string;
+	GList *reminders;
+} GDataGDWhen;
+
+GDataGDWhen *gdata_gd_when_new (GTimeVal *start_time, GTimeVal *end_time, const gchar *value_string, GList *reminders);
+void gdata_gd_when_free (GDataGDWhen *self);
+
+/**
  * GDataGDWho:
  * @rel: the relationship between the item and this person, or %NULL
  * @value_string: a string to represent the person, or %NULL
@@ -240,6 +265,31 @@ typedef struct {
 GDataGDOrganization *gdata_gd_organization_new (const gchar *name, const gchar *title, const gchar *rel,
 						const gchar *label, gboolean primary) G_GNUC_WARN_UNUSED_RESULT;
 void gdata_gd_organization_free (GDataGDOrganization *self);
+
+/**
+ * GDataGDReminder:
+ * @method: the notification method the reminder should use, or %NULL
+ * @absolute_time: the absolute time for the reminder, or %NULL
+ * @days: number of days before the event's start time for the reminder, or %-1
+ * @hours: number of hours before the event's start time for the reminder, or %-1
+ * @minutes: number of minutes before the event's start time for the reminder, or %-1
+ *
+ * A structure fully representing a GData "reminder" element. All fields are optional. The @days, @hours
+ * and @minutes fields are mutually exclusive with each other, and all mutually exclusive with @absolute_time.
+ *
+ * See the <ulink type="http" url="http://code.google.com/apis/gdata/elements.html#gdReminder">GData specification</ulink>
+ * for more information.
+ **/
+typedef struct {
+	gchar *method;
+	GTimeVal absolute_time;
+	gint days;
+	gint hours;
+	gint minutes;
+} GDataGDReminder;
+
+GDataGDReminder *gdata_gd_reminder_new (const gchar *method, GTimeVal *absolute_time, gint days, gint hours, gint minutes);
+void gdata_gd_reminder_free (GDataGDReminder *self);
 
 G_END_DECLS
 

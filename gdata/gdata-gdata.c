@@ -116,6 +116,62 @@ gdata_gd_feed_link_free (GDataGDFeedLink *self)
 }
 
 /**
+ * gdata_gd_when_new:
+ * @start_time: when the event starts or (for zero-duration events) when it occurs
+ * @end_time: when the event ends, or %NULL
+ * @value_string: a string to represent the time period, or %NULL
+ * @reminders: a #GList of #GDataGDReminder<!-- -->s for the time period, or %NULL
+ *
+ * Creates a new #GDataGDWhen. More information is available in the <ulink type="http"
+ * url="http://code.google.com/apis/gdata/elements.html#gdWhen">GData specification</ulink>.
+ *
+ * This function takes ownership of @reminders, so the list (or its entries) must not be freed
+ * by the caller after a call to gdata_gd_when_new has finished.
+ *
+ * Return value: a new #GDataGDWhen, or %NULL on error
+ **/
+GDataGDWhen *
+gdata_gd_when_new (GTimeVal *start_time, GTimeVal *end_time, const gchar *value_string, GList *reminders)
+{
+	GDataGDWhen *self;
+
+	g_return_val_if_fail (start_time != NULL, NULL);
+
+	self = g_slice_new (GDataGDWhen);
+
+	self->start_time = *start_time;
+	if (end_time != NULL) {
+		self->end_time = *end_time;
+	} else {
+		self->end_time.tv_sec = 0;
+		self->end_time.tv_usec = 0;
+	}
+
+	self->value_string = g_strdup (value_string);
+	self->reminders = reminders;
+
+	return self;
+}
+
+/**
+ * gdata_gd_when_free:
+ * @self: a #GDataGDWhen
+ *
+ * Frees a #GDataGDWhen.
+ **/
+void
+gdata_gd_when_free (GDataGDWhen *self)
+{
+	if (G_UNLIKELY (self == NULL))
+		return;
+
+	g_free (self->value_string);
+	g_list_foreach (self->reminders, (GFunc) gdata_gd_reminder_free, NULL);
+	g_list_free (self->reminders);
+	g_slice_free (GDataGDWhen, self);
+}
+
+/**
  * gdata_gd_who_new:
  * @rel: the relationship between the item and this person, or %NULL
  * @value_string: a string to represent the person, or %NULL
@@ -426,4 +482,60 @@ gdata_gd_organization_free (GDataGDOrganization *self)
 	g_free (self->rel);
 	g_free (self->label);
 	g_slice_free (GDataGDOrganization, self);
+}
+
+/**
+ * gdata_gd_reminder_new:
+ * @method: the notification method the reminder should use, or %NULL
+ * @absolute_time: the absolute time for the reminder, or %NULL
+ * @days: number of days before the event's start time for the reminder, or %-1
+ * @hours: number of hours before the event's start time for the reminder, or %-1
+ * @minutes: number of minutes before the event's start time for the reminder, or %-1
+ *
+ * Creates a new #GDataGDReminder. More information is available in the <ulink type="http"
+ * url="http://code.google.com/apis/gdata/elements.html#gdReminder">GData specification</ulink>.
+ *
+ * Return value: a new #GDataGDReminder, or %NULL on error
+ **/
+GDataGDReminder *
+gdata_gd_reminder_new (const gchar *method, GTimeVal *absolute_time, gint days, gint hours, gint minutes)
+{
+	GDataGDReminder *self;
+
+	g_return_val_if_fail (absolute_time != NULL && (days != -1 || hours != -1 || minutes != -1), NULL);
+	g_return_val_if_fail (days != -1 && (hours != -1 || minutes != -1), NULL);
+	g_return_val_if_fail (hours != -1 && (minutes != -1 || days != -1), NULL);
+	g_return_val_if_fail (minutes != -1 && (days != -1 || hours != -1), NULL);
+
+	self = g_slice_new (GDataGDReminder);
+
+	if (absolute_time != NULL) {
+		self->absolute_time = *absolute_time;
+	} else {
+		self->absolute_time.tv_sec = 0;
+		self->absolute_time.tv_usec = 0;
+	}
+
+	self->method = g_strdup (method);
+	self->days = days;
+	self->hours = hours;
+	self->minutes = minutes;
+
+	return self;
+}
+
+/**
+ * gdata_gd_reminder_free:
+ * @self: a #GDataGDReminder
+ *
+ * Frees a #GDataGDReminder.
+ **/
+void
+gdata_gd_reminder_free (GDataGDReminder *self)
+{
+	if (G_UNLIKELY (self == NULL))
+		return;
+
+	g_free (self->method);
+	g_slice_free (GDataGDReminder, self);
 }

@@ -226,6 +226,7 @@ test_insert_simple (void)
 	GDataCategory *category;
 	GDataGDWhere *where;
 	GDataGDWho *who;
+	GDataGDWhen *when;
 	GTimeVal start_time, end_time;
 	gchar *xml;
 	GError *error = NULL;
@@ -246,8 +247,8 @@ test_insert_simple (void)
 	gdata_calendar_event_add_person (event, who);
 	g_time_val_from_iso8601 ("2009-04-17T15:00:00.000Z", &start_time);
 	g_time_val_from_iso8601 ("2009-04-17T17:00:00.000Z", &end_time);
-	gdata_calendar_event_set_start_time (event, &start_time);
-	gdata_calendar_event_set_end_time (event, &end_time);
+	when = gdata_gd_when_new (&start_time, &end_time, NULL, NULL);
+	gdata_calendar_event_add_time (event, when);
 
 	/* Check the XML */
 	xml = gdata_entry_get_xml (GDATA_ENTRY (event));

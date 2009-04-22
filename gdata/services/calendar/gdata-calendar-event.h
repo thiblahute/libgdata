@@ -64,12 +64,6 @@ const gchar *gdata_calendar_event_get_uid (GDataCalendarEvent *self);
 void gdata_calendar_event_set_uid (GDataCalendarEvent *self, const gchar *uid);
 guint gdata_calendar_event_get_sequence (GDataCalendarEvent *self);
 void gdata_calendar_event_set_sequence (GDataCalendarEvent *self, guint sequence);
-void gdata_calendar_event_get_start_time (GDataCalendarEvent *self, GTimeVal *start_time);
-void gdata_calendar_event_set_start_time (GDataCalendarEvent *self, GTimeVal *start_time);
-void gdata_calendar_event_get_end_time (GDataCalendarEvent *self, GTimeVal *end_time);
-void gdata_calendar_event_set_end_time (GDataCalendarEvent *self, GTimeVal *end_time);
-const gchar *gdata_calendar_event_get_when_value (GDataCalendarEvent *self);
-void gdata_calendar_event_set_when_value (GDataCalendarEvent *self, const gchar *when_value);
 gboolean gdata_calendar_event_get_guests_can_modify (GDataCalendarEvent *self);
 void gdata_calendar_event_set_guests_can_modify (GDataCalendarEvent *self, gboolean guests_can_modify);
 gboolean gdata_calendar_event_get_guests_can_invite_others (GDataCalendarEvent *self);
@@ -82,6 +76,8 @@ void gdata_calendar_event_add_person (GDataCalendarEvent *self, GDataGDWho *who)
 GList *gdata_calendar_event_get_people (GDataCalendarEvent *self);
 void gdata_calendar_event_add_place (GDataCalendarEvent *self, GDataGDWhere *where);
 GList *gdata_calendar_event_get_places (GDataCalendarEvent *self);
+void gdata_calendar_event_add_time (GDataCalendarEvent *self, GDataGDWhen *when);
+GList *gdata_calendar_event_get_times (GDataCalendarEvent *self);
 
 G_END_DECLS
 

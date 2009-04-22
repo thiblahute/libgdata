@@ -44,16 +44,14 @@ struct _GDataCalendarEventPrivate {
 	gchar *transparency;
 	gchar *uid;
 	guint sequence;
-	GTimeVal start_time;
-	GTimeVal end_time;
-	gchar *when_value;
+	GList *times; /* GDataGDWhen */
 	GList *reminders;
 	gboolean guests_can_modify; /* TODO: Merge these three somehow? */
 	gboolean guests_can_invite_others;
 	gboolean guests_can_see_guests;
 	gboolean anyone_can_add_self;
-	GList *people;
-	GList *places;
+	GList *people; /* GDataGDWho */
+	GList *places; /* GDataGDWhere */
 };
 
 enum {
@@ -63,9 +61,6 @@ enum {
 	PROP_TRANSPARENCY,
 	PROP_UID,
 	PROP_SEQUENCE,
-	PROP_START_TIME,
-	PROP_END_TIME,
-	PROP_WHEN_VALUE,
 	PROP_GUESTS_CAN_MODIFY,
 	PROP_GUESTS_CAN_INVITE_OTHERS,
 	PROP_GUESTS_CAN_SEE_GUESTS,
@@ -121,22 +116,6 @@ gdata_calendar_event_class_init (GDataCalendarEventClass *klass)
 					"Sequence", "TODO",
 					0, G_MAXUINT, 0,
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
-	g_object_class_install_property (gobject_class, PROP_START_TIME,
-				g_param_spec_boxed ("start-time",
-					"Start time", "TODO",
-					GDATA_TYPE_G_TIME_VAL,
-					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
-	g_object_class_install_property (gobject_class, PROP_END_TIME,
-				g_param_spec_boxed ("end-time",
-					"End time", "TODO",
-					GDATA_TYPE_G_TIME_VAL,
-					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
-	/* TODO: when-value is a stupid name */
-	g_object_class_install_property (gobject_class, PROP_WHEN_VALUE,
-				g_param_spec_string ("when-value",
-					"When value", "TODO",
-					NULL,
-					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 	g_object_class_install_property (gobject_class, PROP_GUESTS_CAN_MODIFY,
 				g_param_spec_boolean ("guests-can-modify",
 					"Guests can modify", "TODO",
@@ -174,7 +153,8 @@ gdata_calendar_event_finalize (GObject *object)
 	g_free (priv->visibility);
 	g_free (priv->transparency);
 	g_free (priv->uid);
-	g_free (priv->when_value);
+	g_list_foreach (priv->times, (GFunc) gdata_gd_when_free, NULL);
+	g_list_free (priv->times);
 	g_list_foreach (priv->people, (GFunc) gdata_gd_who_free, NULL);
 	g_list_free (priv->people);
 	g_list_foreach (priv->places, (GFunc) gdata_gd_where_free, NULL);
@@ -207,15 +187,6 @@ gdata_calendar_event_get_property (GObject *object, guint property_id, GValue *v
 			break;
 		case PROP_SEQUENCE:
 			g_value_set_uint (value, priv->sequence);
-			break;
-		case PROP_START_TIME:
-			g_value_set_boxed (value, &(priv->start_time));
-			break;
-		case PROP_END_TIME:
-			g_value_set_boxed (value, &(priv->end_time));
-			break;
-		case PROP_WHEN_VALUE:
-			g_value_set_string (value, priv->when_value);
 			break;
 		case PROP_GUESTS_CAN_MODIFY:
 			g_value_set_boolean (value, priv->guests_can_modify);
@@ -259,15 +230,6 @@ gdata_calendar_event_set_property (GObject *object, guint property_id, const GVa
 			break;
 		case PROP_SEQUENCE:
 			gdata_calendar_event_set_sequence (self, g_value_get_uint (value));
-			break;
-		case PROP_START_TIME:
-			gdata_calendar_event_set_start_time (self, g_value_get_boxed (value));
-			break;
-		case PROP_END_TIME:
-			gdata_calendar_event_set_end_time (self, g_value_get_boxed (value));
-			break;
-		case PROP_WHEN_VALUE:
-			gdata_calendar_event_set_when_value (self, g_value_get_string (value));
 			break;
 		case PROP_GUESTS_CAN_MODIFY:
 			gdata_calendar_event_set_guests_can_modify (self, g_value_get_boolean (value));
@@ -393,8 +355,9 @@ parse_xml (GDataEntry *entry, xmlDoc *doc, xmlNode *node, GError **error)
 		gdata_calendar_event_set_sequence (self, value_uint);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "when") == 0) {
 		/* gd:when */
-		xmlChar *start_time, *end_time, *value;
+		xmlChar *start_time, *end_time, *value_string;
 		GTimeVal start_time_timeval, end_time_timeval;
+		GDataGDWhen *when;
 
 		/* Start time */
 		start_time = xmlGetProp (node, (xmlChar*) "startTime");
@@ -405,13 +368,10 @@ parse_xml (GDataEntry *entry, xmlDoc *doc, xmlNode *node, GError **error)
 			return FALSE;
 		}
 		xmlFree (start_time);
-		gdata_calendar_event_set_start_time (self, &start_time_timeval);
 
 		/* End time (optional) */
 		end_time = xmlGetProp (node, (xmlChar*) "endTime");
-		if (end_time == NULL)
-			gdata_calendar_event_set_end_time (self, NULL);
-		else {
+		if (end_time != NULL) {
 			if (g_time_val_from_iso8601 ((gchar*) end_time, &end_time_timeval) == FALSE) {
 				/* Error */
 				gdata_parser_error_not_iso8601_format ("gd:when", "entry", (gchar*) end_time, error);
@@ -419,13 +379,13 @@ parse_xml (GDataEntry *entry, xmlDoc *doc, xmlNode *node, GError **error)
 				return FALSE;
 			}
 			xmlFree (end_time);
-			gdata_calendar_event_set_end_time (self, &end_time_timeval);
 		}
 
-		/* Value (optional) */
-		value = xmlGetProp (node, (xmlChar*) "value");
-		gdata_calendar_event_set_when_value (self, (gchar*) value);
-		xmlFree (value);
+		value_string = xmlGetProp (node, (xmlChar*) "value");
+		when = gdata_gd_when_new (&start_time_timeval, (end_time == NULL) ? NULL : &end_time_timeval, (gchar*) value_string, NULL);
+		xmlFree (value_string);
+
+		gdata_calendar_event_add_time (self, when);
 
 		/* TODO: Deal with reminders (<gd:reminder> child elements) */
 	} else if (xmlStrcmp (node->name, (xmlChar*) "guestsCanModify") == 0) {
@@ -500,7 +460,7 @@ static void
 get_xml (GDataEntry *entry, GString *xml_string)
 {
 	GDataCalendarEventPrivate *priv = GDATA_CALENDAR_EVENT (entry)->priv;
-	GList *person, *place;
+	GList *i;
 
 	/* Chain up to the parent class */
 	GDATA_ENTRY_CLASS (gdata_calendar_event_parent_class)->get_xml (entry, xml_string);
@@ -524,25 +484,6 @@ get_xml (GDataEntry *entry, GString *xml_string)
 	if (priv->sequence != 0)
 		g_string_append_printf (xml_string, "<gCal:sequence value='%u'/>", priv->sequence);
 
-	if (priv->start_time.tv_sec != 0 || priv->start_time.tv_usec != 0) {
-		gchar *start_time = g_time_val_to_iso8601 (&(priv->start_time));
-		g_string_append_printf (xml_string, "<gd:when startTime='%s'", start_time);
-		g_free (start_time);
-
-		if (priv->end_time.tv_sec != 0 || priv->end_time.tv_usec != 0) {
-			gchar *end_time = g_time_val_to_iso8601 (&(priv->end_time));
-			g_string_append_printf (xml_string, " endTime='%s'", end_time);
-			g_free (end_time);
-		}
-
-		if (priv->when_value != NULL)
-			g_string_append_printf (xml_string, " value='%s'", priv->when_value);
-
-		g_string_append (xml_string, "/>");
-
-		/* TODO: Deal with reminders (<gd:reminder> child elements) */
-	}
-
 	if (priv->guests_can_modify == TRUE)
 		g_string_append (xml_string, "<gCal:guestsCanModify value='true'/>");
 	else
@@ -563,8 +504,29 @@ get_xml (GDataEntry *entry, GString *xml_string)
 	else
 		g_string_append (xml_string, "<gCal:anyoneCanAddSelf value='false'/>");
 
-	for (person = priv->people; person != NULL; person = person->next) {
-		GDataGDWho *who = (GDataGDWho*) person->data;
+	for (i = priv->times; i != NULL; i = i->next) {
+		GDataGDWhen *when = (GDataGDWhen*) i->data;
+
+		gchar *start_time = g_time_val_to_iso8601 (&(when->start_time));
+		g_string_append_printf (xml_string, "<gd:when startTime='%s'", start_time);
+		g_free (start_time);
+
+		if (when->end_time.tv_sec != 0 || when->end_time.tv_usec != 0) {
+			gchar *end_time = g_time_val_to_iso8601 (&(when->end_time));
+			g_string_append_printf (xml_string, " endTime='%s'", end_time);
+			g_free (end_time);
+		}
+
+		if (when->value_string != NULL)
+			g_string_append_printf (xml_string, " value='%s'", when->value_string);
+
+		g_string_append (xml_string, "/>");
+
+		/* TODO: Deal with reminders (<gd:reminder> child elements) */
+	}
+
+	for (i = priv->people; i != NULL; i = i->next) {
+		GDataGDWho *who = (GDataGDWho*) i->data;
 
 		g_string_append (xml_string, "<gd:who");
 		if (who->email != NULL)
@@ -578,8 +540,8 @@ get_xml (GDataEntry *entry, GString *xml_string)
 		/* TODO: deal with the attendeeType, attendeeStatus and entryLink */
 	}
 
-	for (place = priv->places; place != NULL; place = place->next) {
-		GDataGDWhere *where = (GDataGDWhere*) place->data;
+	for (i = priv->places; i != NULL; i = i->next) {
+		GDataGDWhere *where = (GDataGDWhere*) i->data;
 
 		g_string_append (xml_string, "<gd:where");
 		if (where->label != NULL)
@@ -713,62 +675,6 @@ gdata_calendar_event_set_sequence (GDataCalendarEvent *self, guint sequence)
 	g_object_notify (G_OBJECT (self), "sequence");
 }
 
-void
-gdata_calendar_event_get_start_time (GDataCalendarEvent *self, GTimeVal *start_time)
-{
-	g_return_if_fail (GDATA_IS_CALENDAR_EVENT (self));
-	g_return_if_fail (start_time != NULL);
-	*start_time = self->priv->start_time;
-}
-
-void
-gdata_calendar_event_set_start_time (GDataCalendarEvent *self, GTimeVal *start_time)
-{
-	g_return_if_fail (GDATA_IS_CALENDAR_EVENT (self));
-	g_return_if_fail (start_time != NULL);
-	self->priv->start_time = *start_time;
-	g_object_notify (G_OBJECT (self), "start-time");
-}
-
-void
-gdata_calendar_event_get_end_time (GDataCalendarEvent *self, GTimeVal *end_time)
-{
-	g_return_if_fail (GDATA_IS_CALENDAR_EVENT (self));
-	g_return_if_fail (end_time != NULL);
-	*end_time = self->priv->end_time;
-}
-
-void
-gdata_calendar_event_set_end_time (GDataCalendarEvent *self, GTimeVal *end_time)
-{
-	g_return_if_fail (GDATA_IS_CALENDAR_EVENT (self));
-
-	if (end_time == NULL) {
-		self->priv->end_time.tv_sec = 0;
-		self->priv->end_time.tv_usec = 0;
-	} else {
-		self->priv->end_time = *end_time;
-	}
-	g_object_notify (G_OBJECT (self), "end-time");
-}
-
-const gchar *
-gdata_calendar_event_get_when_value (GDataCalendarEvent *self)
-{
-	g_return_val_if_fail (GDATA_IS_CALENDAR_EVENT (self), NULL);
-	return self->priv->when_value;
-}
-
-void
-gdata_calendar_event_set_when_value (GDataCalendarEvent *self, const gchar *when_value)
-{
-	g_return_if_fail (GDATA_IS_CALENDAR_EVENT (self));
-
-	g_free (self->priv->when_value);
-	self->priv->when_value = g_strdup (when_value);
-	g_object_notify (G_OBJECT (self), "when-value");
-}
-
 gboolean
 gdata_calendar_event_get_guests_can_modify (GDataCalendarEvent *self)
 {
@@ -859,4 +765,20 @@ gdata_calendar_event_get_places (GDataCalendarEvent *self)
 {
 	g_return_val_if_fail (GDATA_IS_CALENDAR_EVENT (self), NULL);
 	return self->priv->places;
+}
+
+void
+gdata_calendar_event_add_time (GDataCalendarEvent *self, GDataGDWhen *when)
+{
+	g_return_if_fail (GDATA_IS_CALENDAR_EVENT (self));
+	g_return_if_fail (when != NULL);
+
+	self->priv->times = g_list_append (self->priv->times, when);
+}
+
+GList *
+gdata_calendar_event_get_times (GDataCalendarEvent *self)
+{
+	g_return_val_if_fail (GDATA_IS_CALENDAR_EVENT (self), NULL);
+	return self->priv->times;
 }
