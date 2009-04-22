@@ -24,8 +24,8 @@
 
 G_BEGIN_DECLS
 
-#define G_TYPE_TIME_VAL (g_time_val_get_type ())
-GType g_time_val_get_type (void) G_GNUC_CONST;
+#define GDATA_TYPE_G_TIME_VAL (gdata_g_time_val_get_type ())
+GType gdata_g_time_val_get_type (void) G_GNUC_CONST;
 
 typedef struct {
 	guint16 red;

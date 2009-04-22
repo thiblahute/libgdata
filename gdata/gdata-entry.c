@@ -109,12 +109,12 @@ gdata_entry_class_init (GDataEntryClass *klass)
 	g_object_class_install_property (gobject_class, PROP_UPDATED,
 				g_param_spec_boxed ("updated",
 					"Updated", "The last update time for this entry.",
-					G_TYPE_TIME_VAL,
+					GDATA_TYPE_G_TIME_VAL,
 					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 	g_object_class_install_property (gobject_class, PROP_PUBLISHED,
 				g_param_spec_boxed ("published",
 					"Published", "The time this entry was published.",
-					G_TYPE_TIME_VAL,
+					GDATA_TYPE_G_TIME_VAL,
 					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 	g_object_class_install_property (gobject_class, PROP_CONTENT,
 				g_param_spec_string ("content",

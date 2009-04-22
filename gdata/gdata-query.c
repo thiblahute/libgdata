@@ -47,7 +47,7 @@ typedef enum {
 	GDATA_QUERY_PARAM_PUBLISHED_MIN = 1 << 5,
 	GDATA_QUERY_PARAM_PUBLISHED_MAX = 1 << 6,
 	GDATA_QUERY_PARAM_START_INDEX = 1 << 7,
-	GDATA_QUERY_PARAM_STRICT = 1 << 8,
+	GDATA_QUERY_PARAM_IS_STRICT = 1 << 8,
 	GDATA_QUERY_PARAM_MAX_RESULTS = 1 << 9,
 	GDATA_QUERY_PARAM_ENTRY_ID = 1 << 10,
 	GDATA_QUERY_PARAM_ALL = (1 << 11) - 1
@@ -69,7 +69,7 @@ struct _GDataQueryPrivate {
 	GTimeVal published_min;
 	GTimeVal published_max;
 	gint start_index;
-	gboolean strict;
+	gboolean is_strict;
 	gint max_results;
 	gchar *entry_id;
 
@@ -90,7 +90,7 @@ enum {
 	PROP_PUBLISHED_MIN,
 	PROP_PUBLISHED_MAX,
 	PROP_START_INDEX,
-	PROP_STRICT,
+	PROP_IS_STRICT,
 	PROP_MAX_RESULTS,
 	PROP_ENTRY_ID,
 	PROP_ETAG
@@ -184,7 +184,7 @@ gdata_query_class_init (GDataQueryClass *klass)
 	g_object_class_install_property (gobject_class, PROP_UPDATED_MIN,
 				g_param_spec_boxed ("updated-min",
 					"Minimum update date", "Minimum date for updates on returned entries.",
-					G_TYPE_TIME_VAL,
+					GDATA_TYPE_G_TIME_VAL,
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
 	/**
@@ -195,7 +195,7 @@ gdata_query_class_init (GDataQueryClass *klass)
 	g_object_class_install_property (gobject_class, PROP_UPDATED_MAX,
 				g_param_spec_boxed ("updated-max",
 					"Maximum update date", "Maximum date for updates on returned entries.",
-					G_TYPE_TIME_VAL,
+					GDATA_TYPE_G_TIME_VAL,
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
 	/**
@@ -206,7 +206,7 @@ gdata_query_class_init (GDataQueryClass *klass)
 	g_object_class_install_property (gobject_class, PROP_PUBLISHED_MIN,
 				g_param_spec_boxed ("published-min",
 					"Minimum publish date", "Minimum date for returned entries to be published.",
-					G_TYPE_TIME_VAL,
+					GDATA_TYPE_G_TIME_VAL,
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
 	/**
@@ -217,7 +217,7 @@ gdata_query_class_init (GDataQueryClass *klass)
 	g_object_class_install_property (gobject_class, PROP_PUBLISHED_MAX,
 				g_param_spec_boxed ("published-max",
 					"Maximum publish date", "Maximum date for returned entries to be published.",
-					G_TYPE_TIME_VAL,
+					GDATA_TYPE_G_TIME_VAL,
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
 	/**
@@ -233,13 +233,13 @@ gdata_query_class_init (GDataQueryClass *klass)
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
 	/**
-	 * GDataQuery:strict:
+	 * GDataQuery:is-strict:
 	 *
 	 * Strict query parameter checking. If this is enabled, an error will be returned by the online service if a parameter is
 	 * not recognised.
 	 **/
-	g_object_class_install_property (gobject_class, PROP_STRICT,
-				g_param_spec_boolean ("strict",
+	g_object_class_install_property (gobject_class, PROP_IS_STRICT,
+				g_param_spec_boolean ("is-strict",
 					"Strict?", "Should the server be strict about the query?",
 					FALSE,
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
@@ -337,8 +337,8 @@ gdata_query_get_property (GObject *object, guint property_id, GValue *value, GPa
 		case PROP_START_INDEX:
 			g_value_set_int (value, priv->start_index);
 			break;
-		case PROP_STRICT:
-			g_value_set_boolean (value, priv->strict);
+		case PROP_IS_STRICT:
+			g_value_set_boolean (value, priv->is_strict);
 			break;
 		case PROP_MAX_RESULTS:
 			g_value_set_int (value, priv->max_results);
@@ -386,8 +386,8 @@ gdata_query_set_property (GObject *object, guint property_id, const GValue *valu
 		case PROP_START_INDEX:
 			gdata_query_set_start_index (self, g_value_get_int (value));
 			break;
-		case PROP_STRICT:
-			gdata_query_set_strict (self, g_value_get_boolean (value));
+		case PROP_IS_STRICT:
+			gdata_query_set_is_strict (self, g_value_get_boolean (value));
 			break;
 		case PROP_MAX_RESULTS:
 			gdata_query_set_max_results (self, g_value_get_int (value));
@@ -564,7 +564,7 @@ gdata_query_get_query_uri (GDataQuery *self, const gchar *feed_uri)
 		g_string_append_printf (query_uri, "start-index=%d", priv->start_index);
 	}
 
-	if (priv->strict == TRUE) {
+	if (priv->is_strict == TRUE) {
 		APPEND_SEP
 		g_string_append (query_uri, "strict=true");
 	}
@@ -910,40 +910,40 @@ gdata_query_set_start_index (GDataQuery *self, gint start_index)
 }
 
 /**
- * gdata_query_get_strict:
+ * gdata_query_is_strict:
  * @self: a #GDataQuery
  *
- * Gets the #GDataQuery:strict property.
+ * Gets the #GDataQuery:is-strict property.
  *
  * Return value: the strict property
  **/
 gboolean
-gdata_query_get_strict (GDataQuery *self)
+gdata_query_is_strict (GDataQuery *self)
 {
 	g_return_val_if_fail (GDATA_IS_QUERY (self), FALSE);
-	return self->priv->strict;
+	return self->priv->is_strict;
 }
 
 /**
- * gdata_query_set_strict:
+ * gdata_query_set_is_strict:
  * @self: a #GDataQuery
- * @strict: the new strict value
+ * @is_strict: the new strict value
  *
- * Sets the #GDataQuery:strict property of the #GDataQuery to the new strict value, @strict.
+ * Sets the #GDataQuery:is-strict property of the #GDataQuery to the new strict value, @is_strict.
  **/
 void
-gdata_query_set_strict (GDataQuery *self, gboolean strict)
+gdata_query_set_is_strict (GDataQuery *self, gboolean is_strict)
 {
 	g_return_if_fail (GDATA_IS_QUERY (self));
 
-	self->priv->strict = strict;
+	self->priv->is_strict = is_strict;
 
-	if (strict == FALSE)
-		self->priv->parameter_mask &= (GDATA_QUERY_PARAM_ALL ^ GDATA_QUERY_PARAM_STRICT);
+	if (is_strict == FALSE)
+		self->priv->parameter_mask &= (GDATA_QUERY_PARAM_ALL ^ GDATA_QUERY_PARAM_IS_STRICT);
 	else
-		self->priv->parameter_mask |= GDATA_QUERY_PARAM_STRICT;
+		self->priv->parameter_mask |= GDATA_QUERY_PARAM_IS_STRICT;
 
-	g_object_notify (G_OBJECT (self), "strict");
+	g_object_notify (G_OBJECT (self), "is-strict");
 }
 
 /**

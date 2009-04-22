@@ -21,23 +21,24 @@
 #include <glib-object.h>
 #include <string.h>
 #include <stdlib.h>
+#include <libsoup/soup.h>
 
 #include "gdata-types.h"
 
 static gpointer
-g_time_val_copy (gpointer time_val)
+gdata_g_time_val_copy (gpointer time_val)
 {
 	return g_memdup (time_val, sizeof (GTimeVal));
 }
 
 GType
-g_time_val_get_type (void)
+gdata_g_time_val_get_type (void)
 {
 	static GType type_id = 0;
 
 	if (type_id == 0) {
 		type_id = g_boxed_type_register_static (g_intern_static_string ("GTimeVal"),
-							(GBoxedCopyFunc) g_time_val_copy,
+							(GBoxedCopyFunc) gdata_g_time_val_copy,
 							(GBoxedFreeFunc) g_free);
 	}
 

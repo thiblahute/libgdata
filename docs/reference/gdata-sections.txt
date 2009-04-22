@@ -7,7 +7,6 @@ GDataServiceError
 GDataAuthenticationError
 GDataParserError
 GDataQueryProgressCallback
-gdata_service_set_proxy
 gdata_service_authenticate
 gdata_service_authenticate_async
 gdata_service_authenticate_finish
@@ -21,6 +20,8 @@ gdata_service_delete_entry
 gdata_service_get_client_id
 gdata_service_get_username
 gdata_service_get_password
+gdata_service_get_proxy
+gdata_service_set_proxy
 <SUBSECTION Standard>
 GDATA_SERVICE
 GDATA_IS_SERVICE
@@ -72,8 +73,8 @@ gdata_query_get_start_index
 gdata_query_set_start_index
 gdata_query_get_max_results
 gdata_query_set_max_results
-gdata_query_get_strict
-gdata_query_set_strict
+gdata_query_is_strict
+gdata_query_set_is_strict
 <SUBSECTION Standard>
 gdata_query_get_type
 GDATA_QUERY

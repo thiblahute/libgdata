@@ -74,7 +74,6 @@ gboolean gdata_calendar_calendar_is_selected (GDataCalendarCalendar *self);
 void gdata_calendar_calendar_set_is_selected (GDataCalendarCalendar *self, gboolean is_selected);
 const gchar *gdata_calendar_calendar_get_access_level (GDataCalendarCalendar *self);
 void gdata_calendar_calendar_get_edited (GDataCalendarCalendar *self, GTimeVal *edited);
-void gdata_calendar_calendar_set_edited (GDataCalendarCalendar *self, GTimeVal *edited);
 
 G_END_DECLS
 

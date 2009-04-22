@@ -94,7 +94,7 @@ gdata_calendar_event_class_init (GDataCalendarEventClass *klass)
 	g_object_class_install_property (gobject_class, PROP_EDITED,
 				g_param_spec_boxed ("edited",
 					"Edited", "TODO",
-					G_TYPE_TIME_VAL,
+					GDATA_TYPE_G_TIME_VAL,
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 	g_object_class_install_property (gobject_class, PROP_EVENT_STATUS,
 				g_param_spec_string ("event-status",
@@ -124,12 +124,12 @@ gdata_calendar_event_class_init (GDataCalendarEventClass *klass)
 	g_object_class_install_property (gobject_class, PROP_START_TIME,
 				g_param_spec_boxed ("start-time",
 					"Start time", "TODO",
-					G_TYPE_TIME_VAL,
+					GDATA_TYPE_G_TIME_VAL,
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 	g_object_class_install_property (gobject_class, PROP_END_TIME,
 				g_param_spec_boxed ("end-time",
 					"End time", "TODO",
-					G_TYPE_TIME_VAL,
+					GDATA_TYPE_G_TIME_VAL,
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 	/* TODO: when-value is a stupid name */
 	g_object_class_install_property (gobject_class, PROP_WHEN_VALUE,

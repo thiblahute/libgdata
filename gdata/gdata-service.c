@@ -37,6 +37,7 @@
 #include "gdata-service.h"
 #include "gdata-private.h"
 #include "gdata-marshal.h"
+#include "gdata-types.h"
 
 /* The default e-mail domain to use for usernames */
 #define EMAIL_DOMAIN "gmail.com"
@@ -61,6 +62,7 @@ static gboolean real_parse_authentication_response (GDataService *self, guint st
 static void real_append_query_headers (GDataService *self, SoupMessage *message);
 static void real_parse_error_response (GDataService *self, guint status, const gchar *reason_phrase,
 				       const gchar *response_body, gint length, GError **error);
+static void notify_proxy_uri_cb (GObject *gobject, GParamSpec *pspec, GObject *self);
 
 struct _GDataServicePrivate {
 	SoupSession *session;
@@ -76,7 +78,8 @@ enum {
 	PROP_CLIENT_ID = 1,
 	PROP_USERNAME,
 	PROP_PASSWORD,
-	PROP_AUTHENTICATED
+	PROP_AUTHENTICATED,
+	PROP_PROXY_URI
 };
 
 enum {
@@ -154,6 +157,17 @@ gdata_service_class_init (GDataServiceClass *klass)
 					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 
 	/**
+	 * GDataService:proxy-uri:
+	 *
+	 * The proxy URI used internally for all Internet requests.
+	 **/
+	g_object_class_install_property (gobject_class, PROP_PROXY_URI,
+				g_param_spec_boxed ("proxy-uri",
+					"Proxy URI", "The proxy URI used internally for all Internet requests.",
+					SOUP_TYPE_URI,
+					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
+
+	/**
 	 * GDataService::captcha-challenge:
 	 * @service: the #GDataService which received the challenge
 	 * @uri: the URI of the CAPTCHA image to be used
@@ -178,6 +192,9 @@ gdata_service_init (GDataService *self)
 {
 	self->priv = G_TYPE_INSTANCE_GET_PRIVATE (self, GDATA_TYPE_SERVICE, GDataServicePrivate);
 	self->priv->session = soup_session_sync_new ();
+
+	/* Proxy the SoupSession's proxy-uri property */
+	g_signal_connect (self->priv->session, "notify::proxy-uri", (GCallback) notify_proxy_uri_cb, self);
 }
 
 static void
@@ -225,6 +242,9 @@ gdata_service_get_property (GObject *object, guint property_id, GValue *value, G
 		case PROP_AUTHENTICATED:
 			g_value_set_boolean (value, priv->authenticated);
 			break;
+		case PROP_PROXY_URI:
+			g_value_set_boxed (value, gdata_service_get_proxy (GDATA_SERVICE (object)));
+			break;
 		default:
 			/* We don't have any other property... */
 			G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
@@ -240,6 +260,9 @@ gdata_service_set_property (GObject *object, guint property_id, const GValue *va
 	switch (property_id) {
 		case PROP_CLIENT_ID:
 			priv->client_id = g_value_dup_string (value);
+			break;
+		case PROP_PROXY_URI:
+			gdata_service_set_proxy (GDATA_SERVICE (object), g_value_get_boxed (value));
 			break;
 		default:
 			/* We don't have any other property... */
@@ -1171,6 +1194,33 @@ gdata_service_delete_entry (GDataService *self, GDataEntry *entry, GCancellable 
 	return TRUE;
 }
 
+static void
+notify_proxy_uri_cb (GObject *gobject, GParamSpec *pspec, GObject *self)
+{
+	g_object_notify (self, "proxy-uri");
+}
+
+/**
+ * gdata_service_get_proxy:
+ * @self: a #GDataService
+ *
+ * Gets the proxy URI on the #GDataService's #SoupSession.
+ *
+ * Return value: the proxy URI, or %NULL
+ **/
+SoupURI *
+gdata_service_get_proxy (GDataService *self)
+{
+	SoupURI *proxy_uri;
+
+	g_return_val_if_fail (GDATA_IS_SERVICE (self), NULL);
+
+	g_object_get (self->priv->session, SOUP_SESSION_PROXY_URI, &proxy_uri, NULL);
+	g_object_unref (proxy_uri); /* remove the ref added by g_object_get */
+
+	return proxy_uri;
+}
+
 /**
  * gdata_service_set_proxy:
  * @self: a #GDataService
@@ -1183,7 +1233,8 @@ void
 gdata_service_set_proxy (GDataService *self, SoupURI *proxy_uri)
 {
 	g_return_if_fail (GDATA_IS_SERVICE (self));
-	g_object_set (self->priv->session, SOUP_SESSION_PROXY_URI, proxy_uri, NULL); 
+	g_object_set (self->priv->session, SOUP_SESSION_PROXY_URI, proxy_uri, NULL);
+	g_object_notify (G_OBJECT (self), "proxy-uri");
 }
 
 /**

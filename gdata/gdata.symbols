@@ -1,4 +1,5 @@
 gdata_color_get_type
+gdata_color_from_hexadecimal
 gdata_entry_get_type
 gdata_entry_new
 gdata_entry_new_from_xml
@@ -46,6 +47,7 @@ gdata_service_query_finish
 gdata_service_insert_entry
 gdata_service_update_entry
 gdata_service_delete_entry
+gdata_service_get_proxy
 gdata_service_set_proxy
 gdata_service_is_authenticated
 gdata_service_get_client_id
@@ -74,15 +76,16 @@ gdata_query_get_published_max
 gdata_query_set_published_max
 gdata_query_get_start_index
 gdata_query_set_start_index
-gdata_query_get_strict
-gdata_query_set_strict
+gdata_query_is_strict
+gdata_query_set_is_strict
 gdata_query_get_max_results
 gdata_query_set_max_results
 gdata_query_get_entry_id
 gdata_query_set_entry_id
 gdata_query_get_etag
 gdata_query_set_etag
-g_time_val_get_type
+gdata_g_time_val_get_type
+gdata_soup_uri_get_type
 gdata_category_new
 gdata_category_free
 gdata_link_new
@@ -218,8 +221,8 @@ gdata_calendar_query_get_start_min
 gdata_calendar_query_set_start_min
 gdata_calendar_query_get_start_max
 gdata_calendar_query_set_start_max
-gdata_calendar_query_get_ctz
-gdata_calendar_query_set_ctz
+gdata_calendar_query_get_timezone
+gdata_calendar_query_set_timezone
 gdata_calendar_service_get_type
 gdata_calendar_service_new
 gdata_calendar_service_query_all_calendars
@@ -250,6 +253,7 @@ gdata_gd_organization_new
 gdata_gd_organization_free
 gdata_media_expression_get_type
 gdata_parser_error_get_type
+gdata_parser_error_quark
 gdata_contacts_service_get_type
 gdata_contacts_service_new
 gdata_contacts_service_query_contacts

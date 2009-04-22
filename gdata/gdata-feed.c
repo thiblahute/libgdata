@@ -157,7 +157,7 @@ gdata_feed_class_init (GDataFeedClass *klass)
 	g_object_class_install_property (gobject_class, PROP_UPDATED,
 				g_param_spec_boxed ("updated",
 					"Updated", "The time the feed was last updated.",
-					G_TYPE_TIME_VAL,
+					GDATA_TYPE_G_TIME_VAL,
 					G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
 	/**

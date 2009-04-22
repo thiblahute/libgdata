@@ -99,7 +99,7 @@ gdata_contacts_contact_class_init (GDataContactsContactClass *klass)
 	g_object_class_install_property (gobject_class, PROP_EDITED,
 				g_param_spec_boxed ("edited",
 					"Edited", "The last time the contact was edited.",
-					G_TYPE_TIME_VAL,
+					GDATA_TYPE_G_TIME_VAL,
 					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 
 	/**

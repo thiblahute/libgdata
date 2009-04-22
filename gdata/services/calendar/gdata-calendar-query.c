@@ -116,7 +116,7 @@ gdata_calendar_query_class_init (GDataCalendarQueryClass *klass)
 	g_object_class_install_property (gobject_class, PROP_RECURRENCE_EXPANSION_START,
 				g_param_spec_boxed ("recurrence-expansion-start",
 					"Recurrence expansion start", "Specifies beginning of time period for which to expand recurring events.",
-					G_TYPE_TIME_VAL,
+					GDATA_TYPE_G_TIME_VAL,
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
 	/**
@@ -127,7 +127,7 @@ gdata_calendar_query_class_init (GDataCalendarQueryClass *klass)
 	g_object_class_install_property (gobject_class, PROP_RECURRENCE_EXPANSION_END,
 				g_param_spec_boxed ("recurrence-expansion-end",
 					"Recurrence expansion end", "Specifies end of time period for which to expand recurring events.",
-					G_TYPE_TIME_VAL,
+					GDATA_TYPE_G_TIME_VAL,
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
 	/**
@@ -166,7 +166,7 @@ gdata_calendar_query_class_init (GDataCalendarQueryClass *klass)
 	g_object_class_install_property (gobject_class, PROP_START_MIN,
 				g_param_spec_boxed ("start-min",
 					"Start min", "A timespan such that only events that are within the timespan are returned.",
-					G_TYPE_TIME_VAL,
+					GDATA_TYPE_G_TIME_VAL,
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
 	/**
@@ -182,7 +182,7 @@ gdata_calendar_query_class_init (GDataCalendarQueryClass *klass)
 	g_object_class_install_property (gobject_class, PROP_START_MAX,
 				g_param_spec_boxed ("start-max",
 					"Start max", "A timespan such that only events that are within the timespan are returned.",
-					G_TYPE_TIME_VAL,
+					GDATA_TYPE_G_TIME_VAL,
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
 	/**
