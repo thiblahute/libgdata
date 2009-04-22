@@ -17,6 +17,18 @@
  * License along with GData Client.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * SECTION:gdata-calendar-calendar
+ * @short_description: GData Calendar calendar object
+ * @stability: Unstable
+ * @include: gdata/services/calendar/gdata-calendar-calendar.h
+ *
+ * #GDataCalendarCalendar is a subclass of #GDataEntry to represent a calendar from Google Calendar.
+ *
+ * For more details of Google Calendar's GData API, see the <ulink type="http" url="http://code.google.com/apis/calendar/docs/2.0/reference.html">
+ * online documentation</ulink>.
+ **/
+
 #include <config.h>
 #include <glib.h>
 #include <glib/gi18n-lib.h>
@@ -40,9 +52,9 @@ static void get_namespaces (GDataEntry *entry, GHashTable *namespaces);
 struct _GDataCalendarCalendarPrivate {
 	gchar *timezone;
 	guint times_cleaned;
-	gboolean hidden;
+	gboolean is_hidden;
 	GDataColor colour;
-	gboolean selected;
+	gboolean is_selected;
 	gchar *access_level;
 
 	GTimeVal edited;
@@ -51,9 +63,9 @@ struct _GDataCalendarCalendarPrivate {
 enum {
 	PROP_TIMEZONE = 1,
 	PROP_TIMES_CLEANED,
-	PROP_HIDDEN,
+	PROP_IS_HIDDEN,
 	PROP_COLOR,
-	PROP_SELECTED,
+	PROP_IS_SELECTED,
 	PROP_ACCESS_LEVEL,
 	PROP_EDITED
 };
@@ -77,41 +89,85 @@ gdata_calendar_calendar_class_init (GDataCalendarCalendarClass *klass)
 	entry_class->parse_xml = parse_xml;
 	entry_class->get_namespaces = get_namespaces;
 
+	/**
+	 * GDataCalendarCalendar:timezone:
+	 *
+	 * The timezone in which the calendar's times are given.
+	 **/
 	g_object_class_install_property (gobject_class, PROP_TIMEZONE,
 				g_param_spec_string ("timezone",
-					"Timezone", "TODO",
+					"Timezone", "The timezone in which the calendar's times are given.",
 					NULL,
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * GDataCalendarCalendar:times-cleaned:
+	 *
+	 * The number of times the calendar has been completely cleared of events.
+	 **/
 	g_object_class_install_property (gobject_class, PROP_TIMES_CLEANED,
 				g_param_spec_uint ("times-cleaned",
-					"Times cleaned", "TODO",
+					"Times cleaned", "The number of times the calendar has been completely cleared of events.",
 					0, G_MAXUINT, 0,
-					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
-	g_object_class_install_property (gobject_class, PROP_HIDDEN,
-				g_param_spec_boolean ("hidden",
-					"Hidden", "TODO",
+					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * GDataCalendarCalendar:is-hidden:
+	 *
+	 * Indicates whether the calendar is visible.
+	 **/
+	g_object_class_install_property (gobject_class, PROP_IS_HIDDEN,
+				g_param_spec_boolean ("is-hidden",
+					"Hidden?", "Indicates whether the calendar is visible.",
 					FALSE,
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * GDataCalendarCalendar:color:
+	 *
+	 * The color used to highlight the calendar in the user's browser.
+	 **/
 	g_object_class_install_property (gobject_class, PROP_COLOR,
 				g_param_spec_boxed ("color",
-					"Color", "TODO",
+					"Color", "The color used to highlight the calendar in the user's browser.",
 					GDATA_TYPE_COLOR,
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
-	g_object_class_install_property (gobject_class, PROP_SELECTED,
-				g_param_spec_boolean ("selected",
-					"Selected", "TODO",
+
+	/**
+	 * GDataCalendarCalendar:is-selected:
+	 *
+	 * Indicates whether the calendar is selected.
+	 **/
+	g_object_class_install_property (gobject_class, PROP_IS_SELECTED,
+				g_param_spec_boolean ("is-selected",
+					"Selected?", "Indicates whether the calendar is selected.",
 					FALSE,
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * GDataCalendarCalendar:access-level:
+	 *
+	 * Indicates what level of access the authenticated user has to the calendar.
+	 **/
 	g_object_class_install_property (gobject_class, PROP_ACCESS_LEVEL,
 				g_param_spec_string ("access-level",
-					"Access level", "TODO",
+					"Access level", "Indicates what level of access the authenticated user has to the calendar.",
 					NULL,
-					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * GDataCalendarCalendar:edited:
+	 *
+	 * The last time the calendar was edited. If the calendar has not been edited yet, the content indicates the time it was created.
+	 *
+	 * For more information, see the <ulink type="http" url="http://www.atomenabled.org/developers/protocol/#appEdited">
+	 * Atom Publishing Protocol specification</ulink>.
+	 **/
 	g_object_class_install_property (gobject_class, PROP_EDITED,
 				g_param_spec_boxed ("edited",
-					"Edited", "TODO",
+					"Edited", "The last time the calendar was edited.",
 					G_TYPE_TIME_VAL,
-					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 }
 
 static void
@@ -126,7 +182,7 @@ gdata_calendar_calendar_finalize (GObject *object)
 	GDataCalendarCalendarPrivate *priv = GDATA_CALENDAR_CALENDAR_GET_PRIVATE (object);
 
 	g_free (priv->timezone);
-	g_free (priv->access_level);
+	xmlFree ((xmlChar*) priv->access_level);
 
 	/* Chain up to the parent class */
 	G_OBJECT_CLASS (gdata_calendar_calendar_parent_class)->finalize (object);
@@ -144,14 +200,14 @@ gdata_calendar_calendar_get_property (GObject *object, guint property_id, GValue
 		case PROP_TIMES_CLEANED:
 			g_value_set_uint (value, priv->times_cleaned);
 			break;
-		case PROP_HIDDEN:
-			g_value_set_boolean (value, priv->hidden);
+		case PROP_IS_HIDDEN:
+			g_value_set_boolean (value, priv->is_hidden);
 			break;
 		case PROP_COLOR:
 			g_value_set_boxed (value, &(priv->colour));
 			break;
-		case PROP_SELECTED:
-			g_value_set_boolean (value, priv->selected);
+		case PROP_IS_SELECTED:
+			g_value_set_boolean (value, priv->is_selected);
 			break;
 		case PROP_ACCESS_LEVEL:
 			g_value_set_string (value, priv->access_level);
@@ -175,23 +231,14 @@ gdata_calendar_calendar_set_property (GObject *object, guint property_id, const 
 		case PROP_TIMEZONE:
 			gdata_calendar_calendar_set_timezone (self, g_value_get_string (value));
 			break;
-		case PROP_TIMES_CLEANED:
-			gdata_calendar_calendar_set_times_cleaned (self, g_value_get_uint (value));
-			break;
-		case PROP_HIDDEN:
-			gdata_calendar_calendar_set_hidden (self, g_value_get_boolean (value));
+		case PROP_IS_HIDDEN:
+			gdata_calendar_calendar_set_is_hidden (self, g_value_get_boolean (value));
 			break;
 		case PROP_COLOR:
 			gdata_calendar_calendar_set_color (self, g_value_get_boxed (value));
 			break;
-		case PROP_SELECTED:
-			gdata_calendar_calendar_set_selected (self, g_value_get_boolean (value));
-			break;
-		case PROP_ACCESS_LEVEL:
-			gdata_calendar_calendar_set_access_level (self, g_value_get_string (value));
-			break;
-		case PROP_EDITED:
-			gdata_calendar_calendar_set_edited (self, g_value_get_boxed (value));
+		case PROP_IS_SELECTED:
+			gdata_calendar_calendar_set_is_selected (self, g_value_get_boolean (value));
 			break;
 		default:
 			/* We don't have any other property... */
@@ -200,12 +247,33 @@ gdata_calendar_calendar_set_property (GObject *object, guint property_id, const 
 	}
 }
 
+/**
+ * gdata_calendar_calendar_new:
+ * @id: the calendar's ID, or %NULL
+ *
+ * Creates a new #GDataCalendarCalendar with the given ID and default properties.
+ *
+ * Return value: a new #GDataCalendarCalendar; unref with g_object_unref()
+ **/
 GDataCalendarCalendar *
 gdata_calendar_calendar_new (const gchar *id)
 {
 	return g_object_new (GDATA_TYPE_CALENDAR_CALENDAR, "id", id, NULL);
 }
 
+/**
+ * gdata_calendar_calendar_new_from_xml:
+ * @xml: an XML string
+ * @length: the length in characters of @xml, or %-1
+ * @error: a #GError, or %NULL
+ *
+ * Creates a new #GDataCalendarCalendar from an XML string. If @length is %-1, the length of
+ * the string will be calculated.
+ *
+ * Errors from #GDataParserError can be returned if problems are found in the XML.
+ *
+ * Return value: a new #GDataCalendarCalendar, or %NULL; unref with g_object_unref()
+ **/
 GDataCalendarCalendar *
 gdata_calendar_calendar_new_from_xml (const gchar *xml, gint length, GError **error)
 {
@@ -233,14 +301,14 @@ parse_xml (GDataEntry *entry, xmlDoc *doc, xmlNode *node, GError **error)
 		xmlChar *times_cleaned = xmlGetProp (node, (xmlChar*) "value");
 		if (times_cleaned == NULL)
 			return gdata_parser_error_required_property_missing ("gCal:timesCleaned", "value", error);
-		gdata_calendar_calendar_set_times_cleaned (self, strtoul ((gchar*) times_cleaned, NULL, 10));
+		self->priv->times_cleaned = strtoul ((gchar*) times_cleaned, NULL, 10);
 		xmlFree (times_cleaned);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "hidden") == 0) {
 		/* gCal:hidden */
 		xmlChar *hidden = xmlGetProp (node, (xmlChar*) "value");
 		if (hidden == NULL)
 			return gdata_parser_error_required_property_missing ("gCal:hidden", "value", error);
-		gdata_calendar_calendar_set_hidden (self, (xmlStrcmp (hidden, (xmlChar*) "true") == 0) ? TRUE : FALSE);
+		gdata_calendar_calendar_set_is_hidden (self, (xmlStrcmp (hidden, (xmlChar*) "true") == 0) ? TRUE : FALSE);
 		xmlFree (hidden);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "color") == 0) {
 		/* gCal:color */
@@ -266,29 +334,22 @@ parse_xml (GDataEntry *entry, xmlDoc *doc, xmlNode *node, GError **error)
 		xmlChar *selected = xmlGetProp (node, (xmlChar*) "value");
 		if (selected == NULL)
 			return gdata_parser_error_required_property_missing ("gCal:selected", "value", error);
-		gdata_calendar_calendar_set_selected (self, (xmlStrcmp (selected, (xmlChar*) "true") == 0) ? TRUE : FALSE);
+		gdata_calendar_calendar_set_is_selected (self, (xmlStrcmp (selected, (xmlChar*) "true") == 0) ? TRUE : FALSE);
 		xmlFree (selected);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "accesslevel") == 0) {
 		/* gCal:accesslevel */
-		xmlChar *value = xmlGetProp (node, (xmlChar*) "value");
-		if (value == NULL)
+		self->priv->access_level = (gchar*) xmlGetProp (node, (xmlChar*) "value");
+		if (self->priv->access_level == NULL)
 			return gdata_parser_error_required_property_missing ("gCal:accesslevel", "value", error);
-		gdata_calendar_calendar_set_access_level (self, (gchar*) value);
-		xmlFree (value);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "edited") == 0) {
 		/* app:edited */
-		xmlChar *edited;
-		GTimeVal edited_timeval;
-
-		edited = xmlNodeListGetString (doc, node->xmlChildrenNode, TRUE);
-		if (g_time_val_from_iso8601 ((gchar*) edited, &edited_timeval) == FALSE) {
+		xmlChar *edited = xmlNodeListGetString (doc, node->xmlChildrenNode, TRUE);
+		if (g_time_val_from_iso8601 ((gchar*) edited, &(self->priv->edited)) == FALSE) {
 			/* Error */
 			gdata_parser_error_not_iso8601_format ("app:edited", "entry", (gchar*) edited, error);
 			xmlFree (edited);
 			return FALSE;
 		}
-
-		gdata_calendar_calendar_set_edited (self, &edited_timeval);
 		xmlFree (edited);
 	} else if (GDATA_ENTRY_CLASS (gdata_calendar_calendar_parent_class)->parse_xml (entry, doc, node, error) == FALSE) {
 		/* Error! */
@@ -329,6 +390,14 @@ get_namespaces (GDataEntry *entry, GHashTable *namespaces)
 	g_hash_table_insert (namespaces, (gchar*) "app", (gchar*) "http://www.w3.org/2007/app");
 }
 
+/**
+ * gdata_calendar_calendar_get_timezone:
+ * @self: a #GDataCalendarCalendar
+ *
+ * Gets the #GDataCalendarCalendar:timezone property.
+ *
+ * Return value: the calendar's timezone, or %NULL
+ **/
 const gchar *
 gdata_calendar_calendar_get_timezone (GDataCalendarCalendar *self)
 {
@@ -336,10 +405,19 @@ gdata_calendar_calendar_get_timezone (GDataCalendarCalendar *self)
 	return self->priv->timezone;
 }
 
-/* Blame "timezone" in /usr/include/time.h:291 for the weird parameter naming */
+/**
+ * gdata_calendar_calendar_set_timezone:
+ * @self: a #GDataCalendarCalendar
+ * @_timezone: a new timezone, or %NULL
+ *
+ * Sets the #GDataCalendarCalendar:timezone property to the new timezone, @_timezone.
+ *
+ * Set @_timezone to %NULL to unset the property in the calendar.
+ **/
 void
 gdata_calendar_calendar_set_timezone (GDataCalendarCalendar *self, const gchar *_timezone)
 {
+	/* Blame "timezone" in /usr/include/time.h:291 for the weird parameter naming */
 	g_return_if_fail (GDATA_IS_CALENDAR_CALENDAR (self));
 
 	g_free (self->priv->timezone);
@@ -347,6 +425,14 @@ gdata_calendar_calendar_set_timezone (GDataCalendarCalendar *self, const gchar *
 	g_object_notify (G_OBJECT (self), "timezone");
 }
 
+/**
+ * gdata_calendar_calendar_get_times_cleaned:
+ * @self: a #GDataCalendarCalendar
+ *
+ * Gets the #GDataCalendarCalendar:times-cleaned property.
+ *
+ * Return value: the number of times the calendar has been totally emptied
+ **/
 guint
 gdata_calendar_calendar_get_times_cleaned (GDataCalendarCalendar *self)
 {
@@ -354,67 +440,105 @@ gdata_calendar_calendar_get_times_cleaned (GDataCalendarCalendar *self)
 	return self->priv->times_cleaned;
 }
 
-void
-gdata_calendar_calendar_set_times_cleaned (GDataCalendarCalendar *self, guint times_cleaned)
-{
-	g_return_if_fail (GDATA_IS_CALENDAR_CALENDAR (self));
-	self->priv->times_cleaned = times_cleaned;
-	g_object_notify (G_OBJECT (self), "times-cleaned");
-}
-
+/**
+ * gdata_calendar_calendar_is_hidden:
+ * @self: a #GDataCalendarCalendar
+ *
+ * Gets the #GDataCalendarCalendar:is-hidden property.
+ *
+ * Return value: %TRUE if the calendar is hidden, %FALSE otherwise
+ **/
 gboolean
-gdata_calendar_calendar_get_hidden (GDataCalendarCalendar *self)
+gdata_calendar_calendar_is_hidden (GDataCalendarCalendar *self)
 {
 	g_return_val_if_fail (GDATA_IS_CALENDAR_CALENDAR (self), 0);
-	return self->priv->hidden;
+	return self->priv->is_hidden;
 }
 
+/**
+ * gdata_calendar_calendar_set_is_hidden:
+ * @self: a #GDataCalendarCalendar
+ * @is_hidden: %TRUE to hide the calendar, %FALSE otherwise
+ *
+ * Sets the #GDataCalendarCalendar:is-hidden property to @is_hidden.
+ **/
 void
-gdata_calendar_calendar_set_hidden (GDataCalendarCalendar *self, gboolean hidden)
+gdata_calendar_calendar_set_is_hidden (GDataCalendarCalendar *self, gboolean is_hidden)
 {
 	g_return_if_fail (GDATA_IS_CALENDAR_CALENDAR (self));
-	self->priv->hidden = hidden;
-	g_object_notify (G_OBJECT (self), "hidden");
+	self->priv->is_hidden = is_hidden;
+	g_object_notify (G_OBJECT (self), "is-hidden");
 }
 
+/**
+ * gdata_calendar_calendar_get_color:
+ * @self: a #GDataCalendarCalendar
+ * @color: a #GDataColor
+ *
+ * Gets the #GDataCalendarCalendar:color property and puts it in @color.
+ **/
 void
 gdata_calendar_calendar_get_color (GDataCalendarCalendar *self, GDataColor *color)
 {
 	g_return_if_fail (GDATA_IS_CALENDAR_CALENDAR (self));
 	g_return_if_fail (color != NULL);
-
-	color->red = self->priv->colour.red;
-	color->blue = self->priv->colour.blue;
-	color->green = self->priv->colour.green;
+	*color = self->priv->colour;
 }
 
+/**
+ * gdata_calendar_calendar_set_color:
+ * @self: a #GDataCalendarCalendar
+ * @color: a new #GDataColor
+ *
+ * Sets the #GDataCalendarCalendar:color property to @color.
+ **/
 void
 gdata_calendar_calendar_set_color (GDataCalendarCalendar *self, GDataColor *color)
 {
 	g_return_if_fail (GDATA_IS_CALENDAR_CALENDAR (self));
 	g_return_if_fail (color != NULL);
-
-	self->priv->colour.red = color->red;
-	self->priv->colour.blue = color->blue;
-	self->priv->colour.green = color->green;
+	self->priv->colour = *color;
 	g_object_notify (G_OBJECT (self), "color");
 }
 
+/**
+ * gdata_calendar_calendar_is_selected:
+ * @self: a #GDataCalendarCalendar
+ *
+ * Gets the #GDataCalendarCalendar:is-selected property.
+ *
+ * Return value: %TRUE if the calendar is selected, %FALSE otherwise
+ **/
 gboolean
-gdata_calendar_calendar_get_selected (GDataCalendarCalendar *self)
+gdata_calendar_calendar_is_selected (GDataCalendarCalendar *self)
 {
 	g_return_val_if_fail (GDATA_IS_CALENDAR_CALENDAR (self), 0);
-	return self->priv->selected;
+	return self->priv->is_selected;
 }
 
+/**
+ * gdata_calendar_calendar_set_is_selected:
+ * @self: a #GDataCalendarCalendar
+ * @is_selected: %TRUE to select the calendar, %FALSE otherwise
+ *
+ * Sets the #GDataCalendarCalendar:is-selected property to @is_selected.
+ **/
 void
-gdata_calendar_calendar_set_selected (GDataCalendarCalendar *self, gboolean selected)
+gdata_calendar_calendar_set_is_selected (GDataCalendarCalendar *self, gboolean is_selected)
 {
 	g_return_if_fail (GDATA_IS_CALENDAR_CALENDAR (self));
-	self->priv->selected = selected;
-	g_object_notify (G_OBJECT (self), "selected");
+	self->priv->is_selected = is_selected;
+	g_object_notify (G_OBJECT (self), "is-selected");
 }
 
+/**
+ * gdata_calendar_calendar_get_access_level:
+ * @self: a #GDataCalendarCalendar
+ *
+ * Gets the #GDataCalendarCalendar:access-level property.
+ *
+ * Return value: the authenticated user's access level to the calendar, or %NULL
+ **/
 const gchar *
 gdata_calendar_calendar_get_access_level (GDataCalendarCalendar *self)
 {
@@ -422,29 +546,18 @@ gdata_calendar_calendar_get_access_level (GDataCalendarCalendar *self)
 	return self->priv->access_level;
 }
 
-void
-gdata_calendar_calendar_set_access_level (GDataCalendarCalendar *self, const gchar *access_level)
-{
-	g_return_if_fail (GDATA_IS_CALENDAR_CALENDAR (self));
-
-	g_free (self->priv->access_level);
-	self->priv->access_level = g_strdup (access_level);
-	g_object_notify (G_OBJECT (self), "access-level");
-}
-
+/**
+ * gdata_calendar_calendar_get_edited:
+ * @self: a #GDataCalendarCalendar
+ * @edited: a #GTimeVal
+ *
+ * Gets the #GDataCalendarCalendar:edited property and puts it in @edited. If the property is unset,
+ * both fields in the #GTimeVal will be set to 0.
+ **/
 void
 gdata_calendar_calendar_get_edited (GDataCalendarCalendar *self, GTimeVal *edited)
 {
 	g_return_if_fail (GDATA_IS_CALENDAR_CALENDAR (self));
 	g_return_if_fail (edited != NULL);
 	*edited = self->priv->edited;
-}
-
-void
-gdata_calendar_calendar_set_edited (GDataCalendarCalendar *self, GTimeVal *edited)
-{
-	g_return_if_fail (GDATA_IS_CALENDAR_CALENDAR (self));
-	g_return_if_fail (edited != NULL);
-	self->priv->edited = *edited;
-	g_object_notify (G_OBJECT (self), "edited");
 }

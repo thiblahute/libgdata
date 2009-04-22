@@ -38,12 +38,23 @@ G_BEGIN_DECLS
 
 typedef struct _GDataCalendarCalendarPrivate	GDataCalendarCalendarPrivate;
 
+/**
+ * GDataCalendarCalendar:
+ *
+ * All the fields in the #GDataCalendarCalendar structure are private and should never be accessed directly.
+ **/
 typedef struct {
 	GDataEntry parent;
 	GDataCalendarCalendarPrivate *priv;
 } GDataCalendarCalendar;
 
+/**
+ * GDataCalendarCalendarClass:
+ *
+ * All the fields in the #GDataCalendarCalendarClass structure are private and should never be accessed directly.
+ **/
 typedef struct {
+	/*< private >*/
 	GDataEntryClass parent;
 } GDataCalendarCalendarClass;
 
@@ -55,15 +66,13 @@ GDataCalendarCalendar *gdata_calendar_calendar_new_from_xml (const gchar *xml, g
 const gchar *gdata_calendar_calendar_get_timezone (GDataCalendarCalendar *self);
 void gdata_calendar_calendar_set_timezone (GDataCalendarCalendar *self, const gchar *_timezone);
 guint gdata_calendar_calendar_get_times_cleaned (GDataCalendarCalendar *self);
-void gdata_calendar_calendar_set_times_cleaned (GDataCalendarCalendar *self, guint times_cleaned);
-gboolean gdata_calendar_calendar_get_hidden (GDataCalendarCalendar *self);
-void gdata_calendar_calendar_set_hidden (GDataCalendarCalendar *self, gboolean hidden);
+gboolean gdata_calendar_calendar_is_hidden (GDataCalendarCalendar *self);
+void gdata_calendar_calendar_set_is_hidden (GDataCalendarCalendar *self, gboolean is_hidden);
 void gdata_calendar_calendar_get_color (GDataCalendarCalendar *self, GDataColor *color);
 void gdata_calendar_calendar_set_color (GDataCalendarCalendar *self, GDataColor *color);
-gboolean gdata_calendar_calendar_get_selected (GDataCalendarCalendar *self);
-void gdata_calendar_calendar_set_selected (GDataCalendarCalendar *self, gboolean selected);
+gboolean gdata_calendar_calendar_is_selected (GDataCalendarCalendar *self);
+void gdata_calendar_calendar_set_is_selected (GDataCalendarCalendar *self, gboolean is_selected);
 const gchar *gdata_calendar_calendar_get_access_level (GDataCalendarCalendar *self);
-void gdata_calendar_calendar_set_access_level (GDataCalendarCalendar *self, const gchar *access_level);
 void gdata_calendar_calendar_get_edited (GDataCalendarCalendar *self, GTimeVal *edited);
 void gdata_calendar_calendar_set_edited (GDataCalendarCalendar *self, GTimeVal *edited);
 
