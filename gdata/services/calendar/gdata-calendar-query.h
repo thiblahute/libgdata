@@ -37,12 +37,23 @@ G_BEGIN_DECLS
 
 typedef struct _GDataCalendarQueryPrivate	GDataCalendarQueryPrivate;
 
+/**
+ * GDataCalendarQuery:
+ *
+ * All the fields in the #GDataCalendarQuery structure are private and should never be accessed directly.
+ **/
 typedef struct {
 	GDataQuery parent;
 	GDataCalendarQueryPrivate *priv;
 } GDataCalendarQuery;
 
+/**
+ * GDataCalendarQueryClass:
+ *
+ * All the fields in the #GDataCalendarQueryClass structure are private and should never be accessed directly.
+ **/
 typedef struct {
+	/*< private >*/
 	GDataQueryClass parent;
 } GDataCalendarQueryClass;
 
@@ -67,8 +78,8 @@ void gdata_calendar_query_get_start_min (GDataCalendarQuery *self, GTimeVal *sta
 void gdata_calendar_query_set_start_min (GDataCalendarQuery *self, GTimeVal *start_min);
 void gdata_calendar_query_get_start_max (GDataCalendarQuery *self, GTimeVal *start_max);
 void gdata_calendar_query_set_start_max (GDataCalendarQuery *self, GTimeVal *start_max);
-const gchar *gdata_calendar_query_get_ctz (GDataCalendarQuery *self);
-void gdata_calendar_query_set_ctz (GDataCalendarQuery *self, const gchar *ctz);
+const gchar *gdata_calendar_query_get_timezone (GDataCalendarQuery *self);
+void gdata_calendar_query_set_timezone (GDataCalendarQuery *self, const gchar *_timezone);
 
 G_END_DECLS
 

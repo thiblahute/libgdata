@@ -32,6 +32,12 @@
 	</chapter>
 
 	<chapter>
+		<title>Google Calendar API</title>
+		<xi:include href="xml/gdata-calendar-service.xml"/>
+		<xi:include href="xml/gdata-calendar-query.xml"/>
+	</chapter>
+
+	<chapter>
 		<title>Google Contacts API</title>
 		<xi:include href="xml/gdata-contacts-service.xml"/>
 		<xi:include href="xml/gdata-contacts-query.xml"/>

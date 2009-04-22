@@ -37,11 +37,22 @@ G_BEGIN_DECLS
 
 typedef struct _GDataCalendarServicePrivate	GDataCalendarServicePrivate;
 
+/**
+ * GDataCalendarService:
+ *
+ * All the fields in the #GDataCalendarService structure are private and should never be accessed directly.
+ **/
 typedef struct {
 	GDataService parent;
 } GDataCalendarService;
 
+/**
+ * GDataCalendarServiceClass:
+ *
+ * All the fields in the #GDataCalendarServiceClass structure are private and should never be accessed directly.
+ **/
 typedef struct {
+	/*< private >*/
 	GDataServiceClass parent;
 } GDataCalendarServiceClass;
 

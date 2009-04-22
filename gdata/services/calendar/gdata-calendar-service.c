@@ -17,6 +17,19 @@
  * License along with GData Client.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * SECTION:gdata-calendar-service
+ * @short_description: GData Calendar service object
+ * @stability: Unstable
+ * @include: gdata/services/calendar/gdata-calendar-service.h
+ *
+ * #GDataCalendarService is a subclass of #GDataService for communicating with the GData API of Google Calendar. It supports querying
+ * for, inserting, editing and deleting events from calendars, as well as operations on the calendars themselves.
+ *
+ * For more details of Google Calendar's GData API, see the <ulink type="http" url="http://code.google.com/apis/calendar/docs/2.0/reference.html">
+ * online documentation</ulink>.
+ **/
+
 #include <config.h>
 #include <glib.h>
 #include <glib/gi18n-lib.h>
@@ -46,6 +59,14 @@ gdata_calendar_service_init (GDataCalendarService *self)
 	/* Nothing to see here */
 }
 
+/**
+ * gdata_calendar_service_new:
+ * @client_id: your application's client ID
+ *
+ * Creates a new #GDataCalendarService. The @client_id must be unique for your application, and as registered with Google.
+ *
+ * Return value: a new #GDataCalendarService, or %NULL
+ **/
 GDataCalendarService *
 gdata_calendar_service_new (const gchar *client_id)
 {
@@ -56,6 +77,23 @@ gdata_calendar_service_new (const gchar *client_id)
 			     NULL);
 }
 
+/**
+ * gdata_calendar_service_query_all_calendars:
+ * @self: a #GDataCalendarService
+ * @query: a #GDataCalendarQuery with the query parameters, or %NULL
+ * @cancellable: optional #GCancellable object, or %NULL
+ * @progress_callback: a #GDataQueryProgressCallback to call when an entry is loaded, or %NULL
+ * @progress_user_data: data to pass to the @progress_callback function
+ * @error: a #GError, or %NULL
+ *
+ * Queries the service to return a list of all calendars from the authenticated account which match the given
+ * @query. It will return all calendars the user has read access to, including primary, secondary and imported
+ * calendars.
+ *
+ * For more details, see gdata_service_query().
+ *
+ * Return value: a #GDataFeed of query results; unref with g_object_unref()
+ **/
 GDataFeed *
 gdata_calendar_service_query_all_calendars (GDataCalendarService *self, GDataCalendarQuery *query, GCancellable *cancellable,
 					    GDataQueryProgressCallback progress_callback, gpointer progress_user_data, GError **error)
@@ -71,6 +109,23 @@ gdata_calendar_service_query_all_calendars (GDataCalendarService *self, GDataCal
 				    GDATA_TYPE_CALENDAR_CALENDAR, cancellable, progress_callback, progress_user_data, error);
 }
 
+/**
+ * gdata_calendar_service_query_all_calendars_async:
+ * @self: a #GDataCalendarService
+ * @query: a #GDataCalendarQuery with the query parameters, or %NULL
+ * @cancellable: optional #GCancellable object, or %NULL
+ * @progress_callback: a #GDataQueryProgressCallback to call when an entry is loaded, or %NULL
+ * @progress_user_data: data to pass to the @progress_callback function
+ * @callback: a #GAsyncReadyCallback to call when authentication is finished
+ * @user_data: data to pass to the @callback function
+ *
+ * Queries the service to return a list of all calendars from the authenticated account which match the given
+ * @query. @self and @query are all reffed when this function is called, so can safely be unreffed after
+ * this function returns.
+ *
+ * For more details, see gdata_calendar_service_query_all_calendars(), which is the synchronous version of
+ * this function, and gdata_service_query_async(), which is the base asynchronous query function.
+ **/
 void
 gdata_calendar_service_query_all_calendars_async (GDataCalendarService *self, GDataCalendarQuery *query, GCancellable *cancellable,
 						  GDataQueryProgressCallback progress_callback, gpointer progress_user_data,
@@ -88,6 +143,23 @@ gdata_calendar_service_query_all_calendars_async (GDataCalendarService *self, GD
 				   GDATA_TYPE_CALENDAR_CALENDAR, cancellable, progress_callback, progress_user_data, callback, user_data);
 }
 
+/**
+ * gdata_calendar_service_query_own_calendars:
+ * @self: a #GDataCalendarService
+ * @query: a #GDataCalendarQuery with the query parameters, or %NULL
+ * @cancellable: optional #GCancellable object, or %NULL
+ * @progress_callback: a #GDataQueryProgressCallback to call when an entry is loaded, or %NULL
+ * @progress_user_data: data to pass to the @progress_callback function
+ * @error: a #GError, or %NULL
+ *
+ * Queries the service to return a list of calendars from the authenticated account which match the given
+ * @query, and the authenticated user owns. (i.e. They have full read/write access to the calendar, as well
+ * as the ability to set permissions on the calendar.)
+ *
+ * For more details, see gdata_service_query().
+ *
+ * Return value: a #GDataFeed of query results; unref with g_object_unref()
+ **/
 GDataFeed *
 gdata_calendar_service_query_own_calendars (GDataCalendarService *self, GDataCalendarQuery *query, GCancellable *cancellable,
 					    GDataQueryProgressCallback progress_callback, gpointer progress_user_data, GError **error)
@@ -103,6 +175,23 @@ gdata_calendar_service_query_own_calendars (GDataCalendarService *self, GDataCal
 				    GDATA_TYPE_CALENDAR_CALENDAR, cancellable, progress_callback, progress_user_data, error);
 }
 
+/**
+ * gdata_calendar_service_query_own_calendars_async:
+ * @self: a #GDataCalendarService
+ * @query: a #GDataCalendarQuery with the query parameters, or %NULL
+ * @cancellable: optional #GCancellable object, or %NULL
+ * @progress_callback: a #GDataQueryProgressCallback to call when an entry is loaded, or %NULL
+ * @progress_user_data: data to pass to the @progress_callback function
+ * @callback: a #GAsyncReadyCallback to call when authentication is finished
+ * @user_data: data to pass to the @callback function
+ *
+ * Queries the service to return a list of calendars from the authenticated account which match the given
+ * @query, and the authenticated user owns. @self and @query are all reffed when this function is called,
+ * so can safely be unreffed after this function returns.
+ *
+ * For more details, see gdata_calendar_service_query_own_calendars(), which is the synchronous version of
+ * this function, and gdata_service_query_async(), which is the base asynchronous query function.
+ **/
 void
 gdata_calendar_service_query_own_calendars_async (GDataCalendarService *self, GDataCalendarQuery *query, GCancellable *cancellable,
 						  GDataQueryProgressCallback progress_callback, gpointer progress_user_data,
@@ -120,11 +209,27 @@ gdata_calendar_service_query_own_calendars_async (GDataCalendarService *self, GD
 				   GDATA_TYPE_CALENDAR_CALENDAR, cancellable, progress_callback, progress_user_data, callback, user_data);
 }
 
-/* TODO: Async variant */
+/**
+ * gdata_calendar_service_query_events:
+ * @self: a #GDataCalendarService
+ * @calendar: a #GDataCalendarCalendar
+ * @query: a #GDataCalendarQuery with the query parameters, or %NULL
+ * @cancellable: optional #GCancellable object, or %NULL
+ * @progress_callback: a #GDataQueryProgressCallback to call when an entry is loaded, or %NULL
+ * @progress_user_data: data to pass to the @progress_callback function
+ * @error: a #GError, or %NULL
+ *
+ * Queries the service to return a list of events in the given @calendar, which match @query.
+ *
+ * For more details, see gdata_service_query().
+ *
+ * Return value: a #GDataFeed of query results; unref with g_object_unref()
+ **/
 GDataFeed *
 gdata_calendar_service_query_events (GDataCalendarService *self, GDataCalendarCalendar *calendar, GDataCalendarQuery *query, GCancellable *cancellable,
 				     GDataQueryProgressCallback progress_callback, gpointer progress_user_data, GError **error)
 {
+	/* TODO: Async variant */
 	const gchar *uri;
 
 	/* Ensure we're authenticated first */
@@ -148,10 +253,24 @@ gdata_calendar_service_query_events (GDataCalendarService *self, GDataCalendarCa
 				    progress_callback, progress_user_data, error);
 }
 
-/* TODO: Async variant */
+/**
+ * gdata_calendar_service_insert_event:
+ * @self: a #GDataCalendarService
+ * @event: the #GDataCalendarEvent to insert
+ * @cancellable: optional #GCancellable object, or %NULL
+ * @error: a #GError, or %NULL
+ *
+ * Inserts @event by uploading it to the online calendar service.
+ *
+ * For more details, see gdata_service_insert_entry().
+ *
+ * Return value: an updated #GDataCalendarEvent, or %NULL
+ **/
 GDataCalendarEvent *
 gdata_calendar_service_insert_event (GDataCalendarService *self, GDataCalendarEvent *event, GCancellable *cancellable, GError **error)
 {
+	/* TODO: Async variant */
+	/* TODO: How do we choose which calendar? */
 	gchar *uri;
 	GDataEntry *entry;
 
