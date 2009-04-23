@@ -27,6 +27,15 @@ G_BEGIN_DECLS
 #define GDATA_TYPE_G_TIME_VAL (gdata_g_time_val_get_type ())
 GType gdata_g_time_val_get_type (void) G_GNUC_CONST;
 
+/**
+ * GDataColor:
+ * @red: red color intensity, from 0–255
+ * @green: green color intensity, from 0–255
+ * @blue: blue color intensity, from 0–255
+ *
+ * Describes a color, such as used in the Google Calendar interface to
+ * differentiate calendars.
+ **/
 typedef struct {
 	guint16 red;
 	guint16 green;

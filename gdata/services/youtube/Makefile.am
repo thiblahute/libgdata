@@ -9,8 +9,10 @@ gdata-youtube-enums.h: $(gdatayoutubeinclude_HEADERS) Makefile
 			--fprod "/* enumerations from \"@filename@\" */\n" \
 			--vhead "GType @enum_name@_get_type (void) G_GNUC_CONST;\n#define GDATA_TYPE_@ENUMSHORT@ (@enum_name@_get_type())\n" \
 			--ftail "G_END_DECLS\n\n#endif /* !GDATA_YOUTUBE_ENUMS_H */" $(gdatayoutubeinclude_HEADERS)) > gdata-youtube-enums.h.tmp \
-	&& sed "s/g_data_you_tube/gdata_youtube/" gdata-youtube-enums.h.tmp > gdata-youtube-enums.h \
-	&& rm -f gdata-youtube-enums.h.tmp
+	&& sed "s/g_data_you_tube/gdata_youtube/" gdata-youtube-enums.h.tmp > gdata-youtube-enums.h.tmp2 \
+	&& sed "s/GDATA_TYPE_DATA_YOU_TUBE/GDATA_TYPE_YOUTUBE/" gdata-youtube-enums.h.tmp2 > gdata-youtube-enums.h \
+	&& rm -f gdata-youtube-enums.h.tmp \
+	&& rm -f gdata-youtube-enums.h.tmp2
 
 gdata-youtube-enums.c: $(gdatayoutubeinclude_HEADERS) Makefile gdata-youtube-enums.h
 	(cd $(srcdir) && $(GLIB_MKENUMS) \

@@ -17,6 +17,7 @@
 		<xi:include href="xml/gdata-query.xml"/>
 		<xi:include href="xml/gdata-feed.xml"/>
 		<xi:include href="xml/gdata-entry.xml"/>
+		<xi:include href="xml/gdata-types.xml"/>
 	</chapter>
 
 	<chapter>

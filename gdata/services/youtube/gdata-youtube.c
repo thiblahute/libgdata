@@ -17,6 +17,17 @@
  * License along with GData Client.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * SECTION:gdata-youtube
+ * @short_description: YouTube namespace API
+ * @stability: Unstable
+ * @include: gdata/services/youtube/gdata-youtube.h
+ *
+ * The structures here represent several core elements in the
+ * <ulink type="http" url="http://code.google.com/apis/youtube/2.0/reference.html#YouTube_elements_reference">YouTube specification</ulink>
+ * which are used exclusively in the YouTube API.
+ **/
+
 #include "gdata-youtube.h"
 
 /**

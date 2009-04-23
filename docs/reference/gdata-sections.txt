@@ -253,6 +253,8 @@ gdata_youtube_service_upload_video
 gdata_youtube_service_get_developer_key
 gdata_youtube_service_get_youtube_user
 <SUBSECTION Standard>
+GDATA_TYPE_YOUTUBE_SERVICE_ERROR
+GDATA_TYPE_YOUTUBE_STANDARD_FEED_TYPE
 GDATA_YOUTUBE_SERVICE
 GDATA_YOUTUBE_SERVICE_CLASS
 GDATA_YOUTUBE_SERVICE_ERROR
@@ -547,4 +549,16 @@ GDATA_IS_CALENDAR_EVENT_CLASS
 GDATA_TYPE_CALENDAR_EVENT
 <SUBSECTION Private>
 GDataCalendarEventPrivate
+</SECTION>
+
+<SECTION>
+<FILE>gdata-types</FILE>
+<TITLE>GData Types</TITLE>
+GDataColor
+gdata_color_from_hexadecimal
+<SUBSECTION Standard>
+GDATA_TYPE_COLOR
+GDATA_TYPE_G_TIME_VAL
+gdata_color_get_type
+gdata_g_time_val_get_type
 </SECTION>

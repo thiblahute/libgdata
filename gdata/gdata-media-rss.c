@@ -17,13 +17,21 @@
  * License along with GData Client.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * SECTION:gdata-media
+ * @short_description: Media RSS namespace API
+ * @stability: Unstable
+ * @include: gdata/gdata-media-rss.h
+ *
+ * The structures here represent several core elements in the
+ * <ulink type="http" url="http://search.yahoo.com/mrss/">Media RSS specification</ulink> which are used
+ * in some media-related GData APIs, in particular the YouTube API.
+ **/
+
 #include <stdlib.h>
 #include <string.h>
 
 #include "gdata-media-rss.h"
-
-/* This may have been subverted by Google for the YouTube API, but it was actually originally
- * designed by Yahoo. Standards reference here: http://search.yahoo.com/mrss/ */
 
 /**
  * gdata_media_rating_new:

@@ -17,6 +17,16 @@
  * License along with GData Client.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * SECTION:gdata-types
+ * @short_description: miscellaneous data types
+ * @stability: Unstable
+ * @include: gdata/gdata-types.h
+ *
+ * The structures here are used haphazardly across the library, describing
+ * various small data types.
+ **/
+
 #include <glib.h>
 #include <glib-object.h>
 #include <string.h>
@@ -65,15 +75,34 @@ gdata_color_get_type (void)
 	return type_id;
 }
 
+/**
+ * gdata_color_from_hexadecimal:
+ * @hexadecimal: a hexadecimal color string
+ * @color: a #GDataColor
+ *
+ * Parses @hexadecimal and returns a #GDataColor describing it in @color.
+ *
+ * @hexadecimal should be in the form <literal>#<replaceable>rr</replaceable><replaceable>gg</replaceable><replaceable>bb</replaceable></literal>,
+ * where <replaceable>rr</replaceable> is a two-digit hexadecimal red intensity value, <replaceable>gg</replaceable> is green
+ * and <replaceable>bb</replaceable> is blue. The hash is optional.
+ *
+ * Return value: %TRUE on success, %FALSE otherwise
+ **/
 gboolean
 gdata_color_from_hexadecimal (const gchar *hexadecimal, GDataColor *color)
 {
-	gchar *hex = (gchar*) hexadecimal;
+	gchar *hex;
 
+	g_return_val_if_fail (hexadecimal != NULL, FALSE);
+	g_return_val_if_fail (color != NULL, FALSE);
+
+	hex = g_strdup (hexadecimal);
 	if (*hex == '#')
 		hex++;
-	if (strlen (hex) != 6)
+	if (strlen (hex) != 6) {
+		g_free (hex);
 		return FALSE;
+	}
 
 	/* This is horrible and hacky, but should work */
 	color->blue = strtoul (hex + 4, NULL, 16);
@@ -81,6 +110,8 @@ gdata_color_from_hexadecimal (const gchar *hexadecimal, GDataColor *color)
 	color->green = strtoul (hex + 2, NULL, 16);
 	*(hex + 2) = '\0';
 	color->red = strtoul (hex, NULL, 16);
+
+	g_free (hex);
 
 	return TRUE;
 }
