@@ -88,6 +88,7 @@ void gdata_calendar_event_add_place (GDataCalendarEvent *self, GDataGDWhere *whe
 GList *gdata_calendar_event_get_places (GDataCalendarEvent *self);
 void gdata_calendar_event_add_time (GDataCalendarEvent *self, GDataGDWhen *when);
 GList *gdata_calendar_event_get_times (GDataCalendarEvent *self);
+gboolean gdata_calendar_event_get_primary_time (GDataCalendarEvent *self, GTimeVal *start_time, GTimeVal *end_time, GDataGDWhen **when);
 
 G_END_DECLS
 

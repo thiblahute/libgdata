@@ -1081,3 +1081,39 @@ gdata_calendar_event_get_times (GDataCalendarEvent *self)
 	g_return_val_if_fail (GDATA_IS_CALENDAR_EVENT (self), NULL);
 	return self->priv->times;
 }
+
+/**
+ * gdata_calendar_event_get_primary_time:
+ * @self: a #GDataCalendarEvent
+ * @start_time: a #GTimeVal for the start time, or %NULL
+ * @end_time: a #GTimeVal for the end time, or %NULL
+ * @when: a #GDataGDWhen for the primary time structure, or %NULL
+ *
+ * Gets the first time period associated with the event, conveniently returning just its start and
+ * end times if required.
+ *
+ * If there are no time periods, or more than one time period, associated with the event, %FALSE will
+ * be returned, and the parameters will remain unmodified.
+ *
+ * Return value: %TRUE if there is only one time period associated with the event, %FALSE otherwise
+ **/
+gboolean
+gdata_calendar_event_get_primary_time (GDataCalendarEvent *self, GTimeVal *start_time, GTimeVal *end_time, GDataGDWhen **when)
+{
+	GDataGDWhen *primary_when;
+
+	g_return_val_if_fail (GDATA_IS_CALENDAR_EVENT (self), FALSE);
+
+	if (self->priv->times == NULL || self->priv->times->next != NULL)
+		return FALSE;
+
+	primary_when = (GDataGDWhen*) self->priv->times->data;
+	if (start_time != NULL)
+		*start_time = primary_when->start_time;
+	if (end_time != NULL)
+		*end_time = primary_when->end_time;
+	if (when != NULL)
+		*when = primary_when;
+
+	return TRUE;
+}
