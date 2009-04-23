@@ -466,10 +466,13 @@ parse_xml (GDataEntry *entry, xmlDoc *doc, xmlNode *node, GError **error)
 		xmlChar *start_time, *end_time, *value_string;
 		GTimeVal start_time_timeval, end_time_timeval;
 		GDataGDWhen *when;
+		gboolean is_date = FALSE;
 
 		/* Start time */
 		start_time = xmlGetProp (node, (xmlChar*) "startTime");
-		if (g_time_val_from_iso8601 ((gchar*) start_time, &start_time_timeval) == FALSE) {
+		if (gdata_parser_time_val_from_date ((gchar*) start_time, &start_time_timeval) == TRUE) {
+			is_date = TRUE;
+		} else if (g_time_val_from_iso8601 ((gchar*) start_time, &start_time_timeval) == FALSE) {
 			/* Error */
 			gdata_parser_error_not_iso8601_format ("gd:when", "entry", (gchar*) start_time, error);
 			xmlFree (start_time);
@@ -480,7 +483,14 @@ parse_xml (GDataEntry *entry, xmlDoc *doc, xmlNode *node, GError **error)
 		/* End time (optional) */
 		end_time = xmlGetProp (node, (xmlChar*) "endTime");
 		if (end_time != NULL) {
-			if (g_time_val_from_iso8601 ((gchar*) end_time, &end_time_timeval) == FALSE) {
+			gboolean success;
+
+			if (is_date == TRUE)
+				success = gdata_parser_time_val_from_date ((gchar*) end_time, &end_time_timeval);
+			else
+				success = g_time_val_from_iso8601 ((gchar*) end_time, &end_time_timeval);
+
+			if (success == FALSE) {
 				/* Error */
 				gdata_parser_error_not_iso8601_format ("gd:when", "entry", (gchar*) end_time, error);
 				xmlFree (end_time);
@@ -490,7 +500,7 @@ parse_xml (GDataEntry *entry, xmlDoc *doc, xmlNode *node, GError **error)
 		}
 
 		value_string = xmlGetProp (node, (xmlChar*) "value");
-		when = gdata_gd_when_new (&start_time_timeval, (end_time == NULL) ? NULL : &end_time_timeval, (gchar*) value_string, NULL);
+		when = gdata_gd_when_new (&start_time_timeval, (end_time == NULL) ? NULL : &end_time_timeval, is_date, (gchar*) value_string, NULL);
 		xmlFree (value_string);
 
 		gdata_calendar_event_add_time (self, when);
@@ -613,14 +623,25 @@ get_xml (GDataEntry *entry, GString *xml_string)
 		g_string_append (xml_string, "<gCal:anyoneCanAddSelf value='false'/>");
 
 	for (i = priv->times; i != NULL; i = i->next) {
+		gchar *start_time;
 		GDataGDWhen *when = (GDataGDWhen*) i->data;
 
-		gchar *start_time = g_time_val_to_iso8601 (&(when->start_time));
+		if (when->is_date == TRUE)
+			start_time = gdata_parser_date_from_time_val (&(when->start_time));
+		else
+			start_time = g_time_val_to_iso8601 (&(when->start_time));
+
 		g_string_append_printf (xml_string, "<gd:when startTime='%s'", start_time);
 		g_free (start_time);
 
 		if (when->end_time.tv_sec != 0 || when->end_time.tv_usec != 0) {
-			gchar *end_time = g_time_val_to_iso8601 (&(when->end_time));
+			gchar *end_time;
+
+			if (when->is_date == TRUE)
+				end_time = gdata_parser_date_from_time_val (&(when->end_time));
+			else
+				end_time = g_time_val_to_iso8601 (&(when->end_time));
+
 			g_string_append_printf (xml_string, " endTime='%s'", end_time);
 			g_free (end_time);
 		}

@@ -53,6 +53,8 @@ gboolean gdata_parser_error_unknown_property_value (const gchar *element_name, c
 gboolean gdata_parser_error_required_property_missing (const gchar *element_name, const gchar *property_name, GError **error);
 gboolean gdata_parser_error_required_element_missing (const gchar *element_name, const gchar *parent_element_name, GError **error);
 gboolean gdata_parser_error_duplicate_element (const gchar *element_name, const gchar *parent_element_name, GError **error);
+gboolean gdata_parser_time_val_from_date (const gchar *date, GTimeVal *_time);
+gchar *gdata_parser_date_from_time_val (GTimeVal *_time) G_GNUC_WARN_UNUSED_RESULT;
 
 G_END_DECLS
 

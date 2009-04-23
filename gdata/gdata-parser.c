@@ -20,6 +20,8 @@
 #include <config.h>
 #include <glib.h>
 #include <glib/gi18n-lib.h>
+#include <sys/time.h>
+#include <time.h>
 
 #include "gdata-service.h"
 #include "gdata-parser.h"
@@ -92,4 +94,32 @@ gdata_parser_error_duplicate_element (const gchar *element_name, const gchar *pa
 		     _("A <%s> element as a child of <%s> was duplicated."),
 		     element_name, parent_element_name);
 	return FALSE;
+}
+
+gboolean
+gdata_parser_time_val_from_date (const gchar *date, GTimeVal *_time)
+{
+	gchar *iso8601_date;
+	gboolean success;
+
+	if (strlen (date) != 10 && strlen (date) != 8)
+		return FALSE;
+
+	iso8601_date = g_strdup_printf ("%sT00:00:00Z", date);
+	success = g_time_val_from_iso8601 (iso8601_date, _time);
+	g_free (iso8601_date);
+
+	return success;
+}
+
+gchar *
+gdata_parser_date_from_time_val (GTimeVal *_time)
+{
+	time_t secs;
+	struct tm *tm;
+
+	secs = _time->tv_sec;
+	tm = gmtime (&secs);
+
+	return g_strdup_printf ("%4d-%02d-%02d", tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday);
 }

@@ -247,7 +247,7 @@ test_insert_simple (void)
 	gdata_calendar_event_add_person (event, who);
 	g_time_val_from_iso8601 ("2009-04-17T15:00:00.000Z", &start_time);
 	g_time_val_from_iso8601 ("2009-04-17T17:00:00.000Z", &end_time);
-	when = gdata_gd_when_new (&start_time, &end_time, NULL, NULL);
+	when = gdata_gd_when_new (&start_time, &end_time, FALSE, NULL, NULL);
 	gdata_calendar_event_add_time (event, when);
 
 	/* Check the XML */
@@ -286,6 +286,92 @@ test_insert_simple (void)
 	g_object_unref (new_event);
 }
 
+static void
+test_xml_dates (void)
+{
+	GDataCalendarEvent *event;
+	GList *times, *i;
+	GDataGDWhen *when;
+	gchar *xml;
+	GError *error = NULL;
+
+	event = gdata_calendar_event_new_from_xml (
+		"<entry xmlns='http://www.w3.org/2005/Atom' "
+		 	"xmlns:gd='http://schemas.google.com/g/2005' "
+		 	"xmlns:gCal='http://schemas.google.com/gCal/2005' "
+		 	"xmlns:app='http://www.w3.org/2007/app'>"
+		 	"<title type='text'>Tennis with Beth</title>"
+		 	"<content type='text'>Meet for a quick lesson.</content>"
+		 	"<category term='http://schemas.google.com/g/2005#event' scheme='http://schemas.google.com/g/2005#kind'/>"
+		 	"<gd:when startTime='2009-04-17'/>"
+		 	"<gd:when startTime='2009-04-17T15:00:00Z'/>"
+		 	"<gd:when startTime='2009-04-27' endTime='20090506'/>"
+		 "</entry>", -1, &error);
+	g_assert_no_error (error);
+	g_assert (GDATA_IS_ENTRY (event));
+	g_clear_error (&error);
+
+	/* Check the times */
+	times = i = gdata_calendar_event_get_times (event);
+
+	/* First time */
+	when = (GDataGDWhen*) i->data;
+	g_assert (i->next != NULL);
+	g_assert (when->is_date == TRUE);
+	g_assert_cmpint (when->start_time.tv_sec, ==, 1239926400);
+	g_assert_cmpint (when->start_time.tv_usec, ==, 0);
+	g_assert_cmpint (when->end_time.tv_sec, ==, 0);
+	g_assert_cmpint (when->end_time.tv_usec, ==, 0);
+	g_assert (when->value_string == NULL);
+	g_assert (when->reminders == NULL);
+
+	/* Second time */
+	i = i->next;
+	when = (GDataGDWhen*) i->data;
+	g_assert (i->next != NULL);
+	g_assert (when->is_date == FALSE);
+	g_assert_cmpint (when->start_time.tv_sec, ==, 1239926400 + 54000);
+	g_assert_cmpint (when->start_time.tv_usec, ==, 0);
+	g_assert_cmpint (when->end_time.tv_sec, ==, 0);
+	g_assert_cmpint (when->end_time.tv_usec, ==, 0);
+	g_assert (when->value_string == NULL);
+	g_assert (when->reminders == NULL);
+
+	/* Third time */
+	i = i->next;
+	when = (GDataGDWhen*) i->data;
+	g_assert (i->next == NULL);
+	g_assert (when->is_date == TRUE);
+	g_assert_cmpint (when->start_time.tv_sec, ==, 1239926400 + 864000);
+	g_assert_cmpint (when->start_time.tv_usec, ==, 0);
+	g_assert_cmpint (when->end_time.tv_sec, ==, 1241568000);
+	g_assert_cmpint (when->end_time.tv_usec, ==, 0);
+	g_assert (when->value_string == NULL);
+	g_assert (when->reminders == NULL);
+
+	/* Check the XML */
+	xml = gdata_entry_get_xml (GDATA_ENTRY (event));
+	g_assert_cmpstr (xml, ==,
+			 "<entry xmlns='http://www.w3.org/2005/Atom' "
+			 	"xmlns:gd='http://schemas.google.com/g/2005' "
+			 	"xmlns:gCal='http://schemas.google.com/gCal/2005' "
+			 	"xmlns:app='http://www.w3.org/2007/app'>"
+			 	"<title type='text'>Tennis with Beth</title>"
+			 	"<content type='text'>Meet for a quick lesson.</content>"
+			 	"<category term='http://schemas.google.com/g/2005#event' scheme='http://schemas.google.com/g/2005#kind'/>"
+			 	"<gCal:guestsCanModify value='false'/>"
+				"<gCal:guestsCanInviteOthers value='false'/>"
+				"<gCal:guestsCanSeeGuests value='false'/>"
+				"<gCal:anyoneCanAddSelf value='false'/>"
+			 	"<gd:when startTime='2009-04-17'/>"
+			 	"<gd:when startTime='2009-04-17T15:00:00Z'/>"
+			 	"<gd:when startTime='2009-04-27' endTime='2009-05-06'/>"
+			 "</entry>");
+	g_free (xml);
+
+	g_object_unref (event);
+}
+
 int
 main (int argc, char *argv[])
 {
@@ -308,6 +394,7 @@ main (int argc, char *argv[])
 	g_test_add_func ("/calendar/query/events", test_query_events);
 	if (g_test_slow () == TRUE)
 		g_test_add_func ("/calendar/insert/simple", test_insert_simple);
+	g_test_add_func ("/calendar/xml/dates", test_xml_dates);
 
 	retval = g_test_run ();
 	if (service != NULL)

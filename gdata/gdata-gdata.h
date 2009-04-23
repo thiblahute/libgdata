@@ -75,13 +75,14 @@ void gdata_gd_feed_link_free (GDataGDFeedLink *self);
  * GDataGDWhen:
  * @start_time: when the event starts or (for zero-duration events) when it occurs
  * @end_time: when the event ends
+ * @is_date: %TRUE if @start_time and @end_time specify dates rather than times, %FALSE otherwise
  * @value_string: a string to represent the time period, or %NULL
  * @reminders: a #GList of #GDataGDReminder<!-- -->s for the time period, or %NULL
  *
  * A structure fully representing a GData "when" element. The @start_time field is required, but the others are optional.
  *
  * If @end_time is empty (all fields are zero), the structure is considered to represent: an instance in time if
- * @start_time is a time, or an entire day if @start_time is a date.
+ * @start_time is a time (if @is_date is %FALSE), or an entire day if @start_time is a date (if @is_date is %TRUE).
  *
  * See the <ulink type="http" url="http://code.google.com/apis/gdata/elements.html#gdWhen">GData specification</ulink>
  * for more information.
@@ -89,11 +90,12 @@ void gdata_gd_feed_link_free (GDataGDFeedLink *self);
 typedef struct {
 	GTimeVal start_time;
 	GTimeVal end_time;
+	gboolean is_date;
 	gchar *value_string;
 	GList *reminders;
 } GDataGDWhen;
 
-GDataGDWhen *gdata_gd_when_new (GTimeVal *start_time, GTimeVal *end_time, const gchar *value_string, GList *reminders);
+GDataGDWhen *gdata_gd_when_new (GTimeVal *start_time, GTimeVal *end_time, gboolean is_date, const gchar *value_string, GList *reminders);
 void gdata_gd_when_free (GDataGDWhen *self);
 
 /**

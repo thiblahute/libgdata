@@ -119,6 +119,7 @@ gdata_gd_feed_link_free (GDataGDFeedLink *self)
  * gdata_gd_when_new:
  * @start_time: when the event starts or (for zero-duration events) when it occurs
  * @end_time: when the event ends, or %NULL
+ * @is_date: %TRUE if @start_time and @end_time specify dates rather than times, %FALSE otherwise
  * @value_string: a string to represent the time period, or %NULL
  * @reminders: a #GList of #GDataGDReminder<!-- -->s for the time period, or %NULL
  *
@@ -131,7 +132,7 @@ gdata_gd_feed_link_free (GDataGDFeedLink *self)
  * Return value: a new #GDataGDWhen, or %NULL on error
  **/
 GDataGDWhen *
-gdata_gd_when_new (GTimeVal *start_time, GTimeVal *end_time, const gchar *value_string, GList *reminders)
+gdata_gd_when_new (GTimeVal *start_time, GTimeVal *end_time, gboolean is_date, const gchar *value_string, GList *reminders)
 {
 	GDataGDWhen *self;
 
@@ -147,6 +148,7 @@ gdata_gd_when_new (GTimeVal *start_time, GTimeVal *end_time, const gchar *value_
 		self->end_time.tv_usec = 0;
 	}
 
+	self->is_date = is_date;
 	self->value_string = g_strdup (value_string);
 	self->reminders = reminders;
 
