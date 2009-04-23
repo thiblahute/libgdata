@@ -23,6 +23,7 @@
 		<title>Namespace API</title>
 		<xi:include href="xml/gdata-atom.xml"/>
 		<xi:include href="xml/gdata-gdata.xml"/>
+		<xi:include href="xml/gdata-youtube.xml"/>
 	</chapter>
 
 	<chapter>

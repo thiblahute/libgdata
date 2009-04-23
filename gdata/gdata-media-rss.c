@@ -25,6 +25,16 @@
 /* This may have been subverted by Google for the YouTube API, but it was actually originally
  * designed by Yahoo. Standards reference here: http://search.yahoo.com/mrss/ */
 
+/**
+ * gdata_media_rating_new:
+ * @country: a comma-delimited list of ISO 3166 country codes where the content is restricted
+ * @scheme: a URI identifying the rating scheme, or %NULL
+ *
+ * Creates a new #GDataMediaRating. More information is available in the <ulink type="http"
+ * url="http://search.yahoo.com/mrss/">Media RSS specification</ulink>.
+ *
+ * Return value: a new #GDataMediaRating
+ **/
 GDataMediaRating *
 gdata_media_rating_new (const gchar *scheme, const gchar *country)
 {
@@ -34,6 +44,12 @@ gdata_media_rating_new (const gchar *scheme, const gchar *country)
 	return self;
 }
 
+/**
+ * gdata_media_rating_free:
+ * @self: a #GDataMediaRating
+ *
+ * Frees a #GDataMediaRating.
+ **/
 void
 gdata_media_rating_free (GDataMediaRating *self)
 {
@@ -45,6 +61,16 @@ gdata_media_rating_free (GDataMediaRating *self)
 	g_slice_free (GDataMediaRating, self);
 }
 
+/**
+ * gdata_media_restriction_new:
+ * @countries: a space-delimited list of ISO 3166 country codes
+ * @relationship: %TRUE if the given @countries are not restricted regarding the content, %FALSE otherwise
+ *
+ * Creates a new #GDataMediaRestriction. More information is available in the <ulink type="http"
+ * url="http://search.yahoo.com/mrss/">Media RSS specification</ulink>.
+ *
+ * Return value: a new #GDataMediaRestriction
+ **/
 GDataMediaRestriction *
 gdata_media_restriction_new (const gchar *countries, gboolean relationship)
 {
@@ -54,6 +80,12 @@ gdata_media_restriction_new (const gchar *countries, gboolean relationship)
 	return self;
 }
 
+/**
+ * gdata_media_restriction_free:
+ * @self: a #GDataMediaRestriction
+ *
+ * Frees a #GDataMediaRestriction.
+ **/
 void
 gdata_media_restriction_free (GDataMediaRestriction *self)
 {
@@ -64,6 +96,17 @@ gdata_media_restriction_free (GDataMediaRestriction *self)
 	g_slice_free (GDataMediaRestriction, self);
 }
 
+/**
+ * gdata_media_category_new:
+ * @category: a category describing the content
+ * @scheme: a URI identifying the categorisation scheme, or %NULL
+ * @label: a human-readable name for the category, or %NULL
+ *
+ * Creates a new #GDataMediaCategory. More information is available in the <ulink type="http"
+ * url="http://search.yahoo.com/mrss/">Media RSS specification</ulink>.
+ *
+ * Return value: a new #GDataMediaCategory
+ **/
 GDataMediaCategory *
 gdata_media_category_new (const gchar *category, const gchar *label, const gchar *scheme)
 {
@@ -74,6 +117,12 @@ gdata_media_category_new (const gchar *category, const gchar *label, const gchar
 	return self;
 }
 
+/**
+ * gdata_media_category_free:
+ * @self: a #GDataMediaCategory
+ *
+ * Frees a #GDataMediaCategory.
+ **/
 void
 gdata_media_category_free (GDataMediaCategory *self)
 {
@@ -86,6 +135,16 @@ gdata_media_category_free (GDataMediaCategory *self)
 	g_slice_free (GDataMediaCategory, self);
 }
 
+/**
+ * gdata_media_credit_new:
+ * @credit: the username of someone who contributed towards the media
+ * @partner: %TRUE if the video was uploaded by a YouTube partner, %FALSE otherwise
+ *
+ * Creates a new #GDataMediaCredit. More information is available in the <ulink type="http"
+ * url="http://search.yahoo.com/mrss/">Media RSS specification</ulink>.
+ *
+ * Return value: a new #GDataMediaCredit
+ **/
 GDataMediaCredit *
 gdata_media_credit_new (const gchar *credit, gboolean partner)
 {
@@ -95,6 +154,12 @@ gdata_media_credit_new (const gchar *credit, gboolean partner)
 	return self;
 }
 
+/**
+ * gdata_media_credit_free:
+ * @self: a #GDataMediaCredit
+ *
+ * Frees a #GDataMediaCredit.
+ **/
 void
 gdata_media_credit_free (GDataMediaCredit *self)
 {
@@ -105,6 +170,21 @@ gdata_media_credit_free (GDataMediaCredit *self)
 	g_slice_free (GDataMediaCredit, self);
 }
 
+/**
+ * gdata_media_content_new:
+ * @uri: the media object's URI
+ * @type: the media object's MIME type, or %NULL
+ * @is_default: %TRUE if this is the default object for the media group, %FALSE otherwise
+ * @expression: whether this media is a full version or just a sample
+ * @duration: the length of the media, in seconds, or %-1
+ * @format: the video format of the media (see the <ulink type="http"
+ * url="http://code.google.com/apis/youtube/2.0/reference.html#youtube_data_api_tag_media:content">YouTube specification</ulink>)
+ *
+ * Creates a new #GDataMediaContent. More information is available in the <ulink type="http"
+ * url="http://search.yahoo.com/mrss/">Media RSS specification</ulink>.
+ *
+ * Return value: a new #GDataMediaContent
+ **/
 GDataMediaContent *
 gdata_media_content_new (const gchar *uri, const gchar *type, gboolean is_default, GDataMediaExpression expression, gint duration, gint format)
 {
@@ -118,6 +198,12 @@ gdata_media_content_new (const gchar *uri, const gchar *type, gboolean is_defaul
 	return self;
 }
 
+/**
+ * gdata_media_content_free:
+ * @self: a #GDataMediaContent
+ *
+ * Frees a #GDataMediaContent.
+ **/
 void
 gdata_media_content_free (GDataMediaContent *self)
 {
@@ -129,6 +215,18 @@ gdata_media_content_free (GDataMediaContent *self)
 	g_slice_free (GDataMediaContent, self);
 }
 
+/**
+ * gdata_media_thumbnail_new:
+ * @uri: the thumbnail's URI
+ * @width: the thumbnail's width, in pixels, or %0
+ * @height: the thumbnail's height, in pixels, or %0
+ * @_time: the number of milliseconds into the media the thumbnail was taken, or %0
+ *
+ * Creates a new #GDataMediaThumbnail. More information is available in the <ulink type="http"
+ * url="http://search.yahoo.com/mrss/">Media RSS specification</ulink>.
+ *
+ * Return value: a new #GDataMediaThumbnail
+ **/
 GDataMediaThumbnail *
 gdata_media_thumbnail_new (const gchar *uri, guint width, guint height, gint64 _time)
 {
@@ -140,8 +238,19 @@ gdata_media_thumbnail_new (const gchar *uri, guint width, guint height, gint64 _
 	return self;
 }
 
-/* Parses a reduced version of NTP from http://www.ietf.org/rfc/rfc2326.txt.
- * See http://code.google.com/apis/youtube/2.0/reference.html#youtube_data_api_tag_media:thumbnail */
+/**
+ * gdata_media_thumbnail_parse_time:
+ * @time_string: a time string to parse
+ *
+ * Parses a time string in NTP format into a number of milliseconds since the
+ * start of a media stream.
+ *
+ * For more information about NTP format, see <ulink type="http" url="http://www.ietf.org/rfc/rfc2326.txt">RFC 2326 3.6 Normal Play Time</ulink>.
+ *
+ * To build an NTP-format string, see gdata_media_thumbnail_build_time().
+ *
+ * Return value: number of milliseconds since the start of a media stream
+ **/
 gint64
 gdata_media_thumbnail_parse_time (const gchar *time_string)
 {
@@ -164,6 +273,15 @@ gdata_media_thumbnail_parse_time (const gchar *time_string)
 	return (gint64) ((seconds + minutes * 60 + hours * 3600) * 1000);
 }
 
+/**
+ * gdata_media_thumbnail_build_time:
+ * @_time: a number of milliseconds since the start of a media stream
+ *
+ * Builds an NTP-format time string describing @_time milliseconds since the start
+ * of a media stream.
+ *
+ * Return value: an NTP-format string describing @_time; free with g_free()
+ **/
 gchar *
 gdata_media_thumbnail_build_time (gint64 _time)
 {
@@ -181,6 +299,12 @@ gdata_media_thumbnail_build_time (gint64 _time)
 	return g_strdup_printf ("%02u:%02u:%02f", hours, minutes, seconds);
 }
 
+/**
+ * gdata_media_thumbnail_free:
+ * @self: a #GDataMediaThumbnail
+ *
+ * Frees a #GDataMediaThumbnail.
+ **/
 void
 gdata_media_thumbnail_free (GDataMediaThumbnail *self)
 {

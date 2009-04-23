@@ -210,6 +210,32 @@ gdata_gd_who_free
 </SECTION>
 
 <SECTION>
+<FILE>gdata-media</FILE>
+<TITLE>Media RSS API</TITLE>
+GDataMediaCategory
+gdata_media_category_new
+gdata_media_category_free
+GDataMediaExpression
+GDataMediaContent
+gdata_media_content_new
+gdata_media_content_free
+GDataMediaCredit
+gdata_media_credit_new
+gdata_media_credit_free
+GDataMediaRating
+gdata_media_rating_new
+gdata_media_rating_free
+GDataMediaRestriction
+gdata_media_restriction_new
+gdata_media_restriction_free
+GDataMediaThumbnail
+gdata_media_thumbnail_new
+gdata_media_thumbnail_free
+gdata_media_thumbnail_parse_time
+gdata_media_thumbnail_build_time
+</SECTION>
+
+<SECTION>
 <FILE>gdata-youtube-service</FILE>
 <TITLE>GDataYouTubeService</TITLE>
 GDataYouTubeService
@@ -288,6 +314,14 @@ GDATA_YOUTUBE_VIDEO_GET_CLASS
 gdata_youtube_video_get_type
 <SUBSECTION Private>
 GDataYouTubeVideoPrivate
+</SECTION>
+
+<SECTION>
+<FILE>gdata-youtube</FILE>
+<TITLE>YouTube API</TITLE>
+GDataYouTubeState
+gdata_youtube_state_new
+gdata_youtube_state_free
 </SECTION>
 
 <SECTION>

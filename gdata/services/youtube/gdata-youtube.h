@@ -24,6 +24,18 @@
 
 G_BEGIN_DECLS
 
+/**
+ * GDataYouTubeState:
+ * @name: the publishing status of the video
+ * @reason_code: code providing information about why a video failed to upload or was rejected during processing
+ * @help_uri: a URI for a page explaining the problem
+ * @message: a human-readable message explaining the problem
+ *
+ * A structure fully representing a YouTube "state" element. All fields are required.
+ *
+ * See the <ulink type="http" url="http://code.google.com/apis/youtube/2.0/reference.html#youtube_data_api_tag_yt:state">YouTube specification</ulink>
+ * for more information.
+ **/
 typedef struct {
 	gchar *name;
 	gchar *reason_code;
