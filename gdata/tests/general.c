@@ -188,6 +188,30 @@ test_query_categories (void)
 	g_object_unref (query);
 }
 
+static void
+test_color_parsing (void)
+{
+	GDataColor color;
+
+	/* With hash */
+	g_assert (gdata_color_from_hexadecimal ("#F99Ff0", &color) == TRUE);
+	g_assert_cmpuint (color.red, ==, 249);
+	g_assert_cmpuint (color.green, ==, 159);
+	g_assert_cmpuint (color.blue, ==, 240);
+
+	/* Without hash */
+	g_assert (gdata_color_from_hexadecimal ("F99Ff0", &color) == TRUE);
+	g_assert_cmpuint (color.red, ==, 249);
+	g_assert_cmpuint (color.green, ==, 159);
+	g_assert_cmpuint (color.blue, ==, 240);
+
+	/* Invalid, but correct length */
+	g_assert (gdata_color_from_hexadecimal ("foobar", &color) == FALSE);
+
+	/* Wildly invalid */
+	g_assert (gdata_color_from_hexadecimal ("this is not a real colour!", &color) == FALSE);
+}
+
 int
 main (int argc, char *argv[])
 {
@@ -198,6 +222,7 @@ main (int argc, char *argv[])
 	g_test_add_func ("/entry/get_xml", test_entry_get_xml);
 	g_test_add_func ("/entry/parse_xml", test_entry_parse_xml);
 	g_test_add_func ("/query/categories", test_query_categories);
+	g_test_add_func ("/color/parsing", test_color_parsing);
 
 	return g_test_run ();
 }

@@ -91,27 +91,45 @@ gdata_color_get_type (void)
 gboolean
 gdata_color_from_hexadecimal (const gchar *hexadecimal, GDataColor *color)
 {
-	gchar *hex;
+	gint temp;
 
 	g_return_val_if_fail (hexadecimal != NULL, FALSE);
 	g_return_val_if_fail (color != NULL, FALSE);
 
-	hex = g_strdup (hexadecimal);
-	if (*hex == '#')
-		hex++;
-	if (strlen (hex) != 6) {
-		g_free (hex);
+	if (*hexadecimal == '#')
+		hexadecimal++;
+	if (strlen (hexadecimal) != 6)
 		return FALSE;
-	}
 
-	/* This is horrible and hacky, but should work */
-	color->blue = strtoul (hex + 4, NULL, 16);
-	*(hex + 4) = '\0';
-	color->green = strtoul (hex + 2, NULL, 16);
-	*(hex + 2) = '\0';
-	color->red = strtoul (hex, NULL, 16);
+	/* Red */
+	temp = g_ascii_xdigit_value (*(hexadecimal++)) * 16;
+	if (temp < 0)
+		return FALSE;
+	color->red = temp;
+	temp = g_ascii_xdigit_value (*(hexadecimal++));
+	if (temp < 0)
+		return FALSE;
+	color->red += temp;
 
-	g_free (hex);
+	/* Green */
+	temp = g_ascii_xdigit_value (*(hexadecimal++)) * 16;
+	if (temp < 0)
+		return FALSE;
+	color->green = temp;
+	temp = g_ascii_xdigit_value (*(hexadecimal++));
+	if (temp < 0)
+		return FALSE;
+	color->green += temp;
+
+	/* Blue */
+	temp = g_ascii_xdigit_value (*(hexadecimal++)) * 16;
+	if (temp < 0)
+		return FALSE;
+	color->blue = temp;
+	temp = g_ascii_xdigit_value (*(hexadecimal++));
+	if (temp < 0)
+		return FALSE;
+	color->blue += temp;
 
 	return TRUE;
 }
