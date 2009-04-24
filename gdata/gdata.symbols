@@ -47,8 +47,8 @@ gdata_service_query_finish
 gdata_service_insert_entry
 gdata_service_update_entry
 gdata_service_delete_entry
-gdata_service_get_proxy
-gdata_service_set_proxy
+gdata_service_get_proxy_uri
+gdata_service_set_proxy_uri
 gdata_service_is_authenticated
 gdata_service_get_client_id
 gdata_service_get_username

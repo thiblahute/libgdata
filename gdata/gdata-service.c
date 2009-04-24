@@ -245,7 +245,7 @@ gdata_service_get_property (GObject *object, guint property_id, GValue *value, G
 			g_value_set_boolean (value, priv->authenticated);
 			break;
 		case PROP_PROXY_URI:
-			g_value_set_boxed (value, gdata_service_get_proxy (GDATA_SERVICE (object)));
+			g_value_set_boxed (value, gdata_service_get_proxy_uri (GDATA_SERVICE (object)));
 			break;
 		default:
 			/* We don't have any other property... */
@@ -264,7 +264,7 @@ gdata_service_set_property (GObject *object, guint property_id, const GValue *va
 			priv->client_id = g_value_dup_string (value);
 			break;
 		case PROP_PROXY_URI:
-			gdata_service_set_proxy (GDATA_SERVICE (object), g_value_get_boxed (value));
+			gdata_service_set_proxy_uri (GDATA_SERVICE (object), g_value_get_boxed (value));
 			break;
 		default:
 			/* We don't have any other property... */
@@ -1216,7 +1216,7 @@ notify_proxy_uri_cb (GObject *gobject, GParamSpec *pspec, GObject *self)
 }
 
 /**
- * gdata_service_get_proxy:
+ * gdata_service_get_proxy_uri:
  * @self: a #GDataService
  *
  * Gets the proxy URI on the #GDataService's #SoupSession.
@@ -1226,7 +1226,7 @@ notify_proxy_uri_cb (GObject *gobject, GParamSpec *pspec, GObject *self)
  * Since: 0.2.0
  **/
 SoupURI *
-gdata_service_get_proxy (GDataService *self)
+gdata_service_get_proxy_uri (GDataService *self)
 {
 	SoupURI *proxy_uri;
 
@@ -1239,7 +1239,7 @@ gdata_service_get_proxy (GDataService *self)
 }
 
 /**
- * gdata_service_set_proxy:
+ * gdata_service_set_proxy_uri:
  * @self: a #GDataService
  * @proxy_uri: the proxy URI
  *
@@ -1249,7 +1249,7 @@ gdata_service_get_proxy (GDataService *self)
  * Since: 0.2.0
  **/
 void
-gdata_service_set_proxy (GDataService *self, SoupURI *proxy_uri)
+gdata_service_set_proxy_uri (GDataService *self, SoupURI *proxy_uri)
 {
 	g_return_if_fail (GDATA_IS_SERVICE (self));
 	g_object_set (self->priv->session, SOUP_SESSION_PROXY_URI, proxy_uri, NULL);

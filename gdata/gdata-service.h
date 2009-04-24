@@ -173,8 +173,8 @@ GDataEntry *gdata_service_update_entry (GDataService *self, GDataEntry *entry, G
 gboolean gdata_service_delete_entry (GDataService *self, GDataEntry *entry, GCancellable *cancellable, GError **error);
 /* TODO: async version */
 
-SoupURI *gdata_service_get_proxy (GDataService *self);
-void gdata_service_set_proxy (GDataService *self, SoupURI *proxy_uri);
+SoupURI *gdata_service_get_proxy_uri (GDataService *self);
+void gdata_service_set_proxy_uri (GDataService *self, SoupURI *proxy_uri);
 
 gboolean gdata_service_is_authenticated (GDataService *self);
 const gchar *gdata_service_get_client_id (GDataService *self);

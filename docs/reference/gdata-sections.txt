@@ -20,8 +20,8 @@ gdata_service_delete_entry
 gdata_service_get_client_id
 gdata_service_get_username
 gdata_service_get_password
-gdata_service_get_proxy
-gdata_service_set_proxy
+gdata_service_get_proxy_uri
+gdata_service_set_proxy_uri
 <SUBSECTION Standard>
 GDATA_SERVICE
 GDATA_IS_SERVICE
