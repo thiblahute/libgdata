@@ -1,11 +1,82 @@
-Major new features in version...
+Overview of changes from libgdata 0.1.0 to libgdata 0.2.0
+=========================================================
 
-0.1.1:
+Major changes:
+* The updated entry is now returned when inserting an entry
+* Entries can be updated with gdata_service_update_entry
+* Entries can be deleted with gdata_service_delete_entry
+* GDataService has proxy support with the proxy-uri property
+* Redirects from the server are now handled correctly
+* API documentation is now complete
+* Unknown XML elements are stored and returned when building the XML for an entry
+* ETag support for entries and feeds
+* Added a Google Contacts service
+
+API changes:
+* Added GDataEntry:etag, gdata_entry_get_etag
+* Added gdata_entry_get_categories
+* Added GDataFeed:etag, gdata_feed_get_etag
+* Added gdata_feed_look_up_entry
+* Added GDataGDWhen, gdata_gd_when_new, gdata_gd_when_free
+* Added GDataGDEmailAddress, gdata_gd_email_address_new, gdata_gd_email_address_free
+* Added GDataGDIMAddress, gdata_gd_im_address_new, gdata_gd_im_address_free
+* Added GDataGDPhoneNumber, gdata_gd_phone_number_new, gdata_gd_phone_number_free
+* Added GDataGDPostalAddress, gdata_gd_postal_address_new, gdata_gd_postal_address_free
+* Added GDataGDOrganization, gdata_gd_organization_new, gdata_gd_organization_free
+* Added GDataGDReminder, gdata_gd_reminder_new, gdata_gd_reminder_free
+* Renamed GDataQuery:strict to GDataQuery:is-strict, gdata_query_get_strict to gdata_query_is_strict, gdata_query_set_strict to gdata_query_set_is_strict
+* Added GDataQuery:etag, gdata_query_get_etag, gdata_query_set_etag
+* Added GDataService:proxy-uri, gdata_service_get_proxy_uri, gdata_service_set_proxy_uri
+* Added gdata_service_update_entry
+* Added gdata_service_update_entry
+* Removed gdata_service_get_session
+* Renamed GDataCalendarCalendar:hidden to GDataCalendarCalendar:is-hidden, gdata_calendar_calendar_get_hidden to gdata_calendar_calendar_is_hidden,
+  gdata_calendar_calendar_set_hidden to gdata_calendar_calendar_set_is_hidden
+* Renamed GDataCalendarCalendar:selected to GDataCalendarCalendar:is-selected,
+  gdata_calendar_calendar_get_selected to gdata_calendar_calendar_is_selected,
+  gdata_calendar_calendar_set_selected to gdata_calendar_calendar_set_is_selected
+* Renamed GDataCalendarEvent:event-status to GDataCalendarEvent:status, gdata_calendar_event_get_event_status to gdata_calendar_event_get_status,
+  gdata_calendar_event_set_event_status to gdata_calendar_event_set_status
+* Added gdata_calendar_event_get_people
+* Added gdata_calendar_event_get_places
+* Added gdata_calendar_event_add_time, gdata_calendar_event_get_times, gdata_calendar_event_get_primary_time
+* Removed gdata_calendar_event_set_edited
+* Made GDataCalendarEvent:edited read-only
+* Removed gdata_calendar_event_get_start_time, gdata_calendar_event_set_start_time, gdata_calendar_event_get_end_time, gdata_calendar_event_set_end_time,
+  gdata_calendar_event_get_when_value, gdata_calendar_event_set_when_value
+* Renamed GDataCalendarQuery:ctz to GDataCalendarQuery:timezone, gdata_calendar_query_get_ctz to gdata_calendar_query_get_timezone,
+  gdata_calendar_query_set_ctz to gdata_calendar_query_set_timezone
+* Added gdata_calendar_service_insert_event
+* Renamed g_time_val_get_type to gdata_g_time_val_get_type
+* Added Google Contacts service API
+
+Bugs fixed:
+* Bug 579631 – Add G_GNUC_WARN_UNUSED_RESULT to functions
+* Bug 578661 – ETag support
+* Bug 578662 – Support unknown XML elements
+* Bug 578653 – self-test fails to build on glib-2.18.x
+* Bug 578652 – Build failure: missing symbol: gdata_query_param_get_type
+
+Updated translations:
+* de (Mario Blättermann)
+* en_GB (Philip Withnall)
+* sv (Daniel Nylander)
+
+Overview of changes from libgdata 0.1.0 to libgdata 0.1.1
+=========================================================
+
+Major changes:
 * Fixed licencing issues
+* Changed website to http://live.gnome.org/libgdata
+
+API changes:
 * Renamed gdata_entry_lookup_link to gdata_entry_look_up_link
 * Renamed gdata_feed_lookup_link to gdata_feed_look_up_link
 
-0.1.0:
+Initial release of libgdata 0.1.0
+=================================
+
+Major changes:
 * Create project
 * Add mostly-complete support for YouTube queries and video uploads
 * Add basic and incomplete support for Google Calendar queries
