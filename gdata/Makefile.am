@@ -56,8 +56,7 @@ gdataincludedir = $(pkgincludedir)/gdata
 gdatainclude_HEADERS = \
 	$(gdata_headers)	\
 	gdata-enums.h		\
-	gdata-types.h		\
-	gdata-marshal.h
+	gdata-types.h
 
 libgdata_la_SOURCES = \
 	$(GDATA_MARSHAL_FILES)	\
