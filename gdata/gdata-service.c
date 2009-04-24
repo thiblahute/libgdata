@@ -367,6 +367,8 @@ set_authentication_details_cb (AuthenticateAsyncData *data)
 	g_object_notify (service, "authenticated");
 	g_object_thaw_notify (service);
 
+	authenticate_async_data_free (data);
+
 	return FALSE;
 }
 
@@ -380,6 +382,7 @@ authenticate_thread (GSimpleAsyncResult *result, GDataService *service, GCancell
 	if (g_cancellable_set_error_if_cancelled (cancellable, &error) == TRUE) {
 		g_simple_async_result_set_from_error (result, error);
 		g_error_free (error);
+		authenticate_async_data_free (data);
 		return;
 	}
 
@@ -388,11 +391,11 @@ authenticate_thread (GSimpleAsyncResult *result, GDataService *service, GCancell
 	if (data->success == FALSE) {
 		g_simple_async_result_set_from_error (result, error);
 		g_error_free (error);
+		authenticate_async_data_free (data);
+		return;
 	}
 
-	/* Update the authentication details held by the service.
-	 * This should always be executed before the callback in g_simple_async_result_run_in_thread ---
-	 * if not, data will already have been freed, and crashage will happen. */
+	/* Update the authentication details held by the service */
 	data->service = service;
 	g_idle_add ((GSourceFunc) set_authentication_details_cb, data);
 }
@@ -430,7 +433,7 @@ gdata_service_authenticate_async (GDataService *self, const gchar *username, con
 	data->password = g_strdup (password);
 
 	result = g_simple_async_result_new (G_OBJECT (self), callback, user_data, gdata_service_authenticate_async);
-	g_simple_async_result_set_op_res_gpointer (result, data, (GDestroyNotify) authenticate_async_data_free);
+	g_simple_async_result_set_op_res_gpointer (result, data, NULL);
 	g_simple_async_result_run_in_thread (result, (GSimpleAsyncThreadFunc) authenticate_thread, G_PRIORITY_DEFAULT, cancellable);
 	g_object_unref (result);
 }
@@ -636,7 +639,13 @@ login_error:
 	if (retval == TRUE) {
 		/* Update several properties the service holds */
 		g_free (priv->username);
-		priv->username = g_strdup (username);
+
+		/* Ensure the username is always a full e-mail address */
+		if (strchr (username, '@') == NULL)
+			priv->username = g_strdup_printf ("%s@" EMAIL_DOMAIN, username);
+		else
+			priv->username = g_strdup (username);
+
 		g_free (priv->password);
 		priv->password = g_strdup (password);
 
