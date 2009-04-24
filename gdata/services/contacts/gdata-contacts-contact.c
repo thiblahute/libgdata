@@ -647,7 +647,7 @@ get_namespaces (GDataEntry *entry, GHashTable *namespaces)
  * @edited: a #GTimeVal
  *
  * Gets the #GDataContactsContact:edited property and puts it in @edited. If the property is unset,
- * both fields in the #GTimeVal will be set to 0.
+ * both fields in the #GTimeVal will be set to %0.
  **/
 void
 gdata_contacts_contact_get_edited (GDataContactsContact *self, GTimeVal *edited)

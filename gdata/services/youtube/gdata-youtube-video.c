@@ -1526,7 +1526,7 @@ gdata_youtube_video_set_is_private (GDataYouTubeVideo *self, gboolean is_private
  * @uploaded: a #GTimeVal
  *
  * Gets the #GDataYouTubeVideo:uploaded property and puts it in @uploaded. If the property is unset,
- * both fields in the #GTimeVal will be set to 0.
+ * both fields in the #GTimeVal will be set to %0.
  **/
 void
 gdata_youtube_video_get_uploaded (GDataYouTubeVideo *self, GTimeVal *uploaded)

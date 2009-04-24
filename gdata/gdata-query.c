@@ -717,7 +717,7 @@ gdata_query_set_author (GDataQuery *self, const gchar *author)
  * @updated_min: a #GTimeVal
  *
  * Gets the #GDataQuery:updated-min property and puts it in @updated_min. If the property is unset,
- * both fields in the #GTimeVal will be set to 0.
+ * both fields in the #GTimeVal will be set to %0.
  **/
 void
 gdata_query_get_updated_min (GDataQuery *self, GTimeVal *updated_min)
@@ -759,7 +759,7 @@ gdata_query_set_updated_min (GDataQuery *self, GTimeVal *updated_min)
  * @updated_max: a #GTimeVal
  *
  * Gets the #GDataQuery:updated-max property and puts it in @updated_max. If the property is unset,
- * both fields in the #GTimeVal will be set to 0.
+ * both fields in the #GTimeVal will be set to %0.
  **/
 void
 gdata_query_get_updated_max (GDataQuery *self, GTimeVal *updated_max)
@@ -801,7 +801,7 @@ gdata_query_set_updated_max (GDataQuery *self, GTimeVal *updated_max)
  * @published_min: a #GTimeVal
  *
  * Gets the #GDataQuery:published-min property and puts it in @published_min. If the property is unset,
- * both fields in the #GTimeVal will be set to 0.
+ * both fields in the #GTimeVal will be set to %0.
  **/
 void
 gdata_query_get_published_min (GDataQuery *self, GTimeVal *published_min)
@@ -843,7 +843,7 @@ gdata_query_set_published_min (GDataQuery *self, GTimeVal *published_min)
  * @published_max: a #GTimeVal
  *
  * Gets the #GDataQuery:published-max property and puts it in @published_max. If the property is unset,
- * both fields in the #GTimeVal will be set to 0.
+ * both fields in the #GTimeVal will be set to %0.
  **/
 void
 gdata_query_get_published_max (GDataQuery *self, GTimeVal *published_max)

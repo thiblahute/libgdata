@@ -40,7 +40,7 @@
  * Creates a new #GDataYouTubeState. More information is available in the <ulink type="http"
  * url="http://code.google.com/apis/youtube/2.0/reference.html#youtube_data_api_tag_yt:state">YouTube specification</ulink>.
  *
- * Return value: a new #GDataYouTubeState
+ * Return value: a new #GDataYouTubeState, or %NULL; free with gdata_youtube_state_free()
  **/
 GDataYouTubeState *
 gdata_youtube_state_new (const gchar *name, const gchar *message, const gchar *reason_code, const gchar *help_uri)

@@ -41,7 +41,7 @@
  *
  * All the parameters are copied, so can be freed after calling this function.
  *
- * Return value: a new #GDataCategory, or %NULL on error
+ * Return value: a new #GDataCategory, or %NULL; free with gdata_category_free()
  **/
 GDataCategory *
 gdata_category_new (const gchar *term, const gchar *scheme, const gchar *label)
@@ -89,7 +89,7 @@ gdata_category_free (GDataCategory *self)
  *
  * All the parameters are copied, so can be freed after calling this function.
  *
- * Return value: a new #GDataLink, or %NULL on error
+ * Return value: a new #GDataLink, or %NULL; free with gdata_link_free()
  **/
 GDataLink *
 gdata_link_new (const gchar *href, const gchar *rel, const gchar *type, const gchar *hreflang, const gchar *title, gint length)
@@ -141,7 +141,7 @@ gdata_link_free (GDataLink *self)
  *
  * All the parameters are copied, so can be freed after calling this function.
  *
- * Return value: a new #GDataAuthor, or %NULL on error
+ * Return value: a new #GDataAuthor, or %NULL; free with gdata_author_free()
  **/
 GDataAuthor *
 gdata_author_new (const gchar *name, const gchar *uri, const gchar *email)
@@ -186,7 +186,7 @@ gdata_author_free (GDataAuthor *self)
  *
  * All the parameters are copied, so can be freed after calling this function.
  *
- * Return value: a new #GDataGenerator, or %NULL on error
+ * Return value: a new #GDataGenerator, or %NULL; free with gdata_generator_free()
  **/
 GDataGenerator *
 gdata_generator_new (const gchar *name, const gchar *uri, const gchar *version)

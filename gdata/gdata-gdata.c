@@ -43,7 +43,7 @@
  *
  * Currently, rel and value functionality is not implemented in #GDataGDRating.
  *
- * Return value: a new #GDataGDRating
+ * Return value: a new #GDataGDRating; free with gdata_gd_rating_free()
  **/
 GDataGDRating *
 gdata_gd_rating_new (guint min, guint max, guint num_raters, gdouble average)
@@ -82,7 +82,7 @@ gdata_gd_rating_free (GDataGDRating *self)
  *
  * Currently, readOnly and feed functionality is not implemented in #GDataGDFeedLink.
  *
- * Return value: a new #GDataGDFeedLink, or %NULL on error
+ * Return value: a new #GDataGDFeedLink, or %NULL; free with gdata_gd_feed_link_free()
  **/
 GDataGDFeedLink *
 gdata_gd_feed_link_new (const gchar *href, const gchar *rel, guint count_hint)
@@ -129,7 +129,7 @@ gdata_gd_feed_link_free (GDataGDFeedLink *self)
  * This function takes ownership of @reminders, so the list (or its entries) must not be freed
  * by the caller after a call to gdata_gd_when_new has finished.
  *
- * Return value: a new #GDataGDWhen, or %NULL on error
+ * Return value: a new #GDataGDWhen, or %NULL; free with gdata_gd_when_free()
  **/
 GDataGDWhen *
 gdata_gd_when_new (GTimeVal *start_time, GTimeVal *end_time, gboolean is_date, const gchar *value_string, GList *reminders)
@@ -184,7 +184,7 @@ gdata_gd_when_free (GDataGDWhen *self)
  *
  * Currently, entryLink functionality is not implemented in #GDataGDWho.
  *
- * Return value: a new #GDataGDWho
+ * Return value: a new #GDataGDWho; free with gdata_gd_who_free()
  **/
 GDataGDWho *
 gdata_gd_who_new (const gchar *rel, const gchar *value_string, const gchar *email)
@@ -225,7 +225,7 @@ gdata_gd_who_free (GDataGDWho *self)
  *
  * Currently, entryLink functionality is not implemented in #GDataGDWhere.
  *
- * Return value: a new #GDataGDWhere
+ * Return value: a new #GDataGDWhere; free with gdata_gd_where_free()
  **/
 GDataGDWhere *
 gdata_gd_where_new (const gchar *rel, const gchar *value_string, const gchar *label)
@@ -265,7 +265,7 @@ gdata_gd_where_free (GDataGDWhere *self)
  * Creates a new #GDataGDEmailAddress. More information is available in the <ulink type="http"
  * url="http://code.google.com/apis/gdata/elements.html#gdEmail">GData specification</ulink>.
  *
- * Return value: a new #GDataGDEmailAddress, or %NULL on error
+ * Return value: a new #GDataGDEmailAddress, or %NULL; free with gdata_gd_email_address_free()
  **/
 GDataGDEmailAddress *
 gdata_gd_email_address_new (const gchar *address, const gchar *rel, const gchar *label, gboolean primary)
@@ -311,7 +311,7 @@ gdata_gd_email_address_free (GDataGDEmailAddress *self)
  * Creates a new #GDataGDIMAddress. More information is available in the <ulink type="http"
  * url="http://code.google.com/apis/gdata/elements.html#gdIm">GData specification</ulink>.
  *
- * Return value: a new #GDataGDIMAddress, or %NULL on error
+ * Return value: a new #GDataGDIMAddress, or %NULL; free with gdata_gd_im_address_free()
  **/
 GDataGDIMAddress *
 gdata_gd_im_address_new (const gchar *address, const gchar *protocol, const gchar *rel, const gchar *label, gboolean primary)
@@ -360,7 +360,7 @@ gdata_gd_im_address_free (GDataGDIMAddress *self)
  * Creates a new #GDataGDPhoneNumber. More information is available in the <ulink type="http"
  * url="http://code.google.com/apis/gdata/elements.html#gdPhoneNumber">GData specification</ulink>.
  *
- * Return value: a new #GDataGDPhoneNumber, or %NULL on error
+ * Return value: a new #GDataGDPhoneNumber, or %NULL; free with gdata_gd_phone_number_free()
  **/
 GDataGDPhoneNumber *
 gdata_gd_phone_number_new (const gchar *number, const gchar *rel, const gchar *label, const gchar *uri, gboolean primary)
@@ -407,7 +407,7 @@ gdata_gd_phone_number_free (GDataGDPhoneNumber *self)
  * Creates a new #GDataGDPostalAddress. More information is available in the <ulink type="http"
  * url="http://code.google.com/apis/gdata/elements.html#gdPostalAddress">GData specification</ulink>.
  *
- * Return value: a new #GDataGDPostalAddress, or %NULL on error
+ * Return value: a new #GDataGDPostalAddress, or %NULL; free with gdata_gd_postal_address_free()
  **/
 GDataGDPostalAddress *
 gdata_gd_postal_address_new (const gchar *address, const gchar *rel, const gchar *label, gboolean primary)
@@ -453,7 +453,7 @@ gdata_gd_postal_address_free (GDataGDPostalAddress *self)
  * Creates a new #GDataGDOrganization. More information is available in the <ulink type="http"
  * url="http://code.google.com/apis/gdata/elements.html#gdOrganization">GData specification</ulink>.
  *
- * Return value: a new #GDataGDOrganization, or %NULL on error
+ * Return value: a new #GDataGDOrganization, or %NULL; free with gdata_gd_organization_free()
  **/
 GDataGDOrganization *
 gdata_gd_organization_new (const gchar *name, const gchar *title, const gchar *rel, const gchar *label, gboolean primary)
@@ -497,7 +497,7 @@ gdata_gd_organization_free (GDataGDOrganization *self)
  * Creates a new #GDataGDReminder. More information is available in the <ulink type="http"
  * url="http://code.google.com/apis/gdata/elements.html#gdReminder">GData specification</ulink>.
  *
- * Return value: a new #GDataGDReminder, or %NULL on error
+ * Return value: a new #GDataGDReminder, or %NULL; free with gdata_gd_reminder_free()
  **/
 GDataGDReminder *
 gdata_gd_reminder_new (const gchar *method, GTimeVal *absolute_time, gint days, gint hours, gint minutes)
