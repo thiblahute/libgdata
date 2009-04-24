@@ -34,8 +34,8 @@
  * gdata_youtube_state_new:
  * @name: the publishing status of the video
  * @reason_code: code providing information about why a video failed to upload or was rejected during processing
- * @help_uri: a URI for a page explaining the problem
- * @message: a human-readable message explaining the problem
+ * @help_uri: a URI for a page explaining the problem, or %NULL
+ * @message: a human-readable message explaining the problem, or %NULL
  *
  * Creates a new #GDataYouTubeState. More information is available in the <ulink type="http"
  * url="http://code.google.com/apis/youtube/2.0/reference.html#youtube_data_api_tag_yt:state">YouTube specification</ulink>.
@@ -49,8 +49,6 @@ gdata_youtube_state_new (const gchar *name, const gchar *message, const gchar *r
 
 	g_return_val_if_fail (name != NULL, NULL);
 	g_return_val_if_fail (message != NULL, NULL);
-	g_return_val_if_fail (reason_code != NULL, NULL);
-	g_return_val_if_fail (help_uri != NULL, NULL);
 
 	self = g_slice_new (GDataYouTubeState);
 	self->name = g_strdup (name);
