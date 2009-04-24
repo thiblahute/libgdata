@@ -38,13 +38,11 @@
 #include "gdata-contacts-query.h"
 #include "gdata-query.h"
 
-/* Reference: http://code.google.com/apis/contacts/docs/2.0/reference.html#Parameters */
-
 static void gdata_contacts_query_finalize (GObject *object);
 static void gdata_contacts_query_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec);
 static void gdata_contacts_query_set_property (GObject *object, guint property_id, const GValue *value, GParamSpec *pspec);
+static void get_query_uri (GDataQuery *self, const gchar *feed_uri, GString *query_uri, gboolean *params_started);
 
-/* TODO: Actually override GDataQuery's get_query_uri function to return a URI including all our custom parameters */
 struct _GDataContactsQueryPrivate {
 	gchar *order_by; /* TODO: enum? #defined values? */
 	gboolean show_deleted;
@@ -66,12 +64,15 @@ static void
 gdata_contacts_query_class_init (GDataContactsQueryClass *klass)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
+	GDataQueryClass *query_class = GDATA_QUERY_CLASS (klass);
 
 	g_type_class_add_private (klass, sizeof (GDataContactsQueryPrivate));
 
 	gobject_class->set_property = gdata_contacts_query_set_property;
 	gobject_class->get_property = gdata_contacts_query_get_property;
 	gobject_class->finalize = gdata_contacts_query_finalize;
+
+	query_class->get_query_uri = get_query_uri;
 
 	/**
 	 * GDataContactsQuery:order-by:
@@ -187,6 +188,41 @@ gdata_contacts_query_set_property (GObject *object, guint property_id, const GVa
 			/* We don't have any other property... */
 			G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
 			break;
+	}
+}
+
+static void
+get_query_uri (GDataQuery *self, const gchar *feed_uri, GString *query_uri, gboolean *params_started)
+{
+	GDataContactsQueryPrivate *priv = GDATA_CONTACTS_QUERY (self)->priv;
+
+	#define APPEND_SEP g_string_append_c (query_uri, (*params_started == FALSE) ? '?' : '&'); *params_started = TRUE;
+
+	/* Chain up to the parent class */
+	GDATA_QUERY_CLASS (gdata_contacts_query_parent_class)->get_query_uri (self, feed_uri, query_uri, params_started);
+
+	if (priv->order_by != NULL) {
+		APPEND_SEP
+		g_string_append (query_uri, "orderby=");
+		g_string_append_uri_escaped (query_uri, priv->order_by, NULL, TRUE);
+	}
+
+	APPEND_SEP
+	if (priv->show_deleted == TRUE)
+		g_string_append (query_uri, "showdeleted=true");
+	else
+		g_string_append (query_uri, "showdeleted=false");
+
+	if (priv->sort_order != NULL) {
+		APPEND_SEP
+		g_string_append (query_uri, "sortorder=");
+		g_string_append_uri_escaped (query_uri, priv->sort_order, NULL, TRUE);
+	}
+
+	if (priv->group != NULL) {
+		APPEND_SEP
+		g_string_append (query_uri, "group=");
+		g_string_append_uri_escaped (query_uri, priv->group, NULL, TRUE);
 	}
 }
 

@@ -169,6 +169,45 @@ test_insert_simple (void)
 	g_object_unref (new_contact);
 }
 
+static void
+test_query_uri (void)
+{
+	gchar *query_uri;
+	GDataContactsQuery *query = gdata_contacts_query_new ("q");
+
+	gdata_contacts_query_set_order_by (query, "lastmodified");
+	g_assert_cmpstr (gdata_contacts_query_get_order_by (query), ==, "lastmodified");
+
+	gdata_contacts_query_set_show_deleted (query, TRUE);
+	g_assert (gdata_contacts_query_show_deleted (query) == TRUE);
+
+	gdata_contacts_query_set_sort_order (query, "descending");
+	g_assert_cmpstr (gdata_contacts_query_get_sort_order (query), ==, "descending");
+
+	gdata_contacts_query_set_group (query, "http://www.google.com/feeds/contacts/groups/jo@gmail.com/base/1234a");
+	g_assert_cmpstr (gdata_contacts_query_get_group (query), ==, "http://www.google.com/feeds/contacts/groups/jo@gmail.com/base/1234a");
+
+	/* Check the built query URI with a normal feed URI */
+	query_uri = gdata_query_get_query_uri (GDATA_QUERY (query), "http://example.com");
+	g_assert_cmpstr (query_uri, ==, "http://example.com?q=q&orderby=lastmodified&showdeleted=true&sortorder=descending"
+					"&group=http%3A%2F%2Fwww.google.com%2Ffeeds%2Fcontacts%2Fgroups%2Fjo%40gmail.com%2Fbase%2F1234a");
+	g_free (query_uri);
+
+	/* …with a feed URI with a trailing slash */
+	query_uri = gdata_query_get_query_uri (GDATA_QUERY (query), "http://example.com/");
+	g_assert_cmpstr (query_uri, ==, "http://example.com/?q=q&orderby=lastmodified&showdeleted=true&sortorder=descending"
+					"&group=http%3A%2F%2Fwww.google.com%2Ffeeds%2Fcontacts%2Fgroups%2Fjo%40gmail.com%2Fbase%2F1234a");
+	g_free (query_uri);
+
+	/* …with a feed URI with pre-existing arguments */
+	query_uri = gdata_query_get_query_uri (GDATA_QUERY (query), "http://example.com/bar/?test=test&this=that");
+	g_assert_cmpstr (query_uri, ==, "http://example.com/bar/?test=test&this=that&q=q&orderby=lastmodified&showdeleted=true&sortorder=descending"
+					"&group=http%3A%2F%2Fwww.google.com%2Ffeeds%2Fcontacts%2Fgroups%2Fjo%40gmail.com%2Fbase%2F1234a");
+	g_free (query_uri);
+
+	g_object_unref (query);
+}
+
 int
 main (int argc, char *argv[])
 {
@@ -185,6 +224,7 @@ main (int argc, char *argv[])
 		g_test_add_func ("/contacts/query/all_contacts_async", test_query_all_contacts_async);
 	if (g_test_slow () == TRUE)
 		g_test_add_func ("/contacts/insert/simple", test_insert_simple);
+	g_test_add_func ("/contacts/query/uri", test_query_uri);
 
 	retval = g_test_run ();
 	if (service != NULL)

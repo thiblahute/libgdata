@@ -439,6 +439,8 @@ test_query_uri (void)
 					"&singleevents=true&sortorder=descending&start-min=2009-04-17T15:00:00Z&start-max=2010-04-17T15:00:00Z"
 					"&ctz=America%2FLos_Angeles");
 	g_free (query_uri);
+
+	g_object_unref (query);
 }
 
 int
