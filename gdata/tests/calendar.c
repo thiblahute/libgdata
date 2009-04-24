@@ -372,6 +372,75 @@ test_xml_dates (void)
 	g_object_unref (event);
 }
 
+static void
+test_query_uri (void)
+{
+	GTimeVal time_val, time_val2;
+	gchar *query_uri;
+	GDataCalendarQuery *query = gdata_calendar_query_new ("q");
+
+	gdata_calendar_query_set_future_events (query, TRUE);
+	g_assert (gdata_calendar_query_get_future_events (query) == TRUE);
+
+	gdata_calendar_query_set_order_by (query, "starttime");
+	g_assert_cmpstr (gdata_calendar_query_get_order_by (query), ==, "starttime");
+
+	g_time_val_from_iso8601 ("2009-04-17T15:00:00.000Z", &time_val);
+	gdata_calendar_query_set_recurrence_expansion_start (query, &time_val);
+	gdata_calendar_query_get_recurrence_expansion_start (query, &time_val2);
+	g_assert_cmpint (time_val.tv_sec, ==, time_val2.tv_sec);
+	g_assert_cmpint (time_val.tv_usec, ==, time_val2.tv_usec);
+
+	g_time_val_from_iso8601 ("2010-04-17T15:00:00.000Z", &time_val);
+	gdata_calendar_query_set_recurrence_expansion_end (query, &time_val);
+	gdata_calendar_query_get_recurrence_expansion_end (query, &time_val2);
+	g_assert_cmpint (time_val.tv_sec, ==, time_val2.tv_sec);
+	g_assert_cmpint (time_val.tv_usec, ==, time_val2.tv_usec);
+
+	gdata_calendar_query_set_single_events (query, TRUE);
+	g_assert (gdata_calendar_query_get_single_events (query) == TRUE);
+
+	gdata_calendar_query_set_sort_order (query, "descending");
+	g_assert_cmpstr (gdata_calendar_query_get_sort_order (query), ==, "descending");
+
+	g_time_val_from_iso8601 ("2009-04-17T15:00:00.000Z", &time_val);
+	gdata_calendar_query_set_start_min (query, &time_val);
+	gdata_calendar_query_get_start_min (query, &time_val2);
+	g_assert_cmpint (time_val.tv_sec, ==, time_val2.tv_sec);
+	g_assert_cmpint (time_val.tv_usec, ==, time_val2.tv_usec);
+
+	g_time_val_from_iso8601 ("2010-04-17T15:00:00.000Z", &time_val);
+	gdata_calendar_query_set_start_max (query, &time_val);
+	gdata_calendar_query_get_start_max (query, &time_val2);
+	g_assert_cmpint (time_val.tv_sec, ==, time_val2.tv_sec);
+	g_assert_cmpint (time_val.tv_usec, ==, time_val2.tv_usec);
+
+	gdata_calendar_query_set_timezone (query, "America/Los Angeles");
+	g_assert_cmpstr (gdata_calendar_query_get_timezone (query), ==, "America/Los_Angeles");
+
+	/* Check the built query URI with a normal feed URI */
+	query_uri = gdata_query_get_query_uri (GDATA_QUERY (query), "http://example.com");
+	g_assert_cmpstr (query_uri, ==, "http://example.com?q=q&futureevents=true&orderby=starttime&recurrence-expansion-start=2009-04-17T15:00:00Z"
+					"&recurrence-expansion-end=2010-04-17T15:00:00Z&singleevents=true&sortorder=descending"
+					"&start-min=2009-04-17T15:00:00Z&start-max=2010-04-17T15:00:00Z&ctz=America%2FLos_Angeles");
+	g_free (query_uri);
+
+	/* …with a feed URI with a trailing slash */
+	query_uri = gdata_query_get_query_uri (GDATA_QUERY (query), "http://example.com/");
+	g_assert_cmpstr (query_uri, ==, "http://example.com/?q=q&futureevents=true&orderby=starttime&recurrence-expansion-start=2009-04-17T15:00:00Z"
+					"&recurrence-expansion-end=2010-04-17T15:00:00Z&singleevents=true&sortorder=descending"
+					"&start-min=2009-04-17T15:00:00Z&start-max=2010-04-17T15:00:00Z&ctz=America%2FLos_Angeles");
+	g_free (query_uri);
+
+	/* …with a feed URI with pre-existing arguments */
+	query_uri = gdata_query_get_query_uri (GDATA_QUERY (query), "http://example.com/bar/?test=test&this=that");
+	g_assert_cmpstr (query_uri, ==, "http://example.com/bar/?test=test&this=that&q=q&futureevents=true&orderby=starttime"
+					"&recurrence-expansion-start=2009-04-17T15:00:00Z&recurrence-expansion-end=2010-04-17T15:00:00Z"
+					"&singleevents=true&sortorder=descending&start-min=2009-04-17T15:00:00Z&start-max=2010-04-17T15:00:00Z"
+					"&ctz=America%2FLos_Angeles");
+	g_free (query_uri);
+}
+
 int
 main (int argc, char *argv[])
 {
@@ -395,6 +464,7 @@ main (int argc, char *argv[])
 	if (g_test_slow () == TRUE)
 		g_test_add_func ("/calendar/insert/simple", test_insert_simple);
 	g_test_add_func ("/calendar/xml/dates", test_xml_dates);
+	g_test_add_func ("/calendar/query/uri", test_query_uri);
 
 	retval = g_test_run ();
 	if (service != NULL)

@@ -58,10 +58,10 @@ struct _GDataCalendarEventPrivate {
 	guint sequence;
 	GList *times; /* GDataGDWhen */
 	GList *reminders;
-	gboolean guests_can_modify; /* TODO: Merge these four somehow? */
-	gboolean guests_can_invite_others;
-	gboolean guests_can_see_guests;
-	gboolean anyone_can_add_self;
+	guint guests_can_modify : 1;
+	guint guests_can_invite_others : 1;
+	guint guests_can_see_guests : 1;
+	guint anyone_can_add_self : 1;
 	GList *people; /* GDataGDWho */
 	GList *places; /* GDataGDWhere */
 };

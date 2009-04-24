@@ -38,13 +38,11 @@
 #include "gdata-calendar-query.h"
 #include "gdata-query.h"
 
-/* Reference: http://code.google.com/apis/calendar/docs/2.0/reference.html#Parameters */
-
 static void gdata_calendar_query_finalize (GObject *object);
 static void gdata_calendar_query_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec);
 static void gdata_calendar_query_set_property (GObject *object, guint property_id, const GValue *value, GParamSpec *pspec);
+static void get_query_uri (GDataQuery *self, const gchar *feed_uri, GString *query_uri, gboolean *params_started);
 
-/* TODO: Actually override GDataQuery's get_query_uri function to return a URI including all our custom parameters */
 struct _GDataCalendarQueryPrivate {
 	gboolean future_events;
 	gchar *order_by; /* TODO: enum? #defined values? */
@@ -76,12 +74,15 @@ static void
 gdata_calendar_query_class_init (GDataCalendarQueryClass *klass)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
+	GDataQueryClass *query_class = GDATA_QUERY_CLASS (klass);
 
 	g_type_class_add_private (klass, sizeof (GDataCalendarQueryPrivate));
 
 	gobject_class->set_property = gdata_calendar_query_set_property;
 	gobject_class->get_property = gdata_calendar_query_get_property;
 	gobject_class->finalize = gdata_calendar_query_finalize;
+
+	query_class->get_query_uri = get_query_uri;
 
 	/**
 	 * GDataCalendarQuery:future-events:
@@ -293,6 +294,87 @@ gdata_calendar_query_set_property (GObject *object, guint property_id, const GVa
 			/* We don't have any other property... */
 			G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
 			break;
+	}
+}
+
+static void
+get_query_uri (GDataQuery *self, const gchar *feed_uri, GString *query_uri, gboolean *params_started)
+{
+	GDataCalendarQueryPrivate *priv = GDATA_CALENDAR_QUERY (self)->priv;
+
+	#define APPEND_SEP g_string_append_c (query_uri, (*params_started == FALSE) ? '?' : '&'); *params_started = TRUE;
+
+	/* Chain up to the parent class */
+	GDATA_QUERY_CLASS (gdata_calendar_query_parent_class)->get_query_uri (self, feed_uri, query_uri, params_started);
+
+	APPEND_SEP
+	if (priv->future_events == TRUE)
+		g_string_append (query_uri, "futureevents=true");
+	else
+		g_string_append (query_uri, "futureevents=false");
+
+	if (priv->order_by != NULL) {
+		APPEND_SEP
+		g_string_append (query_uri, "orderby=");
+		g_string_append_uri_escaped (query_uri, priv->order_by, NULL, TRUE);
+	}
+
+	if (priv->recurrence_expansion_start.tv_sec != 0 || priv->recurrence_expansion_start.tv_usec != 0) {
+		gchar *recurrence_expansion_start;
+
+		APPEND_SEP
+		g_string_append (query_uri, "recurrence-expansion-start=");
+		recurrence_expansion_start = g_time_val_to_iso8601 (&(priv->recurrence_expansion_start));
+		g_string_append (query_uri, recurrence_expansion_start);
+		g_free (recurrence_expansion_start);
+	}
+
+	if (priv->recurrence_expansion_end.tv_sec != 0 || priv->recurrence_expansion_end.tv_usec != 0) {
+		gchar *recurrence_expansion_end;
+
+		APPEND_SEP
+		g_string_append (query_uri, "recurrence-expansion-end=");
+		recurrence_expansion_end = g_time_val_to_iso8601 (&(priv->recurrence_expansion_end));
+		g_string_append (query_uri, recurrence_expansion_end);
+		g_free (recurrence_expansion_end);
+	}
+
+	APPEND_SEP
+	if (priv->single_events == TRUE)
+		g_string_append (query_uri, "singleevents=true");
+	else
+		g_string_append (query_uri, "singleevents=false");
+
+	if (priv->sort_order != NULL) {
+		APPEND_SEP
+		g_string_append (query_uri, "sortorder=");
+		g_string_append_uri_escaped (query_uri, priv->sort_order, NULL, TRUE);
+	}
+
+	if (priv->start_min.tv_sec != 0 || priv->start_min.tv_usec != 0) {
+		gchar *start_min;
+
+		APPEND_SEP
+		g_string_append (query_uri, "start-min=");
+		start_min = g_time_val_to_iso8601 (&(priv->start_min));
+		g_string_append (query_uri, start_min);
+		g_free (start_min);
+	}
+
+	if (priv->start_max.tv_sec != 0 || priv->start_max.tv_usec != 0) {
+		gchar *start_max;
+
+		APPEND_SEP
+		g_string_append (query_uri, "start-max=");
+		start_max = g_time_val_to_iso8601 (&(priv->start_max));
+		g_string_append (query_uri, start_max);
+		g_free (start_max);
+	}
+
+	if (priv->timezone != NULL) {
+		APPEND_SEP
+		g_string_append (query_uri, "ctz=");
+		g_string_append_uri_escaped (query_uri, priv->timezone, NULL, TRUE);
 	}
 }
 
@@ -653,6 +735,20 @@ gdata_calendar_query_set_timezone (GDataCalendarQuery *self, const gchar *_timez
 	g_return_if_fail (GDATA_IS_CALENDAR_QUERY (self));
 
 	g_free (self->priv->timezone);
-	self->priv->timezone = g_strdup (_timezone);
+
+	/* Replace all spaces with underscores */
+	if (_timezone != NULL) {
+		gchar *zone, *i;
+
+		zone = g_strdup (_timezone);
+		for (i = zone; *i != '\0'; i++) {
+			if (*i == ' ')
+				*i = '_';
+		}
+		self->priv->timezone = zone;
+	} else {
+		self->priv->timezone = NULL;
+	}
+
 	g_object_notify (G_OBJECT (self), "timezone");
 }

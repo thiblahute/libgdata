@@ -52,6 +52,8 @@ typedef struct {
 typedef struct {
 	/*< private >*/
 	GObjectClass parent;
+
+	void (*get_query_uri) (GDataQuery *self, const gchar *feed_uri, GString *query_uri, gboolean *params_started);
 } GDataQueryClass;
 
 GType gdata_query_get_type (void) G_GNUC_CONST;

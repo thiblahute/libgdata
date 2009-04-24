@@ -56,6 +56,7 @@ typedef enum {
 static void gdata_query_finalize (GObject *object);
 static void gdata_query_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec);
 static void gdata_query_set_property (GObject *object, guint property_id, const GValue *value, GParamSpec *pspec);
+static void get_query_uri (GDataQuery *self, const gchar *feed_uri, GString *query_uri, gboolean *params_started);
 
 struct _GDataQueryPrivate {
 	guint parameter_mask; /* GDataQueryParam */
@@ -109,6 +110,8 @@ gdata_query_class_init (GDataQueryClass *klass)
 	gobject_class->set_property = gdata_query_set_property;
 	gobject_class->get_property = gdata_query_get_property;
 	gobject_class->finalize = gdata_query_finalize;
+
+	klass->get_query_uri = get_query_uri;
 
 	/**
 	 * GDataQuery:q:
@@ -405,93 +408,22 @@ gdata_query_set_property (GObject *object, guint property_id, const GValue *valu
 	}
 }
 
-/**
- * gdata_query_new:
- * @q: a query string
- *
- * Creates a new #GDataQuery with its #GDataQuery:q property set to @q.
- *
- * Return value: a new #GDataQuery
- **/
-GDataQuery *
-gdata_query_new (const gchar *q)
-{
-	return g_object_new (GDATA_TYPE_QUERY, "q", q, NULL);
-}
-
-/**
- * gdata_query_new_with_limits:
- * @q: a query string
- * @start_index: a one-based start index for the results
- * @max_results: the maximum number of results to return
- *
- * Creates a new #GDataQuery with its #GDataQuery:q property set to @q, and the limits @start_index and @max_results
- * applied.
- *
- * Return value: a new #GDataQuery
- **/
-GDataQuery *
-gdata_query_new_with_limits (const gchar *q, gint start_index, gint max_results)
-{
-	return g_object_new (GDATA_TYPE_QUERY,
-			     "q", q,
-			     "start-index", start_index,
-			     "max-results", max_results,
-			     NULL);
-}
-
-/**
- * gdata_query_new_for_id:
- * @entry_id: an entry URN ID
- *
- * Creates a new #GDataQuery to query for @entry_id.
- *
- * Return value: a new #GDataQuery
- **/
-GDataQuery *
-gdata_query_new_for_id (const gchar *entry_id)
-{
-	return g_object_new (GDATA_TYPE_QUERY, "entry-id", entry_id, NULL);
-}
-
-/**
- * gdata_query_get_query_uri:
- * @self: a #GDataQuery
- * @feed_uri: the feed URI on which to build the query URI
- *
- * Builds a query URI from the given base feed URI, using the properties of the #GDataQuery. This function will take care
- * of all necessary URI escaping, so it should <emphasis>not</emphasis> be done beforehand.
- *
- * The query URI is what functions like gdata_service_query() use to query the online service.
- *
- * Return value: a query URI; free with g_free()
- **/
-gchar *
-gdata_query_get_query_uri (GDataQuery *self, const gchar *feed_uri)
+static void
+get_query_uri (GDataQuery *self, const gchar *feed_uri, GString *query_uri, gboolean *params_started)
 {
 	GDataQueryPrivate *priv = self->priv;
-	GString *query_uri;
-	gboolean params_started = FALSE;
 
-	#define APPEND_SEP g_string_append_c (query_uri, (params_started == FALSE) ? '?' : '&'); params_started = TRUE;
-
-	/* Check to see if we're paginating first */
-	if (priv->use_next_uri == TRUE)
-		return g_strdup (priv->next_uri);
-	if (priv->use_previous_uri == TRUE)
-		return g_strdup (priv->previous_uri);
+	#define APPEND_SEP g_string_append_c (query_uri, (*params_started == FALSE) ? '?' : '&'); *params_started = TRUE;
 
 	/* Check to see if any parameters have been set */
 	if ((priv->parameter_mask & GDATA_QUERY_PARAM_ALL) == 0)
-		return g_strdup (feed_uri);
-
-	query_uri = g_string_new (feed_uri);
+		return;
 
 	/* If we've been provided with an entry ID, only append that */
 	if (priv->entry_id != NULL) {
 		g_string_append_c (query_uri, '/');
 		g_string_append_uri_escaped (query_uri, priv->entry_id, NULL, TRUE);
-		return g_string_free (query_uri, FALSE);
+		return;
 	}
 
 	if (priv->categories != NULL) {
@@ -501,10 +433,7 @@ gdata_query_get_query_uri (GDataQuery *self, const gchar *feed_uri)
 
 	/* If that's it, return */
 	if ((priv->parameter_mask & (GDATA_QUERY_PARAM_ALL ^ GDATA_QUERY_PARAM_ENTRY_ID ^ GDATA_QUERY_PARAM_CATEGORIES)) == 0)
-		return g_string_free (query_uri, FALSE);
-
-	/* Determine whether the first param has already been appended (e.g. it exists in the feed_uri) */
-	params_started = (strstr (feed_uri, "?") != NULL) ? TRUE : FALSE;
+		return;
 
 	/* q param */
 	if (priv->q != NULL) {
@@ -573,6 +502,91 @@ gdata_query_get_query_uri (GDataQuery *self, const gchar *feed_uri)
 		APPEND_SEP
 		g_string_append_printf (query_uri, "max-results=%d", priv->max_results);
 	}
+}
+
+/**
+ * gdata_query_new:
+ * @q: a query string
+ *
+ * Creates a new #GDataQuery with its #GDataQuery:q property set to @q.
+ *
+ * Return value: a new #GDataQuery
+ **/
+GDataQuery *
+gdata_query_new (const gchar *q)
+{
+	return g_object_new (GDATA_TYPE_QUERY, "q", q, NULL);
+}
+
+/**
+ * gdata_query_new_with_limits:
+ * @q: a query string
+ * @start_index: a one-based start index for the results
+ * @max_results: the maximum number of results to return
+ *
+ * Creates a new #GDataQuery with its #GDataQuery:q property set to @q, and the limits @start_index and @max_results
+ * applied.
+ *
+ * Return value: a new #GDataQuery
+ **/
+GDataQuery *
+gdata_query_new_with_limits (const gchar *q, gint start_index, gint max_results)
+{
+	return g_object_new (GDATA_TYPE_QUERY,
+			     "q", q,
+			     "start-index", start_index,
+			     "max-results", max_results,
+			     NULL);
+}
+
+/**
+ * gdata_query_new_for_id:
+ * @entry_id: an entry URN ID
+ *
+ * Creates a new #GDataQuery to query for @entry_id.
+ *
+ * Return value: a new #GDataQuery
+ **/
+GDataQuery *
+gdata_query_new_for_id (const gchar *entry_id)
+{
+	return g_object_new (GDATA_TYPE_QUERY, "entry-id", entry_id, NULL);
+}
+
+/**
+ * gdata_query_get_query_uri:
+ * @self: a #GDataQuery
+ * @feed_uri: the feed URI on which to build the query URI
+ *
+ * Builds a query URI from the given base feed URI, using the properties of the #GDataQuery. This function will take care
+ * of all necessary URI escaping, so it should <emphasis>not</emphasis> be done beforehand.
+ *
+ * The query URI is what functions like gdata_service_query() use to query the online service.
+ *
+ * Return value: a query URI; free with g_free()
+ **/
+gchar *
+gdata_query_get_query_uri (GDataQuery *self, const gchar *feed_uri)
+{
+	GDataQueryClass *klass;
+	GString *query_uri;
+	gboolean params_started;
+
+	/* Check to see if we're paginating first */
+	if (self->priv->use_next_uri == TRUE)
+		return g_strdup (self->priv->next_uri);
+	if (self->priv->use_previous_uri == TRUE)
+		return g_strdup (self->priv->previous_uri);
+
+	klass = GDATA_ENTRY_GET_CLASS (self);
+	g_assert (klass->get_query_uri != NULL);
+
+	/* Determine whether the first param has already been appended (e.g. it exists in the feed_uri) */
+	params_started = (strstr (feed_uri, "?") != NULL) ? TRUE : FALSE;
+
+	/* Build the query URI */
+	query_uri = g_string_new (feed_uri);
+	klass->get_query_uri (self, feed_uri, query_uri, &params_started);
 
 	return g_string_free (query_uri, FALSE);
 }
