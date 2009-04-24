@@ -9,6 +9,7 @@ EXTRA_DIST = \
 	AUTHORS 		\
 	NEWS			\
 	MAINTAINERS		\
+	HACKING			\
 	gtk-doc.make		\
 	libgdata.pc.in		\
 	libgdata.doap
