@@ -119,6 +119,8 @@ gdata_calendar_event_class_init (GDataCalendarEventClass *klass)
 	 *
 	 * For more information, see the <ulink type="http" url="http://code.google.com/apis/gdata/elements.html#gdEventStatus">
 	 * GData specification</ulink>.
+	 *
+	 * Since: 0.2.0
 	 **/
 	g_object_class_install_property (gobject_class, PROP_STATUS,
 				g_param_spec_string ("status",
@@ -727,6 +729,8 @@ gdata_calendar_event_get_edited (GDataCalendarEvent *self, GTimeVal *edited)
  * Gets the #GDataCalendarEvent:status property.
  *
  * Return value: the event status, or %NULL
+ *
+ * Since: 0.2.0
  **/
 const gchar *
 gdata_calendar_event_get_status (GDataCalendarEvent *self)
@@ -743,6 +747,8 @@ gdata_calendar_event_get_status (GDataCalendarEvent *self)
  * Sets the #GDataCalendarEvent:status property to the new status, @status.
  *
  * Set @status to %NULL to unset the property in the event.
+ *
+ * Since: 0.2.0
  **/
 void
 gdata_calendar_event_set_status (GDataCalendarEvent *self, const gchar *status)
@@ -1031,6 +1037,8 @@ gdata_calendar_event_add_person (GDataCalendarEvent *self, GDataGDWho *who)
  * Gets a list of the people attending the event.
  *
  * Return value: a #GList of #GDataGDWho<!-- -->s, or %NULL
+ *
+ * Since: 0.2.0
  **/
 GList *
 gdata_calendar_event_get_people (GDataCalendarEvent *self)
@@ -1063,6 +1071,8 @@ gdata_calendar_event_add_place (GDataCalendarEvent *self, GDataGDWhere *where)
  * Gets a list of the locations associated with the event.
  *
  * Return value: a #GList of #GDataGDWhere<!-- -->s, or %NULL
+ *
+ * Since: 0.2.0
  **/
 GList *
 gdata_calendar_event_get_places (GDataCalendarEvent *self)
@@ -1078,6 +1088,8 @@ gdata_calendar_event_get_places (GDataCalendarEvent *self)
  *
  * Adds @when to the event as a time period when the event happens.
  * The #GDataCalendarEvent takes ownership of @when, so it must not be freed after being added.
+ *
+ * Since: 0.2.0
  **/
 void
 gdata_calendar_event_add_time (GDataCalendarEvent *self, GDataGDWhen *when)
@@ -1095,6 +1107,8 @@ gdata_calendar_event_add_time (GDataCalendarEvent *self, GDataGDWhen *when)
  * Gets a list of the time periods associated with the event.
  *
  * Return value: a #GList of #GDataGDWhen<!-- -->s, or %NULL
+ *
+ * Since: 0.2.0
  **/
 GList *
 gdata_calendar_event_get_times (GDataCalendarEvent *self)
@@ -1117,6 +1131,8 @@ gdata_calendar_event_get_times (GDataCalendarEvent *self)
  * be returned, and the parameters will remain unmodified.
  *
  * Return value: %TRUE if there is only one time period associated with the event, %FALSE otherwise
+ *
+ * Since: 0.2.0
  **/
 gboolean
 gdata_calendar_event_get_primary_time (GDataCalendarEvent *self, GTimeVal *start_time, GTimeVal *end_time, GDataGDWhen **when)

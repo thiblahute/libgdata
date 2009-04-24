@@ -41,8 +41,6 @@
 #include "gdata-private.h"
 #include "gdata-contacts-query.h"
 
-/* Standards reference here: http://code.google.com/apis/contacts/docs/2.0/reference.html */
-
 G_DEFINE_TYPE (GDataContactsService, gdata_contacts_service, GDATA_TYPE_SERVICE)
 #define GDATA_CONTACTS_SERVICE_GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE ((obj), GDATA_TYPE_CONTACTS_SERVICE, GDataContactsServicePrivate))
 
@@ -66,6 +64,8 @@ gdata_contacts_service_init (GDataContactsService *self)
  * Creates a new #GDataContactsService. The @client_id must be unique for your application, and as registered with Google.
  *
  * Return value: a new #GDataContactsService, or %NULL
+ *
+ * Since: 0.2.0
  **/
 GDataContactsService *
 gdata_contacts_service_new (const gchar *client_id)
@@ -91,6 +91,8 @@ gdata_contacts_service_new (const gchar *client_id)
  * For more details, see gdata_service_query().
  *
  * Return value: a #GDataFeed of query results; unref with g_object_unref()
+ *
+ * Since: 0.2.0
  **/
 GDataFeed *
 gdata_contacts_service_query_contacts (GDataContactsService *self, GDataContactsQuery *query, GCancellable *cancellable,
@@ -122,6 +124,8 @@ gdata_contacts_service_query_contacts (GDataContactsService *self, GDataContacts
  *
  * For more details, see gdata_contacts_service_query_contacts(), which is the synchronous version of this function,
  * and gdata_service_query_async(), which is the base asynchronous query function.
+ *
+ * Since: 0.2.0
  **/
 void
 gdata_contacts_service_query_contacts_async (GDataContactsService *self, GDataContactsQuery *query, GCancellable *cancellable,
@@ -152,6 +156,8 @@ gdata_contacts_service_query_contacts_async (GDataContactsService *self, GDataCo
  * For more details, see gdata_service_insert_entry().
  *
  * Return value: an updated #GDataContactsContact, or %NULL
+ *
+ * Since: 0.2.0
  **/
 GDataContactsContact *
 gdata_contacts_service_insert_contact (GDataContactsService *self, GDataContactsContact *contact, GCancellable *cancellable, GError **error)

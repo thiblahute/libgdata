@@ -160,12 +160,14 @@ gdata_service_class_init (GDataServiceClass *klass)
 	 * GDataService:proxy-uri:
 	 *
 	 * The proxy URI used internally for all Internet requests.
+	 *
+	 * Since: 0.2.0
 	 **/
 	g_object_class_install_property (gobject_class, PROP_PROXY_URI,
 				g_param_spec_boxed ("proxy-uri",
 					"Proxy URI", "The proxy URI used internally for all Internet requests.",
 					SOUP_TYPE_URI,
-					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
+					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * GDataService::captcha-challenge:
@@ -1065,6 +1067,8 @@ gdata_service_insert_entry (GDataService *self, const gchar *upload_uri, GDataEn
  * <emphasis>cannot</emphasis> cannot override this or provide more specific errors.
  *
  * Return value: an updated #GDataEntry, or %NULL
+ *
+ * Since: 0.2.0
  **/
 GDataEntry *
 gdata_service_update_entry (GDataService *self, GDataEntry *entry, GCancellable *cancellable, GError **error)
@@ -1147,6 +1151,8 @@ gdata_service_update_entry (GDataService *self, GDataEntry *entry, GCancellable 
  * <emphasis>cannot</emphasis> cannot override this or provide more specific errors.
  *
  * Return value: %TRUE on success, %FALSE otherwise
+ *
+ * Since: 0.2.0
  **/
 gboolean
 gdata_service_delete_entry (GDataService *self, GDataEntry *entry, GCancellable *cancellable, GError **error)
@@ -1207,6 +1213,8 @@ notify_proxy_uri_cb (GObject *gobject, GParamSpec *pspec, GObject *self)
  * Gets the proxy URI on the #GDataService's #SoupSession.
  *
  * Return value: the proxy URI, or %NULL
+ *
+ * Since: 0.2.0
  **/
 SoupURI *
 gdata_service_get_proxy (GDataService *self)
@@ -1228,6 +1236,8 @@ gdata_service_get_proxy (GDataService *self)
  *
  * Sets the proxy URI on the #SoupSession used internally by the given #GDataService.
  * This forces all requests through the given proxy.
+ *
+ * Since: 0.2.0
  **/
 void
 gdata_service_set_proxy (GDataService *self, SoupURI *proxy_uri)

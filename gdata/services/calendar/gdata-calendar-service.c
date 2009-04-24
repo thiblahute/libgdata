@@ -265,6 +265,8 @@ gdata_calendar_service_query_events (GDataCalendarService *self, GDataCalendarCa
  * For more details, see gdata_service_insert_entry().
  *
  * Return value: an updated #GDataCalendarEvent, or %NULL
+ *
+ * Since: 0.2.0
  **/
 GDataCalendarEvent *
 gdata_calendar_service_insert_event (GDataCalendarService *self, GDataCalendarEvent *event, GCancellable *cancellable, GError **error)

@@ -138,6 +138,8 @@ gdata_feed_class_init (GDataFeedClass *klass)
 	 * The unique ETag for this version of the feed. See the
 	 * <ulink type="http" url="http://code.google.com/apis/gdata/docs/2.0/reference.html#ResourceVersioning">online documentation</ulink> for
 	 * more information.
+	 *
+	 * Since: 0.2.0
 	 **/
 	g_object_class_install_property (gobject_class, PROP_ETAG,
 				g_param_spec_string ("etag",
@@ -763,6 +765,8 @@ entry_compare_cb (const GDataEntry *entry, const gchar *id)
  * Returns the entry in the feed with the given @id, if found.
  *
  * Return value: the #GDataEntry, or %NULL
+ *
+ * Since: 0.2.0
  **/
 GDataEntry *
 gdata_feed_look_up_entry (GDataFeed *self, const gchar *id)
@@ -822,6 +826,8 @@ link_compare_cb (const GDataLink *link, const gchar *rel)
  * Looks up a link by <structfield>rel</structfield> value from the list of links in the feed.
  *
  * Return value: a #GDataLink, or %NULL if one was not found
+ *
+ * Since: 0.1.1
  **/
 GDataLink *
 gdata_feed_look_up_link (GDataFeed *self, const gchar *rel)
@@ -904,6 +910,8 @@ gdata_feed_get_id (GDataFeed *self)
  * Returns the feed's unique ETag for this version.
  *
  * Return value: the feed's ETag
+ *
+ * Since: 0.2.0
  **/
 const gchar *
 gdata_feed_get_etag (GDataFeed *self)

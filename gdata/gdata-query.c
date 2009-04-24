@@ -240,6 +240,8 @@ gdata_query_class_init (GDataQueryClass *klass)
 	 *
 	 * Strict query parameter checking. If this is enabled, an error will be returned by the online service if a parameter is
 	 * not recognised.
+	 *
+	 * Since: 0.2.0
 	 **/
 	g_object_class_install_property (gobject_class, PROP_IS_STRICT,
 				g_param_spec_boolean ("is-strict",
@@ -275,6 +277,8 @@ gdata_query_class_init (GDataQueryClass *klass)
 	 *
 	 * The ETag against which to check for updates. If the server-side ETag matches this one, the requested feed hasn't changed, and is not
 	 * returned unnecessarily.
+	 *
+	 * Since: 0.2.0
 	 **/
 	g_object_class_install_property (gobject_class, PROP_ETAG,
 				g_param_spec_string ("etag",
@@ -930,6 +934,8 @@ gdata_query_set_start_index (GDataQuery *self, gint start_index)
  * Gets the #GDataQuery:is-strict property.
  *
  * Return value: the strict property
+ *
+ * Since: 0.2.0
  **/
 gboolean
 gdata_query_is_strict (GDataQuery *self)
@@ -944,6 +950,8 @@ gdata_query_is_strict (GDataQuery *self)
  * @is_strict: the new strict value
  *
  * Sets the #GDataQuery:is-strict property of the #GDataQuery to the new strict value, @is_strict.
+ *
+ * Since: 0.2.0
  **/
 void
 gdata_query_set_is_strict (GDataQuery *self, gboolean is_strict)
@@ -1047,6 +1055,8 @@ gdata_query_set_entry_id (GDataQuery *self, const gchar *entry_id)
  * Gets the #GDataQuery:etag property.
  *
  * Return value: the ETag property, or %NULL if it is unset
+ *
+ * Since: 0.2.0
  **/
 const gchar *
 gdata_query_get_etag (GDataQuery *self)
@@ -1063,6 +1073,8 @@ gdata_query_get_etag (GDataQuery *self)
  * Sets the #GDataQuery:etag property of the #GDataQuery to the new ETag, @etag.
  *
  * Set @etag to %NULL to not check against the server-side ETag.
+ *
+ * Since: 0.2.0
  **/
 void
 gdata_query_set_etag (GDataQuery *self, const gchar *etag)

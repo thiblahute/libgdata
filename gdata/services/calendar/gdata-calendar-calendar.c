@@ -115,6 +115,8 @@ gdata_calendar_calendar_class_init (GDataCalendarCalendarClass *klass)
 	 * GDataCalendarCalendar:is-hidden:
 	 *
 	 * Indicates whether the calendar is visible.
+	 *
+	 * Since: 0.2.0
 	 **/
 	g_object_class_install_property (gobject_class, PROP_IS_HIDDEN,
 				g_param_spec_boolean ("is-hidden",
@@ -137,6 +139,8 @@ gdata_calendar_calendar_class_init (GDataCalendarCalendarClass *klass)
 	 * GDataCalendarCalendar:is-selected:
 	 *
 	 * Indicates whether the calendar is selected.
+	 *
+	 * Since: 0.2.0
 	 **/
 	g_object_class_install_property (gobject_class, PROP_IS_SELECTED,
 				g_param_spec_boolean ("is-selected",
@@ -447,6 +451,8 @@ gdata_calendar_calendar_get_times_cleaned (GDataCalendarCalendar *self)
  * Gets the #GDataCalendarCalendar:is-hidden property.
  *
  * Return value: %TRUE if the calendar is hidden, %FALSE otherwise
+ *
+ * Since: 0.2.0
  **/
 gboolean
 gdata_calendar_calendar_is_hidden (GDataCalendarCalendar *self)
@@ -461,6 +467,8 @@ gdata_calendar_calendar_is_hidden (GDataCalendarCalendar *self)
  * @is_hidden: %TRUE to hide the calendar, %FALSE otherwise
  *
  * Sets the #GDataCalendarCalendar:is-hidden property to @is_hidden.
+ *
+ * Since: 0.2.0
  **/
 void
 gdata_calendar_calendar_set_is_hidden (GDataCalendarCalendar *self, gboolean is_hidden)
@@ -508,6 +516,8 @@ gdata_calendar_calendar_set_color (GDataCalendarCalendar *self, GDataColor *colo
  * Gets the #GDataCalendarCalendar:is-selected property.
  *
  * Return value: %TRUE if the calendar is selected, %FALSE otherwise
+ *
+ * Since: 0.2.0
  **/
 gboolean
 gdata_calendar_calendar_is_selected (GDataCalendarCalendar *self)
@@ -522,6 +532,8 @@ gdata_calendar_calendar_is_selected (GDataCalendarCalendar *self)
  * @is_selected: %TRUE to select the calendar, %FALSE otherwise
  *
  * Sets the #GDataCalendarCalendar:is-selected property to @is_selected.
+ *
+ * Since: 0.2.0
  **/
 void
 gdata_calendar_calendar_set_is_selected (GDataCalendarCalendar *self, gboolean is_selected)

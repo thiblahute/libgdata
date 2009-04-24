@@ -130,6 +130,8 @@ gdata_gd_feed_link_free (GDataGDFeedLink *self)
  * by the caller after a call to gdata_gd_when_new has finished.
  *
  * Return value: a new #GDataGDWhen, or %NULL; free with gdata_gd_when_free()
+ *
+ * Since: 0.2.0
  **/
 GDataGDWhen *
 gdata_gd_when_new (GTimeVal *start_time, GTimeVal *end_time, gboolean is_date, const gchar *value_string, GList *reminders)
@@ -160,6 +162,8 @@ gdata_gd_when_new (GTimeVal *start_time, GTimeVal *end_time, gboolean is_date, c
  * @self: a #GDataGDWhen
  *
  * Frees a #GDataGDWhen.
+ *
+ * Since: 0.2.0
  **/
 void
 gdata_gd_when_free (GDataGDWhen *self)
@@ -266,6 +270,8 @@ gdata_gd_where_free (GDataGDWhere *self)
  * url="http://code.google.com/apis/gdata/elements.html#gdEmail">GData specification</ulink>.
  *
  * Return value: a new #GDataGDEmailAddress, or %NULL; free with gdata_gd_email_address_free()
+ *
+ * Since: 0.2.0
  **/
 GDataGDEmailAddress *
 gdata_gd_email_address_new (const gchar *address, const gchar *rel, const gchar *label, gboolean primary)
@@ -287,6 +293,8 @@ gdata_gd_email_address_new (const gchar *address, const gchar *rel, const gchar 
  * @self: a #GDataGDEmailAddress
  *
  * Frees a #GDataGDEmailAddress.
+ *
+ * Since: 0.2.0
  **/
 void
 gdata_gd_email_address_free (GDataGDEmailAddress *self)
@@ -312,6 +320,8 @@ gdata_gd_email_address_free (GDataGDEmailAddress *self)
  * url="http://code.google.com/apis/gdata/elements.html#gdIm">GData specification</ulink>.
  *
  * Return value: a new #GDataGDIMAddress, or %NULL; free with gdata_gd_im_address_free()
+ *
+ * Since: 0.2.0
  **/
 GDataGDIMAddress *
 gdata_gd_im_address_new (const gchar *address, const gchar *protocol, const gchar *rel, const gchar *label, gboolean primary)
@@ -334,6 +344,8 @@ gdata_gd_im_address_new (const gchar *address, const gchar *protocol, const gcha
  * @self: a #GDataGDIMAddress
  *
  * Frees a #GDataGDIMAddress.
+ *
+ * Since: 0.2.0
  **/
 void
 gdata_gd_im_address_free (GDataGDIMAddress *self)
@@ -361,6 +373,8 @@ gdata_gd_im_address_free (GDataGDIMAddress *self)
  * url="http://code.google.com/apis/gdata/elements.html#gdPhoneNumber">GData specification</ulink>.
  *
  * Return value: a new #GDataGDPhoneNumber, or %NULL; free with gdata_gd_phone_number_free()
+ *
+ * Since: 0.2.0
  **/
 GDataGDPhoneNumber *
 gdata_gd_phone_number_new (const gchar *number, const gchar *rel, const gchar *label, const gchar *uri, gboolean primary)
@@ -383,6 +397,8 @@ gdata_gd_phone_number_new (const gchar *number, const gchar *rel, const gchar *l
  * @self: a #GDataGDPhoneNumber
  *
  * Frees a #GDataGDPhoneNumber.
+ *
+ * Since: 0.2.0
  **/
 void
 gdata_gd_phone_number_free (GDataGDPhoneNumber *self)
@@ -408,6 +424,8 @@ gdata_gd_phone_number_free (GDataGDPhoneNumber *self)
  * url="http://code.google.com/apis/gdata/elements.html#gdPostalAddress">GData specification</ulink>.
  *
  * Return value: a new #GDataGDPostalAddress, or %NULL; free with gdata_gd_postal_address_free()
+ *
+ * Since: 0.2.0
  **/
 GDataGDPostalAddress *
 gdata_gd_postal_address_new (const gchar *address, const gchar *rel, const gchar *label, gboolean primary)
@@ -429,6 +447,8 @@ gdata_gd_postal_address_new (const gchar *address, const gchar *rel, const gchar
  * @self: a #GDataGDPostalAddress
  *
  * Frees a #GDataGDPostalAddress.
+ *
+ * Since: 0.2.0
  **/
 void
 gdata_gd_postal_address_free (GDataGDPostalAddress *self)
@@ -454,6 +474,8 @@ gdata_gd_postal_address_free (GDataGDPostalAddress *self)
  * url="http://code.google.com/apis/gdata/elements.html#gdOrganization">GData specification</ulink>.
  *
  * Return value: a new #GDataGDOrganization, or %NULL; free with gdata_gd_organization_free()
+ *
+ * Since: 0.2.0
  **/
 GDataGDOrganization *
 gdata_gd_organization_new (const gchar *name, const gchar *title, const gchar *rel, const gchar *label, gboolean primary)
@@ -472,6 +494,8 @@ gdata_gd_organization_new (const gchar *name, const gchar *title, const gchar *r
  * @self: a #GDataGDOrganization
  *
  * Frees a #GDataGDOrganization.
+ *
+ * Since: 0.2.0
  **/
 void
 gdata_gd_organization_free (GDataGDOrganization *self)
@@ -498,6 +522,8 @@ gdata_gd_organization_free (GDataGDOrganization *self)
  * url="http://code.google.com/apis/gdata/elements.html#gdReminder">GData specification</ulink>.
  *
  * Return value: a new #GDataGDReminder, or %NULL; free with gdata_gd_reminder_free()
+ *
+ * Since: 0.2.0
  **/
 GDataGDReminder *
 gdata_gd_reminder_new (const gchar *method, GTimeVal *absolute_time, gint days, gint hours, gint minutes)
@@ -531,6 +557,8 @@ gdata_gd_reminder_new (const gchar *method, GTimeVal *absolute_time, gint days, 
  * @self: a #GDataGDReminder
  *
  * Frees a #GDataGDReminder.
+ *
+ * Since: 0.2.0
  **/
 void
 gdata_gd_reminder_free (GDataGDReminder *self)

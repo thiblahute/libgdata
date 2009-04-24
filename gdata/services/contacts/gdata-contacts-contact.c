@@ -95,6 +95,8 @@ gdata_contacts_contact_class_init (GDataContactsContactClass *klass)
 	 *
 	 * For more information, see the <ulink type="http" url="http://www.atomenabled.org/developers/protocol/#appEdited">
 	 * Atom Publishing Protocol specification</ulink>.
+	 *
+	 * Since: 0.2.0
 	 **/
 	g_object_class_install_property (gobject_class, PROP_EDITED,
 				g_param_spec_boxed ("edited",
@@ -106,6 +108,8 @@ gdata_contacts_contact_class_init (GDataContactsContactClass *klass)
 	 * GDataContactsContact:deleted:
 	 *
 	 * Whether the entry has been deleted.
+	 *
+	 * Since: 0.2.0
 	 **/
 	g_object_class_install_property (gobject_class, PROP_DELETED,
 				g_param_spec_boolean ("deleted",
@@ -170,6 +174,8 @@ gdata_contacts_contact_get_property (GObject *object, guint property_id, GValue 
  * Creates a new #GDataContactsContact with the given ID and default properties.
  *
  * Return value: a new #GDataContactsContact; unref with g_object_unref()
+ *
+ * Since: 0.2.0
  **/
 GDataContactsContact *
 gdata_contacts_contact_new (const gchar *id)
@@ -189,6 +195,8 @@ gdata_contacts_contact_new (const gchar *id)
  * Errors from #GDataParserError can be returned if problems are found in the XML.
  *
  * Return value: a new #GDataContactsContact, or %NULL; unref with g_object_unref()
+ *
+ * Since: 0.2.0
  **/
 GDataContactsContact *
 gdata_contacts_contact_new_from_xml (const gchar *xml, gint length, GError **error)
@@ -648,6 +656,8 @@ get_namespaces (GDataEntry *entry, GHashTable *namespaces)
  *
  * Gets the #GDataContactsContact:edited property and puts it in @edited. If the property is unset,
  * both fields in the #GTimeVal will be set to %0.
+ *
+ * Since: 0.2.0
  **/
 void
 gdata_contacts_contact_get_edited (GDataContactsContact *self, GTimeVal *edited)
@@ -668,6 +678,8 @@ gdata_contacts_contact_get_edited (GDataContactsContact *self, GTimeVal *edited)
  * Note that only one e-mail address per contact may be marked as "primary". Insertion and update operations
  * (with gdata_contacts_service_insert_contact()) will return an error if more than one e-mail address
  * is marked as primary.
+ *
+ * Since: 0.2.0
  **/
 void
 gdata_contacts_contact_add_email_address (GDataContactsContact *self, GDataGDEmailAddress *email_address)
@@ -685,6 +697,8 @@ gdata_contacts_contact_add_email_address (GDataContactsContact *self, GDataGDEma
  * Gets a list of the e-mail addresses owned by the contact.
  *
  * Return value: a #GList of #GDataGDEmailAddress<!-- -->es, or %NULL
+ *
+ * Since: 0.2.0
  **/
 GList *
 gdata_contacts_contact_get_email_addresses (GDataContactsContact *self)
@@ -700,6 +714,8 @@ gdata_contacts_contact_get_email_addresses (GDataContactsContact *self)
  * Gets the contact's primary e-mail address, if one exists.
  *
  * Return value: a #GDataGDEmailAddress, or %NULL
+ *
+ * Since: 0.2.0
  **/
 GDataGDEmailAddress *
 gdata_contacts_contact_get_primary_email_address (GDataContactsContact *self)
@@ -727,6 +743,8 @@ gdata_contacts_contact_get_primary_email_address (GDataContactsContact *self)
  * Note that only one IM address per contact may be marked as "primary". Insertion and update operations
  * (with gdata_contacts_service_insert_contact()) will return an error if more than one IM address
  * is marked as primary.
+ *
+ * Since: 0.2.0
  **/
 void
 gdata_contacts_contact_add_im_address (GDataContactsContact *self, GDataGDIMAddress *im_address)
@@ -744,6 +762,8 @@ gdata_contacts_contact_add_im_address (GDataContactsContact *self, GDataGDIMAddr
  * Gets a list of the IM addresses owned by the contact.
  *
  * Return value: a #GList of #GDataGDIMAddress<!-- -->es, or %NULL
+ *
+ * Since: 0.2.0
  **/
 GList *
 gdata_contacts_contact_get_im_addresses (GDataContactsContact *self)
@@ -759,6 +779,8 @@ gdata_contacts_contact_get_im_addresses (GDataContactsContact *self)
  * Gets the contact's primary IM address, if one exists.
  *
  * Return value: a #GDataGDIMAddress, or %NULL
+ *
+ * Since: 0.2.0
  **/
 GDataGDIMAddress *
 gdata_contacts_contact_get_primary_im_address (GDataContactsContact *self)
@@ -786,6 +808,8 @@ gdata_contacts_contact_get_primary_im_address (GDataContactsContact *self)
  * Note that only one phone number per contact may be marked as "primary". Insertion and update operations
  * (with gdata_contacts_service_insert_contact()) will return an error if more than one phone number
  * is marked as primary.
+ *
+ * Since: 0.2.0
  **/
 void
 gdata_contacts_contact_add_phone_number (GDataContactsContact *self, GDataGDPhoneNumber *phone_number)
@@ -803,6 +827,8 @@ gdata_contacts_contact_add_phone_number (GDataContactsContact *self, GDataGDPhon
  * Gets a list of the phone numbers owned by the contact.
  *
  * Return value: a #GList of #GDataGDPhoneNumber<!-- -->s, or %NULL
+ *
+ * Since: 0.2.0
  **/
 GList *
 gdata_contacts_contact_get_phone_numbers (GDataContactsContact *self)
@@ -818,6 +844,8 @@ gdata_contacts_contact_get_phone_numbers (GDataContactsContact *self)
  * Gets the contact's primary phone number, if one exists.
  *
  * Return value: a #GDataGDPhoneNumber, or %NULL
+ *
+ * Since: 0.2.0
  **/
 GDataGDPhoneNumber *
 gdata_contacts_contact_get_primary_phone_number (GDataContactsContact *self)
@@ -845,6 +873,8 @@ gdata_contacts_contact_get_primary_phone_number (GDataContactsContact *self)
  * Note that only one postal address per contact may be marked as "primary". Insertion and update operations
  * (with gdata_contacts_service_insert_contact()) will return an error if more than one postal address
  * is marked as primary.
+ *
+ * Since: 0.2.0
  **/
 void
 gdata_contacts_contact_add_postal_address (GDataContactsContact *self, GDataGDPostalAddress *postal_address)
@@ -862,6 +892,8 @@ gdata_contacts_contact_add_postal_address (GDataContactsContact *self, GDataGDPo
  * Gets a list of the postal addresses owned by the contact.
  *
  * Return value: a #GList of #GDataGDPostalAddress<!-- -->es, or %NULL
+ *
+ * Since: 0.2.0
  **/
 GList *
 gdata_contacts_contact_get_postal_addresses (GDataContactsContact *self)
@@ -877,6 +909,8 @@ gdata_contacts_contact_get_postal_addresses (GDataContactsContact *self)
  * Gets the contact's primary postal address, if one exists.
  *
  * Return value: a #GDataGDPostalAddress, or %NULL
+ *
+ * Since: 0.2.0
  **/
 GDataGDPostalAddress *
 gdata_contacts_contact_get_primary_postal_address (GDataContactsContact *self)
@@ -904,6 +938,8 @@ gdata_contacts_contact_get_primary_postal_address (GDataContactsContact *self)
  * Note that only one organization per contact may be marked as "primary". Insertion and update operations
  * (with gdata_contacts_service_insert_contact()) will return an error if more than one organization
  * is marked as primary.
+ *
+ * Since: 0.2.0
  **/
 void
 gdata_contacts_contact_add_organization (GDataContactsContact *self, GDataGDOrganization *organization)
@@ -921,6 +957,8 @@ gdata_contacts_contact_add_organization (GDataContactsContact *self, GDataGDOrga
  * Gets a list of the organizations to which the contact belongs.
  *
  * Return value: a #GList of #GDataGDOrganization<!-- -->s, or %NULL
+ *
+ * Since: 0.2.0
  **/
 GList *
 gdata_contacts_contact_get_organizations (GDataContactsContact *self)
@@ -936,6 +974,8 @@ gdata_contacts_contact_get_organizations (GDataContactsContact *self)
  * Gets the contact's primary organization, if one exists.
  *
  * Return value: a #GDataGDOrganization, or %NULL
+ *
+ * Since: 0.2.0
  **/
 GDataGDOrganization *
 gdata_contacts_contact_get_primary_organization (GDataContactsContact *self)
@@ -961,6 +1001,8 @@ gdata_contacts_contact_get_primary_organization (GDataContactsContact *self)
  * properties to store data of the client's choosing.
  *
  * Return value: the property's value, or %NULL
+ *
+ * Since: 0.2.0
  **/
 const gchar *
 gdata_contacts_contact_get_extended_property (GDataContactsContact *self, const gchar *name)
@@ -987,6 +1029,8 @@ gdata_contacts_contact_get_extended_property (GDataContactsContact *self, const 
  * %FALSE will be returned if you attempt to add more than 10 extended properties.
  *
  * Return value: %TRUE if the property was updated or deleted successfully, %FALSE otherwise
+ *
+ * Since: 0.2.0
  **/
 gboolean
 gdata_contacts_contact_set_extended_property (GDataContactsContact *self, const gchar *name, const gchar *value)
@@ -1019,6 +1063,8 @@ gdata_contacts_contact_set_extended_property (GDataContactsContact *self, const 
  * @href: the group's ID URI
  *
  * Adds the contact to the given group. @href should be a URI.
+ *
+ * Since: 0.2.0
  **/
 void
 gdata_contacts_contact_add_group (GDataContactsContact *self, const gchar *href)
@@ -1034,6 +1080,8 @@ gdata_contacts_contact_add_group (GDataContactsContact *self, const gchar *href)
  * @href: the group's ID URI
  *
  * Removes the contact from the given group. @href should be a URI.
+ *
+ * Since: 0.2.0
  **/
 void
 gdata_contacts_contact_remove_group (GDataContactsContact *self, const gchar *href)
@@ -1053,6 +1101,8 @@ gdata_contacts_contact_remove_group (GDataContactsContact *self, const gchar *hr
  * %TRUE for the query which returned the contact.
  *
  * Return value: %TRUE if the contact has recently been removed from the group, %FALSE otherwise
+ *
+ * Since: 0.2.0
  **/
 gboolean
 gdata_contacts_contact_is_group_deleted (GDataContactsContact *self, const gchar *href)
@@ -1075,6 +1125,8 @@ get_groups_cb (const gchar *href, gpointer deleted, GList **groups)
  * Gets a list of the groups to which the contact belongs.
  *
  * Return value: a #GList of constant group ID URIs, or %NULL; free with g_list_free()
+ *
+ * Since: 0.2.0
  **/
 GList *
 gdata_contacts_contact_get_groups (GDataContactsContact *self)
@@ -1102,6 +1154,8 @@ gdata_contacts_contact_get_groups (GDataContactsContact *self)
  * #GDataContactsQuery:show-deleted).
  *
  * Return value: %TRUE if the contact has been deleted, %FALSE otherwise
+ *
+ * Since: 0.2.0
  **/
 gboolean
 gdata_contacts_contact_is_deleted (GDataContactsContact *self)

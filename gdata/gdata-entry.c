@@ -101,6 +101,7 @@ gdata_entry_class_init (GDataEntryClass *klass)
 					"ID", "The ID for this entry.",
 					NULL,
 					G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS));
+	/* Since: 0.2.0 */
 	g_object_class_install_property (gobject_class, PROP_ETAG,
 				g_param_spec_string ("etag",
 					"ETag", "The ETag for this entry.",
@@ -635,6 +636,8 @@ gdata_entry_get_id (GDataEntry *self)
  * <ulink type="http" url="http://code.google.com/apis/gdata/docs/2.0/reference.html#ResourceVersioning">online documentation</ulink>.
  *
  * Return value: the entry's ETag
+ *
+ * Since: 0.2.0
  **/
 const gchar *
 gdata_entry_get_etag (GDataEntry *self)
@@ -696,6 +699,8 @@ gdata_entry_add_category (GDataEntry *self, GDataCategory *category)
  * Gets a list of the #GDataCategory<!-- -->s containing this entry.
  *
  * Return value: a #GList of #GDataCategory<!-- -->s
+ *
+ * Since: 0.2.0
  **/
 GList *
 gdata_entry_get_categories (GDataEntry *self)
@@ -767,6 +772,8 @@ link_compare_cb (const GDataLink *link, const gchar *rel)
  * Looks up a link by <structfield>rel</structfield> value from the list of links in the entry.
  *
  * Return value: a #GDataLink, or %NULL if one was not found
+ *
+ * Since: 0.1.1
  **/
 GDataLink *
 gdata_entry_look_up_link (GDataEntry *self, const gchar *rel)

@@ -190,6 +190,8 @@ gdata_calendar_query_class_init (GDataCalendarQueryClass *klass)
 	 * GDataCalendarQuery:timezone:
 	 *
 	 * The current timezone. If not specified, times are returned in UTC.
+	 *
+	 * Since: 0.2.0
 	 **/
 	g_object_class_install_property (gobject_class, PROP_TIMEZONE,
 				g_param_spec_string ("timezone",
@@ -712,6 +714,8 @@ gdata_calendar_query_set_start_max (GDataCalendarQuery *self, GTimeVal *start_ma
  * Gets the #GDataCalendarQuery:timezone property.
  *
  * Return value: the timezone property, or %NULL if it is unset
+ *
+ * Since: 0.2.0
  **/
 const gchar *
 gdata_calendar_query_get_timezone (GDataCalendarQuery *self)
@@ -728,6 +732,8 @@ gdata_calendar_query_get_timezone (GDataCalendarQuery *self)
  * Sets the #GDataCalendarQuery:timezone property of the #GDataCalendarQuery to the new timezone string, @timezone.
  *
  * Set @timezone to %NULL to unset the property in the query URI.
+ *
+ * Since: 0.2.0
  **/
 void
 gdata_calendar_query_set_timezone (GDataCalendarQuery *self, const gchar *_timezone)
