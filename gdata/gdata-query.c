@@ -578,7 +578,7 @@ gdata_query_get_query_uri (GDataQuery *self, const gchar *feed_uri)
 	if (self->priv->use_previous_uri == TRUE)
 		return g_strdup (self->priv->previous_uri);
 
-	klass = GDATA_ENTRY_GET_CLASS (self);
+	klass = GDATA_QUERY_GET_CLASS (self);
 	g_assert (klass->get_query_uri != NULL);
 
 	/* Determine whether the first param has already been appended (e.g. it exists in the feed_uri) */
@@ -624,7 +624,7 @@ gdata_query_set_q (GDataQuery *self, const gchar *q)
 	self->priv->q = g_strdup (q);
 
 	if (q == NULL)
-		self->priv->parameter_mask &= (GDATA_QUERY_PARAM_ALL ^ GDATA_QUERY_PARAM_Q);
+		self->priv->parameter_mask &= ~GDATA_QUERY_PARAM_Q;
 	else
 		self->priv->parameter_mask |= GDATA_QUERY_PARAM_Q;
 
@@ -664,7 +664,7 @@ gdata_query_set_categories (GDataQuery *self, const gchar *categories)
 	self->priv->categories = g_strdup (categories);
 
 	if (categories == NULL)
-		self->priv->parameter_mask &= (GDATA_QUERY_PARAM_ALL ^ GDATA_QUERY_PARAM_CATEGORIES);
+		self->priv->parameter_mask &= ~GDATA_QUERY_PARAM_CATEGORIES;
 	else
 		self->priv->parameter_mask |= GDATA_QUERY_PARAM_CATEGORIES;
 
@@ -704,7 +704,7 @@ gdata_query_set_author (GDataQuery *self, const gchar *author)
 	self->priv->author = g_strdup (author);
 
 	if (author == NULL)
-		self->priv->parameter_mask &= (GDATA_QUERY_PARAM_ALL ^ GDATA_QUERY_PARAM_AUTHOR);
+		self->priv->parameter_mask &= ~GDATA_QUERY_PARAM_AUTHOR;
 	else
 		self->priv->parameter_mask |= GDATA_QUERY_PARAM_AUTHOR;
 
@@ -744,7 +744,7 @@ gdata_query_set_updated_min (GDataQuery *self, GTimeVal *updated_min)
 	if (updated_min == NULL) {
 		self->priv->updated_min.tv_sec = 0;
 		self->priv->updated_min.tv_usec = 0;
-		self->priv->parameter_mask &= (GDATA_QUERY_PARAM_ALL ^ GDATA_QUERY_PARAM_UPDATED_MIN);
+		self->priv->parameter_mask &= ~GDATA_QUERY_PARAM_UPDATED_MIN;
 	} else {
 		self->priv->updated_min = *updated_min;
 		self->priv->parameter_mask |= GDATA_QUERY_PARAM_UPDATED_MIN;
@@ -786,7 +786,7 @@ gdata_query_set_updated_max (GDataQuery *self, GTimeVal *updated_max)
 	if (updated_max == NULL) {
 		self->priv->updated_max.tv_sec = 0;
 		self->priv->updated_max.tv_usec = 0;
-		self->priv->parameter_mask &= (GDATA_QUERY_PARAM_ALL ^ GDATA_QUERY_PARAM_UPDATED_MAX);
+		self->priv->parameter_mask &= ~GDATA_QUERY_PARAM_UPDATED_MAX;
 	} else {
 		self->priv->updated_max = *updated_max;
 		self->priv->parameter_mask |= GDATA_QUERY_PARAM_UPDATED_MAX;
@@ -828,7 +828,7 @@ gdata_query_set_published_min (GDataQuery *self, GTimeVal *published_min)
 	if (published_min == NULL) {
 		self->priv->published_min.tv_sec = 0;
 		self->priv->published_min.tv_usec = 0;
-		self->priv->parameter_mask &= (GDATA_QUERY_PARAM_ALL ^ GDATA_QUERY_PARAM_PUBLISHED_MIN);
+		self->priv->parameter_mask &= ~GDATA_QUERY_PARAM_PUBLISHED_MIN;
 	} else {
 		self->priv->published_min = *published_min;
 		self->priv->parameter_mask |= GDATA_QUERY_PARAM_PUBLISHED_MIN;
@@ -870,7 +870,7 @@ gdata_query_set_published_max (GDataQuery *self, GTimeVal *published_max)
 	if (published_max == NULL) {
 		self->priv->published_max.tv_sec = 0;
 		self->priv->published_max.tv_usec = 0;
-		self->priv->parameter_mask &= (GDATA_QUERY_PARAM_ALL ^ GDATA_QUERY_PARAM_PUBLISHED_MAX);
+		self->priv->parameter_mask &= ~GDATA_QUERY_PARAM_PUBLISHED_MAX;
 	} else {
 		self->priv->published_max = *published_max;
 		self->priv->parameter_mask |= GDATA_QUERY_PARAM_PUBLISHED_MAX;
@@ -916,7 +916,7 @@ gdata_query_set_start_index (GDataQuery *self, gint start_index)
 	self->priv->start_index = start_index;
 
 	if (start_index == -1)
-		self->priv->parameter_mask &= (GDATA_QUERY_PARAM_ALL ^ GDATA_QUERY_PARAM_START_INDEX);
+		self->priv->parameter_mask &= ~GDATA_QUERY_PARAM_START_INDEX;
 	else
 		self->priv->parameter_mask |= GDATA_QUERY_PARAM_START_INDEX;
 
@@ -953,7 +953,7 @@ gdata_query_set_is_strict (GDataQuery *self, gboolean is_strict)
 	self->priv->is_strict = is_strict;
 
 	if (is_strict == FALSE)
-		self->priv->parameter_mask &= (GDATA_QUERY_PARAM_ALL ^ GDATA_QUERY_PARAM_IS_STRICT);
+		self->priv->parameter_mask &= ~GDATA_QUERY_PARAM_IS_STRICT;
 	else
 		self->priv->parameter_mask |= GDATA_QUERY_PARAM_IS_STRICT;
 
@@ -993,7 +993,7 @@ gdata_query_set_max_results (GDataQuery *self, gint max_results)
 	self->priv->max_results = max_results;
 
 	if (max_results == -1)
-		self->priv->parameter_mask &= (GDATA_QUERY_PARAM_ALL ^ GDATA_QUERY_PARAM_MAX_RESULTS);
+		self->priv->parameter_mask &= ~GDATA_QUERY_PARAM_MAX_RESULTS;
 	else
 		self->priv->parameter_mask |= GDATA_QUERY_PARAM_MAX_RESULTS;
 
@@ -1033,7 +1033,7 @@ gdata_query_set_entry_id (GDataQuery *self, const gchar *entry_id)
 	self->priv->entry_id = g_strdup (entry_id);
 
 	if (entry_id == NULL)
-		self->priv->parameter_mask &= (GDATA_QUERY_PARAM_ALL ^ GDATA_QUERY_PARAM_ENTRY_ID);
+		self->priv->parameter_mask &= ~GDATA_QUERY_PARAM_ENTRY_ID;
 	else
 		self->priv->parameter_mask |= GDATA_QUERY_PARAM_ENTRY_ID;
 
