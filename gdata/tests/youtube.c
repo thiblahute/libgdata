@@ -53,7 +53,7 @@ test_authentication (void)
 
 	/* Check all is as it should be */
 	g_assert (gdata_service_is_authenticated (service) == TRUE);
-	g_assert_cmpstr (gdata_service_get_username (service), ==, YT_USERNAME);
+	g_assert_cmpstr (gdata_service_get_username (service), ==, YT_USERNAME "@gmail.com");
 	g_assert_cmpstr (gdata_service_get_password (service), ==, YT_PASSWORD);
 	g_assert_cmpstr (gdata_youtube_service_get_youtube_user (GDATA_YOUTUBE_SERVICE (service)), ==, YT_USERNAME);
 }
@@ -73,7 +73,7 @@ test_authentication_async_cb (GDataService *service, GAsyncResult *async_result,
 
 	/* Check all is as it should be */
 	g_assert (gdata_service_is_authenticated (service) == TRUE);
-	g_assert_cmpstr (gdata_service_get_username (service), ==, YT_USERNAME);
+	g_assert_cmpstr (gdata_service_get_username (service), ==, YT_USERNAME "@gmail.com");
 	g_assert_cmpstr (gdata_service_get_password (service), ==, YT_PASSWORD);
 	g_assert_cmpstr (gdata_youtube_service_get_youtube_user (GDATA_YOUTUBE_SERVICE (service)), ==, YT_USERNAME);
 }
@@ -291,6 +291,7 @@ test_upload_simple (void)
 	g_assert_cmpstr (xml, ==,
 			 "<entry xmlns='http://www.w3.org/2005/Atom' "
 				"xmlns:media='http://search.yahoo.com/mrss/' "
+				"xmlns:gd='http://schemas.google.com/g/2005' "
 				"xmlns:yt='http://gdata.youtube.com/schemas/2007'>"
 			 	"<title type='text'>Bad Wedding Toast</title>"
 			 	"<media:group>"
@@ -298,7 +299,6 @@ test_upload_simple (void)
 			 		"<media:title type='plain'>Bad Wedding Toast</media:title>"
 			 		"<media:description type='plain'>I gave a bad toast at my friend&apos;s wedding.</media:description>"
 			 		"<media:keywords>toast, wedding</media:keywords>"
-			 		"<yt:duration seconds='0'/>"
 			 	"</media:group>"
 			 "</entry>");
 	g_free (xml);

@@ -258,17 +258,35 @@ parse_error_response (GDataService *self, guint status, const gchar *reason_phra
 		xmlChar *domain = NULL, *code = NULL, *location = NULL;
 		xmlNode *child_node = node->xmlChildrenNode;
 
+		if (node->type == XML_TEXT_NODE) {
+			/* Skip text nodes; they're all whitespace */
+			node = node->next;
+			continue;
+		}
+
 		/* Get the error data */
 		while (child_node != NULL) {
+			if (child_node->type == XML_TEXT_NODE) {
+				/* Skip text nodes; they're all whitespace */
+				child_node = child_node->next;
+				continue;
+			}
+
 			if (xmlStrcmp (child_node->name, (xmlChar*) "domain") == 0)
 				domain = xmlNodeListGetString (doc, child_node->xmlChildrenNode, TRUE);
 			else if (xmlStrcmp (child_node->name, (xmlChar*) "code") == 0)
 				code = xmlNodeListGetString (doc, child_node->xmlChildrenNode, TRUE);
 			else if (xmlStrcmp (child_node->name, (xmlChar*) "location") == 0)
 				location = xmlNodeListGetString (doc, child_node->xmlChildrenNode, TRUE);
-			else {
-				/* Unknown element */
-				gdata_parser_error_unhandled_element ((gchar*) child_node->ns->prefix, (gchar*) child_node->name, "error", error);
+			else if (xmlStrcmp (child_node->name, (xmlChar*) "internalReason") != 0) {
+				/* Unknown element (ignore internalReason) */
+				if (*error == NULL) {
+					gdata_parser_error_unhandled_element ((gchar*) child_node->ns->prefix, (gchar*) child_node->name,
+									      "error", error);
+				} else {
+					g_warning ("Unhandled <%s:%s> element as a child of <error>.", child_node->ns->prefix, child_node->name);
+				}
+
 				xmlFree (domain);
 				xmlFree (code);
 				xmlFree (location);
