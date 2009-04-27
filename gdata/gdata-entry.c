@@ -567,7 +567,7 @@ real_parse_xml (GDataEntry *self, xmlDoc *doc, xmlNode *node, GError **error)
 		buffer = xmlBufferCreate ();
 		xmlNodeDump (buffer, doc, node, 0, 0);
 		g_string_append (self->priv->extra_xml, (gchar*) xmlBufferContent (buffer));
-		g_message ("Unhandled XML: %s", (gchar*) xmlBufferContent (buffer));
+		g_message ("Unhandled XML in <entry>: %s", (gchar*) xmlBufferContent (buffer));
 		xmlBufferFree (buffer);
 
 		/* Get the namespaces */

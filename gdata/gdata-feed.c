@@ -659,7 +659,7 @@ _gdata_feed_new_from_xml (const gchar *xml, gint length, GType entry_type,
 			xmlBuffer *buffer = xmlBufferCreate ();
 			xmlNodeDump (buffer, doc, node, 0, 0);
 			g_string_append (extra_xml, (gchar*) xmlBufferContent (buffer));
-			g_message ("Unhandled XML: %s", (gchar*) xmlBufferContent (buffer));
+			g_message ("Unhandled XML in <feed>: %s", (gchar*) xmlBufferContent (buffer));
 			xmlBufferFree (buffer);
 		}
 

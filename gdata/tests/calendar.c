@@ -373,6 +373,69 @@ test_xml_dates (void)
 }
 
 static void
+test_xml_recurrence (void)
+{
+	GDataCalendarEvent *event;
+	gchar *xml;
+	GError *error = NULL;
+	gchar *id, *uri;
+
+	event = gdata_calendar_event_new_from_xml (
+		"<entry xmlns='http://www.w3.org/2005/Atom' "
+		 	"xmlns:gd='http://schemas.google.com/g/2005' "
+		 	"xmlns:gCal='http://schemas.google.com/gCal/2005' "
+		 	"xmlns:app='http://www.w3.org/2007/app'>"
+			"<id>http://www.google.com/calendar/feeds/libgdata.test@googlemail.com/events/g5928e82rrch95b25f8ud0dlsg_20090429T153000Z</id>"
+			"<published>2009-04-25T15:22:47.000Z</published>"
+			"<updated>2009-04-27T17:54:10.000Z</updated>"
+			"<app:edited xmlns:app='http://www.w3.org/2007/app'>2009-04-27T17:54:10.000Z</app:edited>"
+			"<category scheme='http://schemas.google.com/g/2005#kind' term='http://schemas.google.com/g/2005#event'/>"
+			"<title>Test daily instance event</title>"
+			"<content></content>"
+			"<link rel='alternate' type='text/html' href='http://www.google.com/calendar/event?eid=ZzU5MjhlODJycmNoOTViMjVmOHVkMGRsc2dfMjAwOTA0MjlUMTUzMDAwWiBsaWJnZGF0YS50ZXN0QGdvb2dsZW1haWwuY29t' title='alternate'/>"
+			"<link rel='self' type='application/atom+xml' href='http://www.google.com/calendar/feeds/libgdata.test@googlemail.com/private/full/g5928e82rrch95b25f8ud0dlsg_20090429T153000Z'/>"
+			"<link rel='edit' type='application/atom+xml' href='http://www.google.com/calendar/feeds/libgdata.test@googlemail.com/private/full/g5928e82rrch95b25f8ud0dlsg_20090429T153000Z'/>"
+			"<author>"
+				"<name>GData Test</name>"
+				"<email>libgdata.test@googlemail.com</email>"
+			"</author>"
+			"<gd:originalEvent id='g5928e82rrch95b25f8ud0dlsg' href='http://www.google.com/calendar/feeds/libgdata.test@googlemail.com/private/full/g5928e82rrch95b25f8ud0dlsg'>"
+				"<gd:when startTime='2009-04-29T16:30:00.000+01:00'/>"
+			"</gd:originalEvent>"
+			"<gCal:guestsCanModify value='false'/>"
+			"<gCal:guestsCanInviteOthers value='false'/>"
+			"<gCal:guestsCanSeeGuests value='false'/>"
+			"<gCal:anyoneCanAddSelf value='false'/>"
+			"<gd:comments>"
+				"<gd:feedLink href='http://www.google.com/calendar/feeds/libgdata.test@googlemail.com/private/full/g5928e82rrch95b25f8ud0dlsg_20090429T153000Z/comments'/>"
+			"</gd:comments>"
+			"<gd:eventStatus value='http://schemas.google.com/g/2005#event.confirmed'/>"
+			"<gd:visibility value='http://schemas.google.com/g/2005#event.private'/>"
+			"<gd:transparency value='http://schemas.google.com/g/2005#event.opaque'/>"
+			"<gCal:uid value='g5928e82rrch95b25f8ud0dlsg@google.com'/>"
+			"<gCal:sequence value='0'/>"
+			"<gd:when startTime='2009-04-29T17:30:00.000+01:00' endTime='2009-04-29T17:30:00.000+01:00'>"
+				"<gd:reminder minutes='10' method='email'/>"
+				"<gd:reminder minutes='10' method='alert'/>"
+			"</gd:when>"
+			"<gd:who rel='http://schemas.google.com/g/2005#event.organizer' valueString='GData Test' email='libgdata.test@googlemail.com'/>"
+			"<gd:where valueString=''/>"
+		"</entry>", -1, &error);
+	g_assert_no_error (error);
+	g_assert (GDATA_IS_ENTRY (event));
+	g_clear_error (&error);
+
+	/* Check the original event */
+	g_assert (gdata_calendar_event_is_exception (event) == TRUE);
+
+	gdata_calendar_event_get_original_event_details (event, &id, &uri);
+	g_assert_cmpstr (id, ==, "g5928e82rrch95b25f8ud0dlsg");
+	g_assert_cmpstr (uri, ==, "http://www.google.com/calendar/feeds/libgdata.test@googlemail.com/private/full/g5928e82rrch95b25f8ud0dlsg");
+
+	g_object_unref (event);
+}
+
+static void
 test_query_uri (void)
 {
 	GTimeVal time_val, time_val2;
@@ -466,6 +529,7 @@ main (int argc, char *argv[])
 	if (g_test_slow () == TRUE)
 		g_test_add_func ("/calendar/insert/simple", test_insert_simple);
 	g_test_add_func ("/calendar/xml/dates", test_xml_dates);
+	g_test_add_func ("/calendar/xml/recurrence", test_xml_recurrence);
 	g_test_add_func ("/calendar/query/uri", test_query_uri);
 
 	retval = g_test_run ();

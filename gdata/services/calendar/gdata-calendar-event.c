@@ -64,6 +64,9 @@ struct _GDataCalendarEventPrivate {
 	guint anyone_can_add_self : 1;
 	GList *people; /* GDataGDWho */
 	GList *places; /* GDataGDWhere */
+	gchar *recurrence;
+	gchar *original_event_id;
+	gchar *original_event_uri;
 };
 
 enum {
@@ -76,7 +79,10 @@ enum {
 	PROP_GUESTS_CAN_MODIFY,
 	PROP_GUESTS_CAN_INVITE_OTHERS,
 	PROP_GUESTS_CAN_SEE_GUESTS,
-	PROP_ANYONE_CAN_ADD_SELF
+	PROP_ANYONE_CAN_ADD_SELF,
+	PROP_RECURRENCE,
+	PROP_ORIGINAL_EVENT_ID,
+	PROP_ORIGINAL_EVENT_URI
 };
 
 G_DEFINE_TYPE (GDataCalendarEvent, gdata_calendar_event, GDATA_TYPE_ENTRY)
@@ -200,8 +206,8 @@ gdata_calendar_event_class_init (GDataCalendarEventClass *klass)
 	 *
 	 * Indicates whether event attendees may invite other people to the event.
 	 *
-	 * For more information, see the <ulink type="http" url="http://code.google.com/apis/calendar/docs/2.0/reference.html#gCalguestsCanInviteOthers">
-	 * GData specification</ulink>.
+	 * For more information, see the <ulink type="http"
+	 * url="http://code.google.com/apis/calendar/docs/2.0/reference.html#gCalguestsCanInviteOthers">GData specification</ulink>.
 	 **/
 	g_object_class_install_property (gobject_class, PROP_GUESTS_CAN_INVITE_OTHERS,
 				g_param_spec_boolean ("guests-can-invite-others",
@@ -233,6 +239,49 @@ gdata_calendar_event_class_init (GDataCalendarEventClass *klass)
 					"Anyone can add self", "Indicates whether anyone can add themselves to the attendee list of the event.",
 					FALSE,
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * GDataCalendarEvent:recurrence:
+	 *
+	 * Represents the dates and times when a recurring event takes place. The returned string is in iCal format, as a list of properties.
+	 *
+	 * For more information, see the <ulink type="http" url="http://code.google.com/apis/gdata/elements.html#gdRecurrence">
+	 * GData specification</ulink>.
+	 *
+	 * Since: 0.3.0
+	 **/
+	g_object_class_install_property (gobject_class, PROP_RECURRENCE,
+				g_param_spec_string ("recurrence",
+					"Recurrence", "Represents the dates and times when a recurring event takes place.",
+					NULL,
+					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * GDataCalendarEvent:original-event-id:
+	 *
+	 * The event ID for the original event, if this event is an exception to a recurring event.
+	 *
+	 * Since: 0.3.0
+	 **/
+	g_object_class_install_property (gobject_class, PROP_ORIGINAL_EVENT_ID,
+				g_param_spec_string ("original-event-id",
+					"Original event ID", "The event ID for the original event, if this event is an exception to a recurring event.",
+					NULL,
+					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * GDataCalendarEvent:original-event-uri:
+	 *
+	 * The event URI for the original event, if this event is an exception to a recurring event.
+	 *
+	 * Since: 0.3.0
+	 **/
+	g_object_class_install_property (gobject_class, PROP_ORIGINAL_EVENT_URI,
+				g_param_spec_string ("original-event-uri",
+					"Original event URI", "The event URI for the original event, if this event is an exception"
+					" to a recurring event.",
+					NULL,
+					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 }
 
 static void
@@ -256,6 +305,9 @@ gdata_calendar_event_finalize (GObject *object)
 	g_list_free (priv->people);
 	g_list_foreach (priv->places, (GFunc) gdata_gd_where_free, NULL);
 	g_list_free (priv->places);
+	g_free (priv->recurrence);
+	xmlFree ((xmlChar*) priv->original_event_id);
+	xmlFree ((xmlChar*) priv->original_event_uri);
 
 	/* Chain up to the parent class */
 	G_OBJECT_CLASS (gdata_calendar_event_parent_class)->finalize (object);
@@ -297,6 +349,15 @@ gdata_calendar_event_get_property (GObject *object, guint property_id, GValue *v
 		case PROP_ANYONE_CAN_ADD_SELF:
 			g_value_set_boolean (value, priv->anyone_can_add_self);
 			break;
+		case PROP_RECURRENCE:
+			g_value_set_string (value, priv->recurrence);
+			break;
+		case PROP_ORIGINAL_EVENT_ID:
+			g_value_set_string (value, priv->original_event_id);
+			break;
+		case PROP_ORIGINAL_EVENT_URI:
+			g_value_set_string (value, priv->original_event_uri);
+			break;
 		default:
 			/* We don't have any other property... */
 			G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
@@ -336,6 +397,9 @@ gdata_calendar_event_set_property (GObject *object, guint property_id, const GVa
 			break;
 		case PROP_ANYONE_CAN_ADD_SELF:
 			gdata_calendar_event_set_anyone_can_add_self (self, g_value_get_boolean (value));
+			break;
+		case PROP_RECURRENCE:
+			gdata_calendar_event_set_recurrence (self, g_value_get_string (value));
 			break;
 		default:
 			/* We don't have any other property... */
@@ -568,6 +632,19 @@ parse_xml (GDataEntry *entry, xmlDoc *doc, xmlNode *node, GError **error)
 		xmlFree (label);
 
 		gdata_calendar_event_add_place (self, where);
+	} else if (xmlStrcmp (node->name, (xmlChar*) "recurrence") == 0) {
+		/* gd:recurrence */
+		xmlChar *recurrence = xmlNodeListGetString (doc, node->xmlChildrenNode, TRUE);
+		gdata_calendar_event_set_recurrence (self, (gchar*) recurrence);
+		xmlFree (recurrence);
+	} else if (xmlStrcmp (node->name, (xmlChar*) "originalEvent") == 0) {
+		/* gd:originalEvent */
+		g_object_freeze_notify (G_OBJECT (self));
+		self->priv->original_event_id = (gchar*) xmlGetProp (node, (xmlChar*) "id");
+		g_object_notify (G_OBJECT (self), "original-event-id");
+		self->priv->original_event_uri = (gchar*) xmlGetProp (node, (xmlChar*) "href");
+		g_object_notify (G_OBJECT (self), "original-event-uri");
+		g_object_thaw_notify (G_OBJECT (self));
 	} else if (GDATA_ENTRY_CLASS (gdata_calendar_event_parent_class)->parse_xml (entry, doc, node, error) == FALSE) {
 		/* Error! */
 		return FALSE;
@@ -623,6 +700,9 @@ get_xml (GDataEntry *entry, GString *xml_string)
 		g_string_append (xml_string, "<gCal:anyoneCanAddSelf value='true'/>");
 	else
 		g_string_append (xml_string, "<gCal:anyoneCanAddSelf value='false'/>");
+
+	if (priv->recurrence != NULL)
+		g_string_append_printf (xml_string, "<gd:recurrence>%s</gd:recurrence>", priv->recurrence);
 
 	for (i = priv->times; i != NULL; i = i->next) {
 		gchar *start_time;
@@ -1153,4 +1233,88 @@ gdata_calendar_event_get_primary_time (GDataCalendarEvent *self, GTimeVal *start
 		*when = primary_when;
 
 	return TRUE;
+}
+
+/**
+ * gdata_calendar_event_get_recurrence:
+ * @self: a #GDataCalendarEvent
+ *
+ * Gets the #GDataCalendarEvent:recurrence property.
+ *
+ * Return value: the event recurrence patterns, or %NULL
+ *
+ * Since: 0.3.0
+ **/
+const gchar *
+gdata_calendar_event_get_recurrence (GDataCalendarEvent *self)
+{
+	g_return_val_if_fail (GDATA_IS_CALENDAR_EVENT (self), NULL);
+	return self->priv->recurrence;
+}
+
+/**
+ * gdata_calendar_event_set_recurrence:
+ * @self: a #GDataCalendarEvent
+ * @recurrence: a new event recurrence, or %NULL
+ *
+ * Sets the #GDataCalendarEvent:recurrence property to the new recurrence, @recurrence.
+ *
+ * Set @recurrence to %NULL to unset the property in the event.
+ *
+ * Since: 0.3.0
+ **/
+void
+gdata_calendar_event_set_recurrence (GDataCalendarEvent *self, const gchar *recurrence)
+{
+	g_return_if_fail (GDATA_IS_CALENDAR_EVENT (self));
+
+	g_free (self->priv->recurrence);
+	self->priv->recurrence = g_strdup (recurrence);
+	g_object_notify (G_OBJECT (self), "recurrence");
+}
+
+/**
+ * gdata_calendar_event_get_original_event_details:
+ * @self: a #GDataCalendarEvent
+ * @event_id: return location for the original event's ID, or %NULL
+ * @event_uri: return location for the original event's URI, or %NULL
+ *
+ * Gets details of the original event, if this event is an exception to a recurring event. The original
+ * event's ID and the URI of the event's XML are returned in @event_id and @event_uri, respectively.
+ *
+ * If this event is not an exception to a recurring event, @event_id and @event_uri will be set to %NULL.
+ * See gdata_calendar_event_is_exception() to determine more simply whether an event is an exception to a
+ * recurring event.
+ *
+ * If both @event_id and @event_uri are %NULL, this function is a no-op.
+ *
+ * Since: 0.3.0
+ **/
+void
+gdata_calendar_event_get_original_event_details (GDataCalendarEvent *self, gchar **event_id, gchar **event_uri)
+{
+	g_return_if_fail (GDATA_IS_CALENDAR_EVENT (self));
+
+	if (event_id != NULL)
+		*event_id = g_strdup (self->priv->original_event_id);
+	if (event_uri != NULL)
+		*event_uri = g_strdup (self->priv->original_event_uri);
+}
+
+/**
+ * gdata_calendar_event_is_exception:
+ * @self: a #GDataCalendarEvent
+ *
+ * Determines whether the event is an exception to a recurring event. If it is, details of the original event
+ * can be retrieved using gdata_calendar_event_get_original_event_details().
+ *
+ * Return value: %TRUE if the event is an exception, %FALSE otherwise
+ *
+ * Since: 0.3.0.
+ **/
+gboolean
+gdata_calendar_event_is_exception (GDataCalendarEvent *self)
+{
+	g_return_val_if_fail (GDATA_IS_CALENDAR_EVENT (self), FALSE);
+	return (self->priv->original_event_id != NULL && self->priv->original_event_uri != NULL) ? TRUE : FALSE;
 }

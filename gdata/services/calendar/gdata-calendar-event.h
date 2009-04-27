@@ -89,6 +89,10 @@ GList *gdata_calendar_event_get_places (GDataCalendarEvent *self);
 void gdata_calendar_event_add_time (GDataCalendarEvent *self, GDataGDWhen *when);
 GList *gdata_calendar_event_get_times (GDataCalendarEvent *self);
 gboolean gdata_calendar_event_get_primary_time (GDataCalendarEvent *self, GTimeVal *start_time, GTimeVal *end_time, GDataGDWhen **when);
+const gchar *gdata_calendar_event_get_recurrence (GDataCalendarEvent *self);
+void gdata_calendar_event_set_recurrence (GDataCalendarEvent *self, const gchar *recurrence);
+void gdata_calendar_event_get_original_event_details (GDataCalendarEvent *self, gchar **event_id, gchar **event_uri);
+gboolean gdata_calendar_event_is_exception (GDataCalendarEvent *self);
 
 G_END_DECLS
 
