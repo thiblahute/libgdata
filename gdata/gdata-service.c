@@ -516,6 +516,9 @@ authenticate (GDataService *self, const gchar *username, const gchar *password, 
 		const gchar *response_body = message->response_body->data;
 		gchar *error_start, *error_end, *uri_start, *uri_end, *uri = NULL;
 
+		if (response_body == NULL)
+			goto protocol_error;
+
 		/* Error */
 		error_start = strstr (response_body, "Error=");
 		if (error_start == NULL)
@@ -1268,14 +1271,14 @@ gdata_service_set_proxy_uri (GDataService *self, SoupURI *proxy_uri)
 gboolean
 gdata_service_is_authenticated (GDataService *self)
 {
-	g_assert (GDATA_IS_SERVICE (self));
+	g_return_val_if_fail (GDATA_IS_SERVICE (self), FALSE);
 	return self->priv->authenticated;
 }
 
 void
 _gdata_service_set_authenticated (GDataService *self, gboolean authenticated)
 {
-	g_assert (GDATA_IS_SERVICE (self));
+	g_return_if_fail (GDATA_IS_SERVICE (self));
 	self->priv->authenticated = authenticated;
 }
 
