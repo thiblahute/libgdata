@@ -443,7 +443,12 @@ real_parse_xml (GDataEntry *self, xmlDoc *doc, xmlNode *node, GError **error)
 	if (xmlStrcmp (node->name, (xmlChar*) "title") == 0) {
 		/* atom:title */
 		xmlChar *title = xmlNodeListGetString (doc, node->xmlChildrenNode, TRUE);
-		gdata_entry_set_title (self, (gchar*) title);
+
+		/* Title can be empty */
+		if (title == NULL)
+			gdata_entry_set_title (self, "");
+		else
+			gdata_entry_set_title (self, (gchar*) title);
 		xmlFree (title);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "id") == 0) {
 		/* atom:id */
@@ -598,7 +603,7 @@ gdata_entry_get_title (GDataEntry *self)
 /**
  * gdata_entry_set_title:
  * @self: a #GDataEntry
- * @title: the new entry title
+ * @title: the new entry title, or %NULL
  *
  * Sets the title of the entry.
  **/
@@ -606,8 +611,6 @@ void
 gdata_entry_set_title (GDataEntry *self, const gchar *title)
 {
 	g_return_if_fail (GDATA_IS_ENTRY (self));
-	g_return_if_fail (title != NULL);
-
 	g_free (self->priv->title);
 	self->priv->title = g_strdup (title);
 	g_object_notify (G_OBJECT (self), "title");

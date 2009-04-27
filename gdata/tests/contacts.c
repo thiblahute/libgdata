@@ -208,6 +208,39 @@ test_query_uri (void)
 	g_object_unref (query);
 }
 
+static void
+test_parser_minimal (void)
+{
+	GDataContactsContact *contact;
+	GError *error = NULL;
+
+	g_test_bug ("580330");
+
+	contact = gdata_contacts_contact_new_from_xml (
+		"<entry xmlns='http://www.w3.org/2005/Atom' "
+			"xmlns:gd='http://schemas.google.com/g/2005' "
+			"gd:etag='&quot;QngzcDVSLyp7ImA9WxJTFkoITgU.&quot;'>"
+			"<id>http://www.google.com/m8/feeds/contacts/libgdata.test@googlemail.com/base/1b46cdd20bfbee3b</id>"
+			"<updated>2009-04-25T15:21:53.688Z</updated>"
+			"<app:edited xmlns:app='http://www.w3.org/2007/app'>2009-04-25T15:21:53.688Z</app:edited>"
+			"<category scheme='http://schemas.google.com/g/2005#kind' term='http://schemas.google.com/contact/2008#contact'/>"
+			"<title></title>" /* Here's where it all went wrong */
+			"<link rel='http://schemas.google.com/contacts/2008/rel#photo' type='image/*' href='http://www.google.com/m8/feeds/photos/media/libgdata.test@googlemail.com/1b46cdd20bfbee3b'/>"
+			"<link rel='self' type='application/atom+xml' href='http://www.google.com/m8/feeds/contacts/libgdata.test@googlemail.com/full/1b46cdd20bfbee3b'/>"
+			"<link rel='edit' type='application/atom+xml' href='http://www.google.com/m8/feeds/contacts/libgdata.test@googlemail.com/full/1b46cdd20bfbee3b'/>"
+			"<gd:email rel='http://schemas.google.com/g/2005#other' address='bob@example.com'/>"
+		"</entry>", -1, &error);
+	g_assert_no_error (error);
+	g_assert (GDATA_IS_ENTRY (contact));
+	g_clear_error (&error);
+
+	/* Check the contact's properties */
+	g_assert (gdata_entry_get_title (GDATA_ENTRY (contact)) != NULL);
+	g_assert (*gdata_entry_get_title (GDATA_ENTRY (contact)) == '\0');
+
+	/* TODO: Check the other properties */
+}
+
 int
 main (int argc, char *argv[])
 {
@@ -225,6 +258,7 @@ main (int argc, char *argv[])
 	if (g_test_slow () == TRUE)
 		g_test_add_func ("/contacts/insert/simple", test_insert_simple);
 	g_test_add_func ("/contacts/query/uri", test_query_uri);
+	g_test_add_func ("/contacts/parser/minimal", test_parser_minimal);
 
 	retval = g_test_run ();
 	if (service != NULL)
