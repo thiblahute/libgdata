@@ -452,7 +452,7 @@ parse_xml (GDataEntry *entry, xmlDoc *doc, xmlNode *node, GError **error)
 
 	if (xmlStrcmp (node->name, (xmlChar*) "edited") == 0) {
 		/* app:edited */
-		xmlChar *edited = xmlNodeListGetString (doc, node->xmlChildrenNode, TRUE);
+		xmlChar *edited = xmlNodeListGetString (doc, node->children, TRUE);
 		if (g_time_val_from_iso8601 ((gchar*) edited, &(self->priv->edited)) == FALSE) {
 			/* Error */
 			gdata_parser_error_not_iso8601_format ("app:edited", "entry", (gchar*) edited, error);
@@ -468,7 +468,7 @@ parse_xml (GDataEntry *entry, xmlDoc *doc, xmlNode *node, GError **error)
 		/*GDataGDFeedLink *feed_link;*/
 
 		/* This is actually the child of the <comments> element */
-		child_node = node->xmlChildrenNode;
+		child_node = node->children;
 
 		count_hint = xmlGetProp (child_node, (xmlChar*) "countHint");
 		if (count_hint == NULL)
@@ -634,7 +634,7 @@ parse_xml (GDataEntry *entry, xmlDoc *doc, xmlNode *node, GError **error)
 		gdata_calendar_event_add_place (self, where);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "recurrence") == 0) {
 		/* gd:recurrence */
-		xmlChar *recurrence = xmlNodeListGetString (doc, node->xmlChildrenNode, TRUE);
+		xmlChar *recurrence = xmlNodeListGetString (doc, node->children, TRUE);
 		gdata_calendar_event_set_recurrence (self, (gchar*) recurrence);
 		xmlFree (recurrence);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "originalEvent") == 0) {

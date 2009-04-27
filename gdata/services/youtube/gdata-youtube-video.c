@@ -573,17 +573,17 @@ parse_media_group_xml_node (GDataYouTubeVideo *self, xmlDoc *doc, xmlNode *node,
 {
 	if (xmlStrcmp (node->name, (xmlChar*) "title") == 0) {
 		/* media:title */
-		xmlChar *title = xmlNodeListGetString (doc, node->xmlChildrenNode, TRUE);
+		xmlChar *title = xmlNodeListGetString (doc, node->children, TRUE);
 		gdata_youtube_video_set_title (self, (gchar*) title);
 		xmlFree (title);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "description") == 0) {
 		/* media:description */
-		xmlChar *description = xmlNodeListGetString (doc, node->xmlChildrenNode, TRUE);
+		xmlChar *description = xmlNodeListGetString (doc, node->children, TRUE);
 		gdata_youtube_video_set_description (self, (gchar*) description);
 		xmlFree (description);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "keywords") == 0) {
 		/* media:keywords */
-		xmlChar *keywords = xmlNodeListGetString (doc, node->xmlChildrenNode, TRUE);
+		xmlChar *keywords = xmlNodeListGetString (doc, node->children, TRUE);
 		gdata_youtube_video_set_keywords (self, (gchar*) keywords);
 		xmlFree (keywords);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "category") == 0) {
@@ -593,7 +593,7 @@ parse_media_group_xml_node (GDataYouTubeVideo *self, xmlDoc *doc, xmlNode *node,
 
 		scheme = xmlGetProp (node, (xmlChar*) "scheme");
 		label = xmlGetProp (node, (xmlChar*) "label");
-		content = xmlNodeListGetString (doc, node->xmlChildrenNode, TRUE);
+		content = xmlNodeListGetString (doc, node->children, TRUE);
 
 		category = gdata_media_category_new ((gchar*) content, (gchar*) scheme, (gchar*) label);
 		gdata_youtube_video_set_category (self, category);
@@ -674,7 +674,7 @@ parse_media_group_xml_node (GDataYouTubeVideo *self, xmlDoc *doc, xmlNode *node,
 			return FALSE;
 		}
 
-		content = xmlNodeListGetString (doc, node->xmlChildrenNode, TRUE);
+		content = xmlNodeListGetString (doc, node->children, TRUE);
 
 		gdata_media_credit_free (self->priv->credit);
 		self->priv->credit = gdata_media_credit_new ((gchar*) content, (type != NULL) ? TRUE : FALSE);
@@ -718,7 +718,7 @@ parse_media_group_xml_node (GDataYouTubeVideo *self, xmlDoc *doc, xmlNode *node,
 		}
 		xmlFree (type);
 
-		countries = xmlNodeListGetString (doc, node->xmlChildrenNode, TRUE);
+		countries = xmlNodeListGetString (doc, node->children, TRUE);
 		relationship = xmlGetProp (node, (xmlChar*) "relationship");
 
 		if (xmlStrcmp (relationship, (xmlChar*) "allow") == 0)
@@ -792,7 +792,7 @@ parse_media_group_xml_node (GDataYouTubeVideo *self, xmlDoc *doc, xmlNode *node,
 		xmlChar *uploaded;
 		GTimeVal uploaded_timeval;
 
-		uploaded = xmlNodeListGetString (doc, node->xmlChildrenNode, TRUE);
+		uploaded = xmlNodeListGetString (doc, node->children, TRUE);
 		if (g_time_val_from_iso8601 ((gchar*) uploaded, &uploaded_timeval) == FALSE) {
 			/* Error */
 			gdata_parser_error_not_iso8601_format ("uploaded", "media:group", (gchar*) uploaded, error);
@@ -805,7 +805,7 @@ parse_media_group_xml_node (GDataYouTubeVideo *self, xmlDoc *doc, xmlNode *node,
 		g_object_notify (G_OBJECT (self), "uploaded");
 	} else if (xmlStrcmp (node->name, (xmlChar*) "videoid") == 0) {
 		/* yt:videoid */
-		xmlChar *video_id = xmlNodeListGetString (doc, node->xmlChildrenNode, TRUE);
+		xmlChar *video_id = xmlNodeListGetString (doc, node->children, TRUE);
 		g_free (self->priv->video_id);
 		self->priv->video_id = g_strdup ((gchar*) video_id);
 		g_object_notify (G_OBJECT (self), "video-id");
@@ -830,7 +830,7 @@ parse_xml (GDataEntry *entry, xmlDoc *doc, xmlNode *node, GError **error)
 		/* media:group */
 		xmlNode *child_node;
 
-		child_node = node->xmlChildrenNode;
+		child_node = node->children;
 		while (child_node != NULL) {
 			if (parse_media_group_xml_node (self, doc, child_node, error) == FALSE)
 				return FALSE;
@@ -882,7 +882,7 @@ parse_xml (GDataEntry *entry, xmlDoc *doc, xmlNode *node, GError **error)
 		/*GDataGDFeedLink *feed_link;*/
 
 		/* This is actually the child of the <comments> element */
-		child_node = node->xmlChildrenNode;
+		child_node = node->children;
 
 		count_hint = xmlGetProp (child_node, (xmlChar*) "countHint");
 		if (count_hint == NULL)
@@ -922,7 +922,7 @@ parse_xml (GDataEntry *entry, xmlDoc *doc, xmlNode *node, GError **error)
 		xmlFree (favorite_count);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "location") == 0) {
 		/* yt:location */
-		xmlChar *location = xmlNodeListGetString (doc, node->xmlChildrenNode, TRUE);
+		xmlChar *location = xmlNodeListGetString (doc, node->children, TRUE);
 		gdata_youtube_video_set_location (self, (gchar*) location);
 		xmlFree (location);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "where") == 0) {
@@ -938,7 +938,7 @@ parse_xml (GDataEntry *entry, xmlDoc *doc, xmlNode *node, GError **error)
 		/* app:control */
 		xmlNode *child_node;
 
-		child_node = node->xmlChildrenNode;
+		child_node = node->children;
 		while (child_node != NULL) {
 			if (xmlStrcmp (child_node->name, (xmlChar*) "draft") == 0) {
 				/* app:draft */
@@ -951,7 +951,7 @@ parse_xml (GDataEntry *entry, xmlDoc *doc, xmlNode *node, GError **error)
 				if (name == NULL)
 					return gdata_parser_error_required_property_missing ("yt:state", "name", error);
 
-				message = xmlNodeListGetString (doc, child_node->xmlChildrenNode, TRUE);
+				message = xmlNodeListGetString (doc, child_node->children, TRUE);
 				reason_code = xmlGetProp (child_node, (xmlChar*) "reasonCode");
 				help_uri = xmlGetProp (child_node, (xmlChar*) "helpUrl");
 

@@ -421,7 +421,7 @@ _gdata_entry_new_from_xml_node (GType entry_type, xmlDoc *doc, xmlNode *node, GE
 	/* Get the ETag first */
 	entry->priv->etag = (gchar*) xmlGetProp (node, (xmlChar*) "etag");
 
-	node = node->xmlChildrenNode;
+	node = node->children;
 	while (node != NULL) {
 		if (klass->parse_xml (entry, doc, node, error) == FALSE) {
 			g_object_unref (entry);
@@ -442,7 +442,7 @@ real_parse_xml (GDataEntry *self, xmlDoc *doc, xmlNode *node, GError **error)
 
 	if (xmlStrcmp (node->name, (xmlChar*) "title") == 0) {
 		/* atom:title */
-		xmlChar *title = xmlNodeListGetString (doc, node->xmlChildrenNode, TRUE);
+		xmlChar *title = xmlNodeListGetString (doc, node->children, TRUE);
 
 		/* Title can be empty */
 		if (title == NULL)
@@ -453,12 +453,12 @@ real_parse_xml (GDataEntry *self, xmlDoc *doc, xmlNode *node, GError **error)
 	} else if (xmlStrcmp (node->name, (xmlChar*) "id") == 0) {
 		/* atom:id */
 		xmlFree (self->priv->id);
-		self->priv->id = (gchar*) xmlNodeListGetString (doc, node->xmlChildrenNode, TRUE);
+		self->priv->id = (gchar*) xmlNodeListGetString (doc, node->children, TRUE);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "updated") == 0) {
 		/* atom:updated */
 		xmlChar *updated;
 
-		updated = xmlNodeListGetString (doc, node->xmlChildrenNode, TRUE);
+		updated = xmlNodeListGetString (doc, node->children, TRUE);
 		if (g_time_val_from_iso8601 ((gchar*) updated, &(self->priv->updated)) == FALSE) {
 			/* Error */
 			gdata_parser_error_not_iso8601_format ("updated", "entry", (gchar*) updated, error);
@@ -470,7 +470,7 @@ real_parse_xml (GDataEntry *self, xmlDoc *doc, xmlNode *node, GError **error)
 		/* atom:published */
 		xmlChar *published;
 
-		published = xmlNodeListGetString (doc, node->xmlChildrenNode, TRUE);
+		published = xmlNodeListGetString (doc, node->children, TRUE);
 		if (g_time_val_from_iso8601 ((gchar*) published, &(self->priv->published)) == FALSE) {
 			/* Error */
 			gdata_parser_error_not_iso8601_format ("published", "entry", (gchar*) published, error);
@@ -495,7 +495,7 @@ real_parse_xml (GDataEntry *self, xmlDoc *doc, xmlNode *node, GError **error)
 		xmlFree (label);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "content") == 0) {
 		/* atom:content */
-		xmlChar *content = xmlNodeListGetString (doc, node->xmlChildrenNode, TRUE);
+		xmlChar *content = xmlNodeListGetString (doc, node->children, TRUE);
 		if (content == NULL)
 			content = xmlGetProp (node, (xmlChar*) "src");
 		gdata_entry_set_content (self, (gchar*) content);
@@ -534,14 +534,14 @@ real_parse_xml (GDataEntry *self, xmlDoc *doc, xmlNode *node, GError **error)
 		xmlNode *author_node;
 		xmlChar *name = NULL, *uri = NULL, *email = NULL;
 
-		author_node = node->xmlChildrenNode;
+		author_node = node->children;
 		while (author_node != NULL) {
 			if (xmlStrcmp (author_node->name, (xmlChar*) "name") == 0) {
-				name = xmlNodeListGetString (doc, author_node->xmlChildrenNode, TRUE);
+				name = xmlNodeListGetString (doc, author_node->children, TRUE);
 			} else if (xmlStrcmp (author_node->name, (xmlChar*) "uri") == 0) {
-				uri = xmlNodeListGetString (doc, author_node->xmlChildrenNode, TRUE);
+				uri = xmlNodeListGetString (doc, author_node->children, TRUE);
 			} else if (xmlStrcmp (author_node->name, (xmlChar*) "email") == 0) {
-				email = xmlNodeListGetString (doc, author_node->xmlChildrenNode, TRUE);
+				email = xmlNodeListGetString (doc, author_node->children, TRUE);
 			} else {
 				gdata_parser_error_unhandled_element ((gchar*) author_node->ns->prefix, (gchar*) author_node->name, "author", error);
 				xmlFree (name);

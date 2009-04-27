@@ -253,10 +253,10 @@ parse_error_response (GDataService *self, guint status, const gchar *reason_phra
 	}
 
 	/* Parse the actual errors */
-	node = node->xmlChildrenNode;
+	node = node->children;
 	while (node != NULL) {
 		xmlChar *domain = NULL, *code = NULL, *location = NULL;
-		xmlNode *child_node = node->xmlChildrenNode;
+		xmlNode *child_node = node->children;
 
 		if (node->type == XML_TEXT_NODE) {
 			/* Skip text nodes; they're all whitespace */
@@ -273,11 +273,11 @@ parse_error_response (GDataService *self, guint status, const gchar *reason_phra
 			}
 
 			if (xmlStrcmp (child_node->name, (xmlChar*) "domain") == 0)
-				domain = xmlNodeListGetString (doc, child_node->xmlChildrenNode, TRUE);
+				domain = xmlNodeListGetString (doc, child_node->children, TRUE);
 			else if (xmlStrcmp (child_node->name, (xmlChar*) "code") == 0)
-				code = xmlNodeListGetString (doc, child_node->xmlChildrenNode, TRUE);
+				code = xmlNodeListGetString (doc, child_node->children, TRUE);
 			else if (xmlStrcmp (child_node->name, (xmlChar*) "location") == 0)
-				location = xmlNodeListGetString (doc, child_node->xmlChildrenNode, TRUE);
+				location = xmlNodeListGetString (doc, child_node->children, TRUE);
 			else if (xmlStrcmp (child_node->name, (xmlChar*) "internalReason") != 0) {
 				/* Unknown element (ignore internalReason) */
 				if (*error == NULL) {

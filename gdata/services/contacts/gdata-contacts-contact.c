@@ -216,7 +216,7 @@ parse_xml (GDataEntry *entry, xmlDoc *doc, xmlNode *node, GError **error)
 	if (xmlStrcmp (node->name, (xmlChar*) "edited") == 0) {
 		/* app:edited */
 		/* TODO: Should be in GDataEntry? */
-		xmlChar *edited = xmlNodeListGetString (doc, node->xmlChildrenNode, TRUE);
+		xmlChar *edited = xmlNodeListGetString (doc, node->children, TRUE);
 		if (g_time_val_from_iso8601 ((gchar*) edited, &(self->priv->edited)) == FALSE) {
 			/* Error */
 			gdata_parser_error_not_iso8601_format ("app:edited", "entry", (gchar*) edited, error);
@@ -304,7 +304,7 @@ parse_xml (GDataEntry *entry, xmlDoc *doc, xmlNode *node, GError **error)
 		gboolean primary_bool;
 		GDataGDPhoneNumber *phone_number;
 
-		number = xmlNodeListGetString (doc, node->xmlChildrenNode, TRUE);
+		number = xmlNodeListGetString (doc, node->children, TRUE);
 		if (number == NULL)
 			return gdata_parser_error_required_content_missing ("gd:phoneNumber", error);
 
@@ -342,7 +342,7 @@ parse_xml (GDataEntry *entry, xmlDoc *doc, xmlNode *node, GError **error)
 		gboolean primary_bool;
 		GDataGDPostalAddress *postal_address;
 
-		address = xmlNodeListGetString (doc, node->xmlChildrenNode, TRUE);
+		address = xmlNodeListGetString (doc, node->children, TRUE);
 		if (address == NULL)
 			return gdata_parser_error_required_content_missing ("gd:postalAddress", error);
 
@@ -379,7 +379,7 @@ parse_xml (GDataEntry *entry, xmlDoc *doc, xmlNode *node, GError **error)
 		GDataGDOrganization *organization;
 		xmlNode *child_node;
 
-		for (child_node = node->xmlChildrenNode; child_node != NULL; child_node = child_node->next) {
+		for (child_node = node->children; child_node != NULL; child_node = child_node->next) {
 			if (xmlStrcmp (child_node->name, (xmlChar*) "orgName") == 0) {
 				/* gd:orgName */
 				if (name != NULL) {
@@ -387,7 +387,7 @@ parse_xml (GDataEntry *entry, xmlDoc *doc, xmlNode *node, GError **error)
 					xmlFree (title);
 					return gdata_parser_error_duplicate_element ("gd:orgName", "gd:organization", error);
 				}
-				name = xmlNodeListGetString (doc, child_node->xmlChildrenNode, TRUE);
+				name = xmlNodeListGetString (doc, child_node->children, TRUE);
 			} else if (xmlStrcmp (child_node->name, (xmlChar*) "orgTitle") == 0) {
 				/* gd:orgTitle */
 				if (title != NULL) {
@@ -395,7 +395,7 @@ parse_xml (GDataEntry *entry, xmlDoc *doc, xmlNode *node, GError **error)
 					xmlFree (title);
 					return gdata_parser_error_duplicate_element ("gd:orgTitle", "gd:organization", error);
 				}
-				title = xmlNodeListGetString (doc, child_node->xmlChildrenNode, TRUE);
+				title = xmlNodeListGetString (doc, child_node->children, TRUE);
 			} else {
 				/* Error */
 				gdata_parser_error_unhandled_element ((gchar*) child_node->ns->prefix, (gchar*) child_node->name,

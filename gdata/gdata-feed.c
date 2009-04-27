@@ -425,7 +425,7 @@ _gdata_feed_new_from_xml (const gchar *xml, gint length, GType entry_type,
 	etag = xmlGetProp (node, (xmlChar*) "etag");
 
 	extra_xml = g_string_new ("");
-	node = node->xmlChildrenNode;
+	node = node->children;
 	while (node != NULL) {
 		if (xmlStrcmp (node->name, (xmlChar*) "entry") == 0) {
 			/* atom:entry */
@@ -459,7 +459,7 @@ _gdata_feed_new_from_xml (const gchar *xml, gint length, GType entry_type,
 				goto error;
 			}
 
-			title = xmlNodeListGetString (doc, node->xmlChildrenNode, TRUE);
+			title = xmlNodeListGetString (doc, node->children, TRUE);
 		} else if (xmlStrcmp (node->name, (xmlChar*) "subtitle") == 0) {
 			/* atom:subtitle */
 			if (subtitle != NULL) {
@@ -467,7 +467,7 @@ _gdata_feed_new_from_xml (const gchar *xml, gint length, GType entry_type,
 				goto error;
 			}
 
-			subtitle = xmlNodeListGetString (doc, node->xmlChildrenNode, TRUE);
+			subtitle = xmlNodeListGetString (doc, node->children, TRUE);
 		} else if (xmlStrcmp (node->name, (xmlChar*) "id") == 0) {
 			/* atom:id */
 			if (id != NULL) {
@@ -475,7 +475,7 @@ _gdata_feed_new_from_xml (const gchar *xml, gint length, GType entry_type,
 				goto error;
 			}
 
-			id = xmlNodeListGetString (doc, node->xmlChildrenNode, TRUE);
+			id = xmlNodeListGetString (doc, node->children, TRUE);
 		} else if (xmlStrcmp (node->name, (xmlChar*) "updated") == 0) {
 			/* atom:updated */
 			xmlChar *updated_string;
@@ -487,7 +487,7 @@ _gdata_feed_new_from_xml (const gchar *xml, gint length, GType entry_type,
 			}
 
 			/* Parse the string */
-			updated_string = xmlNodeListGetString (doc, node->xmlChildrenNode, TRUE);
+			updated_string = xmlNodeListGetString (doc, node->children, TRUE);
 			if (g_time_val_from_iso8601 ((gchar*) updated_string, &updated) == FALSE) {
 				gdata_parser_error_not_iso8601_format ("updated", "feed", (gchar*) updated_string, error);
 				xmlFree (updated_string);
@@ -517,7 +517,7 @@ _gdata_feed_new_from_xml (const gchar *xml, gint length, GType entry_type,
 				goto error;
 			}
 
-			logo = xmlNodeListGetString (doc, node->xmlChildrenNode, TRUE);
+			logo = xmlNodeListGetString (doc, node->children, TRUE);
 		} else if (xmlStrcmp (node->name, (xmlChar*) "link") == 0) {
 			/* atom:link */
 			xmlChar *href, *rel, *type, *hreflang, *link_title, *link_length;
@@ -551,14 +551,14 @@ _gdata_feed_new_from_xml (const gchar *xml, gint length, GType entry_type,
 			xmlNode *author_node;
 			xmlChar *name = NULL, *uri = NULL, *email = NULL;
 
-			author_node = node->xmlChildrenNode;
+			author_node = node->children;
 			while (author_node != NULL) {
 				if (xmlStrcmp (author_node->name, (xmlChar*) "name") == 0) {
-					name = xmlNodeListGetString (doc, author_node->xmlChildrenNode, TRUE);
+					name = xmlNodeListGetString (doc, author_node->children, TRUE);
 				} else if (xmlStrcmp (author_node->name, (xmlChar*) "uri") == 0) {
-					uri = xmlNodeListGetString (doc, author_node->xmlChildrenNode, TRUE);
+					uri = xmlNodeListGetString (doc, author_node->children, TRUE);
 				} else if (xmlStrcmp (author_node->name, (xmlChar*) "email") == 0) {
-					email = xmlNodeListGetString (doc, author_node->xmlChildrenNode, TRUE);
+					email = xmlNodeListGetString (doc, author_node->children, TRUE);
 				} else {
 					gdata_parser_error_unhandled_element ((gchar*) author_node->ns->prefix, (gchar*) author_node->name, "author", error);
 					xmlFree (name);
@@ -587,7 +587,7 @@ _gdata_feed_new_from_xml (const gchar *xml, gint length, GType entry_type,
 			}
 
 			/* Parse the element's parameters */
-			name = xmlNodeListGetString (doc, node->xmlChildrenNode, TRUE);
+			name = xmlNodeListGetString (doc, node->children, TRUE);
 			uri = xmlGetProp (node, (xmlChar*) "uri");
 			version = xmlGetProp (node, (xmlChar*) "version");
 
@@ -607,7 +607,7 @@ _gdata_feed_new_from_xml (const gchar *xml, gint length, GType entry_type,
 			}
 
 			/* Parse the number */
-			total_results_string = xmlNodeListGetString (doc, node->xmlChildrenNode, TRUE);
+			total_results_string = xmlNodeListGetString (doc, node->children, TRUE);
 			if (total_results_string == NULL) {
 				gdata_parser_error_required_content_missing ("openSearch:totalResults", error);
 				goto error;
@@ -627,7 +627,7 @@ _gdata_feed_new_from_xml (const gchar *xml, gint length, GType entry_type,
 
 			/* Parse the number */
 
-			start_index_string = xmlNodeListGetString (doc, node->xmlChildrenNode, TRUE);
+			start_index_string = xmlNodeListGetString (doc, node->children, TRUE);
 			if (start_index_string == NULL) {
 				gdata_parser_error_required_content_missing ("openSearch:startIndex", error);
 				goto error;
@@ -646,7 +646,7 @@ _gdata_feed_new_from_xml (const gchar *xml, gint length, GType entry_type,
 			}
 
 			/* Parse the number */
-			items_per_page_string = xmlNodeListGetString (doc, node->xmlChildrenNode, TRUE);
+			items_per_page_string = xmlNodeListGetString (doc, node->children, TRUE);
 			if (items_per_page_string == NULL) {
 				gdata_parser_error_required_content_missing ("openSearch:itemsPerPage", error);
 				goto error;
