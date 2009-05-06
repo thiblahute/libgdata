@@ -80,12 +80,14 @@ libgdata_la_CPPFLAGS = \
 
 libgdata_la_CFLAGS = \
 	$(GDATA_CFLAGS)			\
+	$(GNOME_CFLAGS)			\
 	$(WARN_CFLAGS)			\
 	$(AM_CFLAGS)			\
 	-D_GNU_SOURCE
 
 libgdata_la_LIBADD = \
 	$(GDATA_LIBS)	\
+	$(GNOME_LIBS)	\
 	services/youtube/libgdatayoutube.la	\
 	services/calendar/libgdatacalendar.la	\
 	services/contacts/libgdatacontacts.la

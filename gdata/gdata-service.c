@@ -34,6 +34,10 @@
 #include <libsoup/soup.h>
 #include <string.h>
 
+#ifdef HAVE_GNOME
+#include <libsoup/soup-gnome-features.h>
+#endif /* HAVE_GNOME */
+
 #include "gdata-service.h"
 #include "gdata-private.h"
 #include "gdata-marshal.h"
@@ -194,6 +198,10 @@ gdata_service_init (GDataService *self)
 {
 	self->priv = G_TYPE_INSTANCE_GET_PRIVATE (self, GDATA_TYPE_SERVICE, GDataServicePrivate);
 	self->priv->session = soup_session_sync_new ();
+
+#ifdef HAVE_GNOME
+	soup_session_add_feature_by_type (self->priv->session, SOUP_TYPE_GNOME_FEATURES_2_26);
+#endif /* HAVE_GNOME */
 
 	/* Proxy the SoupSession's proxy-uri property */
 	g_signal_connect (self->priv->session, "notify::proxy-uri", (GCallback) notify_proxy_uri_cb, self);
