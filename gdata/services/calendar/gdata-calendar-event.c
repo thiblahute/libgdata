@@ -1286,7 +1286,8 @@ gdata_calendar_event_set_recurrence (GDataCalendarEvent *self, const gchar *recu
  * See gdata_calendar_event_is_exception() to determine more simply whether an event is an exception to a
  * recurring event.
  *
- * If both @event_id and @event_uri are %NULL, this function is a no-op.
+ * If both @event_id and @event_uri are %NULL, this function is a no-op. Otherwise, they should both be
+ * freed with g_free().
  *
  * Since: 0.3.0
  **/
