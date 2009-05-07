@@ -324,6 +324,9 @@ parse_xml (GDataEntry *entry, xmlDoc *doc, xmlNode *node, GError **error)
 			return gdata_parser_error_required_property_missing ("gCal:color", "value", error);
 		if (gdata_color_from_hexadecimal ((gchar*) value, &colour) == FALSE) {
 			/* Error */
+			/* Translators: the first parameter is the name of an XML element, the second parameter is the name of
+			 * another XML element which is owned by (possessive) the first parameter, and the third parameter is
+			 * the erroneous value (which was not in hexadecimal RGB format). */
 			g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
 				     _("A <%s>'s <%s> element (\"%s\") was not in hexadecimal RGB format."),
 				     "entry", "gCal:color", value);

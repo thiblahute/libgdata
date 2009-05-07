@@ -316,7 +316,7 @@ parse_error_response (GDataService *self, guint status, const gchar *reason_phra
 						     _("You have made too many API calls recently. Please wait a few minutes and try again."));
 				} else if (xmlStrcmp (code, (xmlChar*) "too_many_entries") == 0) {
 					g_set_error (error, GDATA_YOUTUBE_SERVICE_ERROR, GDATA_YOUTUBE_SERVICE_ERROR_ENTRY_QUOTA_EXCEEDED,
-						     _("You have exceeded your entry quota with the entry \"%s\"."
+						     _("You have exceeded your entry quota with the entry \"%s\". "
 						       "Please delete some entries and try again."), location);
 				} else {
 					/* Protocol error */
@@ -537,7 +537,7 @@ gdata_youtube_service_query_related (GDataYouTubeService *self, GDataYouTubeVide
 	if (related_link == NULL) {
 		/* Erroring out is probably the safest thing to do */
 		g_set_error_literal (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
-				     _("The video didn't have a related videos <link>."));
+				     _("The video did not have a related videos <link>."));
 		return NULL;
 	}
 
@@ -578,7 +578,7 @@ gdata_youtube_service_query_related_async (GDataYouTubeService *self, GDataYouTu
 		/* Erroring out is probably the safest thing to do */
 		g_simple_async_report_error_in_idle (G_OBJECT (self), callback, user_data,
 						     GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
-						     _("The video didn't have a related videos <link>."));
+						     _("The video did not have a related videos <link>."));
 		return;
 	}
 

@@ -564,6 +564,7 @@ authenticate (GDataService *self, const gchar *username, const gchar *password, 
 			g_free (captcha_uri);
 
 			if (new_captcha_answer == NULL || *new_captcha_answer == '\0') {
+				/* Translators: see http://en.wikipedia.org/wiki/CAPTCHA for information about CAPTCHAs */
 				g_set_error_literal (error, GDATA_AUTHENTICATION_ERROR, GDATA_AUTHENTICATION_ERROR_CAPTCHA_REQUIRED,
 						     _("A CAPTCHA must be filled out to log in."));
 				goto login_error;
@@ -1052,7 +1053,7 @@ gdata_service_insert_entry (GDataService *self, const gchar *upload_uri, GDataEn
 		/* Error */
 		/* TODO: Handle errors more specifically, making sure to set authenticated where appropriate */
 		g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_WITH_INSERTION,
-			     _("TODO: error code %u when inserting"), status);
+			     _("error code %u when inserting"), status);
 		g_object_unref (message);
 		return NULL;
 	}
@@ -1138,7 +1139,7 @@ gdata_service_update_entry (GDataService *self, GDataEntry *entry, GCancellable 
 		/* Error */
 		/* TODO: Handle errors more specifically, making sure to set authenticated where appropriate */
 		g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_WITH_UPDATE,
-			     _("TODO: error code %u when updating"), status);
+			     _("error code %u when updating"), status);
 		g_object_unref (message);
 		return NULL;
 	}
@@ -1213,7 +1214,7 @@ gdata_service_delete_entry (GDataService *self, GDataEntry *entry, GCancellable 
 		/* Error */
 		/* TODO: Handle errors more specifically, making sure to set authenticated where appropriate */
 		g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_WITH_DELETION,
-			     _("TODO: error code %u when deleting"), status);
+			     _("error code %u when deleting"), status);
 		return FALSE;
 	}
 

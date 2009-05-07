@@ -45,6 +45,9 @@ gdata_parser_error_required_content_missing (const gchar *element_name, GError *
 gboolean
 gdata_parser_error_not_iso8601_format (const gchar *element_name, const gchar *parent_element_name, const gchar *actual_value, GError **error)
 {
+	/* Translators: the first parameter is the name of an XML element, the second parameter is the name of
+	 * another XML element which is owned by (possessive) the first parameter, and the third parameter is
+	 * the erroneous value (which was not in ISO8601 format). */
 	g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
 		     _("A <%s>'s <%s> element (\"%s\") was not in ISO8601 format."),
 		     parent_element_name, element_name, actual_value);
