@@ -13,10 +13,13 @@ libgdata's API is currently unstable and is likely to change wildly.
 Dependencies
 ============
 
-* glib-2.0 >= 2.16.3
+* glib-2.0 >= 2.19.0
 * libxml-2.0
 * gio-2.0 >= 2.17.3
 * libsoup-2.4 >= 2.24.0
+
+If compiling with --enable-gnome (for GNOME support):
+* libsoup-gnome-2.4
 
 Licensing
 =========

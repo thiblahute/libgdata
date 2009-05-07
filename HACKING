@@ -123,6 +123,8 @@ The short explanation of a commit should always be prefixed by a tag to describe
 
  - [core] — for the core code in the gdata directory, such as GDataEntry.
 
+ - [build] — for build changes and releases.
+
  - [docs] — for documentation changes which are not specific to a service, such as updates to the docs directory, NEWS, README, this file, etc.
 
  - [tests] — for changes to the test code in gdata/tests which are not specific to a service.
