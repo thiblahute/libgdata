@@ -733,7 +733,7 @@ _gdata_service_send_message (GDataService *self, SoupMessage *message, GError **
 		SoupURI *new_uri;
 		const gchar *new_location;
 
-		new_location = soup_message_headers_get (message->response_headers, "Location");
+		new_location = soup_message_headers_get_one (message->response_headers, "Location");
 		g_return_val_if_fail (new_location != NULL, SOUP_STATUS_NONE);
 
 		new_uri = soup_uri_new_with_base (soup_message_get_uri (message), new_location);

@@ -29,7 +29,7 @@ AC_PATH_PROG([GLIB_MKENUMS],[glib-mkenums])
 # Requirements
 GLIB_REQS=2.19.0
 GIO_REQS=2.17.3
-SOUP_REQS=2.24.0
+SOUP_REQS=2.26.1
 
 # Before making a release, the GDATA_LT_VERSION string should be modified.
 # The string is of the form C:R:A.
