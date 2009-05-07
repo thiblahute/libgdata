@@ -326,9 +326,13 @@ parse_xml (GDataEntry *entry, xmlDoc *doc, xmlNode *node, GError **error)
 			/* Error */
 			/* Translators: the first parameter is the name of an XML element, the second parameter is the name of
 			 * another XML element which is owned by (possessive) the first parameter, and the third parameter is
-			 * the erroneous value (which was not in hexadecimal RGB format). */
+			 * the erroneous value (which was not in hexadecimal RGB format).
+			 * Do not translate the angle brackets ("<" and ">") — they enclose XML element names.
+			 *
+			 * For example:
+			 *  A <entry>'s <gCal:color> element ("00FG56") was not in hexadecimal RGB format. */
 			g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
-				     _("A <%s>'s <%s> element (\"%s\") was not in hexadecimal RGB format."),
+				     _("A <%s>'s <%s> element content (\"%s\") was not in hexadecimal RGB format."),
 				     "entry", "gCal:color", value);
 			xmlFree (value);
 			return FALSE;
