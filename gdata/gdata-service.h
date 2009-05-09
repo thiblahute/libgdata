@@ -33,35 +33,40 @@ G_BEGIN_DECLS
  * GDataServiceError:
  * @GDATA_SERVICE_ERROR_UNAVAILABLE: The service is unavailable due to maintainence or other reasons
  * @GDATA_SERVICE_ERROR_PROTOCOL_ERROR: The client or server unexpectedly strayed from the protocol (fatal error)
- * @GDATA_SERVICE_ERROR_WITH_QUERY: TODO
+ * @GDATA_SERVICE_ERROR_WITH_QUERY: Generic error when querying for entries
  * @GDATA_SERVICE_ERROR_ENTRY_ALREADY_INSERTED: An entry has already been inserted, and cannot be re-inserted
- * @GDATA_SERVICE_ERROR_WITH_INSERTION: TODO
+ * @GDATA_SERVICE_ERROR_WITH_INSERTION: Generic error when inserting an entry
  * @GDATA_SERVICE_ERROR_AUTHENTICATION_REQUIRED: The user attempted to do something which required authentication, and they weren't authenticated
- * @GDATA_SERVICE_ERROR_WITH_UPDATE: TODO
- * @GDATA_SERVICE_ERROR_WITH_DELETION: TODO
+ * @GDATA_SERVICE_ERROR_WITH_UPDATE: Generic error when updating an entry
+ * @GDATA_SERVICE_ERROR_WITH_DELETION: Generic error when deleting an entry
+ * @GDATA_SERVICE_ERROR_NOT_FOUND: A requested resource (feed or entry) was not found on the server
+ * @GDATA_SERVICE_ERROR_CONFLICT: There was a conflict when updating an entry on the server; the server-side copy was modified inbetween downloading
+ * and uploading the modified entry
  *
  * Error codes for #GDataService operations.
  **/
 typedef enum {
 	GDATA_SERVICE_ERROR_UNAVAILABLE = 1,
 	GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
-	GDATA_SERVICE_ERROR_WITH_QUERY,/* TODO: probably should die */
+	GDATA_SERVICE_ERROR_WITH_QUERY,
 	GDATA_SERVICE_ERROR_ENTRY_ALREADY_INSERTED,
-	GDATA_SERVICE_ERROR_WITH_INSERTION,/* TODO: probably should die */
+	GDATA_SERVICE_ERROR_WITH_INSERTION,
 	GDATA_SERVICE_ERROR_AUTHENTICATION_REQUIRED,
-	GDATA_SERVICE_ERROR_WITH_UPDATE,/* TODO: probably should die */
-	GDATA_SERVICE_ERROR_WITH_DELETION/* TODO: probably should die */
+	GDATA_SERVICE_ERROR_WITH_UPDATE,
+	GDATA_SERVICE_ERROR_WITH_DELETION,
+	GDATA_SERVICE_ERROR_NOT_FOUND,
+	GDATA_SERVICE_ERROR_CONFLICT
 } GDataServiceError;
 
 /**
  * GDataAuthenticationError:
  * @GDATA_AUTHENTICATION_ERROR_BAD_AUTHENTICATION: The login request used a username or password that is not recognized.
  * @GDATA_AUTHENTICATION_ERROR_NOT_VERIFIED: The account email address has not been verified. The user will need to access their Google account
-    directly to resolve the issue before logging in using a non-Google application.
+ * directly to resolve the issue before logging in using a non-Google application.
  * @GDATA_AUTHENTICATION_ERROR_TERMS_NOT_AGREED: The user has not agreed to terms. The user will need to access their Google account directly to
-    resolve the issue before logging in using a non-Google application.
+ * resolve the issue before logging in using a non-Google application.
  * @GDATA_AUTHENTICATION_ERROR_CAPTCHA_REQUIRED: A CAPTCHA is required. (A response with this error code will also contain an image URL and a
-    CAPTCHA token.)
+ * CAPTCHA token.)
  * @GDATA_AUTHENTICATION_ERROR_ACCOUNT_DELETED: The user account has been deleted.
  * @GDATA_AUTHENTICATION_ERROR_ACCOUNT_DISABLED: The user account has been disabled.
  * @GDATA_AUTHENTICATION_ERROR_SERVICE_DISABLED: The user's access to the specified service has been disabled. (The user account may still be valid.)
@@ -139,7 +144,7 @@ typedef struct {
 
 	gboolean (*parse_authentication_response) (GDataService *self, guint status, const gchar *response_body, gint length, GError **error);
 	void (*append_query_headers) (GDataService *self, SoupMessage *message);
-	void (*parse_error_response) (GDataService *self, guint status, const gchar *reason_phrase,
+	void (*parse_error_response) (GDataService *self, GDataServiceError error_type, guint status, const gchar *reason_phrase,
 				      const gchar *response_body, gint length, GError **error);
 } GDataServiceClass;
 

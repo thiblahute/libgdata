@@ -64,7 +64,7 @@ static void gdata_service_get_property (GObject *object, guint property_id, GVal
 static void gdata_service_set_property (GObject *object, guint property_id, const GValue *value, GParamSpec *pspec);
 static gboolean real_parse_authentication_response (GDataService *self, guint status, const gchar *response_body, gint length, GError **error);
 static void real_append_query_headers (GDataService *self, SoupMessage *message);
-static void real_parse_error_response (GDataService *self, guint status, const gchar *reason_phrase,
+static void real_parse_error_response (GDataService *self, GDataServiceError error_type, guint status, const gchar *reason_phrase,
 				       const gchar *response_body, gint length, GError **error);
 static void notify_proxy_uri_cb (GObject *gobject, GParamSpec *pspec, GObject *self);
 
@@ -327,10 +327,57 @@ real_append_query_headers (GDataService *self, SoupMessage *message)
 }
 
 static void
-real_parse_error_response (GDataService *self, guint status, const gchar *reason_phrase, const gchar *response_body, gint length, GError **error)
+real_parse_error_response (GDataService *self, GDataServiceError error_type, guint status, const gchar *reason_phrase, const gchar *response_body,
+			   gint length, GError **error)
 {
-	g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_WITH_QUERY,
-		     _("Error code %u when querying: %s"), status, reason_phrase);
+	/* See: http://code.google.com/apis/gdata/docs/2.0/reference.html#HTTPStatusCodes */
+
+	switch (status) {
+		case 400:
+			g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
+				     _("Invalid request URI or header, or unsupported nonstandard parameter: %s"), reason_phrase);
+			return;
+		case 401:
+		case 403:
+			g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_AUTHENTICATION_REQUIRED,
+				     _("Authentication required: %s"), reason_phrase);
+			return;
+		case 404:
+			g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_NOT_FOUND,
+				     _("The requested resource was not found: %s"), reason_phrase);
+			return;
+		case 409:
+			g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_CONFLICT,
+				     _("The entry has been modified since it was downloaded: %s"), reason_phrase);
+			return;
+		case 500:
+		default:
+			/* We'll fall back to generic errors, below */
+			break;
+	}
+
+	/* If the error hasn't been handled already, throw a generic error corresponding to the action type */
+	switch (error_type) {
+		case GDATA_SERVICE_ERROR_WITH_INSERTION:
+			g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_WITH_INSERTION,
+				     _("Error code %u when inserting an entry: %s"), status, reason_phrase);
+			break;
+		case GDATA_SERVICE_ERROR_WITH_UPDATE:
+			g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_WITH_UPDATE,
+				     _("Error code %u when updating an entry: %s"), status, reason_phrase);
+			break;
+		case GDATA_SERVICE_ERROR_WITH_DELETION:
+			g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_WITH_DELETION,
+				     _("Error code %u when deleting an entry: %s"), status, reason_phrase);
+			break;
+		case GDATA_SERVICE_ERROR_WITH_QUERY:
+			g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_WITH_QUERY,
+				     _("Error code %u when querying: %s"), status, reason_phrase);
+			break;
+		default:
+			/* We should not be called with anything other than the above four generic error types */
+			g_assert_not_reached ();
+	}
 }
 
 typedef struct {
@@ -524,6 +571,7 @@ authenticate (GDataService *self, const gchar *username, const gchar *password, 
 		const gchar *response_body = message->response_body->data;
 		gchar *error_start, *error_end, *uri_start, *uri_end, *uri = NULL;
 
+		/* Parse the error response; see: http://code.google.com/apis/accounts/docs/AuthForInstalledApps.html#Errors */
 		if (response_body == NULL)
 			goto protocol_error;
 
@@ -586,9 +634,9 @@ authenticate (GDataService *self, const gchar *username, const gchar *password, 
 			return authenticate (self, username, password, g_strndup (captcha_start, captcha_end - captcha_start), new_captcha_answer,
 					     cancellable, error);
 		} else if (strncmp (error_start, "Unknown", error_end - error_start) == 0) {
-			goto protocol_error; /* TODO: is this really a protocol error? It's an error with *our* code */
+			goto protocol_error;
 		} else if (strncmp (error_start, "BadAuthentication", error_end - error_start) == 0) {
-			/* TODO: Looks like Error=BadAuthentication errors don't return a URI */
+			/* Looks like Error=BadAuthentication errors don't return a URI */
 			g_set_error_literal (error, GDATA_AUTHENTICATION_ERROR, GDATA_AUTHENTICATION_ERROR_BAD_AUTHENTICATION,
 					     _("Your username or password were incorrect."));
 			goto login_error;
@@ -953,7 +1001,8 @@ gdata_service_query (GDataService *self, const gchar *feed_uri, GDataQuery *quer
 	} else if (status != 200) {
 		/* Error */
 		g_assert (klass->parse_error_response != NULL);
-		klass->parse_error_response (self, status, message->reason_phrase, message->response_body->data, message->response_body->length, error);
+		klass->parse_error_response (self, GDATA_SERVICE_ERROR_WITH_QUERY, status, message->reason_phrase, message->response_body->data,
+					     message->response_body->length, error);
 		g_object_unref (message);
 		return NULL;
 	}
@@ -1051,9 +1100,9 @@ gdata_service_insert_entry (GDataService *self, const gchar *upload_uri, GDataEn
 
 	if (status != 201) {
 		/* Error */
-		/* TODO: Handle errors more specifically, making sure to set authenticated where appropriate */
-		g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_WITH_INSERTION,
-			     _("error code %u when inserting"), status);
+		g_assert (klass->parse_error_response != NULL);
+		klass->parse_error_response (self, GDATA_SERVICE_ERROR_WITH_INSERTION, status, message->reason_phrase, message->response_body->data,
+					     message->response_body->length, error);
 		g_object_unref (message);
 		return NULL;
 	}
@@ -1137,9 +1186,9 @@ gdata_service_update_entry (GDataService *self, GDataEntry *entry, GCancellable 
 
 	if (status != 200) {
 		/* Error */
-		/* TODO: Handle errors more specifically, making sure to set authenticated where appropriate */
-		g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_WITH_UPDATE,
-			     _("error code %u when updating"), status);
+		g_assert (klass->parse_error_response != NULL);
+		klass->parse_error_response (self, GDATA_SERVICE_ERROR_WITH_UPDATE, status, message->reason_phrase, message->response_body->data,
+					     message->response_body->length, error);
 		g_object_unref (message);
 		return NULL;
 	}
@@ -1212,9 +1261,10 @@ gdata_service_delete_entry (GDataService *self, GDataEntry *entry, GCancellable 
 
 	if (status != 200) {
 		/* Error */
-		/* TODO: Handle errors more specifically, making sure to set authenticated where appropriate */
-		g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_WITH_DELETION,
-			     _("error code %u when deleting"), status);
+		g_assert (klass->parse_error_response != NULL);
+		klass->parse_error_response (self, GDATA_SERVICE_ERROR_WITH_DELETION, status, message->reason_phrase, message->response_body->data,
+					     message->response_body->length, error);
+		g_object_unref (message);
 		return FALSE;
 	}
 

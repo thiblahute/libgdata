@@ -54,7 +54,7 @@ static void gdata_youtube_service_get_property (GObject *object, guint property_
 static void gdata_youtube_service_set_property (GObject *object, guint property_id, const GValue *value, GParamSpec *pspec);
 static gboolean parse_authentication_response (GDataService *self, guint status, const gchar *response_body, gint length, GError **error);
 static void append_query_headers (GDataService *self, SoupMessage *message);
-static void parse_error_response (GDataService *self, guint status, const gchar *reason_phrase,
+static void parse_error_response (GDataService *self, GDataServiceError error_type, guint status, const gchar *reason_phrase,
 				  const gchar *response_body, gint length, GError **error);
 
 struct _GDataYouTubeServicePrivate {
@@ -222,7 +222,8 @@ append_query_headers (GDataService *self, SoupMessage *message)
 }
 
 static void
-parse_error_response (GDataService *self, guint status, const gchar *reason_phrase, const gchar *response_body, gint length, GError **error)
+parse_error_response (GDataService *self, GDataServiceError error_type, guint status, const gchar *reason_phrase, const gchar *response_body,
+		      gint length, GError **error)
 {
 	xmlDoc *doc;
 	xmlNode *node;
@@ -346,7 +347,7 @@ parse_error_response (GDataService *self, guint status, const gchar *reason_phra
 
 parent:
 	/* Chain up to the parent class */
-	GDATA_SERVICE_CLASS (gdata_youtube_service_parent_class)->parse_error_response (self, status, reason_phrase,
+	GDATA_SERVICE_CLASS (gdata_youtube_service_parent_class)->parse_error_response (self, error_type, status, reason_phrase,
 											response_body, length, error);
 	return;
 }
@@ -728,7 +729,7 @@ gdata_youtube_service_upload_video (GDataYouTubeService *self, GDataYouTubeVideo
 
 	if (status != 201) {
 		/* Error */
-		parse_error_response (GDATA_SERVICE (self), status, message->reason_phrase,
+		parse_error_response (GDATA_SERVICE (self), GDATA_SERVICE_ERROR_WITH_INSERTION, status, message->reason_phrase,
 				      message->response_body->data, message->response_body->length, error);
 		g_object_unref (message);
 		return NULL;
