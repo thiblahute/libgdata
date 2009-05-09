@@ -5,8 +5,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: libgdata\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-05-09 12:05+0200\n"
-"PO-Revision-Date: 2009-05-09 12:06+0100\n"
+"POT-Creation-Date: 2009-05-09 21:05+0200\n"
+"PO-Revision-Date: 2009-05-09 21:09+0100\n"
 "Last-Translator: Mario Blättermann <mariobl@gnome.org>\n"
 "Language-Team: German <gnome-de@gnome.org>\n"
 "MIME-Version: 1.0\n"
@@ -60,78 +60,100 @@ msgstr "Ein benötigtes <%s>-Element als Kind von <%s> war nicht vorhanden."
 msgid "A <%s> element as a child of <%s> was duplicated."
 msgstr "Ein <%s>-Element als Kind von <%s> war doppelt vorhanden."
 
-#: ../gdata/gdata-service.c:307 ../gdata/gdata-service.c:675
+#: ../gdata/gdata-service.c:307 ../gdata/gdata-service.c:723
 #: ../gdata/services/youtube/gdata-youtube-service.c:201
 msgid "The server returned a malformed response."
 msgstr "Der Server gab eine verstümmelte Antwort zurück."
 
-#: ../gdata/gdata-service.c:333
+#: ../gdata/gdata-service.c:338
+#, c-format
+msgid "Invalid request URI or header, or unsupported nonstandard parameter: %s"
+msgstr ""
+"Ungültige Anfrageadresse oder -kopfzeile, oder nicht unterstützter Nicht-"
+"Standardparameter: %s"
+
+#: ../gdata/gdata-service.c:343
+#, c-format
+msgid "Authentication required: %s"
+msgstr "Legitimierung erforderlich: %s"
+
+#: ../gdata/gdata-service.c:347
+#, c-format
+msgid "The requested resource was not found: %s"
+msgstr "Die angeforderte Ressource wurde nicht gefunden: %s"
+
+#: ../gdata/gdata-service.c:351
+#, c-format
+msgid "The entry has been modified since it was downloaded: %s"
+msgstr "Seit dem Herunterladen wurde der Eintrag geändert: %s"
+
+#: ../gdata/gdata-service.c:363
+#, c-format
+msgid "Error code %u when inserting an entry: %s"
+msgstr "Fehlercode %u beim Einfügen eines Eintrags: %s"
+
+#: ../gdata/gdata-service.c:367
+#, c-format
+msgid "Error code %u when updating an entry: %s"
+msgstr "Fehlercode %u beim Aktualisieren eines Eintrags: %s"
+
+#: ../gdata/gdata-service.c:371
+#, c-format
+msgid "Error code %u when deleting an entry: %s"
+msgstr "Fehlercode %u beim Löschen eines Eintrags: %s"
+
+#: ../gdata/gdata-service.c:375
 #, c-format
 msgid "Error code %u when querying: %s"
 msgstr "Fehlercode %u beim Abfragen: %s"
 
-#: ../gdata/gdata-service.c:569
+#: ../gdata/gdata-service.c:617
 msgid "A CAPTCHA must be filled out to log in."
 msgstr "Ein CAPTCHA muss zum Anmelden ausgefüllt werden."
 
-#: ../gdata/gdata-service.c:593
+#: ../gdata/gdata-service.c:641
 msgid "Your username or password were incorrect."
 msgstr "Ihr Benutzername oder Passwort waren nicht korrekt."
 
-#: ../gdata/gdata-service.c:611
+#: ../gdata/gdata-service.c:659
 #, c-format
 msgid "Your account's e-mail address has not been verified. (%s)"
 msgstr "Die E-Mail-Adresse Ihres Kontos wurde nicht bestätigt. (%s)"
 
-#: ../gdata/gdata-service.c:615
+#: ../gdata/gdata-service.c:663
 #, c-format
 msgid "You have not agreed to the service's terms and conditions. (%s)"
 msgstr "Sie haben den Bedingungen dieses Dienstes nicht zugestimmt. (%s)"
 
-#: ../gdata/gdata-service.c:619
+#: ../gdata/gdata-service.c:667
 #, c-format
 msgid "This account has been deleted. (%s)"
 msgstr "Dieses Konto wurde entfernt. (%s)"
 
-#: ../gdata/gdata-service.c:623
+#: ../gdata/gdata-service.c:671
 #, c-format
 msgid "This account has been disabled. (%s)"
 msgstr "Dieses Konto wurde deaktiviert. (%s)"
 
-#: ../gdata/gdata-service.c:627
+#: ../gdata/gdata-service.c:675
 #, c-format
 msgid "This account's access to this service has been disabled. (%s)"
 msgstr "Der Zugriff auf diesen Dienst über dieses Konto wurde deaktiviert. (%s)"
 
-#: ../gdata/gdata-service.c:631
+#: ../gdata/gdata-service.c:679
 #, c-format
 msgid "This service is not available at the moment. (%s)"
 msgstr "Dieser Dienst ist derzeit nicht verfügbar. (%s)"
 
-#: ../gdata/gdata-service.c:744
+#: ../gdata/gdata-service.c:792
 #, c-format
 msgid "Invalid redirect URI: %s"
 msgstr "Ungültige Weiterleitungsadresse: %s"
 
-#: ../gdata/gdata-service.c:1024
-#: ../gdata/services/youtube/gdata-youtube-service.c:627
+#: ../gdata/gdata-service.c:1190
+#: ../gdata/services/youtube/gdata-youtube-service.c:628
 msgid "The entry has already been inserted."
 msgstr "Dieser Eintrag wurde bereits eingefügt."
-
-#: ../gdata/gdata-service.c:1056
-#, c-format
-msgid "error code %u when inserting"
-msgstr "Fehlercode %u beim Einfügen"
-
-#: ../gdata/gdata-service.c:1142
-#, c-format
-msgid "error code %u when updating"
-msgstr "Fehlercode %u beim Aktualisieren"
-
-#: ../gdata/gdata-service.c:1217
-#, c-format
-msgid "error code %u when deleting"
-msgstr "Fehlercode %u beim Löschen"
 
 #: ../gdata/services/calendar/gdata-calendar-calendar.c:335
 #, c-format
@@ -160,17 +182,17 @@ msgstr "Der Kalender hat keine Inhaltsquelle."
 msgid "You must be authenticated to query contacts."
 msgstr "Sie müssen legitimiert sein, um alle Kontakte abzufragen."
 
-#: ../gdata/services/youtube/gdata-youtube-service.c:306
+#: ../gdata/services/youtube/gdata-youtube-service.c:307
 #, c-format
 msgid "This service is not available at the moment."
 msgstr "Dieser Dienst ist derzeit nicht verfügbar."
 
-#: ../gdata/services/youtube/gdata-youtube-service.c:311
+#: ../gdata/services/youtube/gdata-youtube-service.c:312
 #, c-format
 msgid "You must be authenticated to do this."
 msgstr "Sie müssen legitimiert sein, um dies zu tun."
 
-#: ../gdata/services/youtube/gdata-youtube-service.c:316
+#: ../gdata/services/youtube/gdata-youtube-service.c:317
 #, c-format
 msgid ""
 "You have made too many API calls recently. Please wait a few minutes and try "
@@ -179,7 +201,7 @@ msgstr ""
 "Sie haben derzeit zu viele API-Aufrufe ausgelöst. Bitte warten Sie einige "
 "Minuten und versuchen Sie es erneut."
 
-#: ../gdata/services/youtube/gdata-youtube-service.c:319
+#: ../gdata/services/youtube/gdata-youtube-service.c:320
 #, c-format
 msgid ""
 "You have exceeded your entry quota with the entry \"%s\". Please delete some "
@@ -188,19 +210,19 @@ msgstr ""
 "Mit dem Eintrag »%s« wird die Anzahl der möglichen Einträge übertroffen. Bitte "
 "entfernen Sie einige Einträge und versuchen Sie es erneut."
 
-#: ../gdata/services/youtube/gdata-youtube-service.c:324
-#: ../gdata/services/youtube/gdata-youtube-service.c:330
+#: ../gdata/services/youtube/gdata-youtube-service.c:325
+#: ../gdata/services/youtube/gdata-youtube-service.c:331
 #, c-format
 msgid ""
 "Unknown error code \"%s\" in domain \"%s\" received with location \"%s\"."
 msgstr "Unbekannter Fehlercode »%s« in Domain »%s«, empfangen mit »%s«."
 
-#: ../gdata/services/youtube/gdata-youtube-service.c:540
-#: ../gdata/services/youtube/gdata-youtube-service.c:581
+#: ../gdata/services/youtube/gdata-youtube-service.c:541
+#: ../gdata/services/youtube/gdata-youtube-service.c:582
 msgid "The video did not have a related videos <link>."
 msgstr "Für dieses Video gibt es keine ähnlichen Videos <link>."
 
-#: ../gdata/services/youtube/gdata-youtube-service.c:633
+#: ../gdata/services/youtube/gdata-youtube-service.c:634
 msgid "You must be authenticated to upload a video."
 msgstr "Sie müssen legitimiert sein, um ein Video hochzuladen."
 
