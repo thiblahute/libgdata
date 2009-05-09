@@ -858,7 +858,7 @@ query_thread (GSimpleAsyncResult *result, GDataService *service, GCancellable *c
  * @cancellable: optional #GCancellable object, or %NULL
  * @progress_callback: a #GDataQueryProgressCallback to call when an entry is loaded, or %NULL
  * @progress_user_data: data to pass to the @progress_callback function
- * @callback: a #GAsyncReadyCallback to call when authentication is finished
+ * @callback: a #GAsyncReadyCallback to call when the query is finished
  * @user_data: data to pass to the @callback function
  *
  * Queries the service's @feed_uri feed to build a #GDataFeed. @self, @feed_uri and
@@ -902,7 +902,7 @@ gdata_service_query_async (GDataService *self, const gchar *feed_uri, GDataQuery
  *
  * Finishes an asynchronous query operation started with gdata_service_query_async().
  *
- * Return value: a #GDataFeed of query results; unref with g_object_unref()
+ * Return value: a #GDataFeed of query results, or %NULL; unref with g_object_unref()
  **/
 GDataFeed *
 gdata_service_query_finish (GDataService *self, GAsyncResult *async_result, GError **error)
@@ -953,7 +953,7 @@ gdata_service_query_finish (GDataService *self, GAsyncResult *async_result, GErr
  * If the #GDataQuery's ETag is set and it finds a match on the server, %FALSE will be returned, but @error will remain unset. Otherwise,
  * @query's ETag will be updated with the ETag from the returned feed, if available.
  *
- * Return value: a #GDataFeed of query results; unref with g_object_unref()
+ * Return value: a #GDataFeed of query results, or %NULL; unref with g_object_unref()
  **/
 GDataFeed *
 gdata_service_query (GDataService *self, const gchar *feed_uri, GDataQuery *query, GType entry_type,
@@ -967,6 +967,8 @@ gdata_service_query (GDataService *self, const gchar *feed_uri, GDataQuery *quer
 	GDataLink *link;
 
 	g_return_val_if_fail (GDATA_IS_SERVICE (self), NULL);
+	g_return_val_if_fail (feed_uri != NULL, NULL);
+	g_return_val_if_fail (entry_type != G_TYPE_INVALID, NULL);
 
 	if (query != NULL) {
 		query_uri = gdata_query_get_query_uri (query, feed_uri);
@@ -1028,6 +1030,121 @@ gdata_service_query (GDataService *self, const gchar *feed_uri, GDataQuery *quer
 	}
 
 	return feed;
+}
+
+typedef struct {
+	gchar *upload_uri;
+	GDataEntry *entry;
+} InsertEntryAsyncData;
+
+static void
+insert_entry_async_data_free (InsertEntryAsyncData *self)
+{
+	g_free (self->upload_uri);
+	if (self->entry)
+		g_object_unref (self->entry);
+
+	g_slice_free (InsertEntryAsyncData, self);
+}
+
+static void
+insert_entry_thread (GSimpleAsyncResult *result, GDataService *service, GCancellable *cancellable)
+{
+	GDataEntry *updated_entry;
+	GError *error = NULL;
+	InsertEntryAsyncData *data = g_simple_async_result_get_op_res_gpointer (result);
+
+	/* Check to see if it's been cancelled already */
+	if (g_cancellable_set_error_if_cancelled (cancellable, &error) == TRUE) {
+		g_simple_async_result_set_from_error (result, error);
+		g_error_free (error);
+		return;
+	}
+
+	/* Insert the entry and return */
+	updated_entry = gdata_service_insert_entry (service, data->upload_uri, data->entry, cancellable, &error);
+	if (updated_entry == NULL) {
+		g_simple_async_result_set_from_error (result, error);
+		g_error_free (error);
+		return;
+	}
+
+	/* Swap the old entry with the new one */
+	g_object_unref (data->entry);
+	data->entry = updated_entry;
+}
+
+/**
+ * gdata_service_insert_entry_async:
+ * @self: a #GDataService
+ * @upload_uri: the URI to which the upload should be sent
+ * @entry: the #GDataEntry to insert
+ * @cancellable: optional #GCancellable object, or %NULL
+ * @callback: a #GAsyncReadyCallback to call when insertion is finished
+ * @user_data: data to pass to the @callback function
+ *
+ * Inserts @entry by uploading it to the online service at @upload_uri. @self, @upload_uri and
+ * @entry are all reffed/copied when this function is called, so can safely be freed after this function returns.
+ *
+ * For more details, see gdata_service_insert_entry(), which is the synchronous version of this function.
+ *
+ * When the operation is finished, @callback will be called. You can then call gdata_service_insert_entry_finish()
+ * to get the results of the operation.
+ *
+ * Since: 0.3.0
+ **/
+void
+gdata_service_insert_entry_async (GDataService *self, const gchar *upload_uri, GDataEntry *entry, GCancellable *cancellable,
+				  GAsyncReadyCallback callback, gpointer user_data)
+{
+	GSimpleAsyncResult *result;
+	InsertEntryAsyncData *data;
+
+	g_return_if_fail (GDATA_IS_SERVICE (self));
+	g_return_if_fail (upload_uri != NULL);
+	g_return_if_fail (GDATA_IS_ENTRY (entry));
+
+	data = g_slice_new (InsertEntryAsyncData);
+	data->upload_uri = g_strdup (upload_uri);
+	data->entry = g_object_ref (entry);
+
+	result = g_simple_async_result_new (G_OBJECT (self), callback, user_data, gdata_service_insert_entry_async);
+	g_simple_async_result_set_op_res_gpointer (result, data, (GDestroyNotify) insert_entry_async_data_free);
+	g_simple_async_result_run_in_thread (result, (GSimpleAsyncThreadFunc) insert_entry_thread, G_PRIORITY_DEFAULT, cancellable);
+	g_object_unref (result);
+}
+
+/**
+ * gdata_service_insert_entry_finish:
+ * @self: a #GDataService
+ * @async_result: a #GAsyncResult
+ * @error: a #GError, or %NULL
+ *
+ * Finishes an asynchronous entry insertion operation started with gdata_service_insert_entry_async().
+ *
+ * Return value: an updated #GDataEntry, or %NULL; unref with g_object_unref()
+ *
+ * Since: 0.3.0
+ **/
+GDataEntry *
+gdata_service_insert_entry_finish (GDataService *self, GAsyncResult *async_result, GError **error)
+{
+	GSimpleAsyncResult *result = G_SIMPLE_ASYNC_RESULT (async_result);
+	InsertEntryAsyncData *data;
+
+	g_return_val_if_fail (GDATA_IS_SERVICE (self), NULL);
+	g_return_val_if_fail (G_IS_ASYNC_RESULT (async_result), NULL);
+
+	g_warn_if_fail (g_simple_async_result_get_source_tag (result) == gdata_service_insert_entry_async);
+
+	if (g_simple_async_result_propagate_error (result, error) == TRUE)
+		return NULL;
+
+	data = g_simple_async_result_get_op_res_gpointer (result);
+	if (data->entry != NULL)
+		return g_object_ref (data->entry);
+
+	g_assert_not_reached ();
 }
 
 /**
@@ -1117,6 +1234,96 @@ gdata_service_insert_entry (GDataService *self, const gchar *upload_uri, GDataEn
 	return updated_entry;
 }
 
+static void
+update_entry_thread (GSimpleAsyncResult *result, GDataService *service, GCancellable *cancellable)
+{
+	GDataEntry *updated_entry;
+	GError *error = NULL;
+
+	/* Check to see if it's been cancelled already */
+	if (g_cancellable_set_error_if_cancelled (cancellable, &error) == TRUE) {
+		g_simple_async_result_set_from_error (result, error);
+		g_error_free (error);
+		return;
+	}
+
+	/* Update the entry and return */
+	updated_entry = gdata_service_update_entry (service, g_simple_async_result_get_op_res_gpointer (result), cancellable, &error);
+	if (updated_entry == NULL) {
+		g_simple_async_result_set_from_error (result, error);
+		g_error_free (error);
+		return;
+	}
+
+	/* Swap the old entry with the new one */
+	g_simple_async_result_set_op_res_gpointer (result, updated_entry, (GDestroyNotify) g_object_unref);
+}
+
+/**
+ * gdata_service_update_entry_async:
+ * @self: a #GDataService
+ * @entry: the #GDataEntry to update
+ * @cancellable: optional #GCancellable object, or %NULL
+ * @callback: a #GAsyncReadyCallback to call when the update is finished
+ * @user_data: data to pass to the @callback function
+ *
+ * Updates @entry by PUTting it to its <literal>edit</literal> link's URI. @self and
+ * @entry are both reffed when this function is called, so can safely be unreffed after this function returns.
+ *
+ * For more details, see gdata_service_update_entry(), which is the synchronous version of this function.
+ *
+ * When the operation is finished, @callback will be called. You can then call gdata_service_update_entry_finish()
+ * to get the results of the operation.
+ *
+ * Since: 0.3.0
+ **/
+void
+gdata_service_update_entry_async (GDataService *self, GDataEntry *entry, GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+	GSimpleAsyncResult *result;
+
+	g_return_if_fail (GDATA_IS_SERVICE (self));
+	g_return_if_fail (GDATA_IS_ENTRY (entry));
+
+	result = g_simple_async_result_new (G_OBJECT (self), callback, user_data, gdata_service_update_entry_async);
+	g_simple_async_result_set_op_res_gpointer (result, g_object_ref (entry), (GDestroyNotify) g_object_unref);
+	g_simple_async_result_run_in_thread (result, (GSimpleAsyncThreadFunc) update_entry_thread, G_PRIORITY_DEFAULT, cancellable);
+	g_object_unref (result);
+}
+
+/**
+ * gdata_service_update_entry_finish:
+ * @self: a #GDataService
+ * @async_result: a #GAsyncResult
+ * @error: a #GError, or %NULL
+ *
+ * Finishes an asynchronous entry update operation started with gdata_service_update_entry_async().
+ *
+ * Return value: an updated #GDataEntry, or %NULL; unref with g_object_unref()
+ *
+ * Since: 0.3.0
+ **/
+GDataEntry *
+gdata_service_update_entry_finish (GDataService *self, GAsyncResult *async_result, GError **error)
+{
+	GSimpleAsyncResult *result = G_SIMPLE_ASYNC_RESULT (async_result);
+	GDataEntry *entry;
+
+	g_return_val_if_fail (GDATA_IS_SERVICE (self), NULL);
+	g_return_val_if_fail (G_IS_ASYNC_RESULT (async_result), NULL);
+
+	g_warn_if_fail (g_simple_async_result_get_source_tag (result) == gdata_service_update_entry_async);
+
+	if (g_simple_async_result_propagate_error (result, error) == TRUE)
+		return NULL;
+
+	entry = g_simple_async_result_get_op_res_gpointer (result);
+	if (entry != NULL)
+		return g_object_ref (entry);
+
+	g_assert_not_reached ();
+}
+
 /**
  * gdata_service_update_entry:
  * @self: a #GDataService
@@ -1201,6 +1408,91 @@ gdata_service_update_entry (GDataService *self, GDataEntry *entry, GCancellable 
 	g_object_unref (message);
 
 	return updated_entry;
+}
+
+static void
+delete_entry_thread (GSimpleAsyncResult *result, GDataService *service, GCancellable *cancellable)
+{
+	gboolean success;
+	GError *error = NULL;
+
+	/* Check to see if it's been cancelled already */
+	if (g_cancellable_set_error_if_cancelled (cancellable, &error) == TRUE) {
+		g_simple_async_result_set_from_error (result, error);
+		g_error_free (error);
+		return;
+	}
+
+	/* Delete the entry and return */
+	success = gdata_service_delete_entry (service, g_simple_async_result_get_op_res_gpointer (result), cancellable, &error);
+	if (success == FALSE) {
+		g_simple_async_result_set_from_error (result, error);
+		g_error_free (error);
+		return;
+	}
+
+	/* Replace the entry with the success value */
+	g_simple_async_result_set_op_res_gboolean (result, success);
+}
+
+/**
+ * gdata_service_delete_entry_async:
+ * @self: a #GDataService
+ * @entry: the #GDataEntry to delete
+ * @cancellable: optional #GCancellable object, or %NULL
+ * @callback: a #GAsyncReadyCallback to call when deletion is finished
+ * @user_data: data to pass to the @callback function
+ *
+ * Deletes @entry from the server. @self and @entry are both reffed when this function is called,
+ * so can safely be unreffed after this function returns.
+ *
+ * For more details, see gdata_service_delete_entry(), which is the synchronous version of this function.
+ *
+ * When the operation is finished, @callback will be called. You can then call gdata_service_delete_entry_finish()
+ * to get the results of the operation.
+ *
+ * Since: 0.3.0
+ **/
+void
+gdata_service_delete_entry_async (GDataService *self, GDataEntry *entry, GCancellable *cancellable, GAsyncReadyCallback callback, gpointer user_data)
+{
+	GSimpleAsyncResult *result;
+
+	g_return_if_fail (GDATA_IS_SERVICE (self));
+	g_return_if_fail (GDATA_IS_ENTRY (entry));
+
+	result = g_simple_async_result_new (G_OBJECT (self), callback, user_data, gdata_service_delete_entry_async);
+	g_simple_async_result_set_op_res_gpointer (result, g_object_ref (entry), (GDestroyNotify) g_object_unref);
+	g_simple_async_result_run_in_thread (result, (GSimpleAsyncThreadFunc) delete_entry_thread, G_PRIORITY_DEFAULT, cancellable);
+	g_object_unref (result);
+}
+
+/**
+ * gdata_service_delete_entry_finish:
+ * @self: a #GDataService
+ * @async_result: a #GAsyncResult
+ * @error: a #GError, or %NULL
+ *
+ * Finishes an asynchronous entry deletion operation started with gdata_service_delete_entry_async().
+ *
+ * Return value: %TRUE on success, %FALSE otherwise
+ *
+ * Since: 0.3.0
+ **/
+gboolean
+gdata_service_delete_entry_finish (GDataService *self, GAsyncResult *async_result, GError **error)
+{
+	GSimpleAsyncResult *result = G_SIMPLE_ASYNC_RESULT (async_result);
+
+	g_return_val_if_fail (GDATA_IS_SERVICE (self), FALSE);
+	g_return_val_if_fail (G_IS_ASYNC_RESULT (async_result), FALSE);
+
+	g_warn_if_fail (g_simple_async_result_get_source_tag (result) == gdata_service_delete_entry_async);
+
+	if (g_simple_async_result_propagate_error (result, error) == TRUE)
+		return FALSE;
+
+	return g_simple_async_result_get_op_res_gboolean (result);
 }
 
 /**

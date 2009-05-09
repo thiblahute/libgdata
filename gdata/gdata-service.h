@@ -170,13 +170,19 @@ GDataFeed *gdata_service_query_finish (GDataService *self, GAsyncResult *async_r
 
 GDataEntry *gdata_service_insert_entry (GDataService *self, const gchar *upload_uri, GDataEntry *entry,
 					GCancellable *cancellable, GError **error) G_GNUC_WARN_UNUSED_RESULT;
-/* TODO: async version */
+void gdata_service_insert_entry_async (GDataService *self, const gchar *upload_uri, GDataEntry *entry, GCancellable *cancellable,
+				       GAsyncReadyCallback callback, gpointer user_data);
+GDataEntry *gdata_service_insert_entry_finish (GDataService *self, GAsyncResult *async_result, GError **error) G_GNUC_WARN_UNUSED_RESULT;
 
 GDataEntry *gdata_service_update_entry (GDataService *self, GDataEntry *entry, GCancellable *cancellable, GError **error) G_GNUC_WARN_UNUSED_RESULT;
-/* TODO: async version */
+void gdata_service_update_entry_async (GDataService *self, GDataEntry *entry, GCancellable *cancellable,
+				       GAsyncReadyCallback callback, gpointer user_data);
+GDataEntry *gdata_service_update_entry_finish (GDataService *self, GAsyncResult *async_result, GError **error) G_GNUC_WARN_UNUSED_RESULT;
 
 gboolean gdata_service_delete_entry (GDataService *self, GDataEntry *entry, GCancellable *cancellable, GError **error);
-/* TODO: async version */
+void gdata_service_delete_entry_async (GDataService *self, GDataEntry *entry, GCancellable *cancellable,
+				       GAsyncReadyCallback callback, gpointer user_data);
+gboolean gdata_service_delete_entry_finish (GDataService *self, GAsyncResult *async_result, GError **error);
 
 SoupURI *gdata_service_get_proxy_uri (GDataService *self);
 void gdata_service_set_proxy_uri (GDataService *self, SoupURI *proxy_uri);
