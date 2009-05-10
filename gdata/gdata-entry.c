@@ -341,7 +341,6 @@ gdata_entry_new (const gchar *id)
 GDataEntry *
 _gdata_entry_new_from_xml (GType entry_type, const gchar *xml, gint length, GError **error)
 {
-	/* TODO: Shouldn't this be private? */
 	xmlDoc *doc;
 	xmlNode *node;
 
@@ -529,7 +528,6 @@ real_parse_xml (GDataEntry *self, xmlDoc *doc, xmlNode *node, GError **error)
 		xmlFree (length);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "author") == 0) {
 		/* atom:author */
-		/* TODO: move this and similar functions (link, category) to gdata-atom.c */
 		GDataAuthor *author;
 		xmlNode *author_node;
 		xmlChar *name = NULL, *uri = NULL, *email = NULL;

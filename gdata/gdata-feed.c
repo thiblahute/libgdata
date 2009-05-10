@@ -44,6 +44,7 @@
 #include "gdata-service.h"
 #include "gdata-parser.h"
 
+static void gdata_feed_dispose (GObject *object);
 static void gdata_feed_finalize (GObject *object);
 static void gdata_feed_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec);
 static void gdata_feed_set_property (GObject *object, guint property_id, const GValue *value, GParamSpec *pspec);
@@ -91,6 +92,7 @@ gdata_feed_class_init (GDataFeedClass *klass)
 
 	gobject_class->set_property = gdata_feed_set_property;
 	gobject_class->get_property = gdata_feed_get_property;
+	gobject_class->dispose = gdata_feed_dispose;
 	gobject_class->finalize = gdata_feed_finalize;
 
 	/**
@@ -244,12 +246,26 @@ gdata_feed_init (GDataFeed *self)
 }
 
 static void
+gdata_feed_dispose (GObject *object)
+{
+	GDataFeedPrivate *priv = GDATA_FEED_GET_PRIVATE (object);
+
+	if (priv->entries != NULL) {
+		g_list_foreach (priv->entries, (GFunc) g_object_unref, NULL);
+		g_list_free (priv->entries);
+	}
+	priv->entries = NULL;
+
+
+	/* Chain up to the parent class */
+	G_OBJECT_CLASS (gdata_feed_parent_class)->dispose (object);
+}
+
+static void
 gdata_feed_finalize (GObject *object)
 {
 	GDataFeedPrivate *priv = GDATA_FEED_GET_PRIVATE (object);
 
-	g_list_foreach (priv->entries, (GFunc) g_object_unref, NULL); /* TODO: move to dispose */
-	g_list_free (priv->entries);
 	g_free (priv->title);
 	g_free (priv->subtitle);
 	g_free (priv->id);
