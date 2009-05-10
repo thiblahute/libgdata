@@ -133,3 +133,22 @@ gdata_color_from_hexadecimal (const gchar *hexadecimal, GDataColor *color)
 
 	return TRUE;
 }
+
+/**
+ * gdata_color_to_hexadecimal:
+ * @color: a #GDataColor
+ *
+ * Returns a string describing @color in hexadecimal form; in the form <literal>#<replaceable>rr</replaceable><replaceable>gg</replaceable>
+ * <replaceable>bb</replaceable></literal>, where <replaceable>rr</replaceable> is a two-digit hexadecimal red intensity value,
+ * <replaceable>gg</replaceable> is green and <replaceable>bb</replaceable> is blue. The hash is always present.
+ *
+ * Return value: the color string; free with g_free()
+ *
+ * Since: 0.3.0
+ **/
+gchar *
+gdata_color_to_hexadecimal (GDataColor *color)
+{
+	g_return_val_if_fail (color != NULL, NULL);
+	return g_strdup_printf ("#%02x%02x%02x", color->red, color->green, color->blue);
+}

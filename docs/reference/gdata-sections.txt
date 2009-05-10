@@ -567,6 +567,7 @@ GDataCalendarEventPrivate
 <TITLE>GData Types</TITLE>
 GDataColor
 gdata_color_from_hexadecimal
+gdata_color_to_hexadecimal
 <SUBSECTION Standard>
 GDATA_TYPE_COLOR
 GDATA_TYPE_G_TIME_VAL

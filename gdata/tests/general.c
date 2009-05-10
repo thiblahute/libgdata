@@ -212,6 +212,30 @@ test_color_parsing (void)
 	g_assert (gdata_color_from_hexadecimal ("this is not a real colour!", &color) == FALSE);
 }
 
+static void
+test_color_output (void)
+{
+	GDataColor color;
+	gchar *color_string;
+
+	/* General test */
+	g_assert (gdata_color_from_hexadecimal ("#F99Ff0", &color) == TRUE);
+	color_string = gdata_color_to_hexadecimal (&color);
+	g_assert_cmpstr (color_string, ==, "#f99ff0");
+	g_free (color_string);
+
+	/* Boundary tests */
+	g_assert (gdata_color_from_hexadecimal ("#ffffff", &color) == TRUE);
+	color_string = gdata_color_to_hexadecimal (&color);
+	g_assert_cmpstr (color_string, ==, "#ffffff");
+	g_free (color_string);
+
+	g_assert (gdata_color_from_hexadecimal ("#000000", &color) == TRUE);
+	color_string = gdata_color_to_hexadecimal (&color);
+	g_assert_cmpstr (color_string, ==, "#000000");
+	g_free (color_string);
+}
+
 int
 main (int argc, char *argv[])
 {
@@ -223,6 +247,7 @@ main (int argc, char *argv[])
 	g_test_add_func ("/entry/parse_xml", test_entry_parse_xml);
 	g_test_add_func ("/query/categories", test_query_categories);
 	g_test_add_func ("/color/parsing", test_color_parsing);
+	g_test_add_func ("/color/output", test_color_output);
 
 	return g_test_run ();
 }

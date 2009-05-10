@@ -1,5 +1,6 @@
 gdata_color_get_type
 gdata_color_from_hexadecimal
+gdata_color_to_hexadecimal
 gdata_entry_get_type
 gdata_entry_new
 gdata_entry_new_from_xml

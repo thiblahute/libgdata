@@ -373,22 +373,32 @@ parse_xml (GDataEntry *entry, xmlDoc *doc, xmlNode *node, GError **error)
 static void
 get_xml (GDataEntry *entry, GString *xml_string)
 {
+	gchar *colour;
 	GDataCalendarCalendarPrivate *priv = GDATA_CALENDAR_CALENDAR (entry)->priv;
 
 	/* Chain up to the parent class */
 	GDATA_ENTRY_CLASS (gdata_calendar_calendar_parent_class)->get_xml (entry, xml_string);
 
 	/* Add all the Calendar-specific XML */
-	if (priv->timezone != NULL)
-		g_string_append_printf (xml_string, "<gCal:timezone value='%s'/>", priv->timezone);
+	if (priv->timezone != NULL) {
+		gchar *timezone = g_markup_escape_text (priv->timezone, -1);
+		g_string_append_printf (xml_string, "<gCal:timezone value='%s'/>", timezone);
+		g_free (timezone);
+	}
 
-	/* TODO:
-	 * - Finish supporting all tags
-	 * - Check all tags here are valid for insertions and updates
-	 * - Check things are escaped (or not) as appropriate
-	 * - Write a function to encapsulate g_markup_escape_text and
-	 *   g_string_append_printf to reduce the number of allocations
-	 */
+	if (priv->is_hidden == TRUE)
+		g_string_append (xml_string, "<gCal:hidden value='true'/>");
+	else
+		g_string_append (xml_string, "<gCal:hidden value='false'/>");
+
+	colour = gdata_color_to_hexadecimal (&(priv->colour));
+	g_string_append_printf (xml_string, "<gCal:color value='%s'/>", colour);
+	g_free (colour);
+
+	if (priv->is_selected == TRUE)
+		g_string_append (xml_string, "<gCal:selected value='true'/>");
+	else
+		g_string_append (xml_string, "<gCal:selected value='false'/>");
 }
 
 static void
