@@ -1311,7 +1311,7 @@ gdata_calendar_event_get_original_event_details (GDataCalendarEvent *self, gchar
  *
  * Return value: %TRUE if the event is an exception, %FALSE otherwise
  *
- * Since: 0.3.0.
+ * Since: 0.3.0
  **/
 gboolean
 gdata_calendar_event_is_exception (GDataCalendarEvent *self)

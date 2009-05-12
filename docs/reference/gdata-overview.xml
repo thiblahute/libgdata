@@ -1,0 +1,74 @@
+<refentry id="gdata-overview">
+	<refmeta>
+		<refentrytitle role="top_of_page" id="gdata-overview.top_of_page">GData Overview</refentrytitle>
+		<manvolnum>3</manvolnum>
+		<refmiscinfo>GDATA Library</refmiscinfo>
+	</refmeta>
+	<refnamediv>
+		<refname>GData Overview</refname>
+		<refpurpose>overview of libgdata's architecture</refpurpose>
+	</refnamediv>
+
+	<refsect1>
+		<title>Introduction</title>
+		<para>libgdata is a library to allow access to web services using the GData protocol from the desktop. The <ulink type="http"
+			url="http://code.google.com/apis/gdata/overview.html">GData protocol</ulink> is a simple protocol for reading and writing
+			data on the web, designed by Google.</para>
+
+		<refsect2>
+			<title>Structure</title>
+			<para>The basic design of libgdata mirrors the protocol's structure quite closely:
+				<figure>
+					<mediaobject>
+						<imageobject><imagedata fileref="structure.png" format="PNG" align="center"/></imageobject>
+					</mediaobject>
+					<textobject><phrase>An overview of the libgdata class structure.</phrase></textobject>
+				</figure>
+			</para>
+			<variablelist>
+				<varlistentry>
+					<term><type><link linkend="GDataService">GDataService</link></type></term>
+					<listitem><para>Subclassed for each different web service implemented, this class represents a single client's
+						connection to the relevant web service, holding their authentication state, and making the necessary
+						requests to read and write data to and from the service. All top-level actions, such as creating a new
+						object on the server, are carried out through a service.</para>
+						<para>There should be one <type><link linkend="GDataService">GDataService</link></type> subclass for each
+						of the services listed <ulink type="http" url="http://code.google.com/apis/gdata/">in the GData
+						documentation</ulink>.</para></listitem>
+				</varlistentry>
+				<varlistentry>
+					<term><type><link linkend="GDataQuery">GDataQuery</link></type></term>
+					<listitem><para>For queries to have multiple individual parameters, a
+						<type><link linkend="GDataQuery">GDataQuery</link></type> can be used to specify the parameters.</para>
+						<para>Query objects are optional, and can only be used with queries (not with entry insertions, updates
+						or deletions). The query object builds the query URI used by the
+						<type><link linkend="GDataService">GDataService</link></type> when sending the query to the server.</para>
+						<para>Services can subclass <type><link linkend="GDataQuery">GDataQuery</link></type> if the service
+						supports non-standard query parameters.</para>
+					</listitem>
+				</varlistentry>
+				<varlistentry>
+					<term><type><link linkend="GDataFeed">GDataFeed</link></type></term>
+					<listitem><para>Effectively a list of <type><link linkend="GDataEntry">GDataEntry</link></type>s, the
+						<type><link linkend="GDataFeed">GDataFeed</link></type> class is a direct counterpart of the root
+						<type>&lt;feed&gt;</type> element in the Atom feeds which form the GData protocol. It contains the
+						elements in a query response, as well as general information about the response, such as links to
+						related feeds and the categories under which the query response falls.</para>
+						<para><type><link linkend="GDataFeed">GDataFeed</link></type> is usually not subclassed by services,
+						as there are rarely service-specific elements in a feed itself.</para></listitem>
+				</varlistentry>
+				<varlistentry>
+					<term><type><link linkend="GDataEntry">GDataEntry</link></type></term>
+					<listitem><para>A <type><link linkend="GDataEntry">GDataEntry</link></type> is a direct counterpart of the
+						<type>&lt;entry&gt;</type> element in the Atom feeds which form the GData protocol. It represents a
+						single object of unspecified semantics; an entry could be anything from a calendar event to a video
+						comment or access control rule. Semantics are given to entries by subclassing
+						<type><link linkend="GDataEntry">GDataEntry</link></type> for the various types of entries returned
+						by queries to a service. Such subclasses implement useful, relevant and query-specific properties
+						on the entry (such as the duration of a video, or the recurrence rules of a calendar event).</para>
+					</listitem>
+				</varlistentry>
+			</variablelist>
+		</refsect2>
+	</refsect1>
+</refentry>

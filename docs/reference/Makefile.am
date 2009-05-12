@@ -51,11 +51,11 @@ IGNORE_HFILES=common.h gdata-private.h gdata-marshal.h gdata-enums.h
 
 # Images to copy into HTML directory.
 # e.g. HTML_IMAGES=$(top_srcdir)/gtk/stock-icons/stock_about_24.png
-HTML_IMAGES=
+HTML_IMAGES=structure.png
 
 # Extra SGML files that are included by $(DOC_MAIN_SGML_FILE).
 # e.g. content_files=running.sgml building.sgml changes-2.0.sgml
-content_files=version.xml
+content_files=version.xml gdata-overview.xml
 
 # SGML files where gtk-doc abbrevations (#GtkWidget) are expanded
 # These files must be listed here *and* in content_files
@@ -92,7 +92,7 @@ GITIGNOREFILES = tmpl/
 
 # Other files to distribute
 # e.g. EXTRA_DIST += version.xml.in
-EXTRA_DIST += version.xml.in
+EXTRA_DIST += version.xml.in structure.dia
 
 if ENABLE_GTK_DOC
 TESTS_ENVIRONMENT = cd $(srcdir) && 
