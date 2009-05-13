@@ -371,6 +371,133 @@ test_parsing_app_control (void)
 	g_object_unref (video);
 }
 
+static void
+test_parsing_yt_recorded (void)
+{
+	GDataYouTubeVideo *video;
+	GTimeVal recorded;
+	gchar *xml;
+	GError *error = NULL;
+
+	video = gdata_youtube_video_new_from_xml (
+		"<entry xmlns='http://www.w3.org/2005/Atom' "
+			"xmlns:media='http://search.yahoo.com/mrss/' "
+			"xmlns:yt='http://gdata.youtube.com/schemas/2007' "
+			"xmlns:gd='http://schemas.google.com/g/2005' "
+			"gd:etag='W/\"CEMFSX47eCp7ImA9WxVUGEw.\"'>"
+			"<id>tag:youtube.com,2008:video:JAagedeKdcQ</id>"
+			"<published>2006-05-16T14:06:37.000Z</published>"
+			"<updated>2009-03-23T12:46:58.000Z</updated>"
+			"<category scheme='http://schemas.google.com/g/2005#kind' term='http://gdata.youtube.com/schemas/2007#video'/>"
+			"<title>Judas Priest - Painkiller</title>"
+			"<link rel='alternate' type='text/html' href='http://www.youtube.com/watch?v=JAagedeKdcQ'/>"
+			"<link rel='self' type='application/atom+xml' href='http://gdata.youtube.com/feeds/api/videos/JAagedeKdcQ?client=ytapi-google-jsdemo'/>"
+			"<author>"
+				"<name>eluves</name>"
+				"<uri>http://gdata.youtube.com/feeds/api/users/eluves</uri>"
+			"</author>"
+			"<media:group>"
+				"<media:title type='plain'>Judas Priest - Painkiller</media:title>"
+				"<media:credit role='uploader' scheme='urn:youtube'>eluves</media:credit>"
+				"<media:category label='Music' scheme='http://gdata.youtube.com/schemas/2007/categories.cat'>Music</media:category>"
+			"</media:group>"
+			"<yt:recorded>2003-08-03</yt:recorded>"
+		"</entry>", -1, &error);
+	g_assert_no_error (error);
+	g_assert (GDATA_IS_YOUTUBE_VIDEO (video));
+	g_clear_error (&error);
+
+	/* Test the recorded date */
+	gdata_youtube_video_get_recorded (video, &recorded);
+	g_assert_cmpint (recorded.tv_sec, ==, 1059868800);
+	g_assert_cmpint (recorded.tv_usec, ==, 0);
+
+	/* Update the state and see if the XML's written out OK */
+	recorded.tv_sec = 1128229200;
+	gdata_youtube_video_set_recorded (video, &recorded);
+
+	/* Check the XML */
+	xml = gdata_entry_get_xml (GDATA_ENTRY (video));
+	g_assert_cmpstr (xml, ==,
+			 "<entry xmlns='http://www.w3.org/2005/Atom' "
+				"xmlns:media='http://search.yahoo.com/mrss/' "
+				"xmlns:gd='http://schemas.google.com/g/2005' "
+				"xmlns:yt='http://gdata.youtube.com/schemas/2007' "
+				"gd:etag='W/\"CEMFSX47eCp7ImA9WxVUGEw.\"'>"
+				"<title type='text'>Judas Priest - Painkiller</title>"
+				"<id>tag:youtube.com,2008:video:JAagedeKdcQ</id>"
+				"<updated>2009-03-23T12:46:58Z</updated>"
+				"<published>2006-05-16T14:06:37Z</published>"
+				"<category term='http://gdata.youtube.com/schemas/2007#video' scheme='http://schemas.google.com/g/2005#kind'/>"
+				"<link href='http://gdata.youtube.com/feeds/api/videos/JAagedeKdcQ?client=ytapi-google-jsdemo' rel='self' type='application/atom+xml'/>"
+				"<link href='http://www.youtube.com/watch?v=JAagedeKdcQ' rel='alternate' type='text/html'/>"
+				"<author>"
+					"<name>eluves</name>"
+					"<uri>http://gdata.youtube.com/feeds/api/users/eluves</uri>"
+				"</author>"
+				"<media:group>"
+					"<media:category label='Music' scheme='http://gdata.youtube.com/schemas/2007/categories.cat'>Music</media:category>"
+					"<media:title type='plain'>Judas Priest - Painkiller</media:title>"
+				"</media:group>"
+				"<yt:recorded>2005-10-02</yt:recorded>"
+			 "</entry>");
+	g_free (xml);
+
+	/* TODO: more tests on entry properties */
+
+	g_object_unref (video);
+}
+
+static void
+test_parsing_comments_feed_link (void)
+{
+	GDataYouTubeVideo *video;
+	GDataGDFeedLink *feed_link;
+	GError *error = NULL;
+
+	video = gdata_youtube_video_new_from_xml (
+		"<entry xmlns='http://www.w3.org/2005/Atom' "
+			"xmlns:media='http://search.yahoo.com/mrss/' "
+			"xmlns:yt='http://gdata.youtube.com/schemas/2007' "
+			"xmlns:gd='http://schemas.google.com/g/2005' "
+			"gd:etag='W/\"CEMFSX47eCp7ImA9WxVUGEw.\"'>"
+			"<id>tag:youtube.com,2008:video:JAagedeKdcQ</id>"
+			"<published>2006-05-16T14:06:37.000Z</published>"
+			"<updated>2009-03-23T12:46:58.000Z</updated>"
+			"<category scheme='http://schemas.google.com/g/2005#kind' term='http://gdata.youtube.com/schemas/2007#video'/>"
+			"<title>Judas Priest - Painkiller</title>"
+			"<link rel='alternate' type='text/html' href='http://www.youtube.com/watch?v=JAagedeKdcQ'/>"
+			"<link rel='self' type='application/atom+xml' href='http://gdata.youtube.com/feeds/api/videos/JAagedeKdcQ?client=ytapi-google-jsdemo'/>"
+			"<author>"
+				"<name>eluves</name>"
+				"<uri>http://gdata.youtube.com/feeds/api/users/eluves</uri>"
+			"</author>"
+			"<media:group>"
+				"<media:title type='plain'>Judas Priest - Painkiller</media:title>"
+				"<media:credit role='uploader' scheme='urn:youtube'>eluves</media:credit>"
+				"<media:category label='Music' scheme='http://gdata.youtube.com/schemas/2007/categories.cat'>Music</media:category>"
+			"</media:group>"
+			"<gd:comments>"
+				"<gd:feedLink href='http://gdata.youtube.com/feeds/api/videos/JAagedeKdcQ/comments' countHint='13021'/>"
+			"</gd:comments>"
+		"</entry>", -1, &error);
+	g_assert_no_error (error);
+	g_assert (GDATA_IS_YOUTUBE_VIDEO (video));
+	g_clear_error (&error);
+
+	/* Test the feed link */
+	feed_link = gdata_youtube_video_get_comments_feed_link (video);
+	g_assert (feed_link != NULL);
+	g_assert (feed_link->rel == NULL);
+	g_assert_cmpstr (feed_link->href, ==, "http://gdata.youtube.com/feeds/api/videos/JAagedeKdcQ/comments");
+	g_assert_cmpuint (feed_link->count_hint, ==, 13021);
+	g_assert (feed_link->read_only == FALSE);
+
+	/* TODO: more tests on entry properties */
+
+	g_object_unref (video);
+}
+
 int
 main (int argc, char *argv[])
 {
@@ -393,6 +520,8 @@ main (int argc, char *argv[])
 	if (g_test_slow () == TRUE)
 		g_test_add_func ("/youtube/upload/simple", test_upload_simple);
 	g_test_add_func ("/youtube/parsing/app:control", test_parsing_app_control);
+	g_test_add_func ("/youtube/parsing/comments/feedLink", test_parsing_comments_feed_link);
+	g_test_add_func ("/youtube/parsing/yt:recorded", test_parsing_yt_recorded);
 
 	retval = g_test_run ();
 	if (service != NULL)

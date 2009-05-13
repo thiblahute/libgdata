@@ -76,16 +76,17 @@ gdata_gd_rating_free (GDataGDRating *self)
  * @href: the URI of the related feed
  * @rel: the relationship between the related feed and the current item, or %NULL
  * @count_hint: a hint about the number of items in the related feed
+ * @read_only: %TRUE if the feed is read-only, %FALSE otherwise
  *
  * Creates a new #GDataGDFeedLink. More information is available in the <ulink type="http"
  * url="http://code.google.com/apis/gdata/elements.html#gdFeedLink">GData specification</ulink>.
  *
- * Currently, readOnly and feed functionality is not implemented in #GDataGDFeedLink.
+ * Currently, embedded feed functionality is not implemented in #GDataGDFeedLink.
  *
  * Return value: a new #GDataGDFeedLink, or %NULL; free with gdata_gd_feed_link_free()
  **/
 GDataGDFeedLink *
-gdata_gd_feed_link_new (const gchar *href, const gchar *rel, guint count_hint)
+gdata_gd_feed_link_new (const gchar *href, const gchar *rel, guint count_hint, gboolean read_only)
 {
 	GDataGDFeedLink *self;
 
@@ -95,6 +96,7 @@ gdata_gd_feed_link_new (const gchar *href, const gchar *rel, guint count_hint)
 	self->href = g_strdup (href);
 	self->rel = g_strdup (rel);
 	self->count_hint = count_hint;
+	self->read_only = read_only;
 	return self;
 }
 

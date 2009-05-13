@@ -53,22 +53,23 @@ void gdata_gd_rating_free (GDataGDRating *self);
  * @href: the URI of the related feed
  * @rel: the relationship between the related feed and the current item, or %NULL
  * @count_hint: a hint about the number of items in the related feed
+ * @read_only: %TRUE if the feed is read-only, %FALSE otherwise
  *
  * A structure fully representing a GData "rating" element. The @href field is required, but the others are optional.
  *
  * See the <ulink type="http" url="http://code.google.com/apis/gdata/elements.html#gdFeedLink">GData specification</ulink>
  * for more information.
  *
- * Currently, readOnly and feed functionality is not implemented in #GDataGDFeedLink.
+ * Currently, embedded feed functionality is not implemented in #GDataGDFeedLink.
  **/
 typedef struct {
 	gchar *rel;
 	gchar *href;
 	guint count_hint;
-	/* TODO: support readOnly and feed */
+	gboolean read_only;
 } GDataGDFeedLink;
 
-GDataGDFeedLink *gdata_gd_feed_link_new (const gchar *href, const gchar *rel, guint count_hint) G_GNUC_WARN_UNUSED_RESULT;
+GDataGDFeedLink *gdata_gd_feed_link_new (const gchar *href, const gchar *rel, guint count_hint, gboolean read_only) G_GNUC_WARN_UNUSED_RESULT;
 void gdata_gd_feed_link_free (GDataGDFeedLink *self);
 
 /**

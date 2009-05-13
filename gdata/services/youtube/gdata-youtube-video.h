@@ -93,6 +93,9 @@ const gchar *gdata_youtube_video_get_video_id (GDataYouTubeVideo *self);
 gboolean gdata_youtube_video_is_draft (GDataYouTubeVideo *self);
 void gdata_youtube_video_set_is_draft (GDataYouTubeVideo *self, gboolean is_draft);
 GDataYouTubeState *gdata_youtube_video_get_state (GDataYouTubeVideo *self);
+GDataGDFeedLink *gdata_youtube_video_get_comments_feed_link (GDataYouTubeVideo *self);
+void gdata_youtube_video_get_recorded (GDataYouTubeVideo *self, GTimeVal *recorded);
+void gdata_youtube_video_set_recorded (GDataYouTubeVideo *self, GTimeVal *recorded);
 
 G_END_DECLS
 
