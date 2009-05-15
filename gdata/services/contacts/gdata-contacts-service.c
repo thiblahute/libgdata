@@ -39,7 +39,7 @@
 #include "gdata-contacts-service.h"
 #include "gdata-service.h"
 #include "gdata-private.h"
-#include "gdata-contacts-query.h"
+#include "gdata-query.h"
 
 G_DEFINE_TYPE (GDataContactsService, gdata_contacts_service, GDATA_TYPE_SERVICE)
 #define GDATA_CONTACTS_SERVICE_GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE ((obj), GDATA_TYPE_CONTACTS_SERVICE, GDataContactsServicePrivate))
@@ -80,7 +80,7 @@ gdata_contacts_service_new (const gchar *client_id)
 /**
  * gdata_contacts_service_query_contacts:
  * @self: a #GDataContactsService
- * @query: a #GDataContactsQuery with the query parameters, or %NULL
+ * @query: a #GDataQuery with the query parameters, or %NULL
  * @cancellable: optional #GCancellable object, or %NULL
  * @progress_callback: a #GDataQueryProgressCallback to call when an entry is loaded, or %NULL
  * @progress_user_data: data to pass to the @progress_callback function
@@ -95,7 +95,7 @@ gdata_contacts_service_new (const gchar *client_id)
  * Since: 0.2.0
  **/
 GDataFeed *
-gdata_contacts_service_query_contacts (GDataContactsService *self, GDataContactsQuery *query, GCancellable *cancellable,
+gdata_contacts_service_query_contacts (GDataContactsService *self, GDataQuery *query, GCancellable *cancellable,
 				       GDataQueryProgressCallback progress_callback, gpointer progress_user_data, GError **error)
 {
 	/* Ensure we're authenticated first */
@@ -112,7 +112,7 @@ gdata_contacts_service_query_contacts (GDataContactsService *self, GDataContacts
 /**
  * gdata_contacts_service_query_contacts_async:
  * @self: a #GDataContactsService
- * @query: a #GDataContactsQuery with the query parameters, or %NULL
+ * @query: a #GDataQuery with the query parameters, or %NULL
  * @cancellable: optional #GCancellable object, or %NULL
  * @progress_callback: a #GDataQueryProgressCallback to call when an entry is loaded, or %NULL
  * @progress_user_data: data to pass to the @progress_callback function
@@ -128,7 +128,7 @@ gdata_contacts_service_query_contacts (GDataContactsService *self, GDataContacts
  * Since: 0.2.0
  **/
 void
-gdata_contacts_service_query_contacts_async (GDataContactsService *self, GDataContactsQuery *query, GCancellable *cancellable,
+gdata_contacts_service_query_contacts_async (GDataContactsService *self, GDataQuery *query, GCancellable *cancellable,
 					     GDataQueryProgressCallback progress_callback, gpointer progress_user_data,
 					     GAsyncReadyCallback callback, gpointer user_data)
 {

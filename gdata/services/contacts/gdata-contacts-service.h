@@ -24,7 +24,7 @@
 #include <glib-object.h>
 
 #include <gdata/gdata-service.h>
-#include <gdata/services/contacts/gdata-contacts-query.h>
+#include <gdata/gdata-query.h>
 #include <gdata/services/contacts/gdata-contacts-contact.h>
 
 G_BEGIN_DECLS
@@ -61,10 +61,10 @@ GType gdata_contacts_service_get_type (void) G_GNUC_CONST;
 
 GDataContactsService *gdata_contacts_service_new (const gchar *client_id);
 
-GDataFeed *gdata_contacts_service_query_contacts (GDataContactsService *self, GDataContactsQuery *query, GCancellable *cancellable,
+GDataFeed *gdata_contacts_service_query_contacts (GDataContactsService *self, GDataQuery *query, GCancellable *cancellable,
 						  GDataQueryProgressCallback progress_callback, gpointer progress_user_data,
 						  GError **error) G_GNUC_WARN_UNUSED_RESULT;
-void gdata_contacts_service_query_contacts_async (GDataContactsService *self, GDataContactsQuery *query, GCancellable *cancellable,
+void gdata_contacts_service_query_contacts_async (GDataContactsService *self, GDataQuery *query, GCancellable *cancellable,
 						  GDataQueryProgressCallback progress_callback, gpointer progress_user_data,
 						  GAsyncReadyCallback callback, gpointer user_data);
 
