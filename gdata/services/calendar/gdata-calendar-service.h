@@ -24,6 +24,7 @@
 #include <glib-object.h>
 
 #include <gdata/gdata-service.h>
+#include <gdata/gdata-query.h>
 #include <gdata/services/calendar/gdata-calendar-calendar.h>
 
 G_BEGIN_DECLS
@@ -60,23 +61,21 @@ GType gdata_calendar_service_get_type (void) G_GNUC_CONST;
 
 GDataCalendarService *gdata_calendar_service_new (const gchar *client_id) G_GNUC_WARN_UNUSED_RESULT;
 
-#include <gdata/services/calendar/gdata-calendar-query.h>
-
-GDataFeed *gdata_calendar_service_query_all_calendars (GDataCalendarService *self, GDataCalendarQuery *query, GCancellable *cancellable,
+GDataFeed *gdata_calendar_service_query_all_calendars (GDataCalendarService *self, GDataQuery *query, GCancellable *cancellable,
 						       GDataQueryProgressCallback progress_callback, gpointer progress_user_data,
 						       GError **error) G_GNUC_WARN_UNUSED_RESULT;
-void gdata_calendar_service_query_all_calendars_async (GDataCalendarService *self, GDataCalendarQuery *query, GCancellable *cancellable,
+void gdata_calendar_service_query_all_calendars_async (GDataCalendarService *self, GDataQuery *query, GCancellable *cancellable,
 						       GDataQueryProgressCallback progress_callback, gpointer progress_user_data,
 						       GAsyncReadyCallback callback, gpointer user_data);
 
-GDataFeed *gdata_calendar_service_query_own_calendars (GDataCalendarService *self, GDataCalendarQuery *query, GCancellable *cancellable,
+GDataFeed *gdata_calendar_service_query_own_calendars (GDataCalendarService *self, GDataQuery *query, GCancellable *cancellable,
 						       GDataQueryProgressCallback progress_callback, gpointer progress_user_data,
 						       GError **error) G_GNUC_WARN_UNUSED_RESULT;
-void gdata_calendar_service_query_own_calendars_async (GDataCalendarService *self, GDataCalendarQuery *query, GCancellable *cancellable,
+void gdata_calendar_service_query_own_calendars_async (GDataCalendarService *self, GDataQuery *query, GCancellable *cancellable,
 						       GDataQueryProgressCallback progress_callback, gpointer progress_user_data,
 						       GAsyncReadyCallback callback, gpointer user_data);
 
-GDataFeed *gdata_calendar_service_query_events (GDataCalendarService *self, GDataCalendarCalendar *calendar, GDataCalendarQuery *query,
+GDataFeed *gdata_calendar_service_query_events (GDataCalendarService *self, GDataCalendarCalendar *calendar, GDataQuery *query,
 						GCancellable *cancellable, GDataQueryProgressCallback progress_callback, gpointer progress_user_data,
 						GError **error) G_GNUC_WARN_UNUSED_RESULT;
 

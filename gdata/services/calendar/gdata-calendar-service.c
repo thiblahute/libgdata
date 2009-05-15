@@ -39,7 +39,7 @@
 #include "gdata-calendar-service.h"
 #include "gdata-service.h"
 #include "gdata-private.h"
-#include "gdata-calendar-query.h"
+#include "gdata-query.h"
 
 /* Standards reference here: http://code.google.com/apis/calendar/docs/2.0/reference.html */
 
@@ -80,7 +80,7 @@ gdata_calendar_service_new (const gchar *client_id)
 /**
  * gdata_calendar_service_query_all_calendars:
  * @self: a #GDataCalendarService
- * @query: a #GDataCalendarQuery with the query parameters, or %NULL
+ * @query: a #GDataQuery with the query parameters, or %NULL
  * @cancellable: optional #GCancellable object, or %NULL
  * @progress_callback: a #GDataQueryProgressCallback to call when an entry is loaded, or %NULL
  * @progress_user_data: data to pass to the @progress_callback function
@@ -95,7 +95,7 @@ gdata_calendar_service_new (const gchar *client_id)
  * Return value: a #GDataFeed of query results; unref with g_object_unref()
  **/
 GDataFeed *
-gdata_calendar_service_query_all_calendars (GDataCalendarService *self, GDataCalendarQuery *query, GCancellable *cancellable,
+gdata_calendar_service_query_all_calendars (GDataCalendarService *self, GDataQuery *query, GCancellable *cancellable,
 					    GDataQueryProgressCallback progress_callback, gpointer progress_user_data, GError **error)
 {
 	/* Ensure we're authenticated first */
@@ -105,14 +105,14 @@ gdata_calendar_service_query_all_calendars (GDataCalendarService *self, GDataCal
 		return NULL;
 	}
 
-	return gdata_service_query (GDATA_SERVICE (self), "http://www.google.com/calendar/feeds/default/allcalendars/full", GDATA_QUERY (query),
+	return gdata_service_query (GDATA_SERVICE (self), "http://www.google.com/calendar/feeds/default/allcalendars/full", query,
 				    GDATA_TYPE_CALENDAR_CALENDAR, cancellable, progress_callback, progress_user_data, error);
 }
 
 /**
  * gdata_calendar_service_query_all_calendars_async:
  * @self: a #GDataCalendarService
- * @query: a #GDataCalendarQuery with the query parameters, or %NULL
+ * @query: a #GDataQuery with the query parameters, or %NULL
  * @cancellable: optional #GCancellable object, or %NULL
  * @progress_callback: a #GDataQueryProgressCallback to call when an entry is loaded, or %NULL
  * @progress_user_data: data to pass to the @progress_callback function
@@ -127,7 +127,7 @@ gdata_calendar_service_query_all_calendars (GDataCalendarService *self, GDataCal
  * this function, and gdata_service_query_async(), which is the base asynchronous query function.
  **/
 void
-gdata_calendar_service_query_all_calendars_async (GDataCalendarService *self, GDataCalendarQuery *query, GCancellable *cancellable,
+gdata_calendar_service_query_all_calendars_async (GDataCalendarService *self, GDataQuery *query, GCancellable *cancellable,
 						  GDataQueryProgressCallback progress_callback, gpointer progress_user_data,
 						  GAsyncReadyCallback callback, gpointer user_data)
 {
@@ -139,14 +139,14 @@ gdata_calendar_service_query_all_calendars_async (GDataCalendarService *self, GD
 		return;
 	}
 
-	gdata_service_query_async (GDATA_SERVICE (self), "http://www.google.com/calendar/feeds/default/allcalendars/full", GDATA_QUERY (query),
+	gdata_service_query_async (GDATA_SERVICE (self), "http://www.google.com/calendar/feeds/default/allcalendars/full", query,
 				   GDATA_TYPE_CALENDAR_CALENDAR, cancellable, progress_callback, progress_user_data, callback, user_data);
 }
 
 /**
  * gdata_calendar_service_query_own_calendars:
  * @self: a #GDataCalendarService
- * @query: a #GDataCalendarQuery with the query parameters, or %NULL
+ * @query: a #GDataQuery with the query parameters, or %NULL
  * @cancellable: optional #GCancellable object, or %NULL
  * @progress_callback: a #GDataQueryProgressCallback to call when an entry is loaded, or %NULL
  * @progress_user_data: data to pass to the @progress_callback function
@@ -161,7 +161,7 @@ gdata_calendar_service_query_all_calendars_async (GDataCalendarService *self, GD
  * Return value: a #GDataFeed of query results; unref with g_object_unref()
  **/
 GDataFeed *
-gdata_calendar_service_query_own_calendars (GDataCalendarService *self, GDataCalendarQuery *query, GCancellable *cancellable,
+gdata_calendar_service_query_own_calendars (GDataCalendarService *self, GDataQuery *query, GCancellable *cancellable,
 					    GDataQueryProgressCallback progress_callback, gpointer progress_user_data, GError **error)
 {
 	/* Ensure we're authenticated first */
@@ -171,14 +171,14 @@ gdata_calendar_service_query_own_calendars (GDataCalendarService *self, GDataCal
 		return NULL;
 	}
 
-	return gdata_service_query (GDATA_SERVICE (self), "http://www.google.com/calendar/feeds/default/owncalendars/full", GDATA_QUERY (query),
+	return gdata_service_query (GDATA_SERVICE (self), "http://www.google.com/calendar/feeds/default/owncalendars/full", query,
 				    GDATA_TYPE_CALENDAR_CALENDAR, cancellable, progress_callback, progress_user_data, error);
 }
 
 /**
  * gdata_calendar_service_query_own_calendars_async:
  * @self: a #GDataCalendarService
- * @query: a #GDataCalendarQuery with the query parameters, or %NULL
+ * @query: a #GDataQuery with the query parameters, or %NULL
  * @cancellable: optional #GCancellable object, or %NULL
  * @progress_callback: a #GDataQueryProgressCallback to call when an entry is loaded, or %NULL
  * @progress_user_data: data to pass to the @progress_callback function
@@ -193,7 +193,7 @@ gdata_calendar_service_query_own_calendars (GDataCalendarService *self, GDataCal
  * this function, and gdata_service_query_async(), which is the base asynchronous query function.
  **/
 void
-gdata_calendar_service_query_own_calendars_async (GDataCalendarService *self, GDataCalendarQuery *query, GCancellable *cancellable,
+gdata_calendar_service_query_own_calendars_async (GDataCalendarService *self, GDataQuery *query, GCancellable *cancellable,
 						  GDataQueryProgressCallback progress_callback, gpointer progress_user_data,
 						  GAsyncReadyCallback callback, gpointer user_data)
 {
@@ -205,7 +205,7 @@ gdata_calendar_service_query_own_calendars_async (GDataCalendarService *self, GD
 		return;
 	}
 
-	gdata_service_query_async (GDATA_SERVICE (self), "http://www.google.com/calendar/feeds/default/owncalendars/full", GDATA_QUERY (query),
+	gdata_service_query_async (GDATA_SERVICE (self), "http://www.google.com/calendar/feeds/default/owncalendars/full", query,
 				   GDATA_TYPE_CALENDAR_CALENDAR, cancellable, progress_callback, progress_user_data, callback, user_data);
 }
 
@@ -213,7 +213,7 @@ gdata_calendar_service_query_own_calendars_async (GDataCalendarService *self, GD
  * gdata_calendar_service_query_events:
  * @self: a #GDataCalendarService
  * @calendar: a #GDataCalendarCalendar
- * @query: a #GDataCalendarQuery with the query parameters, or %NULL
+ * @query: a #GDataQuery with the query parameters, or %NULL
  * @cancellable: optional #GCancellable object, or %NULL
  * @progress_callback: a #GDataQueryProgressCallback to call when an entry is loaded, or %NULL
  * @progress_user_data: data to pass to the @progress_callback function
@@ -226,7 +226,7 @@ gdata_calendar_service_query_own_calendars_async (GDataCalendarService *self, GD
  * Return value: a #GDataFeed of query results; unref with g_object_unref()
  **/
 GDataFeed *
-gdata_calendar_service_query_events (GDataCalendarService *self, GDataCalendarCalendar *calendar, GDataCalendarQuery *query, GCancellable *cancellable,
+gdata_calendar_service_query_events (GDataCalendarService *self, GDataCalendarCalendar *calendar, GDataQuery *query, GCancellable *cancellable,
 				     GDataQueryProgressCallback progress_callback, gpointer progress_user_data, GError **error)
 {
 	/* TODO: Async variant */
@@ -249,7 +249,7 @@ gdata_calendar_service_query_events (GDataCalendarService *self, GDataCalendarCa
 	}
 
 	/* Execute the query */
-	return gdata_service_query (GDATA_SERVICE (self), uri, GDATA_QUERY (query), GDATA_TYPE_CALENDAR_EVENT, cancellable,
+	return gdata_service_query (GDATA_SERVICE (self), uri, query, GDATA_TYPE_CALENDAR_EVENT, cancellable,
 				    progress_callback, progress_user_data, error);
 }
 
