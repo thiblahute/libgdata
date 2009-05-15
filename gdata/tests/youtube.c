@@ -498,6 +498,85 @@ test_parsing_comments_feed_link (void)
 	g_object_unref (video);
 }
 
+static void
+test_query_uri (void)
+{
+	gdouble latitude, longitude, radius;
+	gboolean has_location;
+	gchar *query_uri;
+	GDataYouTubeQuery *query = gdata_youtube_query_new ("q");
+
+	gdata_youtube_query_set_format (query, GDATA_YOUTUBE_FORMAT_RTSP_H263_AMR);
+	g_assert_cmpuint (gdata_youtube_query_get_format (query), ==, 1);
+
+	/* Location */
+	gdata_youtube_query_set_location (query, 45.01364, -97.12356, 112.5, TRUE);
+	gdata_youtube_query_get_location (query, &latitude, &longitude, &radius, &has_location);
+
+	g_assert_cmpfloat (latitude, ==, 45.01364);
+	g_assert_cmpfloat (longitude, ==, -97.12356);
+	g_assert_cmpfloat (radius, ==, 112.5);
+	g_assert (has_location == TRUE);
+
+	query_uri = gdata_query_get_query_uri (GDATA_QUERY (query), "http://example.com");
+	g_assert_cmpstr (query_uri, ==, "http://example.com?q=q&time=all_time&safeSearch=none&format=1&location=45.013640,-97.123560!&location-radius=112.500000m");
+	g_free (query_uri);
+
+	gdata_youtube_query_set_location (query, G_MAXDOUBLE, 0.6672, 52.8, TRUE);
+
+	query_uri = gdata_query_get_query_uri (GDATA_QUERY (query), "http://example.com");
+	g_assert_cmpstr (query_uri, ==, "http://example.com?q=q&time=all_time&safeSearch=none&format=1&location=!");
+	g_free (query_uri);
+
+	gdata_youtube_query_set_location (query, G_MAXDOUBLE, G_MAXDOUBLE, 0.0, FALSE);
+
+	query_uri = gdata_query_get_query_uri (GDATA_QUERY (query), "http://example.com");
+	g_assert_cmpstr (query_uri, ==, "http://example.com?q=q&time=all_time&safeSearch=none&format=1");
+	g_free (query_uri);
+
+	/* Language */
+	gdata_youtube_query_set_language (query, "fr");
+	g_assert_cmpstr (gdata_youtube_query_get_language (query), ==, "fr");
+
+	gdata_youtube_query_set_order_by (query, "relevance_lang_fr");
+	g_assert_cmpstr (gdata_youtube_query_get_order_by (query), ==, "relevance_lang_fr");
+
+	gdata_youtube_query_set_restriction (query, "192.168.0.1");
+	g_assert_cmpstr (gdata_youtube_query_get_restriction (query), ==, "192.168.0.1");
+
+	query_uri = gdata_query_get_query_uri (GDATA_QUERY (query), "http://example.com");
+	g_assert_cmpstr (query_uri, ==, "http://example.com?q=q&time=all_time&safeSearch=none&format=1&lr=fr&orderby=relevance_lang_fr&restriction=192.168.0.1");
+	g_free (query_uri);
+
+	gdata_youtube_query_set_safe_search (query, GDATA_YOUTUBE_SAFE_SEARCH_STRICT);
+	g_assert_cmpuint (gdata_youtube_query_get_safe_search (query), ==, GDATA_YOUTUBE_SAFE_SEARCH_STRICT);
+
+	query_uri = gdata_query_get_query_uri (GDATA_QUERY (query), "http://example.com");
+	g_assert_cmpstr (query_uri, ==, "http://example.com?q=q&time=all_time&safeSearch=strict&format=1&lr=fr&orderby=relevance_lang_fr&restriction=192.168.0.1");
+	g_free (query_uri);
+
+	gdata_youtube_query_set_sort_order (query, GDATA_YOUTUBE_SORT_ASCENDING);
+	g_assert_cmpuint (gdata_youtube_query_get_sort_order (query), ==, GDATA_YOUTUBE_SORT_ASCENDING);
+
+	gdata_youtube_query_set_age (query, GDATA_YOUTUBE_AGE_THIS_WEEK);
+	g_assert_cmpuint (gdata_youtube_query_get_age (query), ==, GDATA_YOUTUBE_AGE_THIS_WEEK);
+
+	gdata_youtube_query_set_uploader (query, GDATA_YOUTUBE_UPLOADER_PARTNER);
+	g_assert_cmpuint (gdata_youtube_query_get_uploader (query), ==, GDATA_YOUTUBE_UPLOADER_PARTNER);
+
+	/* Check the built URI with a normal feed URI */
+	query_uri = gdata_query_get_query_uri (GDATA_QUERY (query), "http://example.com");
+	g_assert_cmpstr (query_uri, ==, "http://example.com?q=q&time=this_week&safeSearch=strict&format=1&lr=fr&orderby=relevance_lang_fr&restriction=192.168.0.1&sortorder=ascending&uploader=partner");
+	g_free (query_uri);
+
+	/* …and with a feed URI with pre-existing arguments */
+	query_uri = gdata_query_get_query_uri (GDATA_QUERY (query), "http://example.com?foobar=shizzle");
+	g_assert_cmpstr (query_uri, ==, "http://example.com?foobar=shizzle&q=q&time=this_week&safeSearch=strict&format=1&lr=fr&orderby=relevance_lang_fr&restriction=192.168.0.1&sortorder=ascending&uploader=partner");
+	g_free (query_uri);
+
+	g_object_unref (query);
+}
+
 int
 main (int argc, char *argv[])
 {
@@ -522,6 +601,7 @@ main (int argc, char *argv[])
 	g_test_add_func ("/youtube/parsing/app:control", test_parsing_app_control);
 	g_test_add_func ("/youtube/parsing/comments/feedLink", test_parsing_comments_feed_link);
 	g_test_add_func ("/youtube/parsing/yt:recorded", test_parsing_yt_recorded);
+	g_test_add_func ("/youtube/query/uri", test_query_uri);
 
 	retval = g_test_run ();
 	if (service != NULL)

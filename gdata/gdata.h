@@ -38,6 +38,7 @@
 
 /* YouTube */
 #include <gdata/services/youtube/gdata-youtube-service.h>
+#include <gdata/services/youtube/gdata-youtube-query.h>
 #include <gdata/services/youtube/gdata-youtube-video.h>
 #include <gdata/services/youtube/gdata-youtube.h>
 #include <gdata/services/youtube/gdata-youtube-enums.h>
