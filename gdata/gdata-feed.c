@@ -612,12 +612,13 @@ post_parse_xml (GDataParsable *parsable, gpointer user_data, GError **error)
 }
 
 GDataFeed *
-_gdata_feed_new_from_xml (const gchar *xml, gint length, GType entry_type,
+_gdata_feed_new_from_xml (GType feed_type, const gchar *xml, gint length, GType entry_type,
 			  GDataQueryProgressCallback progress_callback, gpointer progress_user_data, GError **error)
 {
 	ParseData *data;
 	GDataFeed *feed;
 
+	g_return_val_if_fail (g_type_is_a (feed_type, GDATA_TYPE_FEED) == TRUE, FALSE);
 	g_return_val_if_fail (xml != NULL, NULL);
 	g_return_val_if_fail (g_type_is_a (entry_type, GDATA_TYPE_ENTRY) == TRUE, FALSE);
 
@@ -627,7 +628,7 @@ _gdata_feed_new_from_xml (const gchar *xml, gint length, GType entry_type,
 	data->progress_user_data = progress_user_data;
 	data->entry_i = 0;
 
-	feed = GDATA_FEED (_gdata_parsable_new_from_xml (GDATA_TYPE_FEED, "feed", xml, length, data, error));
+	feed = GDATA_FEED (_gdata_parsable_new_from_xml (feed_type, "feed", xml, length, data, error));
 
 	g_slice_free (ParseData, data);
 

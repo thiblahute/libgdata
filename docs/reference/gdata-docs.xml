@@ -50,6 +50,7 @@
 	<chapter>
 		<title>Google Calendar API</title>
 		<xi:include href="xml/gdata-calendar-service.xml"/>
+		<xi:include href="xml/gdata-calendar-feed.xml"/>
 		<xi:include href="xml/gdata-calendar-query.xml"/>
 		<xi:include href="xml/gdata-calendar-calendar.xml"/>
 		<xi:include href="xml/gdata-calendar-event.xml"/>

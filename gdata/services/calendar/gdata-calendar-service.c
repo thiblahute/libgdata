@@ -40,6 +40,7 @@
 #include "gdata-service.h"
 #include "gdata-private.h"
 #include "gdata-query.h"
+#include "gdata-calendar-feed.h"
 
 /* Standards reference here: http://code.google.com/apis/calendar/docs/2.0/reference.html */
 
@@ -51,6 +52,7 @@ gdata_calendar_service_class_init (GDataCalendarServiceClass *klass)
 {
 	GDataServiceClass *service_class = GDATA_SERVICE_CLASS (klass);
 	service_class->service_name = "cl";
+	service_class->feed_type = GDATA_TYPE_CALENDAR_FEED;
 }
 
 static void

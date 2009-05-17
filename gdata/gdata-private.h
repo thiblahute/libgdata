@@ -45,7 +45,7 @@ const gchar *_gdata_parsable_get_extra_xml (GDataParsable *self);
 GHashTable *_gdata_parsable_get_extra_namespaces (GDataParsable *self);
 
 #include "gdata-feed.h"
-GDataFeed *_gdata_feed_new_from_xml (const gchar *xml, gint length, GType entry_type,
+GDataFeed *_gdata_feed_new_from_xml (GType feed_type, const gchar *xml, gint length, GType entry_type,
 				     GDataQueryProgressCallback progress_callback, gpointer progress_user_data, GError **error) G_GNUC_WARN_UNUSED_RESULT;
 
 #include "gdata-entry.h"

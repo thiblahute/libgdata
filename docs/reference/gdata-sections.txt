@@ -686,3 +686,22 @@ GDATA_TYPE_PARSABLE
 <SUBSECTION Private>
 GDataParsablePrivate
 </SECTION>
+
+<SECTION>
+<FILE>gdata-calendar-feed</FILE>
+<TITLE>GDataCalendarFeed</TITLE>
+GDataCalendarFeed
+GDataCalendarFeedClass
+gdata_calendar_feed_get_timezone
+gdata_calendar_feed_get_times_cleaned
+<SUBSECTION Standard>
+gdata_calendar_feed_get_type
+GDATA_CALENDAR_FEED
+GDATA_CALENDAR_FEED_CLASS
+GDATA_CALENDAR_FEED_GET_CLASS
+GDATA_IS_CALENDAR_FEED
+GDATA_IS_CALENDAR_FEED_CLASS
+GDATA_TYPE_CALENDAR_FEED
+<SUBSECTION Private>
+GDataCalendarFeedPrivate
+</SECTION>

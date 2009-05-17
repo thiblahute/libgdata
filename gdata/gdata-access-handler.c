@@ -125,7 +125,7 @@ gdata_access_handler_get_rules (GDataAccessHandler *self, GDataService *service,
 
 	g_assert (message->response_body->data != NULL);
 
-	feed = _gdata_feed_new_from_xml (message->response_body->data, message->response_body->length, GDATA_TYPE_ACCESS_RULE,
+	feed = _gdata_feed_new_from_xml (GDATA_TYPE_FEED, message->response_body->data, message->response_body->length, GDATA_TYPE_ACCESS_RULE,
 					 progress_callback, progress_user_data, error);
 	g_object_unref (message);
 

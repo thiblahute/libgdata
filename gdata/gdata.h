@@ -48,6 +48,7 @@
 
 /* Google Calendar */
 #include <gdata/services/calendar/gdata-calendar-service.h>
+#include <gdata/services/calendar/gdata-calendar-feed.h>
 #include <gdata/services/calendar/gdata-calendar-calendar.h>
 #include <gdata/services/calendar/gdata-calendar-event.h>
 #include <gdata/services/calendar/gdata-calendar-query.h>

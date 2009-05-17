@@ -110,6 +110,7 @@ gdata_service_class_init (GDataServiceClass *klass)
 
 	klass->service_name = "xapi";
 	klass->authentication_uri = "https://www.google.com/accounts/ClientLogin";
+	klass->feed_type = GDATA_TYPE_FEED;
 	klass->parse_authentication_response = real_parse_authentication_response;
 	klass->append_query_headers = real_append_query_headers;
 	klass->parse_error_response = real_parse_error_response;
@@ -1011,7 +1012,7 @@ gdata_service_query (GDataService *self, const gchar *feed_uri, GDataQuery *quer
 
 	g_assert (message->response_body->data != NULL);
 
-	feed = _gdata_feed_new_from_xml (message->response_body->data, message->response_body->length, entry_type,
+	feed = _gdata_feed_new_from_xml (klass->feed_type, message->response_body->data, message->response_body->length, entry_type,
 					 progress_callback, progress_user_data, error);
 	g_object_unref (message);
 

@@ -38,7 +38,7 @@ get_calendar (GError **error)
 	/* Get a calendar */
 	calendar_feed = gdata_calendar_service_query_own_calendars (GDATA_CALENDAR_SERVICE (service), NULL, NULL, NULL, NULL, error);
 	g_assert_no_error (*error);
-	g_assert (GDATA_IS_FEED (calendar_feed));
+	g_assert (GDATA_IS_CALENDAR_FEED (calendar_feed));
 	g_clear_error (error);
 
 	calendars = gdata_feed_get_entries (calendar_feed);
@@ -122,7 +122,7 @@ test_query_all_calendars (void)
 
 	feed = gdata_calendar_service_query_all_calendars (GDATA_CALENDAR_SERVICE (service), NULL, NULL, NULL, NULL, &error);
 	g_assert_no_error (error);
-	g_assert (GDATA_IS_FEED (feed));
+	g_assert (GDATA_IS_CALENDAR_FEED (feed));
 	g_clear_error (&error);
 
 	/* TODO: check entries and feed properties */
@@ -138,7 +138,7 @@ test_query_all_calendars_async_cb (GDataService *service, GAsyncResult *async_re
 
 	feed = gdata_service_query_finish (service, async_result, &error);
 	g_assert_no_error (error);
-	g_assert (GDATA_IS_FEED (feed));
+	g_assert (GDATA_IS_CALENDAR_FEED (feed));
 	g_clear_error (&error);
 
 	/* TODO: Tests? */
@@ -170,7 +170,7 @@ test_query_own_calendars (void)
 
 	feed = gdata_calendar_service_query_own_calendars (GDATA_CALENDAR_SERVICE (service), NULL, NULL, NULL, NULL, &error);
 	g_assert_no_error (error);
-	g_assert (GDATA_IS_FEED (feed));
+	g_assert (GDATA_IS_CALENDAR_FEED (feed));
 	g_clear_error (&error);
 
 	/* TODO: check entries and feed properties */
@@ -186,7 +186,7 @@ test_query_own_calendars_async_cb (GDataService *service, GAsyncResult *async_re
 
 	feed = gdata_service_query_finish (service, async_result, &error);
 	g_assert_no_error (error);
-	g_assert (GDATA_IS_FEED (feed));
+	g_assert (GDATA_IS_CALENDAR_FEED (feed));
 	g_clear_error (&error);
 
 	/* TODO: Tests? */
@@ -222,7 +222,7 @@ test_query_events (void)
 	/* Get the entry feed */
 	feed = gdata_calendar_service_query_events (GDATA_CALENDAR_SERVICE (service), calendar, NULL, NULL, NULL, NULL, &error);
 	g_assert_no_error (error);
-	g_assert (GDATA_IS_FEED (feed));
+	g_assert (GDATA_IS_CALENDAR_FEED (feed));
 	g_clear_error (&error);
 
 	/* TODO: check entries and feed properties */
