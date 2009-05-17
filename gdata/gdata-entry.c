@@ -833,6 +833,14 @@ build_namespaces_cb (gchar *prefix, gchar *href, GString *output)
 	g_string_append_printf (output, " xmlns:%s='%s'", prefix, href);
 }
 
+static gboolean
+filter_namespaces_cb (gchar *prefix, gchar *href, GHashTable *canonical_namespaces)
+{
+	if (g_hash_table_lookup (canonical_namespaces, prefix) != NULL)
+		return TRUE;
+	return FALSE;
+}
+
 /**
  * gdata_entry_get_xml:
  * @self: a #GDataEntry
@@ -857,6 +865,9 @@ gdata_entry_get_xml (GDataEntry *self)
 	/* Get the namespaces the class uses */
 	namespaces = g_hash_table_new (g_str_hash, g_str_equal);
 	klass->get_namespaces (self, namespaces);
+
+	/* Remove any duplicate extra namespaces */
+	g_hash_table_foreach_remove (self->priv->extra_namespaces, (GHRFunc) filter_namespaces_cb, namespaces);
 
 	/* Build up the namespace list */
 	xml_string = g_string_new ("<entry xmlns='http://www.w3.org/2005/Atom'");

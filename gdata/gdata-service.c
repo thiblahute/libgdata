@@ -1543,13 +1543,16 @@ gdata_service_delete_entry (GDataService *self, GDataEntry *entry, GCancellable 
 
 	/* Send the message */
 	status = _gdata_service_send_message (self, message, error);
-	g_object_unref (message);
-	if (status == SOUP_STATUS_NONE)
+	if (status == SOUP_STATUS_NONE) {
+		g_object_unref (message);
 		return FALSE;
+	}
 
 	/* Check for cancellation */
-	if (g_cancellable_set_error_if_cancelled (cancellable, error) == TRUE)
+	if (g_cancellable_set_error_if_cancelled (cancellable, error) == TRUE) {
+		g_object_unref (message);
 		return FALSE;
+	}
 
 	if (status != 200) {
 		/* Error */
@@ -1559,6 +1562,8 @@ gdata_service_delete_entry (GDataService *self, GDataEntry *entry, GCancellable 
 		g_object_unref (message);
 		return FALSE;
 	}
+
+	g_object_unref (message);
 
 	return TRUE;
 }
