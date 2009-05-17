@@ -41,7 +41,9 @@
 #include "gdata-gdata.h"
 #include "gdata-parser.h"
 #include "gdata-types.h"
+#include "gdata-access-handler.h"
 
+static void gdata_calendar_calendar_access_handler_init (GDataAccessHandlerIface *iface);
 static void gdata_calendar_calendar_finalize (GObject *object);
 static void gdata_calendar_calendar_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec);
 static void gdata_calendar_calendar_set_property (GObject *object, guint property_id, const GValue *value, GParamSpec *pspec);
@@ -70,7 +72,8 @@ enum {
 	PROP_EDITED
 };
 
-G_DEFINE_TYPE (GDataCalendarCalendar, gdata_calendar_calendar, GDATA_TYPE_ENTRY)
+G_DEFINE_TYPE_WITH_CODE (GDataCalendarCalendar, gdata_calendar_calendar, GDATA_TYPE_ENTRY,
+			 G_IMPLEMENT_INTERFACE (GDATA_TYPE_ACCESS_HANDLER, gdata_calendar_calendar_access_handler_init))
 #define GDATA_CALENDAR_CALENDAR_GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE ((obj), GDATA_TYPE_CALENDAR_CALENDAR, GDataCalendarCalendarPrivate))
 
 static void
@@ -178,6 +181,18 @@ static void
 gdata_calendar_calendar_init (GDataCalendarCalendar *self)
 {
 	self->priv = G_TYPE_INSTANCE_GET_PRIVATE (self, GDATA_TYPE_CALENDAR_CALENDAR, GDataCalendarCalendarPrivate);
+}
+
+static gboolean
+is_owner_rule (GDataAccessRule *rule)
+{
+	return (strcmp (gdata_access_rule_get_role (rule), "http://schemas.google.com/gCal/2005#owner") == 0) ? TRUE : FALSE;
+}
+
+static void
+gdata_calendar_calendar_access_handler_init (GDataAccessHandlerIface *iface)
+{
+	iface->is_owner_rule = is_owner_rule;
 }
 
 static void

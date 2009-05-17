@@ -19,6 +19,7 @@
 
 #include <glib.h>
 #include <unistd.h>
+#include <string.h>
 
 #include "gdata.h"
 #include "common.h"
@@ -26,6 +27,30 @@
 /* TODO: probably a better way to do this; some kind of data associated with the test suite? */
 static GDataService *service = NULL;
 static GMainLoop *main_loop = NULL;
+
+static GDataCalendarCalendar *
+get_calendar (GError **error)
+{
+	GDataFeed *calendar_feed;
+	GDataCalendarCalendar *calendar;
+	GList *calendars;
+
+	/* Get a calendar */
+	calendar_feed = gdata_calendar_service_query_own_calendars (GDATA_CALENDAR_SERVICE (service), NULL, NULL, NULL, NULL, error);
+	g_assert_no_error (*error);
+	g_assert (GDATA_IS_FEED (calendar_feed));
+	g_clear_error (error);
+
+	calendars = gdata_feed_get_entries (calendar_feed);
+	g_assert (calendars != NULL);
+	calendar = calendars->data;
+	g_assert (GDATA_IS_CALENDAR_CALENDAR (calendar));
+
+	g_object_ref (calendar);
+	g_object_unref (calendar_feed);
+
+	return calendar;
+}
 
 static void
 test_authentication (void)
@@ -186,26 +211,13 @@ test_query_own_calendars_async (void)
 static void
 test_query_events (void)
 {
-	GDataFeed *feed, *calendar_feed;
+	GDataFeed *feed;
 	GDataCalendarCalendar *calendar;
-	GList *calendars;
 	GError *error = NULL;
 
 	g_assert (service != NULL);
 
-	/* Get a calendar */
-	calendar_feed = gdata_calendar_service_query_own_calendars (GDATA_CALENDAR_SERVICE (service), NULL, NULL, NULL, NULL, &error);
-	g_assert_no_error (error);
-	g_assert (GDATA_IS_FEED (calendar_feed));
-	g_clear_error (&error);
-
-	calendars = gdata_feed_get_entries (calendar_feed);
-	g_assert (calendars != NULL);
-	calendar = calendars->data;
-	g_assert (GDATA_IS_CALENDAR_CALENDAR (calendar));
-
-	g_object_ref (calendar);
-	g_object_unref (calendar_feed);
+	calendar = get_calendar (&error);
 
 	/* Get the entry feed */
 	feed = gdata_calendar_service_query_events (GDATA_CALENDAR_SERVICE (service), calendar, NULL, NULL, NULL, NULL, &error);
@@ -376,7 +388,6 @@ static void
 test_xml_recurrence (void)
 {
 	GDataCalendarEvent *event;
-	gchar *xml;
 	GError *error = NULL;
 	gchar *id, *uri;
 
@@ -506,6 +517,192 @@ test_query_uri (void)
 	g_object_unref (query);
 }
 
+static void
+test_acls_get_rules (void)
+{
+	GDataFeed *feed;
+	GDataCalendarCalendar *calendar;
+	GError *error = NULL;
+
+	g_assert (service != NULL);
+
+	calendar = get_calendar (&error);
+
+	/* Get the rules */
+	feed = gdata_access_handler_get_rules (GDATA_ACCESS_HANDLER (calendar), service, NULL, NULL, NULL, &error);
+	g_assert_no_error (error);
+	g_assert (GDATA_IS_FEED (feed));
+	g_clear_error (&error);
+
+	/* TODO: check rules and feed properties */
+
+	g_object_unref (feed);
+	g_object_unref (calendar);
+}
+
+static void
+test_acls_insert_rule (void)
+{
+	GDataCalendarCalendar *calendar;
+	GDataAccessRule *rule, *new_rule;
+	const gchar *scope_type, *scope_value;
+	GDataCategory *category;
+	GList *categories;
+	gchar *xml;
+	GError *error = NULL;
+
+	g_assert (service != NULL);
+
+	calendar = get_calendar (&error);
+
+	rule = gdata_access_rule_new (NULL);
+
+	gdata_access_rule_set_role (rule, "http://schemas.google.com/gCal/2005#editor");
+	g_assert_cmpstr (gdata_access_rule_get_role (rule), ==, "http://schemas.google.com/gCal/2005#editor");
+
+	gdata_access_rule_set_scope (rule, "user", "darcy@gmail.com");
+	gdata_access_rule_get_scope (rule, &scope_type, &scope_value);
+	g_assert_cmpstr (scope_type, ==, "user");
+	g_assert_cmpstr (scope_value, ==, "darcy@gmail.com");
+
+	/* Check the XML */
+	xml = gdata_entry_get_xml (GDATA_ENTRY (rule));
+	g_assert_cmpstr (xml, ==,
+			 "<entry xmlns='http://www.w3.org/2005/Atom' "
+			 	"xmlns:gd='http://schemas.google.com/g/2005' "
+			 	"xmlns:gAcl='http://schemas.google.com/acl/2007'>"
+			 	"<title type='text'>http://schemas.google.com/gCal/2005#editor</title>"
+			 	"<category term='http://schemas.google.com/acl/2007#accessRule' scheme='http://schemas.google.com/g/2005#kind'/>"
+				"<gAcl:role value='http://schemas.google.com/gCal/2005#editor'/>"
+				"<gAcl:scope type='user' value='darcy@gmail.com'/>"
+			 "</entry>");
+	g_free (xml);
+
+	/* Insert the rule */
+	new_rule = gdata_access_handler_insert_rule (GDATA_ACCESS_HANDLER (calendar), service, rule, NULL, &error);
+	g_assert_no_error (error);
+	g_assert (GDATA_IS_ACCESS_RULE (new_rule));
+	g_clear_error (&error);
+
+	/* Check the properties of the returned rule */
+	g_assert_cmpstr (gdata_access_rule_get_role (new_rule), ==, "http://schemas.google.com/gCal/2005#editor");
+	gdata_access_rule_get_scope (new_rule, &scope_type, &scope_value);
+	g_assert_cmpstr (scope_type, ==, "user");
+	g_assert_cmpstr (scope_value, ==, "darcy@gmail.com");
+
+	/* Check it only has the one category and that it's correct */
+	categories = gdata_entry_get_categories (GDATA_ENTRY (new_rule));
+	g_assert (categories != NULL);
+	g_assert_cmpuint (g_list_length (categories), ==, 1);
+	category = categories->data;
+	g_assert_cmpstr (category->term, ==, "http://schemas.google.com/acl/2007#accessRule");
+	g_assert_cmpstr (category->scheme, ==, "http://schemas.google.com/g/2005#kind");
+	g_assert (category->label == NULL);
+
+	/* TODO: Check more properties? */
+
+	g_object_unref (rule);
+	g_object_unref (new_rule);
+}
+
+static void
+test_acls_update_rule (void)
+{
+	GDataFeed *feed;
+	GDataCalendarCalendar *calendar;
+	GDataAccessRule *rule = NULL, *new_rule;
+	const gchar *scope_type, *scope_value;
+	GList *rules;
+	GError *error = NULL;
+
+	g_assert (service != NULL);
+
+	calendar = get_calendar (&error);
+
+	/* Get a rule */
+	feed = gdata_access_handler_get_rules (GDATA_ACCESS_HANDLER (calendar), service, NULL, NULL, NULL, &error);
+	g_assert_no_error (error);
+	g_assert (GDATA_IS_FEED (feed));
+	g_clear_error (&error);
+
+	/* Find the rule applying to darcy@gmail.com */
+	for (rules = gdata_feed_get_entries (feed); rules != NULL; rules = rules->next) {
+		gdata_access_rule_get_scope (GDATA_ACCESS_RULE (rules->data), NULL, &scope_value);
+		if (scope_value != NULL && strcmp (scope_value, "darcy@gmail.com") == 0) {
+			rule = GDATA_ACCESS_RULE (rules->data);
+			break;
+		}
+	}
+	g_assert (GDATA_IS_ACCESS_RULE (rule));
+
+	g_object_ref (rule);
+	g_object_unref (feed);
+
+	/* Update the rule */
+	gdata_access_rule_set_role (rule, "http://schemas.google.com/gCal/2005#read");
+	g_assert_cmpstr (gdata_access_rule_get_role (rule), ==, "http://schemas.google.com/gCal/2005#read");
+
+	/* Send the update to the server */
+	new_rule = gdata_access_handler_update_rule (GDATA_ACCESS_HANDLER (calendar), service, rule, NULL, &error);
+	g_assert_no_error (error);
+	g_assert (GDATA_IS_ACCESS_RULE (new_rule));
+	g_clear_error (&error);
+	g_object_unref (rule);
+
+	/* Check the properties of the returned rule */
+	g_assert_cmpstr (gdata_access_rule_get_role (new_rule), ==, "http://schemas.google.com/gCal/2005#read");
+	gdata_access_rule_get_scope (new_rule, &scope_type, &scope_value);
+	g_assert_cmpstr (scope_type, ==, "user");
+	g_assert_cmpstr (scope_value, ==, "darcy@gmail.com");
+
+	g_object_unref (new_rule);
+	g_object_unref (calendar);
+}
+
+static void
+test_acls_delete_rule (void)
+{
+	GDataFeed *feed;
+	GDataCalendarCalendar *calendar;
+	GDataAccessRule *rule = NULL;
+	GList *rules;
+	gboolean success;
+	GError *error = NULL;
+
+	g_assert (service != NULL);
+
+	calendar = get_calendar (&error);
+
+	/* Get a rule */
+	feed = gdata_access_handler_get_rules (GDATA_ACCESS_HANDLER (calendar), service, NULL, NULL, NULL, &error);
+	g_assert_no_error (error);
+	g_assert (GDATA_IS_FEED (feed));
+	g_clear_error (&error);
+
+	/* Find the rule applying to darcy@gmail.com */
+	for (rules = gdata_feed_get_entries (feed); rules != NULL; rules = rules->next) {
+		const gchar *scope_value;
+
+		gdata_access_rule_get_scope (GDATA_ACCESS_RULE (rules->data), NULL, &scope_value);
+		if (scope_value != NULL && strcmp (scope_value, "darcy@gmail.com") == 0) {
+			rule = GDATA_ACCESS_RULE (rules->data);
+			break;
+		}
+	}
+	g_assert (GDATA_IS_ACCESS_RULE (rule));
+
+	g_object_ref (rule);
+	g_object_unref (feed);
+
+	/* Delete the rule */
+	success = gdata_access_handler_delete_rule (GDATA_ACCESS_HANDLER (calendar), service, rule, NULL, &error);
+	g_assert_no_error (error);
+	g_assert (success == TRUE);
+	g_clear_error (&error);
+
+	g_object_unref (rule);
+}
+
 int
 main (int argc, char *argv[])
 {
@@ -531,6 +728,12 @@ main (int argc, char *argv[])
 	g_test_add_func ("/calendar/xml/dates", test_xml_dates);
 	g_test_add_func ("/calendar/xml/recurrence", test_xml_recurrence);
 	g_test_add_func ("/calendar/query/uri", test_query_uri);
+	g_test_add_func ("/calendar/acls/get_rules", test_acls_get_rules);
+	if (g_test_slow () == TRUE) {
+		g_test_add_func ("/calendar/acls/insert_rule", test_acls_insert_rule);
+		g_test_add_func ("/calendar/acls/update_rule", test_acls_update_rule);
+		g_test_add_func ("/calendar/acls/delete_rule", test_acls_delete_rule);
+	}
 
 	retval = g_test_run ();
 	if (service != NULL)
