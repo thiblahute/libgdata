@@ -628,3 +628,44 @@ gdata_youtube_uploader_get_type
 <SUBSECTION Private>
 GDataYouTubeQueryPrivate
 </SECTION>
+
+<SECTION>
+<FILE>gdata-access-handler</FILE>
+<TITLE>GDataAccessHandler</TITLE>
+GDataAccessHandler
+GDataAccessHandlerIface
+gdata_access_handler_get_rules
+gdata_access_handler_insert_rule
+gdata_access_handler_update_rule
+gdata_access_handler_delete_rule
+<SUBSECTION Standard>
+gdata_access_handler_get_type
+GDATA_ACCESS_HANDLER
+GDATA_ACCESS_HANDLER_CLASS
+GDATA_ACCESS_HANDLER_GET_IFACE
+GDATA_IS_ACCESS_HANDLER
+GDATA_TYPE_ACCESS_HANDLER
+</SECTION>
+
+<SECTION>
+<FILE>gdata-access-rule</FILE>
+<TITLE>GDataAccessRule</TITLE>
+GDataAccessRule
+GDataAccessRuleClass
+gdata_access_rule_new
+gdata_access_rule_new_from_xml
+gdata_access_rule_get_role
+gdata_access_rule_set_role
+gdata_access_rule_get_scope
+gdata_access_rule_set_scope
+<SUBSECTION Standard>
+gdata_access_rule_get_type
+GDATA_ACCESS_RULE
+GDATA_ACCESS_RULE_CLASS
+GDATA_ACCESS_RULE_GET_CLASS
+GDATA_IS_ACCESS_RULE
+GDATA_IS_ACCESS_RULE_CLASS
+GDATA_TYPE_ACCESS_RULE
+<SUBSECTION Private>
+GDataAccessRulePrivate
+</SECTION>

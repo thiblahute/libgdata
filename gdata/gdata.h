@@ -28,6 +28,8 @@
 #include <gdata/gdata-parser.h>
 #include <gdata/gdata-query.h>
 #include <gdata/gdata-enums.h>
+#include <gdata/gdata-access-handler.h>
+#include <gdata/gdata-access-rule.h>
 
 /* Namespaces */
 #include <gdata/gdata-atom.h>

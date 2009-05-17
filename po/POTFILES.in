@@ -1,6 +1,7 @@
 # List of source files containing translatable strings.
 # Please keep this file sorted alphabetically.
 [encoding: UTF-8]
+gdata/gdata-access-handler.c
 gdata/gdata-entry.c
 gdata/gdata-feed.c
 gdata/gdata-parser.c

@@ -26,6 +26,12 @@
 	</chapter>
 
 	<chapter>
+		<title>Access Control List API</title>
+		<xi:include href="xml/gdata-access-handler.xml"/>
+		<xi:include href="xml/gdata-access-rule.xml"/>
+	</chapter>
+
+	<chapter>
 		<title>Namespace API</title>
 		<xi:include href="xml/gdata-atom.xml"/>
 		<xi:include href="xml/gdata-gdata.xml"/>

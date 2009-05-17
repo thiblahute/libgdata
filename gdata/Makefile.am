@@ -50,7 +50,9 @@ gdata_headers = \
 	gdata-atom.h		\
 	gdata-media-rss.h	\
 	gdata-gdata.h		\
-	gdata-parser.h
+	gdata-parser.h		\
+	gdata-access-handler.h	\
+	gdata-access-rule.h
 
 gdataincludedir = $(pkgincludedir)/gdata
 gdatainclude_HEADERS = \
@@ -70,6 +72,8 @@ libgdata_la_SOURCES = \
 	gdata-media-rss.c	\
 	gdata-gdata.c		\
 	gdata-parser.c		\
+	gdata-access-handler.c	\
+	gdata-access-rule.c	\
 	gdata-private.h
 
 libgdata_la_CPPFLAGS = \

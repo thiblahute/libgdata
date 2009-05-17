@@ -42,6 +42,7 @@ G_BEGIN_DECLS
  * @GDATA_SERVICE_ERROR_NOT_FOUND: A requested resource (feed or entry) was not found on the server
  * @GDATA_SERVICE_ERROR_CONFLICT: There was a conflict when updating an entry on the server; the server-side copy was modified inbetween downloading
  * and uploading the modified entry
+ * @GDATA_SERVICE_ERROR_FORBIDDEN: Generic error for a forbidden action (not due to having insufficient permissions)
  *
  * Error codes for #GDataService operations.
  **/
@@ -55,7 +56,8 @@ typedef enum {
 	GDATA_SERVICE_ERROR_WITH_UPDATE,
 	GDATA_SERVICE_ERROR_WITH_DELETION,
 	GDATA_SERVICE_ERROR_NOT_FOUND,
-	GDATA_SERVICE_ERROR_CONFLICT
+	GDATA_SERVICE_ERROR_CONFLICT,
+	GDATA_SERVICE_ERROR_FORBIDDEN
 } GDataServiceError;
 
 /**
