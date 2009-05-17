@@ -39,13 +39,14 @@
 #include "gdata-service.h"
 #include "gdata-private.h"
 #include "gdata-atom.h"
-#include "gdata-parser.h"
 
 static void gdata_entry_finalize (GObject *object);
 static void gdata_entry_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec);
 static void gdata_entry_set_property (GObject *object, guint property_id, const GValue *value, GParamSpec *pspec);
+static gboolean pre_parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *root_node, gpointer user_data, GError **error);
+static gboolean parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_data, GError **error);
+static gboolean post_parse_xml (GDataParsable *parsable, gpointer user_data, GError **error);
 static void real_get_xml (GDataEntry *self, GString *xml_string);
-static gboolean real_parse_xml (GDataEntry *self, xmlDoc *doc, xmlNode *node, GError **error);
 static void real_get_namespaces (GDataEntry *self, GHashTable *namespaces);
 
 struct _GDataEntryPrivate {
@@ -58,9 +59,6 @@ struct _GDataEntryPrivate {
 	gchar *content;
 	GList *links;
 	GList *authors;
-
-	GString *extra_xml;
-	GHashTable *extra_namespaces;
 };
 
 enum {
@@ -73,13 +71,14 @@ enum {
 	PROP_IS_INSERTED
 };
 
-G_DEFINE_TYPE (GDataEntry, gdata_entry, G_TYPE_OBJECT)
+G_DEFINE_TYPE (GDataEntry, gdata_entry, GDATA_TYPE_PARSABLE)
 #define GDATA_ENTRY_GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE ((obj), GDATA_TYPE_ENTRY, GDataEntryPrivate))
 
 static void
 gdata_entry_class_init (GDataEntryClass *klass)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
+	GDataParsableClass *parsable_class = GDATA_PARSABLE_CLASS (klass);
 
 	g_type_class_add_private (klass, sizeof (GDataEntryPrivate));
 
@@ -87,8 +86,11 @@ gdata_entry_class_init (GDataEntryClass *klass)
 	gobject_class->get_property = gdata_entry_get_property;
 	gobject_class->finalize = gdata_entry_finalize;
 
+	parsable_class->pre_parse_xml = pre_parse_xml;
+	parsable_class->parse_xml = parse_xml;
+	parsable_class->post_parse_xml = post_parse_xml;
+
 	klass->get_xml = real_get_xml;
-	klass->parse_xml = real_parse_xml;
 	klass->get_namespaces = real_get_namespaces;
 
 	g_object_class_install_property (gobject_class, PROP_TITLE,
@@ -133,8 +135,6 @@ static void
 gdata_entry_init (GDataEntry *self)
 {
 	self->priv = G_TYPE_INSTANCE_GET_PRIVATE (self, GDATA_TYPE_ENTRY, GDataEntryPrivate);
-	self->priv->extra_xml = g_string_new ("");
-	self->priv->extra_namespaces = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
 }
 
 static void
@@ -152,9 +152,6 @@ gdata_entry_finalize (GObject *object)
 	g_list_free (priv->links);
 	g_list_foreach (priv->authors, (GFunc) gdata_author_free, NULL);
 	g_list_free (priv->authors);
-
-	g_string_free (priv->extra_xml, TRUE);
-	g_hash_table_destroy (priv->extra_namespaces);
 
 	/* Chain up to the parent class */
 	G_OBJECT_CLASS (gdata_entry_parent_class)->finalize (object);
@@ -219,6 +216,187 @@ gdata_entry_set_property (GObject *object, guint property_id, const GValue *valu
 			G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
 			break;
 	}
+}
+
+static gboolean
+pre_parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *root_node, gpointer user_data, GError **error)
+{
+	g_return_val_if_fail (GDATA_IS_ENTRY (parsable), FALSE);
+	g_return_val_if_fail (doc != NULL, FALSE);
+	g_return_val_if_fail (root_node != NULL, FALSE);
+
+	/* Extract the ETag */
+	GDATA_ENTRY (parsable)->priv->etag = (gchar*) xmlGetProp (root_node, (xmlChar*) "etag");
+
+	return TRUE;
+}
+
+static gboolean
+parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_data, GError **error)
+{
+	GDataEntry *self;
+
+	g_return_val_if_fail (GDATA_IS_ENTRY (parsable), FALSE);
+	g_return_val_if_fail (doc != NULL, FALSE);
+	g_return_val_if_fail (node != NULL, FALSE);
+
+	self = GDATA_ENTRY (parsable);
+
+	if (xmlStrcmp (node->name, (xmlChar*) "title") == 0) {
+		/* atom:title */
+		xmlChar *title = xmlNodeListGetString (doc, node->children, TRUE);
+
+		/* Title can be empty */
+		if (title == NULL)
+			gdata_entry_set_title (self, "");
+		else
+			gdata_entry_set_title (self, (gchar*) title);
+		xmlFree (title);
+	} else if (xmlStrcmp (node->name, (xmlChar*) "id") == 0) {
+		/* atom:id */
+		xmlFree (self->priv->id);
+		self->priv->id = (gchar*) xmlNodeListGetString (doc, node->children, TRUE);
+	} else if (xmlStrcmp (node->name, (xmlChar*) "updated") == 0) {
+		/* atom:updated */
+		xmlChar *updated;
+
+		updated = xmlNodeListGetString (doc, node->children, TRUE);
+		if (g_time_val_from_iso8601 ((gchar*) updated, &(self->priv->updated)) == FALSE) {
+			/* Error */
+			gdata_parser_error_not_iso8601_format ("updated", "entry", (gchar*) updated, error);
+			xmlFree (updated);
+			return FALSE;
+		}
+		xmlFree (updated);
+	} else if (xmlStrcmp (node->name, (xmlChar*) "published") == 0) {
+		/* atom:published */
+		xmlChar *published;
+
+		published = xmlNodeListGetString (doc, node->children, TRUE);
+		if (g_time_val_from_iso8601 ((gchar*) published, &(self->priv->published)) == FALSE) {
+			/* Error */
+			gdata_parser_error_not_iso8601_format ("published", "entry", (gchar*) published, error);
+			xmlFree (published);
+			return FALSE;
+		}
+		xmlFree (published);
+	} else if (xmlStrcmp (node->name, (xmlChar*) "category") == 0) {
+		/* atom:category */
+		xmlChar *scheme, *term, *label;
+		GDataCategory *category;
+
+		scheme = xmlGetProp (node, (xmlChar*) "scheme");
+		term = xmlGetProp (node, (xmlChar*) "term");
+		label = xmlGetProp (node, (xmlChar*) "label");
+
+		category = gdata_category_new ((gchar*) term, (gchar*) scheme, (gchar*) label);
+		self->priv->categories = g_list_prepend (self->priv->categories, category);
+
+		xmlFree (scheme);
+		xmlFree (term);
+		xmlFree (label);
+	} else if (xmlStrcmp (node->name, (xmlChar*) "content") == 0) {
+		/* atom:content */
+		xmlChar *content = xmlNodeListGetString (doc, node->children, TRUE);
+		if (content == NULL)
+			content = xmlGetProp (node, (xmlChar*) "src");
+		gdata_entry_set_content (self, (gchar*) content);
+		xmlFree (content);
+	} else if (xmlStrcmp (node->name, (xmlChar*) "link") == 0) {
+		/* atom:link */
+		xmlChar *href, *rel, *type, *hreflang, *title, *length;
+		gint length_int;
+		GDataLink *link;
+
+		href = xmlGetProp (node, (xmlChar*) "href");
+		rel = xmlGetProp (node, (xmlChar*) "rel");
+		type = xmlGetProp (node, (xmlChar*) "type");
+		hreflang = xmlGetProp (node, (xmlChar*) "hreflang");
+		title = xmlGetProp (node, (xmlChar*) "title");
+		length = xmlGetProp (node, (xmlChar*) "length");
+
+		if (length == NULL)
+			length_int = -1;
+		else
+			length_int = strtoul ((gchar*) length, NULL, 10);
+
+		link = gdata_link_new ((gchar*) href, (gchar*) rel, (gchar*) type, (gchar*) hreflang, (gchar*) title, length_int);
+		self->priv->links = g_list_prepend (self->priv->links, link);
+
+		xmlFree (href);
+		xmlFree (rel);
+		xmlFree (type);
+		xmlFree (hreflang);
+		xmlFree (title);
+		xmlFree (length);
+	} else if (xmlStrcmp (node->name, (xmlChar*) "author") == 0) {
+		/* atom:author */
+		GDataAuthor *author;
+		xmlNode *author_node;
+		xmlChar *name = NULL, *uri = NULL, *email = NULL;
+
+		author_node = node->children;
+		while (author_node != NULL) {
+			if (xmlStrcmp (author_node->name, (xmlChar*) "name") == 0) {
+				name = xmlNodeListGetString (doc, author_node->children, TRUE);
+			} else if (xmlStrcmp (author_node->name, (xmlChar*) "uri") == 0) {
+				uri = xmlNodeListGetString (doc, author_node->children, TRUE);
+			} else if (xmlStrcmp (author_node->name, (xmlChar*) "email") == 0) {
+				email = xmlNodeListGetString (doc, author_node->children, TRUE);
+			} else {
+				gdata_parser_error_unhandled_element ((gchar*) author_node->ns->prefix, (gchar*) author_node->name, "author", error);
+				xmlFree (name);
+				xmlFree (uri);
+				xmlFree (email);
+				return FALSE;
+			}
+
+			author_node = author_node->next;
+		}
+
+		author = gdata_author_new ((gchar*) name, (gchar*) uri, (gchar*) email);
+		self->priv->authors = g_list_prepend (self->priv->authors, author);
+
+		xmlFree (name);
+		xmlFree (uri);
+		xmlFree (email);
+	} else if (GDATA_PARSABLE_CLASS (gdata_entry_parent_class)->parse_xml (parsable, doc, node, user_data, error) == FALSE) {
+		/* Error! */
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+static gboolean
+post_parse_xml (GDataParsable *parsable, gpointer user_data, GError **error)
+{
+	GDataEntryPrivate *priv = GDATA_ENTRY (parsable)->priv;
+
+	/* Check for missing required elements */
+	/* Can't uncomment it, as things like access rules break the Atom standard */
+	/*if (priv->title == NULL)
+		return gdata_parser_error_required_element_missing ("title", "entry", error);
+	if (priv->id == NULL)
+		return gdata_parser_error_required_element_missing ("id", "entry", error);
+	if (priv->updated.tv_sec == 0 && priv->updated.tv_usec == 0)
+		return gdata_parser_error_required_element_missing ("updated", "entry", error);*/
+
+	/* Reverse our lists of stuff */
+	priv->categories = g_list_reverse (priv->categories);
+	priv->links = g_list_reverse (priv->links);
+	priv->authors = g_list_reverse (priv->authors);
+
+	return TRUE;
+}
+
+GDataEntry *
+_gdata_entry_new_from_xml (GType entry_type, const gchar *xml, gint length, GError **error)
+{
+	g_return_val_if_fail (xml != NULL, NULL);
+	g_return_val_if_fail (g_type_is_a (entry_type, GDATA_TYPE_ENTRY) == TRUE, FALSE);
+
+	return GDATA_ENTRY (_gdata_parsable_new_from_xml (entry_type, "entry", xml, length, NULL, error));
 }
 
 static void
@@ -314,8 +492,8 @@ real_get_xml (GDataEntry *self, GString *xml_string)
 		g_string_append (xml_string, "</author>");
 	}
 
-	if (priv->extra_xml != NULL && priv->extra_xml->str != NULL)
-		g_string_append (xml_string, priv->extra_xml->str);
+	if (_gdata_parsable_get_extra_xml (GDATA_PARSABLE (self)) != NULL)
+		g_string_append (xml_string, _gdata_parsable_get_extra_xml (GDATA_PARSABLE (self)));
 }
 
 static void
@@ -338,48 +516,6 @@ gdata_entry_new (const gchar *id)
 	return g_object_new (GDATA_TYPE_ENTRY, "id", id, NULL);
 }
 
-GDataEntry *
-_gdata_entry_new_from_xml (GType entry_type, const gchar *xml, gint length, GError **error)
-{
-	xmlDoc *doc;
-	xmlNode *node;
-
-	g_return_val_if_fail (xml != NULL, NULL);
-
-	if (length == -1)
-		length = strlen (xml);
-
-	/* Parse the XML */
-	doc = xmlReadMemory (xml, length, "entry.xml", NULL, 0);
-	if (doc == NULL) {
-		xmlError *xml_error = xmlGetLastError ();
-		g_set_error (error, GDATA_PARSER_ERROR, GDATA_PARSER_ERROR_PARSING_STRING,
-			     _("Error parsing XML: %s"),
-			     xml_error->message);
-		return NULL;
-	}
-
-	/* Get the root element */
-	node = xmlDocGetRootElement (doc);
-	if (node == NULL) {
-		/* XML document's empty */
-		xmlFreeDoc (doc);
-		g_set_error (error, GDATA_PARSER_ERROR, GDATA_PARSER_ERROR_EMPTY_DOCUMENT,
-			     _("Error parsing XML: %s"),
-			     _("Empty document."));
-		return NULL;
-	}
-
-	if (xmlStrcmp (node->name, (xmlChar*) "entry") != 0) {
-		/* No <entry> element (required) */
-		xmlFreeDoc (doc);
-		gdata_parser_error_required_element_missing ("entry", "root", error);
-		return NULL;
-	}
-
-	return _gdata_entry_new_from_xml_node (entry_type, doc, node, error);
-}
-
 /**
  * gdata_entry_new_from_xml:
  * @xml: the XML for just the entry, with full namespace declarations
@@ -397,190 +533,7 @@ _gdata_entry_new_from_xml (GType entry_type, const gchar *xml, gint length, GErr
 GDataEntry *
 gdata_entry_new_from_xml (const gchar *xml, gint length, GError **error)
 {
-	return _gdata_entry_new_from_xml (GDATA_TYPE_ENTRY, xml, length, error);
-}
-
-GDataEntry *
-_gdata_entry_new_from_xml_node (GType entry_type, xmlDoc *doc, xmlNode *node, GError **error)
-{
-	GDataEntry *entry;
-	GDataEntryClass *klass;
-
-	g_return_val_if_fail (g_type_is_a (entry_type, GDATA_TYPE_ENTRY) == TRUE, FALSE);
-	g_return_val_if_fail (doc != NULL, FALSE);
-	g_return_val_if_fail (node != NULL, FALSE);
-	g_return_val_if_fail (xmlStrcmp (node->name, (xmlChar*) "entry") == 0, FALSE);
-
-	entry = g_object_new (entry_type, NULL);
-
-	klass = GDATA_ENTRY_GET_CLASS (entry);
-	if (klass->parse_xml == NULL)
-		return FALSE;
-
-	/* Get the ETag first */
-	entry->priv->etag = (gchar*) xmlGetProp (node, (xmlChar*) "etag");
-
-	node = node->children;
-	while (node != NULL) {
-		if (klass->parse_xml (entry, doc, node, error) == FALSE) {
-			g_object_unref (entry);
-			return NULL;
-		}
-		node = node->next;
-	}
-
-	return entry;
-}
-
-static gboolean
-real_parse_xml (GDataEntry *self, xmlDoc *doc, xmlNode *node, GError **error)
-{
-	g_return_val_if_fail (GDATA_IS_ENTRY (self), FALSE);
-	g_return_val_if_fail (doc != NULL, FALSE);
-	g_return_val_if_fail (node != NULL, FALSE);
-
-	if (xmlStrcmp (node->name, (xmlChar*) "title") == 0) {
-		/* atom:title */
-		xmlChar *title = xmlNodeListGetString (doc, node->children, TRUE);
-
-		/* Title can be empty */
-		if (title == NULL)
-			gdata_entry_set_title (self, "");
-		else
-			gdata_entry_set_title (self, (gchar*) title);
-		xmlFree (title);
-	} else if (xmlStrcmp (node->name, (xmlChar*) "id") == 0) {
-		/* atom:id */
-		xmlFree (self->priv->id);
-		self->priv->id = (gchar*) xmlNodeListGetString (doc, node->children, TRUE);
-	} else if (xmlStrcmp (node->name, (xmlChar*) "updated") == 0) {
-		/* atom:updated */
-		xmlChar *updated;
-
-		updated = xmlNodeListGetString (doc, node->children, TRUE);
-		if (g_time_val_from_iso8601 ((gchar*) updated, &(self->priv->updated)) == FALSE) {
-			/* Error */
-			gdata_parser_error_not_iso8601_format ("updated", "entry", (gchar*) updated, error);
-			xmlFree (updated);
-			return FALSE;
-		}
-		xmlFree (updated);
-	} else if (xmlStrcmp (node->name, (xmlChar*) "published") == 0) {
-		/* atom:published */
-		xmlChar *published;
-
-		published = xmlNodeListGetString (doc, node->children, TRUE);
-		if (g_time_val_from_iso8601 ((gchar*) published, &(self->priv->published)) == FALSE) {
-			/* Error */
-			gdata_parser_error_not_iso8601_format ("published", "entry", (gchar*) published, error);
-			xmlFree (published);
-			return FALSE;
-		}
-		xmlFree (published);
-	} else if (xmlStrcmp (node->name, (xmlChar*) "category") == 0) {
-		/* atom:category */
-		xmlChar *scheme, *term, *label;
-		GDataCategory *category;
-
-		scheme = xmlGetProp (node, (xmlChar*) "scheme");
-		term = xmlGetProp (node, (xmlChar*) "term");
-		label = xmlGetProp (node, (xmlChar*) "label");
-
-		category = gdata_category_new ((gchar*) term, (gchar*) scheme, (gchar*) label);
-		gdata_entry_add_category (self, category);
-
-		xmlFree (scheme);
-		xmlFree (term);
-		xmlFree (label);
-	} else if (xmlStrcmp (node->name, (xmlChar*) "content") == 0) {
-		/* atom:content */
-		xmlChar *content = xmlNodeListGetString (doc, node->children, TRUE);
-		if (content == NULL)
-			content = xmlGetProp (node, (xmlChar*) "src");
-		gdata_entry_set_content (self, (gchar*) content);
-		xmlFree (content);
-	} else if (xmlStrcmp (node->name, (xmlChar*) "link") == 0) {
-		/* atom:link */
-		xmlChar *href, *rel, *type, *hreflang, *title, *length;
-		gint length_int;
-		GDataLink *link;
-
-		href = xmlGetProp (node, (xmlChar*) "href");
-		rel = xmlGetProp (node, (xmlChar*) "rel");
-		type = xmlGetProp (node, (xmlChar*) "type");
-		hreflang = xmlGetProp (node, (xmlChar*) "hreflang");
-		title = xmlGetProp (node, (xmlChar*) "title");
-		length = xmlGetProp (node, (xmlChar*) "length");
-
-		if (length == NULL)
-			length_int = -1;
-		else
-			length_int = strtoul ((gchar*) length, NULL, 10);
-
-		link = gdata_link_new ((gchar*) href, (gchar*) rel, (gchar*) type, (gchar*) hreflang, (gchar*) title, length_int);
-		gdata_entry_add_link (self, link);
-
-		xmlFree (href);
-		xmlFree (rel);
-		xmlFree (type);
-		xmlFree (hreflang);
-		xmlFree (title);
-		xmlFree (length);
-	} else if (xmlStrcmp (node->name, (xmlChar*) "author") == 0) {
-		/* atom:author */
-		GDataAuthor *author;
-		xmlNode *author_node;
-		xmlChar *name = NULL, *uri = NULL, *email = NULL;
-
-		author_node = node->children;
-		while (author_node != NULL) {
-			if (xmlStrcmp (author_node->name, (xmlChar*) "name") == 0) {
-				name = xmlNodeListGetString (doc, author_node->children, TRUE);
-			} else if (xmlStrcmp (author_node->name, (xmlChar*) "uri") == 0) {
-				uri = xmlNodeListGetString (doc, author_node->children, TRUE);
-			} else if (xmlStrcmp (author_node->name, (xmlChar*) "email") == 0) {
-				email = xmlNodeListGetString (doc, author_node->children, TRUE);
-			} else {
-				gdata_parser_error_unhandled_element ((gchar*) author_node->ns->prefix, (gchar*) author_node->name, "author", error);
-				xmlFree (name);
-				xmlFree (uri);
-				xmlFree (email);
-				return FALSE;
-			}
-
-			author_node = author_node->next;
-		}
-
-		author = gdata_author_new ((gchar*) name, (gchar*) uri, (gchar*) email);
-		gdata_entry_add_author (self, author);
-
-		xmlFree (name);
-		xmlFree (uri);
-		xmlFree (email);
-	} else {
-		xmlBuffer *buffer;
-		xmlNs **namespaces, **namespace;
-
-		/* Unhandled XML */
-		buffer = xmlBufferCreate ();
-		xmlNodeDump (buffer, doc, node, 0, 0);
-		g_string_append (self->priv->extra_xml, (gchar*) xmlBufferContent (buffer));
-		g_message ("Unhandled XML in <entry>: %s", (gchar*) xmlBufferContent (buffer));
-		xmlBufferFree (buffer);
-
-		/* Get the namespaces */
-		namespaces = xmlGetNsList (doc, node);
-		for (namespace = namespaces; *namespace != NULL; namespace++) {
-			if ((*namespace)->prefix != NULL) {
-				g_hash_table_insert (self->priv->extra_namespaces,
-						     g_strdup ((gchar*) ((*namespace)->prefix)),
-						     g_strdup ((gchar*) ((*namespace)->href)));
-			}
-		}
-		xmlFree (namespaces);
-	}
-
-	return TRUE;
+	return GDATA_ENTRY (_gdata_parsable_new_from_xml (GDATA_TYPE_ENTRY, "entry", xml, length, NULL, error));
 }
 
 /**
@@ -856,7 +809,7 @@ gdata_entry_get_xml (GDataEntry *self)
 {
 	GDataEntryClass *klass;
 	GString *xml_string;
-	GHashTable *namespaces;
+	GHashTable *namespaces, *extra_namespaces;
 
 	klass = GDATA_ENTRY_GET_CLASS (self);
 	g_assert (klass->get_xml != NULL);
@@ -865,14 +818,15 @@ gdata_entry_get_xml (GDataEntry *self)
 	/* Get the namespaces the class uses */
 	namespaces = g_hash_table_new (g_str_hash, g_str_equal);
 	klass->get_namespaces (self, namespaces);
+	extra_namespaces = _gdata_parsable_get_extra_namespaces (GDATA_PARSABLE (self));
 
 	/* Remove any duplicate extra namespaces */
-	g_hash_table_foreach_remove (self->priv->extra_namespaces, (GHRFunc) filter_namespaces_cb, namespaces);
+	g_hash_table_foreach_remove (extra_namespaces, (GHRFunc) filter_namespaces_cb, namespaces);
 
 	/* Build up the namespace list */
 	xml_string = g_string_new ("<entry xmlns='http://www.w3.org/2005/Atom'");
 	g_hash_table_foreach (namespaces, (GHFunc) build_namespaces_cb, xml_string);
-	g_hash_table_foreach (self->priv->extra_namespaces, (GHFunc) build_namespaces_cb, xml_string);
+	g_hash_table_foreach (extra_namespaces, (GHFunc) build_namespaces_cb, xml_string);
 
 	/* Add the entry's ETag, if available */
 	if (self->priv->etag != NULL)

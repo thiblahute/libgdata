@@ -48,7 +48,7 @@ static void gdata_calendar_calendar_finalize (GObject *object);
 static void gdata_calendar_calendar_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec);
 static void gdata_calendar_calendar_set_property (GObject *object, guint property_id, const GValue *value, GParamSpec *pspec);
 static void get_xml (GDataEntry *entry, GString *xml_string);
-static gboolean parse_xml (GDataEntry *entry, xmlDoc *doc, xmlNode *node, GError **error);
+static gboolean parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_data, GError **error);
 static void get_namespaces (GDataEntry *entry, GHashTable *namespaces);
 
 struct _GDataCalendarCalendarPrivate {
@@ -80,6 +80,7 @@ static void
 gdata_calendar_calendar_class_init (GDataCalendarCalendarClass *klass)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
+	GDataParsableClass *parsable_class = GDATA_PARSABLE_CLASS (klass);
 	GDataEntryClass *entry_class = GDATA_ENTRY_CLASS (klass);
 
 	g_type_class_add_private (klass, sizeof (GDataCalendarCalendarPrivate));
@@ -88,8 +89,9 @@ gdata_calendar_calendar_class_init (GDataCalendarCalendarClass *klass)
 	gobject_class->get_property = gdata_calendar_calendar_get_property;
 	gobject_class->finalize = gdata_calendar_calendar_finalize;
 
+	parsable_class->parse_xml = parse_xml;
+
 	entry_class->get_xml = get_xml;
-	entry_class->parse_xml = parse_xml;
 	entry_class->get_namespaces = get_namespaces;
 
 	/**
@@ -300,13 +302,15 @@ gdata_calendar_calendar_new_from_xml (const gchar *xml, gint length, GError **er
 }
 
 static gboolean
-parse_xml (GDataEntry *entry, xmlDoc *doc, xmlNode *node, GError **error)
+parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_data, GError **error)
 {
-	GDataCalendarCalendar *self = GDATA_CALENDAR_CALENDAR (entry);
+	GDataCalendarCalendar *self;
 
-	g_return_val_if_fail (GDATA_IS_CALENDAR_CALENDAR (self), FALSE);
+	g_return_val_if_fail (GDATA_IS_CALENDAR_CALENDAR (parsable), FALSE);
 	g_return_val_if_fail (doc != NULL, FALSE);
 	g_return_val_if_fail (node != NULL, FALSE);
+
+	self = GDATA_CALENDAR_CALENDAR (parsable);
 
 	if (xmlStrcmp (node->name, (xmlChar*) "timezone") == 0) {
 		/* gCal:timezone */
@@ -377,7 +381,7 @@ parse_xml (GDataEntry *entry, xmlDoc *doc, xmlNode *node, GError **error)
 			return FALSE;
 		}
 		xmlFree (edited);
-	} else if (GDATA_ENTRY_CLASS (gdata_calendar_calendar_parent_class)->parse_xml (entry, doc, node, error) == FALSE) {
+	} else if (GDATA_PARSABLE_CLASS (gdata_calendar_calendar_parent_class)->parse_xml (parsable, doc, node, user_data, error) == FALSE) {
 		/* Error! */
 		return FALSE;
 	}

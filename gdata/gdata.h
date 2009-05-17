@@ -30,6 +30,7 @@
 #include <gdata/gdata-enums.h>
 #include <gdata/gdata-access-handler.h>
 #include <gdata/gdata-access-rule.h>
+#include <gdata/gdata-parsable.h>
 
 /* Namespaces */
 #include <gdata/gdata-atom.h>

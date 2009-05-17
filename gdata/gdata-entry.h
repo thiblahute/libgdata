@@ -22,9 +22,9 @@
 
 #include <glib.h>
 #include <glib-object.h>
-#include <libxml/parser.h>
 
 #include <gdata/gdata-atom.h>
+#include <gdata/gdata-parsable.h>
 
 G_BEGIN_DECLS
 
@@ -43,7 +43,7 @@ typedef struct _GDataEntryPrivate	GDataEntryPrivate;
  * All the fields in the #GDataEntry structure are private and should never be accessed directly.
  **/
 typedef struct {
-	GObject parent;
+	GDataParsable parent;
 	GDataEntryPrivate *priv;
 } GDataEntry;
 
@@ -52,7 +52,6 @@ typedef struct {
  * @parent: the parent class
  * @get_xml: a function to build an XML representation of the #GDataEntry in its current state, appending it to the provided
  * #GString
- * @parse_xml: a function to parse an XML representation of the #GDataEntry to set the properties of the @entry
  * @get_namespaces: a function to return a string containing the namespace declarations used by the entry when represented
  * in XML form
  *
@@ -65,10 +64,9 @@ typedef struct {
  **/
 typedef struct {
 	/*< private >*/
-	GObjectClass parent;
+	GDataParsableClass parent;
 
 	void (*get_xml) (GDataEntry *self, GString *xml_string);
-	gboolean (*parse_xml) (GDataEntry *self, xmlDoc *doc, xmlNode *node, GError **error);
 	void (*get_namespaces) (GDataEntry *self, GHashTable *namespaces);
 } GDataEntryClass;
 

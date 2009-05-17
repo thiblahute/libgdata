@@ -46,7 +46,7 @@ static void gdata_calendar_event_finalize (GObject *object);
 static void gdata_calendar_event_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec);
 static void gdata_calendar_event_set_property (GObject *object, guint property_id, const GValue *value, GParamSpec *pspec);
 static void get_xml (GDataEntry *entry, GString *xml_string);
-static gboolean parse_xml (GDataEntry *entry, xmlDoc *doc, xmlNode *node, GError **error);
+static gboolean parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_data, GError **error);
 static void get_namespaces (GDataEntry *entry, GHashTable *namespaces);
 
 struct _GDataCalendarEventPrivate {
@@ -92,6 +92,7 @@ static void
 gdata_calendar_event_class_init (GDataCalendarEventClass *klass)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
+	GDataParsableClass *parsable_class = GDATA_PARSABLE_CLASS (klass);
 	GDataEntryClass *entry_class = GDATA_ENTRY_CLASS (klass);
 
 	g_type_class_add_private (klass, sizeof (GDataCalendarEventPrivate));
@@ -100,8 +101,9 @@ gdata_calendar_event_class_init (GDataCalendarEventClass *klass)
 	gobject_class->get_property = gdata_calendar_event_get_property;
 	gobject_class->finalize = gdata_calendar_event_finalize;
 
+	parsable_class->parse_xml = parse_xml;
+
 	entry_class->get_xml = get_xml;
-	entry_class->parse_xml = parse_xml;
 	entry_class->get_namespaces = get_namespaces;
 
 	/**
@@ -442,13 +444,15 @@ gdata_calendar_event_new_from_xml (const gchar *xml, gint length, GError **error
 }
 
 static gboolean
-parse_xml (GDataEntry *entry, xmlDoc *doc, xmlNode *node, GError **error)
+parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_data, GError **error)
 {
-	GDataCalendarEvent *self = GDATA_CALENDAR_EVENT (entry);
+	GDataCalendarEvent *self;
 
-	g_return_val_if_fail (GDATA_IS_CALENDAR_EVENT (self), FALSE);
+	g_return_val_if_fail (GDATA_IS_CALENDAR_EVENT (parsable), FALSE);
 	g_return_val_if_fail (doc != NULL, FALSE);
 	g_return_val_if_fail (node != NULL, FALSE);
+
+	self = GDATA_CALENDAR_EVENT (parsable);
 
 	if (xmlStrcmp (node->name, (xmlChar*) "edited") == 0) {
 		/* app:edited */
@@ -645,7 +649,7 @@ parse_xml (GDataEntry *entry, xmlDoc *doc, xmlNode *node, GError **error)
 		self->priv->original_event_uri = (gchar*) xmlGetProp (node, (xmlChar*) "href");
 		g_object_notify (G_OBJECT (self), "original-event-uri");
 		g_object_thaw_notify (G_OBJECT (self));
-	} else if (GDATA_ENTRY_CLASS (gdata_calendar_event_parent_class)->parse_xml (entry, doc, node, error) == FALSE) {
+	} else if (GDATA_PARSABLE_CLASS (gdata_calendar_event_parent_class)->parse_xml (parsable, doc, node, user_data, error) == FALSE) {
 		/* Error! */
 		return FALSE;
 	}

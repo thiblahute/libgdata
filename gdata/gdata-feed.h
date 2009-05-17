@@ -25,6 +25,7 @@
 
 #include <gdata/gdata-entry.h>
 #include <gdata/gdata-atom.h>
+#include <gdata/gdata-parsable.h>
 
 G_BEGIN_DECLS
 
@@ -44,7 +45,7 @@ typedef struct _GDataFeedPrivate	GDataFeedPrivate;
  **/
 typedef struct {
 	/*< private >*/
-	GObject parent;
+	GDataParsable parent;
 	GDataFeedPrivate *priv;
 } GDataFeed;
 
@@ -55,7 +56,7 @@ typedef struct {
  **/
 typedef struct {
 	/*< private >*/
-	GObjectClass parent;
+	GDataParsableClass parent;
 } GDataFeedClass;
 
 GType gdata_feed_get_type (void) G_GNUC_CONST;

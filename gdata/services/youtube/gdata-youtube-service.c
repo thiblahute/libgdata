@@ -235,7 +235,7 @@ parse_error_response (GDataService *self, GDataServiceError error_type, guint st
 		length = strlen (response_body);
 
 	/* Parse the XML */
-	doc = xmlReadMemory (response_body, length, "error.xml", NULL, 0);
+	doc = xmlReadMemory (response_body, length, "/dev/null", NULL, 0);
 	if (doc == NULL)
 		goto parent;
 

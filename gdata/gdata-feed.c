@@ -42,12 +42,14 @@
 #include "gdata-types.h"
 #include "gdata-private.h"
 #include "gdata-service.h"
-#include "gdata-parser.h"
+#include "gdata-parsable.h"
 
 static void gdata_feed_dispose (GObject *object);
 static void gdata_feed_finalize (GObject *object);
 static void gdata_feed_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec);
-static void gdata_feed_set_property (GObject *object, guint property_id, const GValue *value, GParamSpec *pspec);
+static gboolean pre_parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *root_node, gpointer user_data, GError **error);
+static gboolean parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_data, GError **error);
+static gboolean post_parse_xml (GDataParsable *parsable, gpointer user_data, GError **error);
 
 struct _GDataFeedPrivate {
 	GList *entries;
@@ -64,7 +66,6 @@ struct _GDataFeedPrivate {
 	guint items_per_page;
 	guint start_index;
 	guint total_results;
-	gchar *extra_xml;
 };
 
 enum {
@@ -80,20 +81,24 @@ enum {
 	PROP_TOTAL_RESULTS
 };
 
-G_DEFINE_TYPE (GDataFeed, gdata_feed, G_TYPE_OBJECT)
+G_DEFINE_TYPE (GDataFeed, gdata_feed, GDATA_TYPE_PARSABLE)
 #define GDATA_FEED_GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE ((obj), GDATA_TYPE_FEED, GDataFeedPrivate))
 
 static void
 gdata_feed_class_init (GDataFeedClass *klass)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
+	GDataParsableClass *parsable_class = GDATA_PARSABLE_CLASS (klass);
 
 	g_type_class_add_private (klass, sizeof (GDataFeedPrivate));
 
-	gobject_class->set_property = gdata_feed_set_property;
 	gobject_class->get_property = gdata_feed_get_property;
 	gobject_class->dispose = gdata_feed_dispose;
 	gobject_class->finalize = gdata_feed_finalize;
+
+	parsable_class->pre_parse_xml = pre_parse_xml;
+	parsable_class->parse_xml = parse_xml;
+	parsable_class->post_parse_xml = post_parse_xml;
 
 	/**
 	 * GDataFeed:title:
@@ -106,7 +111,7 @@ gdata_feed_class_init (GDataFeedClass *klass)
 				g_param_spec_string ("title",
 					"Title", "The title of the feed.",
 					NULL,
-					G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * GDataFeed:subtitle:
@@ -119,7 +124,7 @@ gdata_feed_class_init (GDataFeedClass *klass)
 				g_param_spec_string ("subtitle",
 					"Subtitle", "The subtitle of the feed.",
 					NULL,
-					G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * GDataFeed:id:
@@ -132,7 +137,7 @@ gdata_feed_class_init (GDataFeedClass *klass)
 				g_param_spec_string ("id",
 					"ID", "The unique and permanent URN ID for the feed.",
 					NULL,
-					G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * GDataFeed:etag:
@@ -147,7 +152,7 @@ gdata_feed_class_init (GDataFeedClass *klass)
 				g_param_spec_string ("etag",
 					"ETag", "The unique ETag for this version of the feed.",
 					NULL,
-					G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 
 
 	/**
@@ -162,7 +167,7 @@ gdata_feed_class_init (GDataFeedClass *klass)
 				g_param_spec_boxed ("updated",
 					"Updated", "The time the feed was last updated.",
 					GDATA_TYPE_G_TIME_VAL,
-					G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * GDataFeed:logo:
@@ -175,7 +180,7 @@ gdata_feed_class_init (GDataFeedClass *klass)
 				g_param_spec_string ("logo",
 					"Logo", "The URI of a logo for the feed.",
 					NULL,
-					G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * GDataFeed:generator:
@@ -188,7 +193,7 @@ gdata_feed_class_init (GDataFeedClass *klass)
 	g_object_class_install_property (gobject_class, PROP_GENERATOR,
 				g_param_spec_pointer ("generator",
 					"Generator", "Details of the software used to generate the feed.",
-					G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * GDataFeed:items-per-page:
@@ -202,7 +207,7 @@ gdata_feed_class_init (GDataFeedClass *klass)
 				g_param_spec_uint ("items-per-page",
 					"Items per page", "The number of items per results page feed.",
 					0, G_MAXINT, 0,
-					G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * GDataFeed:start-index:
@@ -219,7 +224,7 @@ gdata_feed_class_init (GDataFeedClass *klass)
 				g_param_spec_uint ("start-index",
 					"Start index", "The one-based index of the first item in the results feed.",
 					1, G_MAXINT, 1,
-					G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * GDataFeed:total-results:
@@ -236,7 +241,7 @@ gdata_feed_class_init (GDataFeedClass *klass)
 				g_param_spec_uint ("total-results",
 					"Total results", "The total number of results in the feed.",
 					0, 1000000, 0,
-					G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 }
 
 static void
@@ -256,7 +261,6 @@ gdata_feed_dispose (GObject *object)
 	}
 	priv->entries = NULL;
 
-
 	/* Chain up to the parent class */
 	G_OBJECT_CLASS (gdata_feed_parent_class)->dispose (object);
 }
@@ -266,20 +270,18 @@ gdata_feed_finalize (GObject *object)
 {
 	GDataFeedPrivate *priv = GDATA_FEED_GET_PRIVATE (object);
 
-	g_free (priv->title);
-	g_free (priv->subtitle);
-	g_free (priv->id);
-	g_free (priv->etag);
+	xmlFree (priv->title);
+	xmlFree (priv->subtitle);
+	xmlFree (priv->id);
+	xmlFree (priv->etag);
 	g_list_foreach (priv->categories, (GFunc) gdata_category_free, NULL);
 	g_list_free (priv->categories);
-	g_free (priv->logo);
+	xmlFree (priv->logo);
 	g_list_foreach (priv->links, (GFunc) gdata_link_free, NULL);
 	g_list_free (priv->links);
 	g_list_foreach (priv->authors, (GFunc) gdata_author_free, NULL);
 	g_list_free (priv->authors);
 	gdata_generator_free (priv->generator);
-
-	g_free (priv->extra_xml);
 
 	/* Chain up to the parent class */
 	G_OBJECT_CLASS (gdata_feed_parent_class)->finalize (object);
@@ -328,49 +330,24 @@ gdata_feed_get_property (GObject *object, guint property_id, GValue *value, GPar
 	}
 }
 
-static void
-gdata_feed_set_property (GObject *object, guint property_id, const GValue *value, GParamSpec *pspec)
-{
-	GDataFeedPrivate *priv = GDATA_FEED_GET_PRIVATE (object);
-	GTimeVal *timeval;
+typedef struct {
+	GType entry_type;
+	GDataQueryProgressCallback progress_callback;
+	gpointer progress_user_data;
+	guint entry_i;
+} ParseData;
 
-	switch (property_id) {
-		case PROP_TITLE:
-			priv->title = g_value_dup_string (value);
-			break;
-		case PROP_SUBTITLE:
-			priv->subtitle = g_value_dup_string (value);
-			break;
-		case PROP_ID:
-			priv->id = g_value_dup_string (value);
-			break;
-		case PROP_ETAG:
-			priv->etag = g_value_dup_string (value);
-			break;
-		case PROP_UPDATED:
-			timeval = g_value_get_boxed (value);
-			priv->updated = *timeval;
-			break;
-		case PROP_LOGO:
-			priv->logo = g_value_dup_string (value);
-			break;
-		case PROP_GENERATOR:
-			priv->generator = g_value_get_pointer (value);
-			break;
-		case PROP_ITEMS_PER_PAGE:
-			priv->items_per_page = g_value_get_uint (value);
-			break;
-		case PROP_START_INDEX:
-			priv->start_index = g_value_get_uint (value);
-			break;
-		case PROP_TOTAL_RESULTS:
-			priv->total_results = g_value_get_uint (value);
-			break;
-		default:
-			/* We don't have any other property... */
-			G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
-			break;
-	}
+static gboolean
+pre_parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *root_node, gpointer user_data, GError **error)
+{
+	g_return_val_if_fail (GDATA_IS_FEED (parsable), FALSE);
+	g_return_val_if_fail (doc != NULL, FALSE);
+	g_return_val_if_fail (root_node != NULL, FALSE);
+
+	/* Extract the ETag */
+	GDATA_FEED (parsable)->priv->etag = (gchar*) xmlGetProp (root_node, (xmlChar*) "etag");
+
+	return TRUE;
 }
 
 typedef struct {
@@ -390,364 +367,269 @@ progress_callback_idle (ProgressCallbackData *data)
 	return FALSE;
 }
 
+static gboolean
+parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_data, GError **error)
+{
+	GDataFeed *self;
+	ParseData *data = user_data;
+
+	g_return_val_if_fail (GDATA_IS_FEED (parsable), FALSE);
+	g_return_val_if_fail (doc != NULL, FALSE);
+	g_return_val_if_fail (node != NULL, FALSE);
+
+	self = GDATA_FEED (parsable);
+
+	if (xmlStrcmp (node->name, (xmlChar*) "entry") == 0) {
+		/* atom:entry */
+		GDataEntry *entry = GDATA_ENTRY (_gdata_parsable_new_from_xml_node (data->entry_type, "entry", doc, node, NULL, error));
+		if (entry == NULL)
+			return FALSE;
+
+		/* Call the progress callback in the main thread */
+		if (data->progress_callback != NULL) {
+			ProgressCallbackData *progress_data;
+
+			/* Build the data for the callback */
+			progress_data = g_slice_new (ProgressCallbackData);
+			progress_data->progress_callback = data->progress_callback;
+			progress_data->progress_user_data = data->progress_user_data;
+			progress_data->entry = g_object_ref (entry);
+			progress_data->entry_i = data->entry_i;
+			progress_data->total_results = MIN (self->priv->items_per_page, self->priv->total_results);
+
+			/* Send the callback; use G_PRIORITY_DEFAULT rather than G_PRIORITY_DEFAULT_IDLE
+			 * to contend with the priorities used by the callback functions in GAsyncResult */
+			g_idle_add_full (G_PRIORITY_DEFAULT, (GSourceFunc) progress_callback_idle, progress_data, NULL);
+		}
+
+		data->entry_i++;
+		self->priv->entries = g_list_prepend (self->priv->entries, entry);
+	} else if (xmlStrcmp (node->name, (xmlChar*) "title") == 0) {
+		/* atom:title */
+		if (self->priv->title != NULL)
+			return gdata_parser_error_duplicate_element ("title", "feed", error);
+
+		self->priv->title = (gchar*) xmlNodeListGetString (doc, node->children, TRUE);
+	} else if (xmlStrcmp (node->name, (xmlChar*) "subtitle") == 0) {
+		/* atom:subtitle */
+		if (self->priv->subtitle != NULL)
+			return gdata_parser_error_duplicate_element ("subtitle", "feed", error);
+
+		self->priv->subtitle = (gchar*) xmlNodeListGetString (doc, node->children, TRUE);
+	} else if (xmlStrcmp (node->name, (xmlChar*) "id") == 0) {
+		/* atom:id */
+		if (self->priv->id != NULL)
+			return gdata_parser_error_duplicate_element ("id", "feed", error);
+
+		self->priv->id = (gchar*) xmlNodeListGetString (doc, node->children, TRUE);
+	} else if (xmlStrcmp (node->name, (xmlChar*) "updated") == 0) {
+		/* atom:updated */
+		xmlChar *updated_string;
+
+		/* Duplicate checking */
+		if (self->priv->updated.tv_sec != 0 || self->priv->updated.tv_usec != 0)
+			return gdata_parser_error_duplicate_element ("updated", "feed", error);
+
+		/* Parse the string */
+		updated_string = xmlNodeListGetString (doc, node->children, TRUE);
+		if (g_time_val_from_iso8601 ((gchar*) updated_string, &(self->priv->updated)) == FALSE) {
+			gdata_parser_error_not_iso8601_format ("updated", "feed", (gchar*) updated_string, error);
+			xmlFree (updated_string);
+			return FALSE;
+		}
+
+		xmlFree (updated_string);
+	} else if (xmlStrcmp (node->name, (xmlChar*) "category") == 0) {
+		/* atom:category */
+		xmlChar *scheme, *term, *label;
+		GDataCategory *category;
+
+		scheme = xmlGetProp (node, (xmlChar*) "scheme");
+		term = xmlGetProp (node, (xmlChar*) "term");
+		label = xmlGetProp (node, (xmlChar*) "label");
+
+		category = gdata_category_new ((gchar*) term, (gchar*) scheme, (gchar*) label);
+		self->priv->categories = g_list_prepend (self->priv->categories, category);
+
+		xmlFree (scheme);
+		xmlFree (term);
+		xmlFree (label);
+	} else if (xmlStrcmp (node->name, (xmlChar*) "logo") == 0) {
+		/* atom:logo */
+		if (self->priv->logo != NULL)
+			return gdata_parser_error_duplicate_element ("logo", "feed", error);
+
+		self->priv->logo = (gchar*) xmlNodeListGetString (doc, node->children, TRUE);
+	} else if (xmlStrcmp (node->name, (xmlChar*) "link") == 0) {
+		/* atom:link */
+		xmlChar *href, *rel, *type, *hreflang, *link_title, *link_length;
+		gint length_int;
+		GDataLink *link;
+
+		href = xmlGetProp (node, (xmlChar*) "href");
+		rel = xmlGetProp (node, (xmlChar*) "rel");
+		type = xmlGetProp (node, (xmlChar*) "type");
+		hreflang = xmlGetProp (node, (xmlChar*) "hreflang");
+		link_title = xmlGetProp (node, (xmlChar*) "title");
+		link_length = xmlGetProp (node, (xmlChar*) "length");
+
+		if (link_length == NULL)
+			length_int = -1;
+		else
+			length_int = strtoul ((gchar*) link_length, NULL, 10);
+
+		link = gdata_link_new ((gchar*) href, (gchar*) rel, (gchar*) type, (gchar*) hreflang, (gchar*) link_title, length_int);
+		self->priv->links = g_list_prepend (self->priv->links, link);
+
+		xmlFree (href);
+		xmlFree (rel);
+		xmlFree (type);
+		xmlFree (hreflang);
+		xmlFree (link_title);
+		xmlFree (link_length);
+	} else if (xmlStrcmp (node->name, (xmlChar*) "author") == 0) {
+		/* atom:author */
+		GDataAuthor *author;
+		xmlNode *author_node;
+		xmlChar *name = NULL, *uri = NULL, *email = NULL;
+
+		author_node = node->children;
+		while (author_node != NULL) {
+			if (xmlStrcmp (author_node->name, (xmlChar*) "name") == 0) {
+				name = xmlNodeListGetString (doc, author_node->children, TRUE);
+			} else if (xmlStrcmp (author_node->name, (xmlChar*) "uri") == 0) {
+				uri = xmlNodeListGetString (doc, author_node->children, TRUE);
+			} else if (xmlStrcmp (author_node->name, (xmlChar*) "email") == 0) {
+				email = xmlNodeListGetString (doc, author_node->children, TRUE);
+			} else {
+				gdata_parser_error_unhandled_element ((gchar*) author_node->ns->prefix, (gchar*) author_node->name, "author", error);
+				xmlFree (name);
+				xmlFree (uri);
+				xmlFree (email);
+				return FALSE;
+			}
+
+			author_node = author_node->next;
+		}
+
+		author = gdata_author_new ((gchar*) name, (gchar*) uri, (gchar*) email);
+		self->priv->authors = g_list_prepend (self->priv->authors, author);
+
+		xmlFree (name);
+		xmlFree (uri);
+		xmlFree (email);
+	} else if (xmlStrcmp (node->name, (xmlChar*) "generator") == 0) {
+		/* atom:generator */
+		xmlChar *name, *uri, *version;
+
+		/* Duplicate checking */
+		if (self->priv->generator != NULL)
+			return gdata_parser_error_duplicate_element ("generator", "feed", error);
+
+		/* Parse the element's parameters */
+		name = xmlNodeListGetString (doc, node->children, TRUE);
+		uri = xmlGetProp (node, (xmlChar*) "uri");
+		version = xmlGetProp (node, (xmlChar*) "version");
+
+		self->priv->generator = gdata_generator_new ((gchar*) name, (gchar*) uri, (gchar*) version);
+
+		xmlFree (name);
+		xmlFree (uri);
+		xmlFree (version);
+	} else if (xmlStrcmp (node->name, (xmlChar*) "totalResults") == 0) {
+		/* openSearch:totalResults */
+		xmlChar *total_results_string;
+
+		/* Duplicate checking */
+		if (self->priv->total_results != 0)
+			return gdata_parser_error_duplicate_element ("totalResults", "feed", error);
+
+		/* Parse the number */
+		total_results_string = xmlNodeListGetString (doc, node->children, TRUE);
+		if (total_results_string == NULL)
+			return gdata_parser_error_required_content_missing ("openSearch:totalResults", error);
+
+		self->priv->total_results = strtoul ((gchar*) total_results_string, NULL, 10);
+		xmlFree (total_results_string);
+	} else if (xmlStrcmp (node->name, (xmlChar*) "startIndex") == 0) {
+		/* openSearch:startIndex */
+		xmlChar *start_index_string;
+
+		/* Duplicate checking */
+		if (self->priv->start_index != 0)
+			return gdata_parser_error_duplicate_element ("startIndex", "feed", error);
+
+		/* Parse the number */
+		start_index_string = xmlNodeListGetString (doc, node->children, TRUE);
+		if (start_index_string == NULL)
+			return gdata_parser_error_required_content_missing ("openSearch:startIndex", error);
+
+		self->priv->start_index = strtoul ((gchar*) start_index_string, NULL, 10);
+		xmlFree (start_index_string);
+	} else if (xmlStrcmp (node->name, (xmlChar*) "itemsPerPage") == 0) {
+		/* openSearch:itemsPerPage */
+		xmlChar *items_per_page_string;
+
+		/* Duplicate checking */
+		if (self->priv->items_per_page != 0)
+			return gdata_parser_error_duplicate_element ("itemsPerPage", "feed", error);
+
+		/* Parse the number */
+		items_per_page_string = xmlNodeListGetString (doc, node->children, TRUE);
+		if (items_per_page_string == NULL)
+			return gdata_parser_error_required_content_missing ("openSearch:itemsPerPage", error);
+
+		self->priv->items_per_page = strtoul ((gchar*) items_per_page_string, NULL, 10);
+		xmlFree (items_per_page_string);
+	} else if (GDATA_PARSABLE_CLASS (gdata_feed_parent_class)->parse_xml (parsable, doc, node, user_data, error) == FALSE) {
+		/* Error! */
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+static gboolean
+post_parse_xml (GDataParsable *parsable, gpointer user_data, GError **error)
+{
+	GDataFeedPrivate *priv = GDATA_FEED (parsable)->priv;
+
+	/* Check for missing required elements */
+	if (priv->title == NULL)
+		return gdata_parser_error_required_element_missing ("title", "feed", error);
+	if (priv->id == NULL)
+		return gdata_parser_error_required_element_missing ("id", "feed", error);
+	if (priv->updated.tv_sec == 0 && priv->updated.tv_usec == 0)
+		return gdata_parser_error_required_element_missing ("updated", "feed", error);
+
+	/* Reverse our lists of stuff */
+	priv->entries = g_list_reverse (priv->entries);
+	priv->categories = g_list_reverse (priv->categories);
+	priv->links = g_list_reverse (priv->links);
+	priv->authors = g_list_reverse (priv->authors);
+
+	return TRUE;
+}
+
 GDataFeed *
 _gdata_feed_new_from_xml (const gchar *xml, gint length, GType entry_type,
 			  GDataQueryProgressCallback progress_callback, gpointer progress_user_data, GError **error)
 {
-	GDataFeed *feed = NULL;
-	xmlDoc *doc;
-	xmlNode *node;
-	xmlChar *title = NULL, *subtitle = NULL, *id = NULL, *logo = NULL, *etag = NULL;
-	GTimeVal updated = { 0, };
-	GDataGenerator *generator = NULL;
-	guint entry_i = 0, total_results = 0, start_index = 0, items_per_page = 0;
-	GList *entries = NULL, *categories = NULL, *links = NULL, *authors = NULL;
-	GString *extra_xml;
+	ParseData *data;
+	GDataFeed *feed;
 
 	g_return_val_if_fail (xml != NULL, NULL);
+	g_return_val_if_fail (g_type_is_a (entry_type, GDATA_TYPE_ENTRY) == TRUE, FALSE);
 
-	if (length == -1)
-		length = strlen (xml);
+	data = g_slice_new (ParseData);
+	data->entry_type = entry_type;
+	data->progress_callback = progress_callback;
+	data->progress_user_data = progress_user_data;
+	data->entry_i = 0;
 
-	/* Parse the XML */
-	doc = xmlReadMemory (xml, length, "feed.xml", NULL, 0);
-	if (doc == NULL) {
-		xmlError *xml_error = xmlGetLastError ();
-		g_set_error (error, GDATA_PARSER_ERROR, GDATA_PARSER_ERROR_PARSING_STRING,
-			     _("Error parsing XML: %s"),
-			     xml_error->message);
-		return NULL;
-	}
+	feed = GDATA_FEED (_gdata_parsable_new_from_xml (GDATA_TYPE_FEED, "feed", xml, length, data, error));
 
-	/* Get the root element */
-	node = xmlDocGetRootElement (doc);
-	if (node == NULL) {
-		/* XML document's empty */
-		xmlFreeDoc (doc);
-		g_set_error (error, GDATA_PARSER_ERROR, GDATA_PARSER_ERROR_EMPTY_DOCUMENT,
-			     _("Error parsing XML: %s"),
-			     _("Empty document."));
-		return NULL;
-	}
-
-	if (xmlStrcmp (node->name, (xmlChar*) "feed") != 0) {
-		/* No <feed> element (required) */
-		xmlFreeDoc (doc);
-		gdata_parser_error_required_element_missing ("feed", "root", error);
-		return NULL;
-	}
-
-	/* Get the ETag first */
-	etag = xmlGetProp (node, (xmlChar*) "etag");
-
-	extra_xml = g_string_new ("");
-	node = node->children;
-	while (node != NULL) {
-		if (xmlStrcmp (node->name, (xmlChar*) "entry") == 0) {
-			/* atom:entry */
-			GDataEntry *entry = _gdata_entry_new_from_xml_node (entry_type, doc, node, error);
-			if (entry == NULL)
-				goto error;
-
-			/* Call the progress callback in the main thread */
-			if (progress_callback != NULL) {
-				ProgressCallbackData *data;
-
-				/* Build the data for the callback */
-				data = g_slice_new (ProgressCallbackData);
-				data->progress_callback = progress_callback;
-				data->progress_user_data = progress_user_data;
-				data->entry = g_object_ref (entry);
-				data->entry_i = entry_i;
-				data->total_results = MIN (items_per_page, total_results);
-
-				/* Send the callback; use G_PRIORITY_DEFAULT rather than G_PRIORITY_DEFAULT_IDLE
-				 * to contend with the priorities used by the callback functions in GAsyncResult */
-				g_idle_add_full (G_PRIORITY_DEFAULT, (GSourceFunc) progress_callback_idle, data, NULL);
-			}
-
-			entry_i++;
-			entries = g_list_prepend (entries, entry);
-		} else if (xmlStrcmp (node->name, (xmlChar*) "title") == 0) {
-			/* atom:title */
-			if (title != NULL) {
-				gdata_parser_error_duplicate_element ("title", "feed", error);
-				goto error;
-			}
-
-			title = xmlNodeListGetString (doc, node->children, TRUE);
-		} else if (xmlStrcmp (node->name, (xmlChar*) "subtitle") == 0) {
-			/* atom:subtitle */
-			if (subtitle != NULL) {
-				gdata_parser_error_duplicate_element ("subtitle", "feed", error);
-				goto error;
-			}
-
-			subtitle = xmlNodeListGetString (doc, node->children, TRUE);
-		} else if (xmlStrcmp (node->name, (xmlChar*) "id") == 0) {
-			/* atom:id */
-			if (id != NULL) {
-				gdata_parser_error_duplicate_element ("id", "feed", error);
-				goto error;
-			}
-
-			id = xmlNodeListGetString (doc, node->children, TRUE);
-		} else if (xmlStrcmp (node->name, (xmlChar*) "updated") == 0) {
-			/* atom:updated */
-			xmlChar *updated_string;
-
-			/* Duplicate checking */
-			if (updated.tv_sec != 0 || updated.tv_usec != 0) {
-				gdata_parser_error_duplicate_element ("updated", "feed", error);
-				goto error;
-			}
-
-			/* Parse the string */
-			updated_string = xmlNodeListGetString (doc, node->children, TRUE);
-			if (g_time_val_from_iso8601 ((gchar*) updated_string, &updated) == FALSE) {
-				gdata_parser_error_not_iso8601_format ("updated", "feed", (gchar*) updated_string, error);
-				xmlFree (updated_string);
-				goto error;
-			}
-
-			xmlFree (updated_string);
-		} else if (xmlStrcmp (node->name, (xmlChar*) "category") == 0) {
-			/* atom:category */
-			xmlChar *scheme, *term, *label;
-			GDataCategory *category;
-
-			scheme = xmlGetProp (node, (xmlChar*) "scheme");
-			term = xmlGetProp (node, (xmlChar*) "term");
-			label = xmlGetProp (node, (xmlChar*) "label");
-
-			category = gdata_category_new ((gchar*) term, (gchar*) scheme, (gchar*) label);
-			categories = g_list_prepend (categories, category);
-
-			xmlFree (scheme);
-			xmlFree (term);
-			xmlFree (label);
-		} else if (xmlStrcmp (node->name, (xmlChar*) "logo") == 0) {
-			/* atom:logo */
-			if (logo != NULL) {
-				gdata_parser_error_duplicate_element ("logo", "feed", error);
-				goto error;
-			}
-
-			logo = xmlNodeListGetString (doc, node->children, TRUE);
-		} else if (xmlStrcmp (node->name, (xmlChar*) "link") == 0) {
-			/* atom:link */
-			xmlChar *href, *rel, *type, *hreflang, *link_title, *link_length;
-			gint length_int;
-			GDataLink *link;
-
-			href = xmlGetProp (node, (xmlChar*) "href");
-			rel = xmlGetProp (node, (xmlChar*) "rel");
-			type = xmlGetProp (node, (xmlChar*) "type");
-			hreflang = xmlGetProp (node, (xmlChar*) "hreflang");
-			link_title = xmlGetProp (node, (xmlChar*) "title");
-			link_length = xmlGetProp (node, (xmlChar*) "length");
-
-			if (link_length == NULL)
-				length_int = -1;
-			else
-				length_int = strtoul ((gchar*) link_length, NULL, 10);
-
-			link = gdata_link_new ((gchar*) href, (gchar*) rel, (gchar*) type, (gchar*) hreflang, (gchar*) link_title, length_int);
-			links = g_list_prepend (links, link);
-
-			xmlFree (href);
-			xmlFree (rel);
-			xmlFree (type);
-			xmlFree (hreflang);
-			xmlFree (link_title);
-			xmlFree (link_length);
-		} else if (xmlStrcmp (node->name, (xmlChar*) "author") == 0) {
-			/* atom:author */
-			GDataAuthor *author;
-			xmlNode *author_node;
-			xmlChar *name = NULL, *uri = NULL, *email = NULL;
-
-			author_node = node->children;
-			while (author_node != NULL) {
-				if (xmlStrcmp (author_node->name, (xmlChar*) "name") == 0) {
-					name = xmlNodeListGetString (doc, author_node->children, TRUE);
-				} else if (xmlStrcmp (author_node->name, (xmlChar*) "uri") == 0) {
-					uri = xmlNodeListGetString (doc, author_node->children, TRUE);
-				} else if (xmlStrcmp (author_node->name, (xmlChar*) "email") == 0) {
-					email = xmlNodeListGetString (doc, author_node->children, TRUE);
-				} else {
-					gdata_parser_error_unhandled_element ((gchar*) author_node->ns->prefix, (gchar*) author_node->name, "author", error);
-					xmlFree (name);
-					xmlFree (uri);
-					xmlFree (email);
-					goto error;
-				}
-
-				author_node = author_node->next;
-			}
-
-			author = gdata_author_new ((gchar*) name, (gchar*) uri, (gchar*) email);
-			authors = g_list_prepend (authors, author);
-
-			xmlFree (name);
-			xmlFree (uri);
-			xmlFree (email);
-		} else if (xmlStrcmp (node->name, (xmlChar*) "generator") == 0) {
-			/* atom:generator */
-			xmlChar *name, *uri, *version;
-
-			/* Duplicate checking */
-			if (generator != NULL) {
-				gdata_parser_error_duplicate_element ("generator", "feed", error);
-				goto error;
-			}
-
-			/* Parse the element's parameters */
-			name = xmlNodeListGetString (doc, node->children, TRUE);
-			uri = xmlGetProp (node, (xmlChar*) "uri");
-			version = xmlGetProp (node, (xmlChar*) "version");
-
-			generator = gdata_generator_new ((gchar*) name, (gchar*) uri, (gchar*) version);
-
-			xmlFree (name);
-			xmlFree (uri);
-			xmlFree (version);
-		} else if (xmlStrcmp (node->name, (xmlChar*) "totalResults") == 0) {
-			/* openSearch:totalResults */
-			xmlChar *total_results_string;
-
-			/* Duplicate checking */
-			if (total_results != 0) {
-				gdata_parser_error_duplicate_element ("totalResults", "feed", error);
-				goto error;
-			}
-
-			/* Parse the number */
-			total_results_string = xmlNodeListGetString (doc, node->children, TRUE);
-			if (total_results_string == NULL) {
-				gdata_parser_error_required_content_missing ("openSearch:totalResults", error);
-				goto error;
-			}
-
-			total_results = strtoul ((gchar*) total_results_string, NULL, 10);
-			xmlFree (total_results_string);
-		} else if (xmlStrcmp (node->name, (xmlChar*) "startIndex") == 0) {
-			/* openSearch:startIndex */
-			xmlChar *start_index_string;
-
-			/* Duplicate checking */
-			if (start_index != 0) {
-				gdata_parser_error_duplicate_element ("startIndex", "feed", error);
-				goto error;
-			}
-
-			/* Parse the number */
-
-			start_index_string = xmlNodeListGetString (doc, node->children, TRUE);
-			if (start_index_string == NULL) {
-				gdata_parser_error_required_content_missing ("openSearch:startIndex", error);
-				goto error;
-			}
-
-			start_index = strtoul ((gchar*) start_index_string, NULL, 10);
-			xmlFree (start_index_string);
-		} else if (xmlStrcmp (node->name, (xmlChar*) "itemsPerPage") == 0) {
-			/* openSearch:itemsPerPage */
-			xmlChar *items_per_page_string;
-
-			/* Duplicate checking */
-			if (items_per_page != 0) {
-				gdata_parser_error_duplicate_element ("itemsPerPage", "feed", error);
-				goto error;
-			}
-
-			/* Parse the number */
-			items_per_page_string = xmlNodeListGetString (doc, node->children, TRUE);
-			if (items_per_page_string == NULL) {
-				gdata_parser_error_required_content_missing ("openSearch:itemsPerPage", error);
-				goto error;
-			}
-
-			items_per_page = strtoul ((gchar*) items_per_page_string, NULL, 10);
-			xmlFree (items_per_page_string);
-		} else {
-			/* Unhandled XML */
-			xmlBuffer *buffer = xmlBufferCreate ();
-			xmlNodeDump (buffer, doc, node, 0, 0);
-			g_string_append (extra_xml, (gchar*) xmlBufferContent (buffer));
-			g_message ("Unhandled XML in <feed>: %s", (gchar*) xmlBufferContent (buffer));
-			xmlBufferFree (buffer);
-		}
-
-		node = node->next;
-	}
-
-	/* Check for missing required elements */
-	if (title == NULL) {
-		gdata_parser_error_required_element_missing ("title", "feed", error);
-		goto error;
-	}
-	if (id == NULL) {
-		gdata_parser_error_required_element_missing ("id", "feed", error);
-		goto error;
-	}
-	if (updated.tv_sec == 0 && updated.tv_usec == 0) {
-		gdata_parser_error_required_element_missing ("updated", "feed", error);
-		goto error;
-	}
-
-	/* Reverse our lists of stuff */
-	entries = g_list_reverse (entries);
-	categories = g_list_reverse (categories);
-	links = g_list_reverse (links);
-	authors = g_list_reverse (authors);
-
-	/* Create the feed */
-	feed = g_object_new (GDATA_TYPE_FEED,
-			     "title", (gchar*) title,
-			     "subtitle", (gchar*) subtitle,
-			     "id", (gchar*) id,
-			     "etag", (gchar*) etag,
-			     "updated", &updated,
-			     "logo", (gchar*) logo,
-			     "generator", generator,
-			     "total-results", total_results,
-			     "start-index", start_index,
-			     "items-per-page", items_per_page,
-			     NULL);
-
-	feed->priv->entries = entries;
-	feed->priv->categories = categories;
-	feed->priv->links = links;
-	feed->priv->authors = authors;
-
-	/* Set the lists and generator to NULL so they aren't freed --- the memory belongs to the GDataFeed now */
-	entries = categories = links = authors = NULL;
-	generator = NULL;
-
-error:
-	xmlFree (title);
-	xmlFree (subtitle);
-	xmlFree (id);
-	xmlFree (etag);
-	xmlFree (logo);
-	gdata_generator_free (generator);
-	g_list_foreach (entries, (GFunc) g_object_unref, NULL);
-	g_list_free (entries);
-	g_list_foreach (categories, (GFunc) gdata_category_free, NULL);
-	g_list_free (categories);
-	g_list_foreach (links, (GFunc) gdata_link_free, NULL);
-	g_list_free (links);
-	g_list_foreach (authors, (GFunc) gdata_author_free, NULL);
-	g_list_free (authors);
-
-	/* Store any unhandled XML for future use */
-	if (feed != NULL)
-		feed->priv->extra_xml = g_string_free (extra_xml, FALSE);
-	else
-		g_string_free (extra_xml, TRUE);
-
-	xmlFreeDoc (doc);
+	g_slice_free (ParseData, data);
 
 	return feed;
 }

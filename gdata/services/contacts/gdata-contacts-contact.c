@@ -50,7 +50,7 @@
 static void gdata_contacts_contact_finalize (GObject *object);
 static void gdata_contacts_contact_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec);
 static void get_xml (GDataEntry *entry, GString *xml_string);
-static gboolean parse_xml (GDataEntry *entry, xmlDoc *doc, xmlNode *node, GError **error);
+static gboolean parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_data, GError **error);
 static void get_namespaces (GDataEntry *entry, GHashTable *namespaces);
 
 struct _GDataContactsContactPrivate {
@@ -77,6 +77,7 @@ static void
 gdata_contacts_contact_class_init (GDataContactsContactClass *klass)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
+	GDataParsableClass *parsable_class = GDATA_PARSABLE_CLASS (klass);
 	GDataEntryClass *entry_class = GDATA_ENTRY_CLASS (klass);
 
 	g_type_class_add_private (klass, sizeof (GDataContactsContactPrivate));
@@ -84,8 +85,9 @@ gdata_contacts_contact_class_init (GDataContactsContactClass *klass)
 	gobject_class->get_property = gdata_contacts_contact_get_property;
 	gobject_class->finalize = gdata_contacts_contact_finalize;
 
+	parsable_class->parse_xml = parse_xml;
+
 	entry_class->get_xml = get_xml;
-	entry_class->parse_xml = parse_xml;
 	entry_class->get_namespaces = get_namespaces;
 
 	/**
@@ -205,13 +207,15 @@ gdata_contacts_contact_new_from_xml (const gchar *xml, gint length, GError **err
 }
 
 static gboolean
-parse_xml (GDataEntry *entry, xmlDoc *doc, xmlNode *node, GError **error)
+parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_data, GError **error)
 {
-	GDataContactsContact *self = GDATA_CONTACTS_CONTACT (entry);
+	GDataContactsContact *self;
 
-	g_return_val_if_fail (GDATA_IS_CONTACTS_CONTACT (self), FALSE);
+	g_return_val_if_fail (GDATA_IS_CONTACTS_CONTACT (parsable), FALSE);
 	g_return_val_if_fail (doc != NULL, FALSE);
 	g_return_val_if_fail (node != NULL, FALSE);
+
+	self = GDATA_CONTACTS_CONTACT (parsable);
 
 	if (xmlStrcmp (node->name, (xmlChar*) "edited") == 0) {
 		/* app:edited */
@@ -484,7 +488,7 @@ parse_xml (GDataEntry *entry, xmlDoc *doc, xmlNode *node, GError **error)
 	} else if (xmlStrcmp (node->name, (xmlChar*) "deleted") == 0) {
 		/* gd:deleted */
 		self->priv->deleted = TRUE;
-	} else if (GDATA_ENTRY_CLASS (gdata_contacts_contact_parent_class)->parse_xml (entry, doc, node, error) == FALSE) {
+	} else if (GDATA_PARSABLE_CLASS (gdata_contacts_contact_parent_class)->parse_xml (parsable, doc, node, user_data, error) == FALSE) {
 		/* Error! */
 		return FALSE;
 	}

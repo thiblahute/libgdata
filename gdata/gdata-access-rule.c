@@ -45,7 +45,7 @@ static void get_namespaces (GDataEntry *entry, GHashTable *namespaces);
 static void get_xml (GDataEntry *entry, GString *xml_string);
 static void gdata_access_rule_set_property (GObject *object, guint property_id, const GValue *value, GParamSpec *pspec);
 static void gdata_access_rule_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec);
-static gboolean parse_xml (GDataEntry *entry, xmlDoc *doc, xmlNode *node, GError **error);
+static gboolean parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_data, GError **error);
 
 struct _GDataAccessRulePrivate {
 	gchar *role;
@@ -66,6 +66,7 @@ static void
 gdata_access_rule_class_init (GDataAccessRuleClass *klass)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
+	GDataParsableClass *parsable_class = GDATA_PARSABLE_CLASS (klass);
 	GDataEntryClass *entry_class = GDATA_ENTRY_CLASS (klass);
 
 	g_type_class_add_private (klass, sizeof (GDataAccessRulePrivate));
@@ -74,8 +75,9 @@ gdata_access_rule_class_init (GDataAccessRuleClass *klass)
 	gobject_class->set_property = gdata_access_rule_set_property; 
 	gobject_class->get_property = gdata_access_rule_get_property; 
 
+	parsable_class->parse_xml = parse_xml;
+
 	entry_class->get_xml = get_xml;
-	entry_class->parse_xml = parse_xml;
 	entry_class->get_namespaces = get_namespaces;
 
 	/**
@@ -224,13 +226,15 @@ gdata_access_rule_finalize (GObject *object)
 }
 
 static gboolean
-parse_xml (GDataEntry *entry, xmlDoc *doc, xmlNode *node, GError **error)
+parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_data, GError **error)
 {
-	GDataAccessRule *self = GDATA_ACCESS_RULE (entry);
+	GDataAccessRule *self;
 
-	g_return_val_if_fail (GDATA_IS_ACCESS_RULE (self), FALSE);
+	g_return_val_if_fail (GDATA_IS_ACCESS_RULE (parsable), FALSE);
 	g_return_val_if_fail (doc != NULL, FALSE);
 	g_return_val_if_fail (node != NULL, FALSE);
+
+	self = GDATA_ACCESS_RULE (parsable);
 
 	if (xmlStrcmp (node->name, (xmlChar*) "role") == 0) {
 		/* gAcl:role */
@@ -251,7 +255,7 @@ parse_xml (GDataEntry *entry, xmlDoc *doc, xmlNode *node, GError **error)
 		gdata_access_rule_set_scope (self, (gchar*) scope_type, (gchar*) scope_value);
 		xmlFree (scope_type);
 		xmlFree (scope_value);
-	} else if (GDATA_ENTRY_CLASS (gdata_access_rule_parent_class)->parse_xml (entry, doc, node, error) == FALSE) {
+	} else if (GDATA_PARSABLE_CLASS (gdata_access_rule_parent_class)->parse_xml (parsable, doc, node, user_data, error) == FALSE) {
 		/* Error! */
 		return FALSE;
 	}

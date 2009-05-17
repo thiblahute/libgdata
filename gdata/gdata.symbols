@@ -347,3 +347,4 @@ gdata_access_rule_get_role
 gdata_access_rule_set_role
 gdata_access_rule_get_scope
 gdata_access_rule_set_scope
+gdata_parsable_get_type

@@ -23,6 +23,7 @@
 		<xi:include href="xml/gdata-feed.xml"/>
 		<xi:include href="xml/gdata-entry.xml"/>
 		<xi:include href="xml/gdata-types.xml"/>
+		<xi:include href="xml/gdata-parsable.xml"/>
 	</chapter>
 
 	<chapter>
