@@ -5,8 +5,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: libgdata\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-05-09 21:05+0200\n"
-"PO-Revision-Date: 2009-05-09 21:09+0100\n"
+"POT-Creation-Date: 2009-05-17 21:01+0200\n"
+"PO-Revision-Date: 2009-05-17 21:02+0100\n"
 "Last-Translator: Mario Blättermann <mariobl@gnome.org>\n"
 "Language-Team: German <gnome-de@gnome.org>\n"
 "MIME-Version: 1.0\n"
@@ -15,13 +15,20 @@ msgstr ""
 "X-Poedit-Language: German\n"
 "X-Poedit-Country: GERMANY\n"
 
-#: ../gdata/gdata-entry.c:358 ../gdata/gdata-entry.c:369
-#: ../gdata/gdata-feed.c:401 ../gdata/gdata-feed.c:412
+#: ../gdata/gdata-access-handler.c:175
+msgid "The rule has already been inserted."
+msgstr "Die Regel wurde bereits eingefügt."
+
+#: ../gdata/gdata-access-handler.c:377
+msgid "The owner's rule may not be deleted."
+msgstr "Die Eigentümer-Regel darf nicht gelöscht werden."
+
+#: ../gdata/gdata-parsable.c:128 ../gdata/gdata-parsable.c:139
 #, c-format
 msgid "Error parsing XML: %s"
 msgstr "Fehler beim XML-Parsen: %s"
 
-#: ../gdata/gdata-entry.c:370 ../gdata/gdata-feed.c:413
+#: ../gdata/gdata-parsable.c:140
 msgid "Empty document."
 msgstr "Leeres Dokument."
 
@@ -60,120 +67,120 @@ msgstr "Ein benötigtes <%s>-Element als Kind von <%s> war nicht vorhanden."
 msgid "A <%s> element as a child of <%s> was duplicated."
 msgstr "Ein <%s>-Element als Kind von <%s> war doppelt vorhanden."
 
-#: ../gdata/gdata-service.c:307 ../gdata/gdata-service.c:723
+#: ../gdata/gdata-service.c:308 ../gdata/gdata-service.c:724
 #: ../gdata/services/youtube/gdata-youtube-service.c:201
 msgid "The server returned a malformed response."
 msgstr "Der Server gab eine verstümmelte Antwort zurück."
 
-#: ../gdata/gdata-service.c:338
+#: ../gdata/gdata-service.c:339
 #, c-format
 msgid "Invalid request URI or header, or unsupported nonstandard parameter: %s"
 msgstr ""
 "Ungültige Anfrageadresse oder -kopfzeile, oder nicht unterstützter Nicht-"
 "Standardparameter: %s"
 
-#: ../gdata/gdata-service.c:343
+#: ../gdata/gdata-service.c:344
 #, c-format
 msgid "Authentication required: %s"
 msgstr "Legitimierung erforderlich: %s"
 
-#: ../gdata/gdata-service.c:347
+#: ../gdata/gdata-service.c:348
 #, c-format
 msgid "The requested resource was not found: %s"
 msgstr "Die angeforderte Ressource wurde nicht gefunden: %s"
 
-#: ../gdata/gdata-service.c:351
+#: ../gdata/gdata-service.c:352
 #, c-format
 msgid "The entry has been modified since it was downloaded: %s"
 msgstr "Seit dem Herunterladen wurde der Eintrag geändert: %s"
 
-#: ../gdata/gdata-service.c:363
+#: ../gdata/gdata-service.c:364
 #, c-format
 msgid "Error code %u when inserting an entry: %s"
 msgstr "Fehlercode %u beim Einfügen eines Eintrags: %s"
 
-#: ../gdata/gdata-service.c:367
+#: ../gdata/gdata-service.c:368
 #, c-format
 msgid "Error code %u when updating an entry: %s"
 msgstr "Fehlercode %u beim Aktualisieren eines Eintrags: %s"
 
-#: ../gdata/gdata-service.c:371
+#: ../gdata/gdata-service.c:372
 #, c-format
 msgid "Error code %u when deleting an entry: %s"
 msgstr "Fehlercode %u beim Löschen eines Eintrags: %s"
 
-#: ../gdata/gdata-service.c:375
+#: ../gdata/gdata-service.c:376
 #, c-format
 msgid "Error code %u when querying: %s"
 msgstr "Fehlercode %u beim Abfragen: %s"
 
-#: ../gdata/gdata-service.c:617
+#: ../gdata/gdata-service.c:618
 msgid "A CAPTCHA must be filled out to log in."
 msgstr "Ein CAPTCHA muss zum Anmelden ausgefüllt werden."
 
-#: ../gdata/gdata-service.c:641
+#: ../gdata/gdata-service.c:642
 msgid "Your username or password were incorrect."
 msgstr "Ihr Benutzername oder Passwort waren nicht korrekt."
 
-#: ../gdata/gdata-service.c:659
+#: ../gdata/gdata-service.c:660
 #, c-format
 msgid "Your account's e-mail address has not been verified. (%s)"
 msgstr "Die E-Mail-Adresse Ihres Kontos wurde nicht bestätigt. (%s)"
 
-#: ../gdata/gdata-service.c:663
+#: ../gdata/gdata-service.c:664
 #, c-format
 msgid "You have not agreed to the service's terms and conditions. (%s)"
 msgstr "Sie haben den Bedingungen dieses Dienstes nicht zugestimmt. (%s)"
 
-#: ../gdata/gdata-service.c:667
+#: ../gdata/gdata-service.c:668
 #, c-format
 msgid "This account has been deleted. (%s)"
 msgstr "Dieses Konto wurde entfernt. (%s)"
 
-#: ../gdata/gdata-service.c:671
+#: ../gdata/gdata-service.c:672
 #, c-format
 msgid "This account has been disabled. (%s)"
 msgstr "Dieses Konto wurde deaktiviert. (%s)"
 
-#: ../gdata/gdata-service.c:675
+#: ../gdata/gdata-service.c:676
 #, c-format
 msgid "This account's access to this service has been disabled. (%s)"
 msgstr "Der Zugriff auf diesen Dienst über dieses Konto wurde deaktiviert. (%s)"
 
-#: ../gdata/gdata-service.c:679
+#: ../gdata/gdata-service.c:680
 #, c-format
 msgid "This service is not available at the moment. (%s)"
 msgstr "Dieser Dienst ist derzeit nicht verfügbar. (%s)"
 
-#: ../gdata/gdata-service.c:792
+#: ../gdata/gdata-service.c:793
 #, c-format
 msgid "Invalid redirect URI: %s"
 msgstr "Ungültige Weiterleitungsadresse: %s"
 
-#: ../gdata/gdata-service.c:1190
+#: ../gdata/gdata-service.c:1191
 #: ../gdata/services/youtube/gdata-youtube-service.c:628
 msgid "The entry has already been inserted."
 msgstr "Dieser Eintrag wurde bereits eingefügt."
 
-#: ../gdata/services/calendar/gdata-calendar-calendar.c:335
+#: ../gdata/services/calendar/gdata-calendar-calendar.c:354
 #, c-format
 msgid ""
 "A <%s>'s <%s> element content (\"%s\") was not in hexadecimal RGB format."
 msgstr ""
 "Ein <%s>'s <%s>-Element (»%s«) lag nicht im hexadezimalen RGB-Format vor."
 
-#: ../gdata/services/calendar/gdata-calendar-service.c:104
-#: ../gdata/services/calendar/gdata-calendar-service.c:138
+#: ../gdata/services/calendar/gdata-calendar-service.c:106
+#: ../gdata/services/calendar/gdata-calendar-service.c:140
 msgid "You must be authenticated to query all calendars."
 msgstr "Sie müssen legitimiert sein, um alle Kalender abzufragen."
 
-#: ../gdata/services/calendar/gdata-calendar-service.c:170
-#: ../gdata/services/calendar/gdata-calendar-service.c:204
-#: ../gdata/services/calendar/gdata-calendar-service.c:238
+#: ../gdata/services/calendar/gdata-calendar-service.c:172
+#: ../gdata/services/calendar/gdata-calendar-service.c:206
+#: ../gdata/services/calendar/gdata-calendar-service.c:240
 msgid "You must be authenticated to query your own calendars."
 msgstr "Sie müssen legitimiert sein, um Ihre eigenen Kalender abzufragen."
 
-#: ../gdata/services/calendar/gdata-calendar-service.c:247
+#: ../gdata/services/calendar/gdata-calendar-service.c:249
 msgid "The calendar did not have a content source."
 msgstr "Der Kalender hat keine Inhaltsquelle."
 
@@ -226,7 +233,7 @@ msgstr "Für dieses Video gibt es keine ähnlichen Videos <link>."
 msgid "You must be authenticated to upload a video."
 msgstr "Sie müssen legitimiert sein, um ein Video hochzuladen."
 
-#: ../gdata/services/youtube/gdata-youtube-video.c:766
+#: ../gdata/services/youtube/gdata-youtube-video.c:810
 #, c-format
 msgid "The @time property (\"%s\") of a <media:thumbnail> could not be parsed."
 msgstr ""
