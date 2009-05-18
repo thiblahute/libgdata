@@ -1,0 +1,236 @@
+# translation of libgdata-master-po-gl-208173.po to Galician
+# Galician translations for PACKAGE package.
+# Copyright (C) 2009 THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+#
+# Fran Diéguez <fran.dieguez@mabishu.com>, 2009.
+# Antón Méixome <meixome@mancomun.org>, 2009.
+msgid ""
+msgstr ""
+"Project-Id-Version: libgdata-master-po-gl-208173\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?product=libgdata&component=general\n"
+"POT-Creation-Date: 2009-05-10 22:39+0000\n"
+"PO-Revision-Date: 2009-05-12 17:28+0200\n"
+"Last-Translator: Antón Méixome <meixome@mancomun.org>\n"
+"Language-Team: Galician <gnome@mancomun.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: KBabel 1.11.4\n"
+"Plural-Forms: Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: ../gdata/gdata-entry.c:357 ../gdata/gdata-entry.c:368
+#: ../gdata/gdata-feed.c:417 ../gdata/gdata-feed.c:428
+#, c-format
+msgid "Error parsing XML: %s"
+msgstr "Acounteceu un erro ao analizar o XML: %s"
+
+#: ../gdata/gdata-entry.c:369 ../gdata/gdata-feed.c:429
+msgid "Empty document."
+msgstr "Documento baleiro."
+
+#: ../gdata/gdata-parser.c:42
+#, c-format
+msgid "A <%s> element was missing required content."
+msgstr "Un <%s> elemento que requiría contido foi eliminado."
+
+#: ../gdata/gdata-parser.c:58
+#, c-format
+msgid "A <%s>'s <%s> element content (\"%s\") was not in ISO 8601 format."
+msgstr "Un <%s>'s <%s> elemento de contido (\"%s\") non estaba en formato  ISO 8601."
+
+#: ../gdata/gdata-parser.c:70
+#, c-format
+msgid "Unhandled <%s:%s> element as a child of <%s>."
+msgstr "Elemento <%s:%s> incompatíbel como fillo de <%s>."
+
+#: ../gdata/gdata-parser.c:83
+#, c-format
+msgid "Unknown value \"%s\" of a <%s> @%s property."
+msgstr "Valor \"%s\" descoñecido para a propiedade <%s> @%s."
+
+#: ../gdata/gdata-parser.c:95
+#, c-format
+msgid "A required @%s property of a <%s> was not present."
+msgstr "Non está presente a propiedade requirida @%s de unha <%s>."
+
+#: ../gdata/gdata-parser.c:106
+#, c-format
+msgid "A required <%s> element as a child of <%s> was not present."
+msgstr "O elemento <%s> requerido como fillo de <%s> non está presente."
+
+#: ../gdata/gdata-parser.c:117
+#, c-format
+msgid "A <%s> element as a child of <%s> was duplicated."
+msgstr "O elemento <%s> como fillo de <%s> está duplicado."
+
+#: ../gdata/gdata-service.c:307 ../gdata/gdata-service.c:723
+#: ../gdata/services/youtube/gdata-youtube-service.c:201
+msgid "The server returned a malformed response."
+msgstr "O servidor devolveu unha resposta mal formada."
+
+#: ../gdata/gdata-service.c:338
+#, c-format
+msgid "Invalid request URI or header, or unsupported nonstandard parameter: %s"
+msgstr ""
+"A URI ou a cabeceira da petición é inválida, ou o parámetro non estándar non "
+"é compatíbel: %s"
+
+#: ../gdata/gdata-service.c:343
+#, c-format
+msgid "Authentication required: %s"
+msgstr "Requírese autenticación: %s"
+
+#: ../gdata/gdata-service.c:347
+#, c-format
+msgid "The requested resource was not found: %s"
+msgstr "O recurso solicitado non foi atopado: %s"
+
+#: ../gdata/gdata-service.c:351
+#, c-format
+msgid "The entry has been modified since it was downloaded: %s"
+msgstr "A entrada foi modificada dende que foi subida: %s"
+
+#: ../gdata/gdata-service.c:363
+#, c-format
+msgid "Error code %u when inserting an entry: %s"
+msgstr "Código de erro %u ao inserir unha entrada: %s"
+
+#: ../gdata/gdata-service.c:367
+#, c-format
+msgid "Error code %u when updating an entry: %s"
+msgstr "Código de erro %u ao actualizar unha entrada: %s"
+
+#: ../gdata/gdata-service.c:371
+#, c-format
+msgid "Error code %u when deleting an entry: %s"
+msgstr "Código de erro %u ao eliminar unha entrada: %s"
+
+#: ../gdata/gdata-service.c:375
+#, c-format
+msgid "Error code %u when querying: %s"
+msgstr "Código de erro %u ao facela consulta: %s"
+
+#: ../gdata/gdata-service.c:617
+msgid "A CAPTCHA must be filled out to log in."
+msgstr "O CAPTCHA debe ser completado para iniciar sesión."
+
+#: ../gdata/gdata-service.c:641
+msgid "Your username or password were incorrect."
+msgstr "O seu nome de usuario ou contrasinal son incorrectos."
+
+#: ../gdata/gdata-service.c:659
+#, c-format
+msgid "Your account's e-mail address has not been verified. (%s)"
+msgstr "O enderezo de correo da súa conta non foi verificado. (%s)"
+
+#: ../gdata/gdata-service.c:663
+#, c-format
+msgid "You have not agreed to the service's terms and conditions. (%s)"
+msgstr "Non aceptou os termos e condicións do servizo . (%s)"
+
+#: ../gdata/gdata-service.c:667
+#, c-format
+msgid "This account has been deleted. (%s)"
+msgstr "Esta conta foi eliminada. (%s)"
+
+#: ../gdata/gdata-service.c:671
+#, c-format
+msgid "This account has been disabled. (%s)"
+msgstr "Esta conta foi desactivada. (%s)"
+
+#: ../gdata/gdata-service.c:675
+#, c-format
+msgid "This account's access to this service has been disabled. (%s)"
+msgstr "O acceso de esta conta a este servizo foi desactivado. (%s)"
+
+#: ../gdata/gdata-service.c:679
+#, c-format
+msgid "This service is not available at the moment. (%s)"
+msgstr "Este servizo non está dispoñíbel neste momento. (%s)"
+
+#: ../gdata/gdata-service.c:792
+#, c-format
+msgid "Invalid redirect URI: %s"
+msgstr "URI de redirección inválida: %s"
+
+#: ../gdata/gdata-service.c:1190
+#: ../gdata/services/youtube/gdata-youtube-service.c:628
+msgid "The entry has already been inserted."
+msgstr "A entrada xa foi inserida."
+
+#: ../gdata/services/calendar/gdata-calendar-calendar.c:335
+#, c-format
+msgid "A <%s>'s <%s> element content (\"%s\") was not in hexadecimal RGB format."
+msgstr "Un <%s>'s <%s> elemento de contido (\"%s\") non estaba en formato hexadecimal RGB."
+
+#: ../gdata/services/calendar/gdata-calendar-service.c:104
+#: ../gdata/services/calendar/gdata-calendar-service.c:138
+msgid "You must be authenticated to query all calendars."
+msgstr "Debe autenticarse para consultar os tódolos calendarios."
+
+#: ../gdata/services/calendar/gdata-calendar-service.c:170
+#: ../gdata/services/calendar/gdata-calendar-service.c:204
+#: ../gdata/services/calendar/gdata-calendar-service.c:238
+msgid "You must be authenticated to query your own calendars."
+msgstr "Debe autenticarse para consultar os seus propios calendarios."
+
+#: ../gdata/services/calendar/gdata-calendar-service.c:247
+msgid "The calendar did not have a content source."
+msgstr "O calendario non ten unha fonte de contido."
+
+#: ../gdata/services/contacts/gdata-contacts-service.c:104
+#: ../gdata/services/contacts/gdata-contacts-service.c:139
+msgid "You must be authenticated to query contacts."
+msgstr "Debe autenticarse para consultar os contactos."
+
+#: ../gdata/services/youtube/gdata-youtube-service.c:307
+#, c-format
+msgid "This service is not available at the moment."
+msgstr "Este servizo non está dispoñíbel neste momento."
+
+#: ../gdata/services/youtube/gdata-youtube-service.c:312
+#, c-format
+msgid "You must be authenticated to do this."
+msgstr "Debe autenticarse para facer isto."
+
+#: ../gdata/services/youtube/gdata-youtube-service.c:317
+#, c-format
+msgid ""
+"You have made too many API calls recently. Please wait a few minutes and try "
+"again."
+msgstr ""
+"Vostede fixo demasiadas chamadas á API recentemente. Agarde uns poucos "
+"minutos e ténteo de novo."
+
+#: ../gdata/services/youtube/gdata-youtube-service.c:320
+#, c-format
+msgid ""
+"You have exceeded your entry quota with the entry \"%s\". Please delete some "
+"entries and try again."
+msgstr ""
+"Excedeu a súa cuota de entrada coa entrada \"%s\". Elimine algunha entrada "
+"e ténteo de novo."
+
+#: ../gdata/services/youtube/gdata-youtube-service.c:325
+#: ../gdata/services/youtube/gdata-youtube-service.c:331
+#, c-format
+msgid "Unknown error code \"%s\" in domain \"%s\" received with location \"%s\"."
+msgstr ""
+"Código de erro \"%s\" descoñecido no dominio \"%s\" recibido coa "
+"localización \"%s\"."
+
+#: ../gdata/services/youtube/gdata-youtube-service.c:541
+#: ../gdata/services/youtube/gdata-youtube-service.c:582
+msgid "The video did not have a related videos <link>."
+msgstr "O vídeo non ten vídeos relacionados <link>."
+
+#: ../gdata/services/youtube/gdata-youtube-service.c:634
+msgid "You must be authenticated to upload a video."
+msgstr "Debe estar autenticado para subir un vídeo."
+
+#: ../gdata/services/youtube/gdata-youtube-video.c:766
+#, c-format
+msgid "The @time property (\"%s\") of a <media:thumbnail> could not be parsed."
+msgstr "A propiedade @time (\"%s\") de un <media:thumbnail> non puido ser analizada."
+
