@@ -1,0 +1,233 @@
+# Spanish translation for libgdata.master.es.po
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# Jorge González <jorgegonz@svn.gnome.org>, 2009.
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: libgdata.master\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
+"product=libgdata&component=general\n"
+"POT-Creation-Date: 2009-05-20 06:07+0000\n"
+"PO-Revision-Date: 2009-05-20 20:48+0200\n"
+"Last-Translator: Jorge González <jorgegonz@svn.gnome.org>\n"
+"Language-Team: Español <gnome-es-list@gnome.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../gdata/gdata-access-handler.c:176
+msgid "The rule has already been inserted."
+msgstr "La regla ya se ha introducido."
+
+#: ../gdata/gdata-access-handler.c:378
+msgid "The owner's rule may not be deleted."
+msgstr "La regla del propietario no se debe borrar."
+
+#: ../gdata/gdata-parsable.c:128 ../gdata/gdata-parsable.c:139
+#, c-format
+msgid "Error parsing XML: %s"
+msgstr "Error al analizar el XML: %s"
+
+#: ../gdata/gdata-parsable.c:140
+msgid "Empty document."
+msgstr "Documento vacío."
+
+#: ../gdata/gdata-parser.c:42
+#, c-format
+msgid "A <%s> element was missing required content."
+msgstr "A un elemento <%s> le faltaba el contenido requerido."
+
+#: ../gdata/gdata-parser.c:58
+#, c-format
+msgid "A <%s>'s <%s> element content (\"%s\") was not in ISO 8601 format."
+msgstr ""
+
+#: ../gdata/gdata-parser.c:70
+#, c-format
+msgid "Unhandled <%s:%s> element as a child of <%s>."
+msgstr ""
+
+#: ../gdata/gdata-parser.c:83
+#, c-format
+msgid "Unknown value \"%s\" of a <%s> @%s property."
+msgstr ""
+
+#: ../gdata/gdata-parser.c:95
+#, c-format
+msgid "A required @%s property of a <%s> was not present."
+msgstr ""
+
+#: ../gdata/gdata-parser.c:106
+#, c-format
+msgid "A required <%s> element as a child of <%s> was not present."
+msgstr ""
+
+#: ../gdata/gdata-parser.c:117
+#, c-format
+msgid "A <%s> element as a child of <%s> was duplicated."
+msgstr ""
+
+#: ../gdata/gdata-service.c:308 ../gdata/gdata-service.c:724
+#: ../gdata/services/youtube/gdata-youtube-service.c:201
+msgid "The server returned a malformed response."
+msgstr "El servidor devolvió una respuesta mal formada."
+
+#: ../gdata/gdata-service.c:339
+#, c-format
+msgid "Invalid request URI or header, or unsupported nonstandard parameter: %s"
+msgstr ""
+
+#: ../gdata/gdata-service.c:344
+#, c-format
+msgid "Authentication required: %s"
+msgstr ""
+
+#: ../gdata/gdata-service.c:348
+#, c-format
+msgid "The requested resource was not found: %s"
+msgstr ""
+
+#: ../gdata/gdata-service.c:352
+#, c-format
+msgid "The entry has been modified since it was downloaded: %s"
+msgstr ""
+
+#: ../gdata/gdata-service.c:364
+#, c-format
+msgid "Error code %u when inserting an entry: %s"
+msgstr ""
+
+#: ../gdata/gdata-service.c:368
+#, c-format
+msgid "Error code %u when updating an entry: %s"
+msgstr ""
+
+#: ../gdata/gdata-service.c:372
+#, c-format
+msgid "Error code %u when deleting an entry: %s"
+msgstr ""
+
+#: ../gdata/gdata-service.c:376
+#, c-format
+msgid "Error code %u when querying: %s"
+msgstr ""
+
+#: ../gdata/gdata-service.c:618
+msgid "A CAPTCHA must be filled out to log in."
+msgstr "Se debe rellenar un CAPTCHA para iniciar sesión."
+
+#: ../gdata/gdata-service.c:642
+msgid "Your username or password were incorrect."
+msgstr "Su nombre de usuario o contraseña fueron incorrectas."
+
+#: ../gdata/gdata-service.c:660
+#, c-format
+msgid "Your account's e-mail address has not been verified. (%s)"
+msgstr "Su dirección de correo-e no se ha verificado. (%s)"
+
+#: ../gdata/gdata-service.c:664
+#, c-format
+msgid "You have not agreed to the service's terms and conditions. (%s)"
+msgstr ""
+
+#: ../gdata/gdata-service.c:668
+#, c-format
+msgid "This account has been deleted. (%s)"
+msgstr "Esta cuenta se ha borrado. (%s)"
+
+#: ../gdata/gdata-service.c:672
+#, c-format
+msgid "This account has been disabled. (%s)"
+msgstr "Esta cuenta se ha desactivado. (%s)"
+
+#: ../gdata/gdata-service.c:676
+#, c-format
+msgid "This account's access to this service has been disabled. (%s)"
+msgstr ""
+
+#: ../gdata/gdata-service.c:680
+#, c-format
+msgid "This service is not available at the moment. (%s)"
+msgstr ""
+
+#: ../gdata/gdata-service.c:793
+#, c-format
+msgid "Invalid redirect URI: %s"
+msgstr "URI de redirección no válida: %s"
+
+#: ../gdata/gdata-service.c:1191
+#: ../gdata/services/youtube/gdata-youtube-service.c:628
+msgid "The entry has already been inserted."
+msgstr "La entrada ya se ha introducido."
+
+#: ../gdata/services/calendar/gdata-calendar-calendar.c:354
+#, c-format
+msgid ""
+"A <%s>'s <%s> element content (\"%s\") was not in hexadecimal RGB format."
+msgstr ""
+
+#: ../gdata/services/calendar/gdata-calendar-service.c:106
+#: ../gdata/services/calendar/gdata-calendar-service.c:140
+msgid "You must be authenticated to query all calendars."
+msgstr ""
+
+#: ../gdata/services/calendar/gdata-calendar-service.c:172
+#: ../gdata/services/calendar/gdata-calendar-service.c:206
+#: ../gdata/services/calendar/gdata-calendar-service.c:240
+msgid "You must be authenticated to query your own calendars."
+msgstr ""
+
+#: ../gdata/services/calendar/gdata-calendar-service.c:249
+msgid "The calendar did not have a content source."
+msgstr ""
+
+#: ../gdata/services/contacts/gdata-contacts-service.c:104
+#: ../gdata/services/contacts/gdata-contacts-service.c:139
+msgid "You must be authenticated to query contacts."
+msgstr ""
+
+#: ../gdata/services/youtube/gdata-youtube-service.c:307
+#, c-format
+msgid "This service is not available at the moment."
+msgstr ""
+
+#: ../gdata/services/youtube/gdata-youtube-service.c:312
+#, c-format
+msgid "You must be authenticated to do this."
+msgstr ""
+
+#: ../gdata/services/youtube/gdata-youtube-service.c:317
+#, c-format
+msgid ""
+"You have made too many API calls recently. Please wait a few minutes and try "
+"again."
+msgstr ""
+
+#: ../gdata/services/youtube/gdata-youtube-service.c:320
+#, c-format
+msgid ""
+"You have exceeded your entry quota with the entry \"%s\". Please delete some "
+"entries and try again."
+msgstr ""
+
+#: ../gdata/services/youtube/gdata-youtube-service.c:325
+#: ../gdata/services/youtube/gdata-youtube-service.c:331
+#, c-format
+msgid ""
+"Unknown error code \"%s\" in domain \"%s\" received with location \"%s\"."
+msgstr ""
+
+#: ../gdata/services/youtube/gdata-youtube-service.c:541
+#: ../gdata/services/youtube/gdata-youtube-service.c:582
+msgid "The video did not have a related videos <link>."
+msgstr ""
+
+#: ../gdata/services/youtube/gdata-youtube-service.c:634
+msgid "You must be authenticated to upload a video."
+msgstr ""
+
+#: ../gdata/services/youtube/gdata-youtube-video.c:810
+#, c-format
+msgid "The @time property (\"%s\") of a <media:thumbnail> could not be parsed."
+msgstr ""
