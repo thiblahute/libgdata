@@ -48,6 +48,7 @@ gdata_access_handler_get_type (void)
 		access_handler_type = g_type_register_static_simple (G_TYPE_INTERFACE, "GDataAccessHandler",
 								     sizeof (GDataAccessHandlerIface),
 								     NULL, 0, NULL, 0);
+		g_type_interface_add_prerequisite (access_handler_type, GDATA_TYPE_ENTRY);
 	}
 
 	return access_handler_type;
