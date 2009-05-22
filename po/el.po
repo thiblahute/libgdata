@@ -1,0 +1,254 @@
+# Greek Translation of libgdata.master.po.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# Giannis Katsampirhs <juankatsampirhs@gmail.com>, 2009.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2009-05-22 17:44+0100\n"
+"PO-Revision-Date: 2009-05-22 19:08+0200\n"
+"Last-Translator: Giannis Katsampirhs <juankatsampirhs@gmail.com>\n"
+"Language-Team: Greek <team@gnome.gr>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-Language: Greek\n"
+"X-Poedit-SourceCharset: utf-8\n"
+
+#: ../gdata/gdata-access-handler.c:176
+msgid "The rule has already been inserted."
+msgstr "Έχει ήδη εισαχθεί το πρότυπο."
+
+#: ../gdata/gdata-access-handler.c:378
+msgid "The owner's rule may not be deleted."
+msgstr "Το πρότυπο του ιδιοκτήτη ενδεχομένως να μη διαγραφεί."
+
+#: ../gdata/gdata-parsable.c:128 ../gdata/gdata-parsable.c:139
+#, c-format
+msgid "Error parsing XML: %s"
+msgstr "Σφάλμα κατά τη φόρτωση του αρχείου XML: %s"
+
+#: ../gdata/gdata-parsable.c:140
+msgid "Empty document."
+msgstr "Κενό έγγραφο."
+
+#: ../gdata/gdata-parser.c:42
+#, c-format
+msgid "A <%s> element was missing required content."
+msgstr "Λείπει απαιτούμενο περιεχόμενο από ένα στοιχείο <%s>."
+
+#: ../gdata/gdata-parser.c:58
+#, c-format
+msgid "A <%s>'s <%s> element content (\"%s\") was not in ISO 8601 format."
+msgstr ""
+"Ένα περιεχόμενο <%s> του στοιχείου <%s> (\"%s\") δεν ήταν σε μορφή ISO 8601."
+
+#: ../gdata/gdata-parser.c:70
+#, c-format
+msgid "Unhandled <%s:%s> element as a child of <%s>."
+msgstr ""
+"Δεν ήταν δυνατός ο χειρισμός του στοιχείου <%s:%s> ως συνέπεια του <%s>."
+
+#: ../gdata/gdata-parser.c:83
+#, c-format
+msgid "Unknown value \"%s\" of a <%s> @%s property."
+msgstr "Άγνωστη τιμή \"%s\" μιας <%s> @%s ιδιότητας."
+
+#: ../gdata/gdata-parser.c:95
+#, c-format
+msgid "A required @%s property of a <%s> was not present."
+msgstr "Δεν παρουσιάστηκε η απαιτούμενη ιδιότητα @%s ενός <%s>."
+
+#: ../gdata/gdata-parser.c:106
+#, c-format
+msgid "A required <%s> element as a child of <%s> was not present."
+msgstr "Δεν παρουσιάστηκε το απαιτούμενο στοιχείο <%s> ως συνέπεια του <%s>."
+
+#: ../gdata/gdata-parser.c:117
+#, c-format
+msgid "A <%s> element as a child of <%s> was duplicated."
+msgstr "Έγινε αντιγραφή του στοιχείου <%s> ως συνέπεια του <%s>."
+
+#: ../gdata/gdata-service.c:308 ../gdata/gdata-service.c:724
+#: ../gdata/services/youtube/gdata-youtube-service.c:201
+msgid "The server returned a malformed response."
+msgstr "Ο εξυπηρετητής επέστρεψε μία δύσμορφη απάντηση."
+
+#: ../gdata/gdata-service.c:339
+#, c-format
+msgid "Invalid request URI or header, or unsupported nonstandard parameter: %s"
+msgstr ""
+"Μη έγκυρη διαδρομή ή επικεφαλίδα αίτησης, ή μη υποστηριζόμενη και μη τυπική "
+"παράμετρος: %s"
+
+#: ../gdata/gdata-service.c:344
+#, c-format
+msgid "Authentication required: %s"
+msgstr "Απαιτείται πιστοποίηση: %s"
+
+#: ../gdata/gdata-service.c:348
+#, c-format
+msgid "The requested resource was not found: %s"
+msgstr "Δεν βρέθηκε η απαιτούμενη πηγή: %s"
+
+#: ../gdata/gdata-service.c:352
+#, c-format
+msgid "The entry has been modified since it was downloaded: %s"
+msgstr "Η είσοδος έχει τροποποιηθεί από τη στιγμή που λήφθηκε: %s"
+
+#: ../gdata/gdata-service.c:364
+#, c-format
+msgid "Error code %u when inserting an entry: %s"
+msgstr "Κωδικός σφάλματος %u κατά την εισαγωγή μιας εισόδου: %s"
+
+#: ../gdata/gdata-service.c:368
+#, c-format
+msgid "Error code %u when updating an entry: %s"
+msgstr "Κωδικός σφάλματος %u κατά την ενημέρωση μιας εισόδου: %s"
+
+#: ../gdata/gdata-service.c:372
+#, c-format
+msgid "Error code %u when deleting an entry: %s"
+msgstr "Κωδικός σφάλματος %u κατά τη διαγραφή μιας εισόδου: %s"
+
+#: ../gdata/gdata-service.c:376
+#, c-format
+msgid "Error code %u when querying: %s"
+msgstr "Κωδικός σφάλματος %u κατά την υποβολή ερωτήματος: %s"
+
+#: ../gdata/gdata-service.c:618
+msgid "A CAPTCHA must be filled out to log in."
+msgstr "Για τη σύνδεση πρέπει να συμπληρωθεί ένα CAPTCHA."
+
+#: ../gdata/gdata-service.c:642
+msgid "Your username or password were incorrect."
+msgstr "Ήταν ανακριβές το όνομα χρήστη ή το συνθηματικό σας."
+
+#: ../gdata/gdata-service.c:660
+#, c-format
+msgid "Your account's e-mail address has not been verified. (%s)"
+msgstr "Η ηλεκτρονική διεύθυνση του λογαριασμού σας δεν έχει επαληθευτεί. (%s)"
+
+#: ../gdata/gdata-service.c:664
+#, c-format
+msgid "You have not agreed to the service's terms and conditions. (%s)"
+msgstr ""
+"Δεν έχετε αποδεχτεί τους όρους και τις προϋποθέσεις της υπηρεσίας. (%s)"
+
+#: ../gdata/gdata-service.c:668
+#, c-format
+msgid "This account has been deleted. (%s)"
+msgstr "Έχει διαγραφεί αυτός ο λογαριασμός.(%s)"
+
+#: ../gdata/gdata-service.c:672
+#, c-format
+msgid "This account has been disabled. (%s)"
+msgstr "Ο λογαριασμός αυτός έχει απενεργοποιηθεί. (%s)"
+
+#: ../gdata/gdata-service.c:676
+#, c-format
+msgid "This account's access to this service has been disabled. (%s)"
+msgstr ""
+"Έχει απενεργοποιηθεί η πρόσβαση του λογαριασμού αυτού στην υπηρεσία. (%s)"
+
+#: ../gdata/gdata-service.c:680
+#, c-format
+msgid "This service is not available at the moment. (%s)"
+msgstr "Δεν είναι διαθέσιμη η υπηρεσία αυτή τη στιγμή. (%s)"
+
+#: ../gdata/gdata-service.c:793
+#, c-format
+msgid "Invalid redirect URI: %s"
+msgstr "Μη έγκυρη ανακατεύθυνση διαδρομής: %s"
+
+#: ../gdata/gdata-service.c:1191
+#: ../gdata/services/youtube/gdata-youtube-service.c:628
+msgid "The entry has already been inserted."
+msgstr "Έχει γίνει ήδη εισαγωγή στο πεδίο εισόδου."
+
+#: ../gdata/services/calendar/gdata-calendar-calendar.c:354
+#, c-format
+msgid ""
+"A <%s>'s <%s> element content (\"%s\") was not in hexadecimal RGB format."
+msgstr ""
+"Ένα περιεχόμενο <%s> του στοιχείου <%s> (\"%s\") δεν ήταν σε δεκαεξαδική RGB "
+"μορφή."
+
+#: ../gdata/services/calendar/gdata-calendar-service.c:106
+#: ../gdata/services/calendar/gdata-calendar-service.c:140
+msgid "You must be authenticated to query all calendars."
+msgstr ""
+"Είναι απαραίτητη η πιστοποίησή σας για την υποβολή ερωτήσεων σε όλα τα "
+"ημερολόγια."
+
+#: ../gdata/services/calendar/gdata-calendar-service.c:172
+#: ../gdata/services/calendar/gdata-calendar-service.c:206
+#: ../gdata/services/calendar/gdata-calendar-service.c:240
+msgid "You must be authenticated to query your own calendars."
+msgstr ""
+"Είναι απαραίτητη η πιστοποίησή σας για την υποβολή ερωτήσεων στα ημερολόγιά "
+"σας."
+
+#: ../gdata/services/calendar/gdata-calendar-service.c:249
+msgid "The calendar did not have a content source."
+msgstr "Το ημερολόγιο δεν έχει μία πηγή περιεχομένων."
+
+#: ../gdata/services/contacts/gdata-contacts-service.c:104
+#: ../gdata/services/contacts/gdata-contacts-service.c:139
+msgid "You must be authenticated to query contacts."
+msgstr "Είναι απαραίτητη η πιστοποίησή σας για τη διατύπωση επαφών."
+
+#: ../gdata/services/youtube/gdata-youtube-service.c:307
+#, c-format
+msgid "This service is not available at the moment."
+msgstr "Δεν είναι διαθέσιμη η υπηρεσία αυτή τη στιγμή."
+
+#: ../gdata/services/youtube/gdata-youtube-service.c:312
+#, c-format
+msgid "You must be authenticated to do this."
+msgstr "Είναι απαραίτητη η πιστοποίησή σας για αυτήν την ενέργεια."
+
+#: ../gdata/services/youtube/gdata-youtube-service.c:317
+#, c-format
+msgid ""
+"You have made too many API calls recently. Please wait a few minutes and try "
+"again."
+msgstr ""
+"Έχετε πραγματοποιήσει πάρα πολλές κλήσεις API πρόσφατα. Παρακαλώ περιμένετε "
+"μερικά λεπτά και δοκιμάστε ξανά."
+
+#: ../gdata/services/youtube/gdata-youtube-service.c:320
+#, c-format
+msgid ""
+"You have exceeded your entry quota with the entry \"%s\". Please delete some "
+"entries and try again."
+msgstr ""
+"Έχετε ξεπεράσει την ποσοτική αναλογία της εισόδου σας με την είσοδο \"%s\". "
+"Παρακαλώ διαγράψτε μερικές εισόδους και δοκιμάστε ξανά."
+
+#: ../gdata/services/youtube/gdata-youtube-service.c:325
+#: ../gdata/services/youtube/gdata-youtube-service.c:331
+#, c-format
+msgid ""
+"Unknown error code \"%s\" in domain \"%s\" received with location \"%s\"."
+msgstr ""
+"Λήφθηκε άγνωστος κωδικός σφάλματος \"%s\" στο σύστημα \"%s\" με την "
+"τοποθεσία \"%s\"."
+
+#: ../gdata/services/youtube/gdata-youtube-service.c:541
+#: ../gdata/services/youtube/gdata-youtube-service.c:582
+msgid "The video did not have a related videos <link>."
+msgstr "Το βίντεο δεν έχει σχετικά αρχεία βίντεο <link>."
+
+#: ../gdata/services/youtube/gdata-youtube-service.c:634
+msgid "You must be authenticated to upload a video."
+msgstr "Είναι απαραίτητη η πιστοποίησή σας για τη φόρτωση ενός βίντεο."
+
+#: ../gdata/services/youtube/gdata-youtube-video.c:810
+#, c-format
+msgid "The @time property (\"%s\") of a <media:thumbnail> could not be parsed."
+msgstr ""
+"Δεν ήταν δυνατή η φόρτωση της ιδιότητας @time (\"%s\") μίας <media:"
+"thumbnail>."
