@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: libgdata.master\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
 "product=libgdata&component=general\n"
-"POT-Creation-Date: 2009-05-20 18:51+0000\n"
-"PO-Revision-Date: 2009-05-22 07:26+0200\n"
+"POT-Creation-Date: 2009-05-22 16:44+0000\n"
+"PO-Revision-Date: 2009-05-23 19:54+0200\n"
 "Last-Translator: Jorge González <jorgegonz@svn.gnome.org>\n"
 "Language-Team: Español <gnome-es-list@gnome.org>\n"
 "MIME-Version: 1.0\n"
@@ -47,22 +47,22 @@ msgstr ""
 #: ../gdata/gdata-parser.c:70
 #, c-format
 msgid "Unhandled <%s:%s> element as a child of <%s>."
-msgstr ""
+msgstr "Elemento <%s:%s> no manejado como hijo de <%s>."
 
 #: ../gdata/gdata-parser.c:83
 #, c-format
 msgid "Unknown value \"%s\" of a <%s> @%s property."
-msgstr ""
+msgstr "Valor «%s» desconocido de un <%s> de una propiedad @%s."
 
 #: ../gdata/gdata-parser.c:95
 #, c-format
 msgid "A required @%s property of a <%s> was not present."
-msgstr ""
+msgstr "Una propiedad @%s necesaria de un <%s> no estaba presente."
 
 #: ../gdata/gdata-parser.c:106
 #, c-format
 msgid "A required <%s> element as a child of <%s> was not present."
-msgstr ""
+msgstr "Un elemento <%s> necesario como hijo de <%s> no estaba presente."
 
 #: ../gdata/gdata-parser.c:117
 #, c-format
@@ -145,12 +145,12 @@ msgstr "Esta cuenta se ha desactivado. (%s)"
 #: ../gdata/gdata-service.c:676
 #, c-format
 msgid "This account's access to this service has been disabled. (%s)"
-msgstr ""
+msgstr "El acceso a este servicio de esta cuenta se ha desactivado. (%s)"
 
 #: ../gdata/gdata-service.c:680
 #, c-format
 msgid "This service is not available at the moment. (%s)"
-msgstr ""
+msgstr "El servicio no está disponible por el momento. (%s)"
 
 #: ../gdata/gdata-service.c:793
 #, c-format
@@ -171,32 +171,32 @@ msgstr ""
 #: ../gdata/services/calendar/gdata-calendar-service.c:106
 #: ../gdata/services/calendar/gdata-calendar-service.c:140
 msgid "You must be authenticated to query all calendars."
-msgstr ""
+msgstr "Debe estar autenticado para consultar todos los calendarios."
 
 #: ../gdata/services/calendar/gdata-calendar-service.c:172
 #: ../gdata/services/calendar/gdata-calendar-service.c:206
 #: ../gdata/services/calendar/gdata-calendar-service.c:240
 msgid "You must be authenticated to query your own calendars."
-msgstr ""
+msgstr "Debe estar autenticado para consultar sus propios calendarios."
 
 #: ../gdata/services/calendar/gdata-calendar-service.c:249
 msgid "The calendar did not have a content source."
-msgstr ""
+msgstr "El calendario no tenía una fuente de contenido."
 
 #: ../gdata/services/contacts/gdata-contacts-service.c:104
 #: ../gdata/services/contacts/gdata-contacts-service.c:139
 msgid "You must be authenticated to query contacts."
-msgstr ""
+msgstr "Debe estar autenticado para consultar sus contactos."
 
 #: ../gdata/services/youtube/gdata-youtube-service.c:307
 #, c-format
 msgid "This service is not available at the moment."
-msgstr ""
+msgstr "Este servicio no está disponible en este momento."
 
 #: ../gdata/services/youtube/gdata-youtube-service.c:312
 #, c-format
 msgid "You must be authenticated to do this."
-msgstr ""
+msgstr "Debe estar autenticado para esto."
 
 #: ../gdata/services/youtube/gdata-youtube-service.c:317
 #, c-format
@@ -218,15 +218,17 @@ msgstr ""
 msgid ""
 "Unknown error code \"%s\" in domain \"%s\" received with location \"%s\"."
 msgstr ""
+"Código de error «%s» desconocido en el dominio «%s», recibido con la ubicación "
+"«%s»."
 
 #: ../gdata/services/youtube/gdata-youtube-service.c:541
 #: ../gdata/services/youtube/gdata-youtube-service.c:582
 msgid "The video did not have a related videos <link>."
-msgstr ""
+msgstr "El vídeo no tenía ningún vídeo relacionado <link>."
 
 #: ../gdata/services/youtube/gdata-youtube-service.c:634
 msgid "You must be authenticated to upload a video."
-msgstr ""
+msgstr "Debe estar autenticado para cargar un vídeo."
 
 #: ../gdata/services/youtube/gdata-youtube-video.c:810
 #, c-format
