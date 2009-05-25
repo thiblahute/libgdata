@@ -1,3 +1,57 @@
+Overview of changes from libgdata 0.2.0 to libgdata 0.3.0
+=========================================================
+
+Major changes:
+* Empty (but present) entry titles are now set to an empty string, rather than NULL
+* GDataCalendarEvent has basic recurrence support
+* Optional GNOME support has been added for automagic proxy configuration (depends on libsoup-gnome-2.4)
+* Deprecated libsoup API has been removed, bumping the requirement to 2.26.1
+* Translation comments and some translatable strings have been made clearer
+* Default error handling has been improved
+* More async versions of functions have been added
+* The XML output of GDataCalendarCalendar has been completed
+* GDataYouTubeVideo now has support for recorded times and comment feed links
+* Added a GDataYouTubeQuery class
+* Access control list (ACL) support, implemented on GDataCalendarCalendar
+* Abstract XML parsing into GDataParsable to allow GDataFeed to be overridden
+* Added a GDataCalendarFeed class to deal with calendar-specific properties
+
+API changes:
+* Added GDataCalendarEvent:recurrence, gdata_calendar_event_get_recurrence, gdata_calendar_event_set_recurrence
+* Added GDataCalendarEvent:original-event-id, GDataCalendarEvent:original-event-uri, gdata_calendar_event_get_original_event_details
+* Added gdata_calendar_event_is_exception
+* Added GDATA_SERVICE_ERROR_NOT_FOUND, GDATA_SERVICE_ERROR_CONFLICT
+* Changed GDataServiceClass->parse_error_response
+* Added gdata_service_insert_entry_async, gdata_service_insert_entry_finish
+* Added gdata_service_update_entry_async, gdata_service_update_entry_finish
+* Added gdata_service_delete_entry_async, gdata_service_delete_entry_finish
+* Added gdata_color_to_hexadecimal
+* Added GDataYouTubeVideo:comments-feed-link, gdata_youtube_video_get_comments_feed_link
+* Added GDataYouTubeVideo:recorded, gdata_youtube_video_get_recorded, gdata_youtube_video_set_recorded
+* Added read_only parameter to gdata_gd_feed_link_new and member to GDataGDFeedLink
+* Added GDataYouTubeQuery
+* Added GDataAccessHandler, GDataAccessRule
+* Added GDATA_SERVICE_ERROR_FORBIDDEN
+* Added GDataParsable
+* Changed GDataEntry to extend GDataParsable, rather than GObject
+* Removed GDataEntry->parse_xml
+* Changed GDataFeed to extend GDataParsable, rather than GObject
+* Added GDataCalendarFeed
+* Added GDataServiceClass->feed_type
+
+Bugs fixed:
+* Bug 582026 – Access Control List functionality
+* Bug 578367 – Add support for YouTube-specific query parameters
+* Bug 581706 – translation issues
+* Bug 580330 – Rejects empty entry titles
+
+Updated translations:
+* de (Mario Blättermann)
+* el (Giannis Katsampirhs)
+* en_GB (Philip Withnall)
+* es (Jorge González)
+* gl (Fran Diéguez, Antón Méixome)
+
 Overview of changes from libgdata 0.1.0 to libgdata 0.2.0
 =========================================================
 

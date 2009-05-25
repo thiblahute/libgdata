@@ -8,7 +8,6 @@ EXTRA_DIST = \
 	intltool-update.in	\
 	AUTHORS 		\
 	NEWS			\
-	MAINTAINERS		\
 	HACKING			\
 	gtk-doc.make		\
 	libgdata.pc.in		\

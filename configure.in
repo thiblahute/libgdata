@@ -40,7 +40,7 @@ SOUP_REQS=2.26.1
 # - If the interface is the same as the previous version, change to C:R+1:A
 # Note that versioning started at 2:0:0 to ensure no conflicts with e-d-s' libgdata
 # library, maximum whose version was 1:0:0
-GDATA_LT_VERSION=3:0:0
+GDATA_LT_VERSION=4:0:0
 AC_SUBST(GDATA_LT_VERSION)
 
 GDATA_VERSION_MAJOR=gdata_major_version
