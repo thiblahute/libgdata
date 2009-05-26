@@ -1,0 +1,236 @@
+# Punjabi translation of libgdata.
+# Copyright (C) 2009 libgdata's COPYRIGHT HOLDER
+# This file is distributed under the same license as the libgdata package.
+#
+# A S Alam <aalam@users.sf.net>, 2009.
+msgid ""
+msgstr ""
+"Project-Id-Version: libgdata master\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug."
+"cgi?product=libgdata&component=general\n"
+"POT-Creation-Date: 2009-05-25 10:28+0000\n"
+"PO-Revision-Date: 2009-05-26 19:14+0530\n"
+"Last-Translator: A S Alam <aalam@users.sf.net>\n"
+"Language-Team: Punjabi/Panjabi <punjabi-users@lists.sf.net>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Lokalize 0.3\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+
+#: ../gdata/gdata-access-handler.c:176
+msgid "The rule has already been inserted."
+msgstr "ਰੂਲ ਪਹਿਲਾਂ ਹੀ ਸ਼ਾਮਲ ਹੈ।"
+
+#: ../gdata/gdata-access-handler.c:378
+msgid "The owner's rule may not be deleted."
+msgstr "ਓਨਰ ਦਾ ਰੂਲ ਹਟਾਇਆ ਨਹੀਂ ਜਾ ਸਕਦਾ ਹੈ।"
+
+#: ../gdata/gdata-parsable.c:128 ../gdata/gdata-parsable.c:139
+#, c-format
+msgid "Error parsing XML: %s"
+msgstr "XML ਪਾਰਸਿੰਗ ਗਲਤੀ: %s"
+
+#: ../gdata/gdata-parsable.c:140
+msgid "Empty document."
+msgstr "ਖਾਲੀ ਡੌਕੂਮੈਂਟ ਹੈ। "
+
+#: ../gdata/gdata-parser.c:42
+#, c-format
+msgid "A <%s> element was missing required content."
+msgstr "<%s> ਐਲੀਮੈਂਟ ਲੋੜੀਦੀ ਸਮੱਗਰੀ ਵਿੱਚੋਂ ਗੁੰਮ ਹੈ।"
+
+#: ../gdata/gdata-parser.c:58
+#, c-format
+msgid "A <%s>'s <%s> element content (\"%s\") was not in ISO 8601 format."
+msgstr ""
+
+#: ../gdata/gdata-parser.c:70
+#, c-format
+msgid "Unhandled <%s:%s> element as a child of <%s>."
+msgstr ""
+
+#: ../gdata/gdata-parser.c:83
+#, c-format
+msgid "Unknown value \"%s\" of a <%s> @%s property."
+msgstr ""
+
+#: ../gdata/gdata-parser.c:95
+#, c-format
+msgid "A required @%s property of a <%s> was not present."
+msgstr ""
+
+#: ../gdata/gdata-parser.c:106
+#, c-format
+msgid "A required <%s> element as a child of <%s> was not present."
+msgstr ""
+
+#: ../gdata/gdata-parser.c:117
+#, c-format
+msgid "A <%s> element as a child of <%s> was duplicated."
+msgstr ""
+
+#: ../gdata/gdata-service.c:308 ../gdata/gdata-service.c:724
+#: ../gdata/services/youtube/gdata-youtube-service.c:201
+msgid "The server returned a malformed response."
+msgstr "ਸਰਵਰ ਨੇ ਨਿਕਾਰ ਜਵਾਬ ਦਿੱਤਾ ਹੈ।"
+
+#: ../gdata/gdata-service.c:339
+#, c-format
+msgid "Invalid request URI or header, or unsupported nonstandard parameter: %s"
+msgstr ""
+
+#: ../gdata/gdata-service.c:344
+#, c-format
+msgid "Authentication required: %s"
+msgstr "ਪਰਮਾਣਕਿਤਾ ਲੋੜੀਦੀ: %s"
+
+#: ../gdata/gdata-service.c:348
+#, c-format
+msgid "The requested resource was not found: %s"
+msgstr "ਮੰਗਿਆ ਸਰੋਤ ਨਹੀਂ ਲੱਭਿਆ: %s"
+
+#: ../gdata/gdata-service.c:352
+#, c-format
+msgid "The entry has been modified since it was downloaded: %s"
+msgstr ""
+
+#: ../gdata/gdata-service.c:364
+#, c-format
+msgid "Error code %u when inserting an entry: %s"
+msgstr ""
+
+#: ../gdata/gdata-service.c:368
+#, c-format
+msgid "Error code %u when updating an entry: %s"
+msgstr ""
+
+#: ../gdata/gdata-service.c:372
+#, c-format
+msgid "Error code %u when deleting an entry: %s"
+msgstr ""
+
+#: ../gdata/gdata-service.c:376
+#, c-format
+msgid "Error code %u when querying: %s"
+msgstr ""
+
+#: ../gdata/gdata-service.c:618
+msgid "A CAPTCHA must be filled out to log in."
+msgstr ""
+
+#: ../gdata/gdata-service.c:642
+msgid "Your username or password were incorrect."
+msgstr "ਤੁਹਾਡਾ ਯੂਜ਼ਰ-ਨਾਂ ਜਾਂ ਪਾਸਵਰਡ ਠੀਕ ਨਹੀਂ ਹੈ।"
+
+#: ../gdata/gdata-service.c:660
+#, c-format
+msgid "Your account's e-mail address has not been verified. (%s)"
+msgstr "ਤੁਹਾਡਾ ਅਕਾਊਂਟ ਦੇ ਈਮੇਲ ਐਡਰੈੱਸ ਨੂੰ ਜਾਂਚਿਆ ਨਹੀਂ ਜਾ ਚੁੱਕਿਆ ਹੈ। (%s)"
+
+#: ../gdata/gdata-service.c:664
+#, c-format
+msgid "You have not agreed to the service's terms and conditions. (%s)"
+msgstr "ਤੁਸੀਂ ਸਰਵਿਸ ਦੀਆਂ ਸ਼ਰਤਾਂ ਅਤੇ ਇਕਰਾਰਨਾਮੇ ਨਾਲ ਸਹਿਮਤ ਨਹੀਂ ਹੋਏ ਹੋ। (%s)"
+
+#: ../gdata/gdata-service.c:668
+#, c-format
+msgid "This account has been deleted. (%s)"
+msgstr "ਇਹ ਅਕਾਊਂਟ ਹਟਾਇਆ ਗਿਆ (%s)"
+
+#: ../gdata/gdata-service.c:672
+#, c-format
+msgid "This account has been disabled. (%s)"
+msgstr "ਇਹ ਅਕਾਊਂਟ ਆਯੋਗ ਹੈ। (%s)"
+
+#: ../gdata/gdata-service.c:676
+#, c-format
+msgid "This account's access to this service has been disabled. (%s)"
+msgstr "ਇਸ ਅਕਾਊਂਟ ਲਈ ਇਸ ਸਰਵਿਸ ਲਈ ਪਹੁੰਚ ਆਯੋਗ ਕੀਤੀ ਜਾ ਚੁੱਕੀ ਹੈ। (%s)"
+
+#: ../gdata/gdata-service.c:680
+#, c-format
+msgid "This service is not available at the moment. (%s)"
+msgstr "ਇਹ ਸਰਵਿਸ ਇਸ ਸਮੇਂ ਉਪਲੱਬਧ ਨਹੀਂ ਹੈ। (%s)"
+
+#: ../gdata/gdata-service.c:793
+#, c-format
+msgid "Invalid redirect URI: %s"
+msgstr "ਅਢੁੱਕਵਾਂ ਰੀਡਾਇਰੈਕਟ URI: %s"
+
+#: ../gdata/gdata-service.c:1191
+#: ../gdata/services/youtube/gdata-youtube-service.c:628
+msgid "The entry has already been inserted."
+msgstr "ਐਂਟਰੀ ਪਹਿਲਾਂ ਹੀ ਸ਼ਾਮਲ ਕੀਤੀ ਗਈ।"
+
+#: ../gdata/services/calendar/gdata-calendar-calendar.c:354
+#, c-format
+msgid ""
+"A <%s>'s <%s> element content (\"%s\") was not in hexadecimal RGB format."
+msgstr ""
+
+#: ../gdata/services/calendar/gdata-calendar-service.c:106
+#: ../gdata/services/calendar/gdata-calendar-service.c:140
+msgid "You must be authenticated to query all calendars."
+msgstr "ਸਭ ਕੈਲੰਡਰਾਂ ਬਾਰੇ ਜਾਣਕਾਰੀ ਲਈ ਤੁਹਾਨੂੰ ਪਰਮਾਣਿਤ ਹੋਣਾ ਪਵੇਗਾ।"
+
+#: ../gdata/services/calendar/gdata-calendar-service.c:172
+#: ../gdata/services/calendar/gdata-calendar-service.c:206
+#: ../gdata/services/calendar/gdata-calendar-service.c:240
+msgid "You must be authenticated to query your own calendars."
+msgstr "ਤੁਹਾਨੂੰ ਆਪਣੇ ਕੈਲੰਡਰ ਨਾਲ ਜਾਣਕਾਰੀ ਲੈਣ ਲਈ ਪਰਮਾਣਿਤ ਹੋਣਾ ਪਵੇਗਾ।"
+
+#: ../gdata/services/calendar/gdata-calendar-service.c:249
+msgid "The calendar did not have a content source."
+msgstr "ਕੈਲੰਡਰ ਕੋਲ ਸਮੱਗਰੀ ਸਰੋਤ ਨਹੀਂ ਹੈ।"
+
+#: ../gdata/services/contacts/gdata-contacts-service.c:104
+#: ../gdata/services/contacts/gdata-contacts-service.c:139
+msgid "You must be authenticated to query contacts."
+msgstr "ਸੰਪਰਕਾਂ ਬਾਰੇ ਜਾਣਕਾਰੀ ਲਈ ਤੁਹਾਨੂੰ ਪਰਮਾਣਿਤ ਹੋਣਾ ਪਵੇਗਾ।"
+
+#: ../gdata/services/youtube/gdata-youtube-service.c:307
+#, c-format
+msgid "This service is not available at the moment."
+msgstr "ਇਹ ਸਰਵਿਸ ਇਸ ਸਮੇਂ ਉਪਲੱਬਧ ਨਹੀਂ ਹੈ।"
+
+#: ../gdata/services/youtube/gdata-youtube-service.c:312
+#, c-format
+msgid "You must be authenticated to do this."
+msgstr "ਤੁਹਾਨੂੰ ਇਹ ਕਰਨ ਲਈ ਪਰਮਾਣਿਤ ਹੋਵੇਗਾ।"
+
+#: ../gdata/services/youtube/gdata-youtube-service.c:317
+#, c-format
+msgid ""
+"You have made too many API calls recently. Please wait a few minutes and try "
+"again."
+msgstr ""
+
+#: ../gdata/services/youtube/gdata-youtube-service.c:320
+#, c-format
+msgid ""
+"You have exceeded your entry quota with the entry \"%s\". Please delete some "
+"entries and try again."
+msgstr ""
+
+#: ../gdata/services/youtube/gdata-youtube-service.c:325
+#: ../gdata/services/youtube/gdata-youtube-service.c:331
+#, c-format
+msgid ""
+"Unknown error code \"%s\" in domain \"%s\" received with location \"%s\"."
+msgstr ""
+
+#: ../gdata/services/youtube/gdata-youtube-service.c:541
+#: ../gdata/services/youtube/gdata-youtube-service.c:582
+msgid "The video did not have a related videos <link>."
+msgstr "ਵੀਡਿਓ ਨਾਲ ਸਬੰਧਿਤ ਵੀਡਿਓ ਨਹੀਂ ਹਨ<link>।"
+
+#: ../gdata/services/youtube/gdata-youtube-service.c:634
+msgid "You must be authenticated to upload a video."
+msgstr "ਤੁਹਾਨੂੰ ਵੀਡਿਓ ਅੱਪਲੋਡ ਕਰਨ ਲਈ ਪਰਮਾਣਿਤ ਹੋਣਾ ਪਵੇਗਾ।"
+
+#: ../gdata/services/youtube/gdata-youtube-video.c:810
+#, c-format
+msgid "The @time property (\"%s\") of a <media:thumbnail> could not be parsed."
+msgstr ""
+
