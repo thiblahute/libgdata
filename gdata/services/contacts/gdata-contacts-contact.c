@@ -1017,6 +1017,23 @@ gdata_contacts_contact_get_extended_property (GDataContactsContact *self, const 
 }
 
 /**
+ * gdata_contacts_contact_get_extended_properties:
+ * @self: a #GDataContactsContact
+ *
+ * Gets the full list of extended properties of the contact; a hash table mapping property name to value.
+ *
+ * Return value: a #GHashTable of extended properties
+ *
+ * Since: 0.4.0
+ **/
+GHashTable *
+gdata_contacts_contact_get_extended_properties (GDataContactsContact *self)
+{
+	g_return_val_if_fail (GDATA_IS_CONTACTS_CONTACT (self), NULL);
+	return self->priv->extended_properties;
+}
+
+/**
  * gdata_contacts_contact_set_extended_property:
  * @self: a #GDataContactsContact
  * @name: the property name; an arbitrary, unique string
