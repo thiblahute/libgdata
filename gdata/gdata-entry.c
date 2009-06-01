@@ -635,7 +635,10 @@ gdata_entry_get_published (GDataEntry *self, GTimeVal *published)
  * @self: a #GDataEntry
  * @category: a #GDataCategory to add
  *
- * Adds @category to the list of categories in the given #GDataEntry.
+ * Adds @category to the list of categories in the given #GDataEntry. The #GDataEntry takes
+ * ownership of @category, so it must not be freed after being added.
+ *
+ * Duplicate categories will not be added to the list.
  **/
 void
 gdata_entry_add_category (GDataEntry *self, GDataCategory *category)
@@ -643,7 +646,10 @@ gdata_entry_add_category (GDataEntry *self, GDataCategory *category)
 	g_return_if_fail (GDATA_IS_ENTRY (self));
 	g_return_if_fail (category != NULL);
 
-	self->priv->categories = g_list_prepend (self->priv->categories, category);
+	if (g_list_find_custom (self->priv->categories, category, (GCompareFunc) gdata_category_compare) == NULL)
+		self->priv->categories = g_list_prepend (self->priv->categories, category);
+	else
+		gdata_category_free (category);
 }
 
 /**
@@ -700,7 +706,10 @@ gdata_entry_set_content (GDataEntry *self, const gchar *content)
  * @self: a #GDataEntry
  * @link: a #GDataLink to add
  *
- * Adds @link to the list of links in the given #GDataEntry.
+ * Adds @link to the list of links in the given #GDataEntry. The #GDataEntry takes
+ * ownership of @link, so it must not be freed after being added.
+ *
+ * Duplicate links will not be added to the list.
  **/
 void
 gdata_entry_add_link (GDataEntry *self, GDataLink *link)
@@ -709,7 +718,10 @@ gdata_entry_add_link (GDataEntry *self, GDataLink *link)
 	g_return_if_fail (GDATA_IS_ENTRY (self));
 	g_return_if_fail (link != NULL);
 
-	self->priv->links = g_list_prepend (self->priv->links, link);
+	if (g_list_find_custom (self->priv->links, link, (GCompareFunc) gdata_link_compare) == NULL)
+		self->priv->links = g_list_prepend (self->priv->links, link);
+	else
+		gdata_link_free (link);
 }
 
 static gint
@@ -748,7 +760,10 @@ gdata_entry_look_up_link (GDataEntry *self, const gchar *rel)
  * @self: a #GDataEntry
  * @author: a #GDataAuthor to add
  *
- * Adds @author to the list of authors in the given #GDataEntry.
+ * Adds @author to the list of authors in the given #GDataEntry. The #GDataEntry takes
+ * ownership of @author, so it must not be freed after being added.
+ *
+ * Duplicate authors will not be added to the list.
  **/
 void
 gdata_entry_add_author (GDataEntry *self, GDataAuthor *author)
@@ -757,7 +772,10 @@ gdata_entry_add_author (GDataEntry *self, GDataAuthor *author)
 	g_return_if_fail (GDATA_IS_ENTRY (self));
 	g_return_if_fail (author != NULL);
 
-	self->priv->authors = g_list_prepend (self->priv->authors, author);
+	if (g_list_find_custom (self->priv->authors, author, (GCompareFunc) gdata_author_compare) == NULL)
+		self->priv->authors = g_list_prepend (self->priv->authors, author);
+	else
+		gdata_author_free (author);
 }
 
 /**

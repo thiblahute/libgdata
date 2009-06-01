@@ -1104,6 +1104,8 @@ gdata_calendar_event_set_anyone_can_add_self (GDataCalendarEvent *self, gboolean
  *
  * Adds the person @who to the event as a guest (attendee, organiser, performer, etc.).
  * The #GDataCalendarEvent takes ownership of @who, so it must not be freed after being added.
+ *
+ * Duplicate people will not be added to the list.
  **/
 void
 gdata_calendar_event_add_person (GDataCalendarEvent *self, GDataGDWho *who)
@@ -1111,7 +1113,10 @@ gdata_calendar_event_add_person (GDataCalendarEvent *self, GDataGDWho *who)
 	g_return_if_fail (GDATA_IS_CALENDAR_EVENT (self));
 	g_return_if_fail (who != NULL);
 
-	self->priv->people = g_list_append (self->priv->people, who);
+	if (g_list_find_custom (self->priv->people, who, (GCompareFunc) gdata_gd_who_compare) == NULL)
+		self->priv->people = g_list_append (self->priv->people, who);
+	else
+		gdata_gd_who_free (who);
 }
 
 /**
@@ -1138,6 +1143,8 @@ gdata_calendar_event_get_people (GDataCalendarEvent *self)
  *
  * Adds the place @where to the event as a location.
  * The #GDataCalendarEvent takes ownership of @where, so it must not be freed after being added.
+ *
+ * Duplicate places will not be added to the list.
  **/
 void
 gdata_calendar_event_add_place (GDataCalendarEvent *self, GDataGDWhere *where)
@@ -1145,7 +1152,10 @@ gdata_calendar_event_add_place (GDataCalendarEvent *self, GDataGDWhere *where)
 	g_return_if_fail (GDATA_IS_CALENDAR_EVENT (self));
 	g_return_if_fail (where != NULL);
 
-	self->priv->places = g_list_append (self->priv->places, where);
+	if (g_list_find_custom (self->priv->places, where, (GCompareFunc) gdata_gd_where_compare) == NULL)
+		self->priv->places = g_list_append (self->priv->places, where);
+	else
+		gdata_gd_where_free (where);
 }
 
 /**
@@ -1173,6 +1183,8 @@ gdata_calendar_event_get_places (GDataCalendarEvent *self)
  * Adds @when to the event as a time period when the event happens.
  * The #GDataCalendarEvent takes ownership of @when, so it must not be freed after being added.
  *
+ * Duplicate times will not be added to the list.
+ *
  * Since: 0.2.0
  **/
 void
@@ -1181,7 +1193,10 @@ gdata_calendar_event_add_time (GDataCalendarEvent *self, GDataGDWhen *when)
 	g_return_if_fail (GDATA_IS_CALENDAR_EVENT (self));
 	g_return_if_fail (when != NULL);
 
-	self->priv->times = g_list_append (self->priv->times, when);
+	if (g_list_find_custom (self->priv->times, when, (GCompareFunc) gdata_gd_when_compare) == NULL)
+		self->priv->times = g_list_append (self->priv->times, when);
+	else
+		gdata_gd_when_free (when);
 }
 
 /**

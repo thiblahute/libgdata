@@ -683,6 +683,8 @@ gdata_contacts_contact_get_edited (GDataContactsContact *self, GTimeVal *edited)
  * (with gdata_contacts_service_insert_contact()) will return an error if more than one e-mail address
  * is marked as primary.
  *
+ * Duplicate e-mail addresses will not be added to the list.
+ *
  * Since: 0.2.0
  **/
 void
@@ -691,7 +693,10 @@ gdata_contacts_contact_add_email_address (GDataContactsContact *self, GDataGDEma
 	g_return_if_fail (GDATA_IS_CONTACTS_CONTACT (self));
 	g_return_if_fail (email_address != NULL);
 
-	self->priv->email_addresses = g_list_append (self->priv->email_addresses, email_address);
+	if (g_list_find_custom (self->priv->email_addresses, email_address, (GCompareFunc) gdata_gd_email_address_compare) == NULL)
+		self->priv->email_addresses = g_list_append (self->priv->email_addresses, email_address);
+	else
+		gdata_gd_email_address_free (email_address);
 }
 
 /**
@@ -748,6 +753,8 @@ gdata_contacts_contact_get_primary_email_address (GDataContactsContact *self)
  * (with gdata_contacts_service_insert_contact()) will return an error if more than one IM address
  * is marked as primary.
  *
+ * Duplicate IM addresses will not be added to the list.
+ *
  * Since: 0.2.0
  **/
 void
@@ -756,7 +763,10 @@ gdata_contacts_contact_add_im_address (GDataContactsContact *self, GDataGDIMAddr
 	g_return_if_fail (GDATA_IS_CONTACTS_CONTACT (self));
 	g_return_if_fail (im_address != NULL);
 
-	self->priv->im_addresses = g_list_append (self->priv->im_addresses, im_address);
+	if (g_list_find_custom (self->priv->im_addresses, im_address, (GCompareFunc) gdata_gd_im_address_compare) == NULL)
+		self->priv->im_addresses = g_list_append (self->priv->im_addresses, im_address);
+	else
+		gdata_gd_im_address_free (im_address);
 }
 
 /**
@@ -813,6 +823,8 @@ gdata_contacts_contact_get_primary_im_address (GDataContactsContact *self)
  * (with gdata_contacts_service_insert_contact()) will return an error if more than one phone number
  * is marked as primary.
  *
+ * Duplicate phone numbers will not be added to the list.
+ *
  * Since: 0.2.0
  **/
 void
@@ -821,7 +833,10 @@ gdata_contacts_contact_add_phone_number (GDataContactsContact *self, GDataGDPhon
 	g_return_if_fail (GDATA_IS_CONTACTS_CONTACT (self));
 	g_return_if_fail (phone_number != NULL);
 
-	self->priv->phone_numbers = g_list_append (self->priv->phone_numbers, phone_number);
+	if (g_list_find_custom (self->priv->phone_numbers, phone_number, (GCompareFunc) gdata_gd_phone_number_compare) == NULL)
+		self->priv->phone_numbers = g_list_append (self->priv->phone_numbers, phone_number);
+	else
+		gdata_gd_phone_number_free (phone_number);
 }
 
 /**
@@ -878,6 +893,8 @@ gdata_contacts_contact_get_primary_phone_number (GDataContactsContact *self)
  * (with gdata_contacts_service_insert_contact()) will return an error if more than one postal address
  * is marked as primary.
  *
+ * Duplicate postal addresses will not be added to the list.
+ *
  * Since: 0.2.0
  **/
 void
@@ -886,7 +903,10 @@ gdata_contacts_contact_add_postal_address (GDataContactsContact *self, GDataGDPo
 	g_return_if_fail (GDATA_IS_CONTACTS_CONTACT (self));
 	g_return_if_fail (postal_address != NULL);
 
-	self->priv->postal_addresses = g_list_append (self->priv->postal_addresses, postal_address);
+	if (g_list_find_custom (self->priv->postal_addresses, postal_address, (GCompareFunc) gdata_gd_postal_address_compare) == NULL)
+		self->priv->postal_addresses = g_list_append (self->priv->postal_addresses, postal_address);
+	else
+		gdata_gd_postal_address_free (postal_address);
 }
 
 /**
@@ -943,6 +963,8 @@ gdata_contacts_contact_get_primary_postal_address (GDataContactsContact *self)
  * (with gdata_contacts_service_insert_contact()) will return an error if more than one organization
  * is marked as primary.
  *
+ * Duplicate organizations will not be added to the list.
+ *
  * Since: 0.2.0
  **/
 void
@@ -951,7 +973,10 @@ gdata_contacts_contact_add_organization (GDataContactsContact *self, GDataGDOrga
 	g_return_if_fail (GDATA_IS_CONTACTS_CONTACT (self));
 	g_return_if_fail (organization != NULL);
 
-	self->priv->organizations = g_list_append (self->priv->organizations, organization);
+	if (g_list_find_custom (self->priv->organizations, organization, (GCompareFunc) gdata_gd_organization_compare) == NULL)
+		self->priv->organizations = g_list_append (self->priv->organizations, organization);
+	else
+		gdata_gd_organization_free (organization);
 }
 
 /**

@@ -58,6 +58,33 @@ gdata_category_new (const gchar *term, const gchar *scheme, const gchar *label)
 }
 
 /**
+ * gdata_category_compare:
+ * @a: a #GDataCategory, or %NULL
+ * @b: another #GDataCategory, or %NULL
+ *
+ * Compares the two categories in a strcmp() fashion. %NULL values are handled gracefully, with
+ * %0 returned if both @a and @b are %NULL, %-1 if @a is %NULL and %1 if @b is %NULL.
+ *
+ * The comparison of non-%NULL values is done on the basis of the @term field of the #GDataCategory<!-- -->s.
+ *
+ * Return value: %0 if @a equals @b, %-1 or %1 as appropriate otherwise
+ *
+ * Since: 0.4.0
+ **/
+gint
+gdata_category_compare (const GDataCategory *a, const GDataCategory *b)
+{
+	if (a == NULL && b != NULL)
+		return -1;
+	else if (b == NULL)
+		return 1;
+
+	if (a == b)
+		return 0;
+	return g_strcmp0 (a->term, b->term);
+}
+
+/**
  * gdata_category_free
  * @self: a #GDataCategory
  *
@@ -111,6 +138,33 @@ gdata_link_new (const gchar *href, const gchar *rel, const gchar *type, const gc
 }
 
 /**
+ * gdata_link_compare:
+ * @a: a #GDataLink, or %NULL
+ * @b: another #GDataLink, or %NULL
+ *
+ * Compares the two links in a strcmp() fashion. %NULL values are handled gracefully, with
+ * %0 returned if both @a and @b are %NULL, %-1 if @a is %NULL and %1 if @b is %NULL.
+ *
+ * The comparison of non-%NULL values is done on the basis of the @href field of the #GDataLink<!-- -->s.
+ *
+ * Return value: %0 if @a equals @b, %-1 or %1 as appropriate otherwise
+ *
+ * Since: 0.4.0
+ **/
+gint
+gdata_link_compare (const GDataLink *a, const GDataLink *b)
+{
+	if (a == NULL && b != NULL)
+		return -1;
+	else if (b == NULL)
+		return 1;
+
+	if (a == b)
+		return 0;
+	return g_strcmp0 (a->href, b->href);
+}
+
+/**
  * gdata_link_free
  * @self: a #GDataLink
  *
@@ -158,6 +212,33 @@ gdata_author_new (const gchar *name, const gchar *uri, const gchar *email)
 }
 
 /**
+ * gdata_author_compare:
+ * @a: a #GDataAuthor, or %NULL
+ * @b: another #GDataAuthor, or %NULL
+ *
+ * Compares the two authors in a strcmp() fashion. %NULL values are handled gracefully, with
+ * %0 returned if both @a and @b are %NULL, %-1 if @a is %NULL and %1 if @b is %NULL.
+ *
+ * The comparison of non-%NULL values is done on the basis of the @name field of the #GDataAuthor<!-- -->s.
+ *
+ * Return value: %0 if @a equals @b, %-1 or %1 as appropriate otherwise
+ *
+ * Since: 0.4.0
+ **/
+gint
+gdata_author_compare (const GDataAuthor *a, const GDataAuthor *b)
+{
+	if (a == NULL && b != NULL)
+		return -1;
+	else if (b == NULL)
+		return 1;
+
+	if (a == b)
+		return 0;
+	return g_strcmp0 (a->name, b->name);
+}
+
+/**
  * gdata_author_free
  * @self: a #GDataAuthor
  *
@@ -200,6 +281,33 @@ gdata_generator_new (const gchar *name, const gchar *uri, const gchar *version)
 	self->uri = g_strdup (uri);
 	self->version = g_strdup (version);
 	return self;
+}
+
+/**
+ * gdata_generator_compare:
+ * @a: a #GDataGenerator, or %NULL
+ * @b: another #GDataGenerator, or %NULL
+ *
+ * Compares the two generators in a strcmp() fashion. %NULL values are handled gracefully, with
+ * %0 returned if both @a and @b are %NULL, %-1 if @a is %NULL and %1 if @b is %NULL.
+ *
+ * The comparison of non-%NULL values is done on the basis of the @name field of the #GDataGenerator<!-- -->s.
+ *
+ * Return value: %0 if @a equals @b, %-1 or %1 as appropriate otherwise
+ *
+ * Since: 0.4.0
+ **/
+gint
+gdata_generator_compare (const GDataGenerator *a, const GDataGenerator *b)
+{
+	if (a == NULL && b != NULL)
+		return -1;
+	else if (b == NULL)
+		return 1;
+
+	if (a == b)
+		return 0;
+	return g_strcmp0 (a->name, b->name);
 }
 
 /**

@@ -57,6 +57,35 @@ gdata_gd_rating_new (guint min, guint max, guint num_raters, gdouble average)
 }
 
 /**
+ * gdata_gd_rating_compare:
+ * @a: a #GDataGDRating, or %NULL
+ * @b: another #GDataGDRating, or %NULL
+ *
+ * Compares the two ratings in a strcmp() fashion. %NULL values are handled gracefully, with
+ * %0 returned if both @a and @b are %NULL, %-1 if @a is %NULL and %1 if @b is %NULL.
+ *
+ * The comparison of non-%NULL values is done on the basis of the @average and @num_raters fields of the #GDataGDRating<!-- -->s.
+ *
+ * Return value: %0 if @a equals @b, %-1 or %1 as appropriate otherwise
+ *
+ * Since: 0.4.0
+ **/
+gint
+gdata_gd_rating_compare (const GDataGDRating *a, const GDataGDRating *b)
+{
+	if (a == NULL && b != NULL)
+		return -1;
+	else if (b == NULL)
+		return 1;
+
+	if (a == b)
+		return 0;
+	if (a->num_raters == b->num_raters)
+		return CLAMP (b->average - a->average, -1, 1);
+	return CLAMP ((gint) (b->num_raters - a->num_raters), -1, (gint) 1);
+}
+
+/**
  * gdata_gd_rating_free:
  * @self: a #GDataGDRating
  *
@@ -98,6 +127,33 @@ gdata_gd_feed_link_new (const gchar *href, const gchar *rel, guint count_hint, g
 	self->count_hint = count_hint;
 	self->read_only = read_only;
 	return self;
+}
+
+/**
+ * gdata_gd_feed_link_compare:
+ * @a: a #GDataGDFeedLink, or %NULL
+ * @b: another #GDataGDFeedLink, or %NULL
+ *
+ * Compares the two feed links in a strcmp() fashion. %NULL values are handled gracefully, with
+ * %0 returned if both @a and @b are %NULL, %-1 if @a is %NULL and %1 if @b is %NULL.
+ *
+ * The comparison of non-%NULL values is done on the basis of the @href field of the #GDataGDFeedLink<!-- -->s.
+ *
+ * Return value: %0 if @a equals @b, %-1 or %1 as appropriate otherwise
+ *
+ * Since: 0.4.0
+ **/
+gint
+gdata_gd_feed_link_compare (const GDataGDFeedLink *a, const GDataGDFeedLink *b)
+{
+	if (a == NULL && b != NULL)
+		return -1;
+	else if (b == NULL)
+		return 1;
+
+	if (a == b)
+		return 0;
+	return g_strcmp0 (a->href, b->href);
 }
 
 /**
@@ -160,6 +216,38 @@ gdata_gd_when_new (GTimeVal *start_time, GTimeVal *end_time, gboolean is_date, c
 }
 
 /**
+ * gdata_gd_when_compare:
+ * @a: a #GDataGDWhen, or %NULL
+ * @b: another #GDataGDWhen, or %NULL
+ *
+ * Compares the two times in a strcmp() fashion. %NULL values are handled gracefully, with
+ * %0 returned if both @a and @b are %NULL, %-1 if @a is %NULL and %1 if @b is %NULL.
+ *
+ * The comparison of non-%NULL values is done on the basis of the @start_time, @end_time and @is_date fields of the #GDataGDWhen<!-- -->s.
+ *
+ * Return value: %0 if @a equals @b, %-1 or %1 as appropriate otherwise
+ *
+ * Since: 0.4.0
+ **/
+gint
+gdata_gd_when_compare (const GDataGDWhen *a, const GDataGDWhen *b)
+{
+	if (a == NULL && b != NULL)
+		return -1;
+	else if (b == NULL)
+		return 1;
+
+	if (a == b)
+		return 0;
+	if (a->is_date != b->is_date)
+		return CLAMP (b->is_date - a->is_date, -1, 1);
+
+	if (a->start_time.tv_sec == b->start_time.tv_sec && a->start_time.tv_usec == b->start_time.tv_usec)
+		return CLAMP ((b->end_time.tv_sec * 1000 + b->end_time.tv_usec) - (a->end_time.tv_sec * 1000 + a->end_time.tv_usec), -1, 1);
+	return CLAMP ((b->start_time.tv_sec * 1000 + b->start_time.tv_usec) - (a->start_time.tv_sec * 1000 + a->start_time.tv_usec), -1, 1);
+}
+
+/**
  * gdata_gd_when_free:
  * @self: a #GDataGDWhen
  *
@@ -203,6 +291,39 @@ gdata_gd_who_new (const gchar *rel, const gchar *value_string, const gchar *emai
 }
 
 /**
+ * gdata_gd_who_compare:
+ * @a: a #GDataGDWho, or %NULL
+ * @b: another #GDataGDWho, or %NULL
+ *
+ * Compares the two people in a strcmp() fashion. %NULL values are handled gracefully, with
+ * %0 returned if both @a and @b are %NULL, %-1 if @a is %NULL and %1 if @b is %NULL.
+ *
+ * The comparison of non-%NULL values is done on the basis of the @email and @value_string fields of the #GDataGDWho<!-- -->s.
+ *
+ * Return value: %0 if @a equals @b, %-1 or %1 as appropriate otherwise
+ *
+ * Since: 0.4.0
+ **/
+gint
+gdata_gd_who_compare (const GDataGDWho *a, const GDataGDWho *b)
+{
+	gint value_string_cmp;
+
+	if (a == NULL && b != NULL)
+		return -1;
+	else if (b == NULL)
+		return 1;
+
+	if (a == b)
+		return 0;
+
+	value_string_cmp = g_strcmp0 (a->value_string, b->value_string);
+	if (value_string_cmp == 0 && g_strcmp0 (a->email, b->email))
+		return 0;
+	return value_string_cmp;
+}
+
+/**
  * gdata_gd_who_free:
  * @self: a #GDataGDWho
  *
@@ -241,6 +362,39 @@ gdata_gd_where_new (const gchar *rel, const gchar *value_string, const gchar *la
 	self->label = g_strdup (label);
 	self->value_string = g_strdup (value_string);
 	return self;
+}
+
+/**
+ * gdata_gd_where_compare:
+ * @a: a #GDataGDWhere, or %NULL
+ * @b: another #GDataGDWhere, or %NULL
+ *
+ * Compares the two places in a strcmp() fashion. %NULL values are handled gracefully, with
+ * %0 returned if both @a and @b are %NULL, %-1 if @a is %NULL and %1 if @b is %NULL.
+ *
+ * The comparison of non-%NULL values is done on the basis of the @label and @value_string fields of the #GDataGDWhere<!-- -->s.
+ *
+ * Return value: %0 if @a equals @b, %-1 or %1 as appropriate otherwise
+ *
+ * Since: 0.4.0
+ **/
+gint
+gdata_gd_where_compare (const GDataGDWhere *a, const GDataGDWhere *b)
+{
+	gint value_string_cmp;
+
+	if (a == NULL && b != NULL)
+		return -1;
+	else if (b == NULL)
+		return 1;
+
+	if (a == b)
+		return 0;
+
+	value_string_cmp = g_strcmp0 (a->value_string, b->value_string);
+	if (value_string_cmp == 0 && g_strcmp0 (a->label, b->label))
+		return 0;
+	return value_string_cmp;
 }
 
 /**
@@ -288,6 +442,33 @@ gdata_gd_email_address_new (const gchar *address, const gchar *rel, const gchar 
 	self->label = g_strdup (label);
 	self->primary = primary;
 	return self;
+}
+
+/**
+ * gdata_gd_email_address_compare:
+ * @a: a #GDataGDEmailAddress, or %NULL
+ * @b: another #GDataGDEmailAddress, or %NULL
+ *
+ * Compares the two e-mail addresses in a strcmp() fashion. %NULL values are handled gracefully, with
+ * %0 returned if both @a and @b are %NULL, %-1 if @a is %NULL and %1 if @b is %NULL.
+ *
+ * The comparison of non-%NULL values is done on the basis of the @address field of the #GDataGDEmailAddress<!-- -->es.
+ *
+ * Return value: %0 if @a equals @b, %-1 or %1 as appropriate otherwise
+ *
+ * Since: 0.4.0
+ **/
+gint
+gdata_gd_email_address_compare (const GDataGDEmailAddress *a, const GDataGDEmailAddress *b)
+{
+	if (a == NULL && b != NULL)
+		return -1;
+	else if (b == NULL)
+		return 1;
+
+	if (a == b)
+		return 0;
+	return g_strcmp0 (a->address, b->address);
 }
 
 /**
@@ -339,6 +520,39 @@ gdata_gd_im_address_new (const gchar *address, const gchar *protocol, const gcha
 	self->label = g_strdup (label);
 	self->primary = primary;
 	return self;
+}
+
+/**
+ * gdata_gd_im_address_compare:
+ * @a: a #GDataGDIMAddress, or %NULL
+ * @b: another #GDataGDIMAddress, or %NULL
+ *
+ * Compares the two IM addresses in a strcmp() fashion. %NULL values are handled gracefully, with
+ * %0 returned if both @a and @b are %NULL, %-1 if @a is %NULL and %1 if @b is %NULL.
+ *
+ * The comparison of non-%NULL values is done on the basis of the @address and @protocol fields of the #GDataGDIMAddress<!-- -->es.
+ *
+ * Return value: %0 if @a equals @b, %-1 or %1 as appropriate otherwise
+ *
+ * Since: 0.4.0
+ **/
+gint
+gdata_gd_im_address_compare (const GDataGDIMAddress *a, const GDataGDIMAddress *b)
+{
+	gint address_cmp;
+
+	if (a == NULL && b != NULL)
+		return -1;
+	else if (b == NULL)
+		return 1;
+
+	if (a == b)
+		return 0;
+
+	address_cmp = g_strcmp0 (a->address, b->address);
+	if (address_cmp == 0 && g_strcmp0 (a->protocol, b->protocol) == 0)
+		return 0;
+	return address_cmp;
 }
 
 /**
@@ -395,6 +609,33 @@ gdata_gd_phone_number_new (const gchar *number, const gchar *rel, const gchar *l
 }
 
 /**
+ * gdata_gd_phone_number_compare:
+ * @a: a #GDataGDPhoneNumber, or %NULL
+ * @b: another #GDataGDPhoneNumber, or %NULL
+ *
+ * Compares the two phone numbers in a strcmp() fashion. %NULL values are handled gracefully, with
+ * %0 returned if both @a and @b are %NULL, %-1 if @a is %NULL and %1 if @b is %NULL.
+ *
+ * The comparison of non-%NULL values is done on the basis of the @number field of the #GDataGDPhoneNumber<!-- -->s.
+ *
+ * Return value: %0 if @a equals @b, %-1 or %1 as appropriate otherwise
+ *
+ * Since: 0.4.0
+ **/
+gint
+gdata_gd_phone_number_compare (const GDataGDPhoneNumber *a, const GDataGDPhoneNumber *b)
+{
+	if (a == NULL && b != NULL)
+		return -1;
+	else if (b == NULL)
+		return 1;
+
+	if (a == b)
+		return 0;
+	return g_strcmp0 (a->number, b->number);
+}
+
+/**
  * gdata_gd_phone_number_free:
  * @self: a #GDataGDPhoneNumber
  *
@@ -445,6 +686,33 @@ gdata_gd_postal_address_new (const gchar *address, const gchar *rel, const gchar
 }
 
 /**
+ * gdata_gd_postal_address_compare:
+ * @a: a #GDataGDPostalAddress, or %NULL
+ * @b: another #GDataGDPostalAddress, or %NULL
+ *
+ * Compares the two postal addresses in a strcmp() fashion. %NULL values are handled gracefully, with
+ * %0 returned if both @a and @b are %NULL, %-1 if @a is %NULL and %1 if @b is %NULL.
+ *
+ * The comparison of non-%NULL values is done on the basis of the @address field of the #GDataGDPostalAddress<!-- -->es.
+ *
+ * Return value: %0 if @a equals @b, %-1 or %1 as appropriate otherwise
+ *
+ * Since: 0.4.0
+ **/
+gint
+gdata_gd_postal_address_compare (const GDataGDPostalAddress *a, const GDataGDPostalAddress *b)
+{
+	if (a == NULL && b != NULL)
+		return -1;
+	else if (b == NULL)
+		return 1;
+
+	if (a == b)
+		return 0;
+	return g_strcmp0 (a->address, b->address);
+}
+
+/**
  * gdata_gd_postal_address_free:
  * @self: a #GDataGDPostalAddress
  *
@@ -489,6 +757,33 @@ gdata_gd_organization_new (const gchar *name, const gchar *title, const gchar *r
 	self->label = g_strdup (label);
 	self->primary = primary;
 	return self;
+}
+
+/**
+ * gdata_gd_organization_compare:
+ * @a: a #GDataGDOrganization, or %NULL
+ * @b: another #GDataGDOrganization, or %NULL
+ *
+ * Compares the two organizations in a strcmp() fashion. %NULL values are handled gracefully, with
+ * %0 returned if both @a and @b are %NULL, %-1 if @a is %NULL and %1 if @b is %NULL.
+ *
+ * The comparison of non-%NULL values is done on the basis of the @name field of the #GDataGDOrganization<!-- -->s.
+ *
+ * Return value: %0 if @a equals @b, %-1 or %1 as appropriate otherwise
+ *
+ * Since: 0.4.0
+ **/
+gint
+gdata_gd_organization_compare (const GDataGDOrganization *a, const GDataGDOrganization *b)
+{
+	if (a == NULL && b != NULL)
+		return -1;
+	else if (b == NULL)
+		return 1;
+
+	if (a == b)
+		return 0;
+	return g_strcmp0 (a->name, b->name);
 }
 
 /**
@@ -552,6 +847,42 @@ gdata_gd_reminder_new (const gchar *method, GTimeVal *absolute_time, gint days, 
 	self->minutes = minutes;
 
 	return self;
+}
+
+/**
+ * gdata_gd_reminder_compare:
+ * @a: a #GDataGDReminder, or %NULL
+ * @b: another #GDataGDReminder, or %NULL
+ *
+ * Compares the two reminders in a strcmp() fashion. %NULL values are handled gracefully, with
+ * %0 returned if both @a and @b are %NULL, %-1 if @a is %NULL and %1 if @b is %NULL.
+ *
+ * The comparison of non-%NULL values is done on the basis all the fields of the #GDataGDReminder<!-- -->s.
+ *
+ * Return value: %0 if @a equals @b, %-1 or %1 as appropriate otherwise
+ *
+ * Since: 0.4.0
+ **/
+gint
+gdata_gd_reminder_compare (const GDataGDReminder *a, const GDataGDReminder *b)
+{
+	gint method_cmp;
+
+	if (a == NULL && b != NULL)
+		return -1;
+	else if (b == NULL)
+		return 1;
+
+	if (a == b)
+		return 0;
+
+	method_cmp = g_strcmp0 (a->method, b->method);
+	if (method_cmp == 0 &&
+	    a->days == b->days &&
+	    a->hours == b->hours &&
+	    a->minutes == b->minutes)
+		return 0;
+	return method_cmp;
 }
 
 /**
