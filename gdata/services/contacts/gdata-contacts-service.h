@@ -25,7 +25,6 @@
 
 #include <gdata/gdata-service.h>
 #include <gdata/gdata-query.h>
-#include <gdata/services/contacts/gdata-contacts-contact.h>
 
 G_BEGIN_DECLS
 
@@ -67,6 +66,8 @@ GDataFeed *gdata_contacts_service_query_contacts (GDataContactsService *self, GD
 void gdata_contacts_service_query_contacts_async (GDataContactsService *self, GDataQuery *query, GCancellable *cancellable,
 						  GDataQueryProgressCallback progress_callback, gpointer progress_user_data,
 						  GAsyncReadyCallback callback, gpointer user_data);
+
+#include <gdata/services/contacts/gdata-contacts-contact.h>
 
 GDataContactsContact *gdata_contacts_service_insert_contact (GDataContactsService *self, GDataContactsContact *contact,
 							     GCancellable *cancellable, GError **error) G_GNUC_WARN_UNUSED_RESULT;

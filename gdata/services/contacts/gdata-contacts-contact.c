@@ -63,11 +63,13 @@ struct _GDataContactsContactPrivate {
 	GHashTable *extended_properties;
 	GHashTable *groups;
 	gboolean deleted;
+	gchar *photo_etag;
 };
 
 enum {
 	PROP_EDITED = 1,
-	PROP_DELETED
+	PROP_DELETED,
+	PROP_HAS_PHOTO
 };
 
 G_DEFINE_TYPE (GDataContactsContact, gdata_contacts_contact, GDATA_TYPE_ENTRY)
@@ -118,6 +120,19 @@ gdata_contacts_contact_class_init (GDataContactsContactClass *klass)
 					"Deleted", "Whether the entry has been deleted.",
 					FALSE,
 					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * GDataContactsContact:has-photo:
+	 *
+	 * Whether the contact has a photo.
+	 *
+	 * Since: 0.4.0
+	 **/
+	g_object_class_install_property (gobject_class, PROP_HAS_PHOTO,
+				g_param_spec_boolean ("has-photo",
+					"Has photo?", "Whether the contact has a photo.",
+					FALSE,
+					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 }
 
 static void
@@ -145,6 +160,7 @@ gdata_contacts_contact_finalize (GObject *object)
 	g_list_free (priv->organizations);
 	g_hash_table_destroy (priv->extended_properties);
 	g_hash_table_destroy (priv->groups);
+	g_free (priv->photo_etag);
 
 	/* Chain up to the parent class */
 	G_OBJECT_CLASS (gdata_contacts_contact_parent_class)->finalize (object);
@@ -161,6 +177,9 @@ gdata_contacts_contact_get_property (GObject *object, guint property_id, GValue 
 			break;
 		case PROP_DELETED:
 			g_value_set_boolean (value, priv->deleted);
+			break;
+		case PROP_HAS_PHOTO:
+			g_value_set_boolean (value, (priv->photo_etag != NULL) ? TRUE : FALSE);
 			break;
 		default:
 			/* We don't have any other property... */
@@ -488,9 +507,26 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 	} else if (xmlStrcmp (node->name, (xmlChar*) "deleted") == 0) {
 		/* gd:deleted */
 		self->priv->deleted = TRUE;
-	} else if (GDATA_PARSABLE_CLASS (gdata_contacts_contact_parent_class)->parse_xml (parsable, doc, node, user_data, error) == FALSE) {
-		/* Error! */
-		return FALSE;
+	} else {
+		/* If we haven't yet found a photo, check to see if it's a photo <link> element */
+		if (self->priv->photo_etag == NULL && xmlStrcmp (node->name, (xmlChar*) "link") == 0) {
+			xmlChar *rel = xmlGetProp (node, (xmlChar*) "rel");
+			if (xmlStrcmp (rel, (xmlChar*) "http://schemas.google.com/contacts/2008/rel#photo") == 0) {
+				xmlChar *etag;
+
+				/* It's the photo link (http://code.google.com/apis/contacts/docs/2.0/reference.html#Photos), whose ETag we should
+				 * note down, then pass onto the parent class to parse properly */
+				etag = xmlGetProp (node, (xmlChar*) "etag");
+				self->priv->photo_etag = g_strdup ((gchar*) etag);
+				xmlFree (etag);
+			}
+			xmlFree (rel);
+		}
+
+		if (GDATA_PARSABLE_CLASS (gdata_contacts_contact_parent_class)->parse_xml (parsable, doc, node, user_data, error) == FALSE) {
+			/* Error! */
+			return FALSE;
+		}
 	}
 
 	return TRUE;
@@ -1208,4 +1244,205 @@ gdata_contacts_contact_is_deleted (GDataContactsContact *self)
 {
 	g_return_val_if_fail (GDATA_IS_CONTACTS_CONTACT (self), FALSE);
 	return self->priv->deleted;
+}
+
+/**
+ * gdata_contacts_contact_has_photo:
+ * @self: a #GDataContactsContact
+ *
+ * Returns whether the contact has a photo attached to their contact entry. If the contact
+ * does have a photo, it can be returned using gdata_contacts_contact_get_photo().
+ *
+ * Return value: %TRUE if the contact has a photo, %FALSE otherwise
+ *
+ * Since: 0.4.0
+ **/
+gboolean
+gdata_contacts_contact_has_photo (GDataContactsContact *self)
+{
+	g_return_val_if_fail (GDATA_IS_CONTACTS_CONTACT (self), FALSE);
+	return (self->priv->photo_etag != NULL) ? TRUE : FALSE;
+}
+
+/**
+ * gdata_contacts_contact_get_photo:
+ * @self: a #GDataContactsContact
+ * @service: a #GDataContactsService
+ * @length: return location for the image length, in bytes
+ * @content_type: return location for the image's content type, or %NULL; free with g_free()
+ * @cancellable: optional #GCancellable object, or %NULL
+ * @error: a #GError, or %NULL
+ *
+ * Downloads and returns the contact's photo, if they have one. If the contact doesn't
+ * have a photo (i.e. gdata_contacts_contact_has_photo() returns %FALSE), %NULL is returned, but
+ * no error is set in @error.
+ *
+ * If @cancellable is not %NULL, then the operation can be cancelled by triggering the @cancellable object from another thread.
+ * If the operation was cancelled, the error %G_IO_ERROR_CANCELLED will be returned.
+ *
+ * If there is an error getting the photo, a %GDATA_SERVICE_ERROR_WITH_QUERY error will be returned.
+ *
+ * Return value: the image data, or %NULL; free with g_free()
+ *
+ * Since: 0.4.0
+ **/
+gchar *
+gdata_contacts_contact_get_photo (GDataContactsContact *self, GDataContactsService *service, gsize *length, gchar **content_type,
+				  GCancellable *cancellable, GError **error)
+{
+	GDataServiceClass *klass;
+	GDataLink *link;
+	SoupMessage *message;
+	guint status;
+	gchar *data;
+
+	/* TODO: async version */
+	g_return_val_if_fail (GDATA_IS_CONTACTS_CONTACT (self), NULL);
+	g_return_val_if_fail (GDATA_IS_CONTACTS_SERVICE (service), NULL);
+	g_return_val_if_fail (length != NULL, NULL);
+
+	/* Return if there is no photo */
+	if (gdata_contacts_contact_has_photo (self) == FALSE)
+		return NULL;
+
+	/* Get the photo URI */
+	link = gdata_entry_look_up_link (GDATA_ENTRY (self), "http://schemas.google.com/contacts/2008/rel#photo");
+	g_assert (link != NULL);
+	message = soup_message_new (SOUP_METHOD_GET, link->href);
+
+	/* Make sure the headers are set */
+	klass = GDATA_SERVICE_GET_CLASS (service);
+	if (klass->append_query_headers != NULL)
+		klass->append_query_headers (GDATA_SERVICE (service), message);
+
+	/* Send the message */
+	status = _gdata_service_send_message (GDATA_SERVICE (service), message, error);
+	if (status == SOUP_STATUS_NONE) {
+		g_object_unref (message);
+		return NULL;
+	}
+
+	/* Check for cancellation */
+	if (g_cancellable_set_error_if_cancelled (cancellable, error) == TRUE) {
+		g_object_unref (message);
+		return NULL;
+	}
+
+	if (status != 200) {
+		/* Error */
+		g_assert (klass->parse_error_response != NULL);
+		klass->parse_error_response (GDATA_SERVICE (service), GDATA_SERVICE_ERROR_WITH_QUERY, status, message->reason_phrase,
+					     message->response_body->data, message->response_body->length, error);
+		g_object_unref (message);
+		return NULL;
+	}
+
+	g_assert (message->response_body->data != NULL);
+
+	/* Sort out the return values */
+	if (content_type != NULL)
+		*content_type = g_strdup (soup_message_headers_get_content_type (message->response_headers, NULL));
+	*length = message->response_body->length;
+	data = g_memdup (message->response_body->data, message->response_body->length);
+
+	/* Update the stored photo ETag */
+	g_free (self->priv->photo_etag);
+	self->priv->photo_etag = g_strdup (soup_message_headers_get_one (message->response_headers, "ETag"));
+	g_object_unref (message);
+
+	return data;
+}
+
+/**
+ * gdata_contacts_contact_set_photo:
+ * @self: a #GDataContactsContact
+ * @service: a #GDataService
+ * @data: the image data, or %NULL
+ * @length: the image length, in bytes, or %0
+ * @cancellable: optional #GCancellable object, or %NULL
+ * @error: a #GError, or %NULL
+ *
+ * Sets the contact's photo to @data or, if @data is %NULL, deletes the contact's photo.
+ *
+ * If @cancellable is not %NULL, then the operation can be cancelled by triggering the @cancellable object from another thread.
+ * If the operation was cancelled, the error %G_IO_ERROR_CANCELLED will be returned.
+ *
+ * If there is an error setting the photo, a %GDATA_SERVICE_ERROR_WITH_UPDATE error will be returned.
+ *
+ * Return value: %TRUE on success, %FALSE otherwise
+ *
+ * Since: 0.4.0
+ **/
+gboolean
+gdata_contacts_contact_set_photo (GDataContactsContact *self, GDataService *service, gchar *data, gsize length,
+				  GCancellable *cancellable, GError **error)
+{
+	GDataServiceClass *klass;
+	GDataLink *link;
+	SoupMessage *message;
+	guint status;
+	gboolean adding_photo = FALSE, deleting_photo = FALSE;
+
+	/* TODO: async version */
+	g_return_val_if_fail (GDATA_IS_CONTACTS_CONTACT (self), FALSE);
+	g_return_val_if_fail (GDATA_IS_SERVICE (service), FALSE);
+
+	if (self->priv->photo_etag == NULL && data != NULL)
+		adding_photo = TRUE;
+	else if (self->priv->photo_etag != NULL && data == NULL)
+		deleting_photo = TRUE;
+
+	/* Get the photo URI */
+	link = gdata_entry_look_up_link (GDATA_ENTRY (self), "http://schemas.google.com/contacts/2008/rel#photo");
+	g_assert (link != NULL);
+	if (deleting_photo == TRUE)
+		message = soup_message_new (SOUP_METHOD_DELETE, link->href);
+	else
+		message = soup_message_new (SOUP_METHOD_PUT, link->href);
+
+	/* Make sure the headers are set */
+	klass = GDATA_SERVICE_GET_CLASS (service);
+	if (klass->append_query_headers != NULL)
+		klass->append_query_headers (service, message);
+
+	/* Append the ETag header if possible */
+	if (self->priv->photo_etag != NULL)
+		soup_message_headers_append (message->request_headers, "If-Match", self->priv->photo_etag);
+
+	if (deleting_photo == FALSE) {
+		/* Append the data */
+		soup_message_set_request (message, "image/*", SOUP_MEMORY_STATIC, (gchar*) data, length);
+	}
+
+	/* Send the message */
+	status = _gdata_service_send_message (service, message, error);
+	if (status == SOUP_STATUS_NONE) {
+		g_object_unref (message);
+		return FALSE;
+	}
+
+	/* Check for cancellation */
+	if (g_cancellable_set_error_if_cancelled (cancellable, error) == TRUE) {
+		g_object_unref (message);
+		return FALSE;
+	}
+
+	if (status != 200) {
+		/* Error */
+		g_assert (klass->parse_error_response != NULL);
+		klass->parse_error_response (service, GDATA_SERVICE_ERROR_WITH_UPDATE, status, message->reason_phrase, message->response_body->data,
+					     message->response_body->length, error);
+		g_object_unref (message);
+		return FALSE;
+	}
+
+	/* Update the stored photo ETag */
+	g_free (self->priv->photo_etag);
+	self->priv->photo_etag = g_strdup (soup_message_headers_get_one (message->response_headers, "ETag"));
+	g_object_unref (message);
+
+	if (adding_photo == TRUE || deleting_photo == TRUE)
+		g_object_notify (G_OBJECT (self), "has-photo");
+
+	return TRUE;
 }

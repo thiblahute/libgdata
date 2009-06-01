@@ -94,6 +94,14 @@ void gdata_contacts_contact_remove_group (GDataContactsContact *self, const gcha
 gboolean gdata_contacts_contact_is_group_deleted (GDataContactsContact *self, const gchar *href);
 GList *gdata_contacts_contact_get_groups (GDataContactsContact *self) G_GNUC_WARN_UNUSED_RESULT;
 
+#include <gdata/services/contacts/gdata-contacts-service.h>
+
+gboolean gdata_contacts_contact_has_photo (GDataContactsContact *self);
+gchar *gdata_contacts_contact_get_photo (GDataContactsContact *self, GDataContactsService *service, gsize *length, gchar **content_type,
+					  GCancellable *cancellable, GError **error) G_GNUC_WARN_UNUSED_RESULT;
+gboolean gdata_contacts_contact_set_photo (GDataContactsContact *self, GDataService *service, gchar *data, gsize length,
+					   GCancellable *cancellable, GError **error);
+
 G_END_DECLS
 
 #endif /* !GDATA_CONTACTS_CONTACT_H */

@@ -27,6 +27,32 @@
 static GDataService *service = NULL;
 static GMainLoop *main_loop = NULL;
 
+static GDataContactsContact *
+get_contact (void)
+{
+	GDataFeed *feed;
+	GDataEntry *entry;
+	GList *entries;
+	GError *error = NULL;
+
+	g_assert (service != NULL);
+
+	feed = gdata_contacts_service_query_contacts (GDATA_CONTACTS_SERVICE (service), NULL, NULL, NULL, NULL, &error);
+	g_assert_no_error (error);
+	g_assert (GDATA_IS_FEED (feed));
+	g_clear_error (&error);
+
+	entries = gdata_feed_get_entries (feed);
+	g_assert (entries != NULL);
+	entry = entries->data;
+	g_assert (GDATA_IS_CONTACTS_CONTACT (entry));
+
+	g_object_ref (entry);
+	g_object_unref (feed);
+
+	return GDATA_CONTACTS_CONTACT (entry);
+}
+
 static void
 test_authentication (void)
 {
@@ -239,6 +265,130 @@ test_parser_minimal (void)
 	g_assert (*gdata_entry_get_title (GDATA_ENTRY (contact)) == '\0');
 
 	/* TODO: Check the other properties */
+
+	g_object_unref (contact);
+}
+
+static void
+test_photo_has_photo (void)
+{
+	GDataContactsContact *contact;
+	gsize length = 0;
+	gchar *content_type = NULL;
+	GError *error = NULL;
+
+	contact = gdata_contacts_contact_new_from_xml (
+		"<entry xmlns='http://www.w3.org/2005/Atom' "
+			"xmlns:gd='http://schemas.google.com/g/2005'>"
+			"<id>http://www.google.com/m8/feeds/contacts/libgdata.test@googlemail.com/base/1b46cdd20bfbee3b</id>"
+			"<updated>2009-04-25T15:21:53.688Z</updated>"
+			"<category scheme='http://schemas.google.com/g/2005#kind' term='http://schemas.google.com/contact/2008#contact'/>"
+			"<title></title>" /* Here's where it all went wrong */
+			"<link rel='http://schemas.google.com/contacts/2008/rel#photo' type='image/*' "
+				"href='http://www.google.com/m8/feeds/photos/media/libgdata.test@googlemail.com/1b46cdd20bfbee3b'/>"
+		"</entry>", -1, &error);
+	g_assert_no_error (error);
+	g_assert (GDATA_IS_ENTRY (contact));
+	g_clear_error (&error);
+
+	/* Check for no photo */
+	g_assert (gdata_contacts_contact_has_photo (contact) == FALSE);
+	g_assert (gdata_contacts_contact_get_photo (contact, GDATA_CONTACTS_SERVICE (service), &length, &content_type, NULL, &error) == NULL);
+	g_assert_cmpint (length, ==, 0);
+	g_assert (content_type == NULL);
+	g_assert_no_error (error);
+
+	g_clear_error (&error);
+	g_free (content_type);
+	g_object_unref (contact);
+
+	/* Try again with a photo */
+	contact = gdata_contacts_contact_new_from_xml (
+		"<entry xmlns='http://www.w3.org/2005/Atom' "
+			"xmlns:gd='http://schemas.google.com/g/2005'>"
+			"<id>http://www.google.com/m8/feeds/contacts/libgdata.test@googlemail.com/base/1b46cdd20bfbee3b</id>"
+			"<updated>2009-04-25T15:21:53.688Z</updated>"
+			"<category scheme='http://schemas.google.com/g/2005#kind' term='http://schemas.google.com/contact/2008#contact'/>"
+			"<title></title>" /* Here's where it all went wrong */
+			"<link rel='http://schemas.google.com/contacts/2008/rel#photo' type='image/*' "
+				"href='http://www.google.com/m8/feeds/photos/media/libgdata.test@googlemail.com/1b46cdd20bfbee3b' "
+				"gd:etag='&quot;QngzcDVSLyp7ImA9WxJTFkoITgU.&quot;'/>"
+		"</entry>", -1, &error);
+	g_assert_no_error (error);
+	g_assert (GDATA_IS_ENTRY (contact));
+	g_clear_error (&error);
+
+	g_assert (gdata_contacts_contact_has_photo (contact) == TRUE);
+	g_object_unref (contact);
+}
+
+static void
+test_photo_add (void)
+{
+	GDataContactsContact *contact;
+	gchar *data;
+	gsize length;
+	gboolean retval;
+	GError *error = NULL;
+
+	/* Get the photo */
+	/* TODO: Fix the path */
+	g_assert (g_file_get_contents ("/home/philip/Development/libgdata/gdata/tests/photo.jpg", &data, &length, NULL) == TRUE);
+
+	/* Add it to the contact */
+	contact = get_contact ();
+	retval = gdata_contacts_contact_set_photo (contact, service, data, length, NULL, &error);
+	g_assert_no_error (error);
+	g_assert (retval == TRUE);
+
+	g_clear_error (&error);
+	g_object_unref (contact);
+	g_free (data);
+}
+
+static void
+test_photo_get (void)
+{
+	GDataContactsContact *contact;
+	gchar *data, *content_type = NULL;
+	gsize length = 0;
+	GError *error = NULL;
+
+	contact = get_contact ();
+	g_assert (gdata_contacts_contact_has_photo (contact) == TRUE);
+
+	/* Get the photo from the network */
+	data = gdata_contacts_contact_get_photo (contact, GDATA_CONTACTS_SERVICE (service), &length, &content_type, NULL, &error);
+	g_assert_no_error (error);
+	g_assert (data != NULL);
+	g_assert (length != 0);
+	g_assert_cmpstr (content_type, ==, "image/jpg");
+
+	g_assert (gdata_contacts_contact_has_photo (contact) == TRUE);
+
+	g_free (content_type);
+	g_free (data);
+	g_object_unref (contact);
+	g_clear_error (&error);
+}
+
+static void
+test_photo_delete (void)
+{
+	GDataContactsContact *contact;
+	GError *error = NULL;
+
+	contact = get_contact ();
+	g_assert (gdata_contacts_contact_has_photo (contact) == TRUE);
+
+	/* Remove the contact's photo */
+	g_assert (gdata_contacts_contact_set_photo (contact, service, NULL, 0, NULL, &error) == TRUE);
+	g_assert_no_error (error);
+
+	g_assert (gdata_contacts_contact_has_photo (contact) == FALSE);
+
+	g_clear_error (&error);
+	g_object_unref (contact);
 }
 
 int
@@ -259,6 +409,12 @@ main (int argc, char *argv[])
 		g_test_add_func ("/contacts/insert/simple", test_insert_simple);
 	g_test_add_func ("/contacts/query/uri", test_query_uri);
 	g_test_add_func ("/contacts/parser/minimal", test_parser_minimal);
+	g_test_add_func ("/contacts/photo/has_photo", test_photo_has_photo);
+	if (g_test_slow () == TRUE) {
+		g_test_add_func ("/contacts/photo/add", test_photo_add);
+		g_test_add_func ("/contacts/photo/get", test_photo_get);
+		g_test_add_func ("/contacts/photo/delete", test_photo_delete);
+	}
 
 	retval = g_test_run ();
 	if (service != NULL)
