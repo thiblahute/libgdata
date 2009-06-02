@@ -1,0 +1,243 @@
+# Traducció del libgdata de l'equip de Softcatalà.
+# Copyright © 2009 Free Software Foundation, Inc.
+# This file is distributed under the same license as the libgdata package.
+# Joan Duran <jodufi@gmail.com>, 2009.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: libgdata\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2009-06-02 22:54+0200\n"
+"PO-Revision-Date: 2009-06-02 23:16+0200\n"
+"Last-Translator: Joan Duran <jodufi@gmail.com>\n"
+"Language-Team: Catalan <tradgnome@softcatala.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n!=1;\n"
+
+#: ../gdata/gdata-access-handler.c:176
+msgid "The rule has already been inserted."
+msgstr "La regla ja està inserida."
+
+#: ../gdata/gdata-access-handler.c:378
+msgid "The owner's rule may not be deleted."
+msgstr "La regla del propietari no es pot suprimir."
+
+#: ../gdata/gdata-parsable.c:128 ../gdata/gdata-parsable.c:139
+#, c-format
+msgid "Error parsing XML: %s"
+msgstr "S'ha produït un error en analitzar l'XML: %s"
+
+#: ../gdata/gdata-parsable.c:140
+msgid "Empty document."
+msgstr "Document buit."
+
+#: ../gdata/gdata-parser.c:42
+#, c-format
+msgid "A <%s> element was missing required content."
+msgstr "A un element <%s> l'hi falta el contingut necessari."
+
+#: ../gdata/gdata-parser.c:58
+#, c-format
+msgid "A <%s>'s <%s> element content (\"%s\") was not in ISO 8601 format."
+msgstr ""
+"El contingut d'un <%s> de l'element <%s> («%s») no estava en el format ISO 8601."
+
+#: ../gdata/gdata-parser.c:70
+#, c-format
+msgid "Unhandled <%s:%s> element as a child of <%s>."
+msgstr "L'element <%s:%s> no és gestionat com a fill de <%s>."
+
+#: ../gdata/gdata-parser.c:83
+#, c-format
+msgid "Unknown value \"%s\" of a <%s> @%s property."
+msgstr "Valor desconegut «%s» d'un <%s> a la propietat @%s."
+
+#: ../gdata/gdata-parser.c:95
+#, c-format
+msgid "A required @%s property of a <%s> was not present."
+msgstr "Una propietat @%s necessària d'un <%s> no estava present."
+
+#: ../gdata/gdata-parser.c:106
+#, c-format
+msgid "A required <%s> element as a child of <%s> was not present."
+msgstr "Un element <%s> necessari com a fill d'un <%s> no estava present."
+
+#: ../gdata/gdata-parser.c:117
+#, c-format
+msgid "A <%s> element as a child of <%s> was duplicated."
+msgstr "Un element <%s> com a fill d'un <%s> estava duplicat."
+
+#: ../gdata/gdata-service.c:308 ../gdata/gdata-service.c:724
+#: ../gdata/services/youtube/gdata-youtube-service.c:201
+msgid "The server returned a malformed response."
+msgstr "El servidor ha retornat una resposta mal formada."
+
+#: ../gdata/gdata-service.c:339
+#, c-format
+msgid "Invalid request URI or header, or unsupported nonstandard parameter: %s"
+msgstr ""
+"URI de petició o capçalera no vàlida, o paràmetre no estàndard no "
+"compatible: %s"
+
+#: ../gdata/gdata-service.c:344
+#, c-format
+msgid "Authentication required: %s"
+msgstr "Cal autenticació: %s"
+
+#: ../gdata/gdata-service.c:348
+#, c-format
+msgid "The requested resource was not found: %s"
+msgstr "No s'ha trobat la font sol·licitada: %s"
+
+#: ../gdata/gdata-service.c:352
+#, c-format
+msgid "The entry has been modified since it was downloaded: %s"
+msgstr "S'ha modificat l'entrada des de que es va baixar: %s"
+
+#: ../gdata/gdata-service.c:364
+#, c-format
+msgid "Error code %u when inserting an entry: %s"
+msgstr "Codi d'error %u en inserir una entrada: %s"
+
+#: ../gdata/gdata-service.c:368
+#, c-format
+msgid "Error code %u when updating an entry: %s"
+msgstr "Codi d'error %u en actualitzar una entrada: %s"
+
+#: ../gdata/gdata-service.c:372
+#, c-format
+msgid "Error code %u when deleting an entry: %s"
+msgstr "Codi d'error %u en suprimir una entrada: %s"
+
+#: ../gdata/gdata-service.c:376
+#, c-format
+msgid "Error code %u when querying: %s"
+msgstr "Codi d'error %u en consultar: %s"
+
+#: ../gdata/gdata-service.c:618
+msgid "A CAPTCHA must be filled out to log in."
+msgstr "S'ha d'emplenar un CAPTCHA per a entrar."
+
+#: ../gdata/gdata-service.c:642
+msgid "Your username or password were incorrect."
+msgstr "El nom d'usuari o la contrasenya eren incorrectes."
+
+#: ../gdata/gdata-service.c:660
+#, c-format
+msgid "Your account's e-mail address has not been verified. (%s)"
+msgstr "No s'ha verificat la vostra adreça de correu electrònica. (%s)"
+
+#: ../gdata/gdata-service.c:664
+#, c-format
+msgid "You have not agreed to the service's terms and conditions. (%s)"
+msgstr "No heu acceptat els termes i les condicions del servei. (%s)"
+
+#: ../gdata/gdata-service.c:668
+#, c-format
+msgid "This account has been deleted. (%s)"
+msgstr "Aquesta compte està suprimit. (%s)"
+
+#: ../gdata/gdata-service.c:672
+#, c-format
+msgid "This account has been disabled. (%s)"
+msgstr "Aquesta compte està inhabilitat. (%s)"
+
+#: ../gdata/gdata-service.c:676
+#, c-format
+msgid "This account's access to this service has been disabled. (%s)"
+msgstr "S'ha inhabilitat l'accés a aquest servei amb aquest compte. (%s)"
+
+#: ../gdata/gdata-service.c:680
+#, c-format
+msgid "This service is not available at the moment. (%s)"
+msgstr "Aquest servei no està disponible actualment. (%s)"
+
+#: ../gdata/gdata-service.c:793
+#, c-format
+msgid "Invalid redirect URI: %s"
+msgstr "URI de redireccionament no vàlida: %s"
+
+#: ../gdata/gdata-service.c:1191
+#: ../gdata/services/youtube/gdata-youtube-service.c:628
+msgid "The entry has already been inserted."
+msgstr "Ja està inserida aquesta entrada."
+
+#: ../gdata/services/calendar/gdata-calendar-calendar.c:354
+#, c-format
+msgid ""
+"A <%s>'s <%s> element content (\"%s\") was not in hexadecimal RGB format."
+msgstr ""
+"El contingut d'un <%s> de l'element <%s> («%s») no estava en format RGB "
+"hexadecimal."
+
+#: ../gdata/services/calendar/gdata-calendar-service.c:106
+#: ../gdata/services/calendar/gdata-calendar-service.c:140
+msgid "You must be authenticated to query all calendars."
+msgstr "Heu d'estar autenticat per a consultar tots els calendaris."
+
+#: ../gdata/services/calendar/gdata-calendar-service.c:172
+#: ../gdata/services/calendar/gdata-calendar-service.c:206
+#: ../gdata/services/calendar/gdata-calendar-service.c:240
+msgid "You must be authenticated to query your own calendars."
+msgstr "Heu d'estar autenticat per a consultar els vostres calendaris."
+
+#: ../gdata/services/calendar/gdata-calendar-service.c:249
+msgid "The calendar did not have a content source."
+msgstr "El calendari no tenia una font de contingut."
+
+#: ../gdata/services/contacts/gdata-contacts-service.c:104
+#: ../gdata/services/contacts/gdata-contacts-service.c:139
+msgid "You must be authenticated to query contacts."
+msgstr "Heu d'estar autenticat per a consultar els contactes."
+
+#: ../gdata/services/youtube/gdata-youtube-service.c:307
+#, c-format
+msgid "This service is not available at the moment."
+msgstr "Aquest servei no està disponible actualment."
+
+#: ../gdata/services/youtube/gdata-youtube-service.c:312
+#, c-format
+msgid "You must be authenticated to do this."
+msgstr "Heu d'estar autenticat per a fer-ho."
+
+#: ../gdata/services/youtube/gdata-youtube-service.c:317
+#, c-format
+msgid ""
+"You have made too many API calls recently. Please wait a few minutes and try "
+"again."
+msgstr ""
+"Heu realitzat masses crides a l'API últimament. Espereu uns minuts i torneu-"
+"ho a intentar."
+
+#: ../gdata/services/youtube/gdata-youtube-service.c:320
+#, c-format
+msgid ""
+"You have exceeded your entry quota with the entry \"%s\". Please delete some "
+"entries and try again."
+msgstr ""
+"Heu excedit la vostra quota d'entrades amb l'entrada «%s». Suprimiu algunes "
+"entrades i torneu-ho a intentar."
+
+#: ../gdata/services/youtube/gdata-youtube-service.c:325
+#: ../gdata/services/youtube/gdata-youtube-service.c:331
+#, c-format
+msgid ""
+"Unknown error code \"%s\" in domain \"%s\" received with location \"%s\"."
+msgstr "S'ha rebut un codi d'error desconegut «%s» al domini «%s» amb la ubicació «%s»."
+
+#: ../gdata/services/youtube/gdata-youtube-service.c:541
+#: ../gdata/services/youtube/gdata-youtube-service.c:582
+msgid "The video did not have a related videos <link>."
+msgstr "El vídeo no tenia vídeos relacionats <link>."
+
+#: ../gdata/services/youtube/gdata-youtube-service.c:634
+msgid "You must be authenticated to upload a video."
+msgstr "Heu d'estar autenticat per a pujar un vídeo."
+
+#: ../gdata/services/youtube/gdata-youtube-video.c:810
+#, c-format
+msgid "The @time property (\"%s\") of a <media:thumbnail> could not be parsed."
+msgstr ""
+"No s'ha pogut analitzar la propietat @time («%s») d'un <media:thumbnail>."
