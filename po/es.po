@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: libgdata.master\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
 "product=libgdata&component=general\n"
-"POT-Creation-Date: 2009-05-22 16:44+0000\n"
-"PO-Revision-Date: 2009-05-23 19:54+0200\n"
+"POT-Creation-Date: 2009-05-25 09:31+0000\n"
+"PO-Revision-Date: 2009-06-01 09:45+0200\n"
 "Last-Translator: Jorge González <jorgegonz@svn.gnome.org>\n"
 "Language-Team: Español <gnome-es-list@gnome.org>\n"
 "MIME-Version: 1.0\n"
@@ -78,6 +78,7 @@ msgstr "El servidor devolvió una respuesta mal formada."
 #, c-format
 msgid "Invalid request URI or header, or unsupported nonstandard parameter: %s"
 msgstr ""
+"URI solicitada o cabecera no válida, o parámetro no estándar no soportado: %s"
 
 #: ../gdata/gdata-service.c:344
 #, c-format
@@ -167,6 +168,8 @@ msgstr "La entrada ya se ha introducido."
 msgid ""
 "A <%s>'s <%s> element content (\"%s\") was not in hexadecimal RGB format."
 msgstr ""
+"Un <%s> del elemento <%s> contiene («%s»)  que no está en formato RGB "
+"hexadecimal."
 
 #: ../gdata/services/calendar/gdata-calendar-service.c:106
 #: ../gdata/services/calendar/gdata-calendar-service.c:140
@@ -204,6 +207,8 @@ msgid ""
 "You have made too many API calls recently. Please wait a few minutes and try "
 "again."
 msgstr ""
+"Recientemente ha realizado demasiadas consultas a la API. Espere unos "
+"minutos e inténtelo de nuevo."
 
 #: ../gdata/services/youtube/gdata-youtube-service.c:320
 #, c-format
@@ -211,6 +216,8 @@ msgid ""
 "You have exceeded your entry quota with the entry \"%s\". Please delete some "
 "entries and try again."
 msgstr ""
+"Ha superado su cuota de entradas con la entrada «%s». Borre algunas entradas "
+"e inténtelo de nuevo."
 
 #: ../gdata/services/youtube/gdata-youtube-service.c:325
 #: ../gdata/services/youtube/gdata-youtube-service.c:331
@@ -233,4 +240,4 @@ msgstr "Debe estar autenticado para cargar un vídeo."
 #: ../gdata/services/youtube/gdata-youtube-video.c:810
 #, c-format
 msgid "The @time property (\"%s\") of a <media:thumbnail> could not be parsed."
-msgstr ""
+msgstr "No se pudo analizar la propiedad @time («%s») de una <media:thumbnail>."
