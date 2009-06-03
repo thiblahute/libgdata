@@ -1032,11 +1032,11 @@ gdata_service_query (GDataService *self, const gchar *feed_uri, GDataQuery *quer
 	g_object_unref (message);
 
 	/* Update the query with the feed's ETag */
-	if (query != NULL && gdata_feed_get_etag (feed) != NULL)
+	if (query != NULL && feed != NULL && gdata_feed_get_etag (feed) != NULL)
 		gdata_query_set_etag (query, gdata_feed_get_etag (feed));
 
 	/* Update the query with the next and previous URIs from the feed */
-	if (query != NULL) {
+	if (query != NULL && feed != NULL) {
 		link = gdata_feed_look_up_link (feed, "next");
 		if (link != NULL)
 			_gdata_query_set_next_uri (query, link->href);
