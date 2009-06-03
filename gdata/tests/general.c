@@ -18,6 +18,7 @@
  */
 
 #include <glib.h>
+#include <locale.h>
 
 #include "gdata.h"
 
@@ -236,6 +237,23 @@ test_color_output (void)
 	g_free (color_string);
 }
 
+static void
+test_media_thumbnail_parse_time (const gchar *locale)
+{
+	g_test_bug ("584737");
+
+	g_test_message ("Testing gdata_media_thumbnail_parse_time in the \"%s\" locale...", locale);
+	g_assert_cmpstr (setlocale (LC_ALL, locale), ==, locale);
+
+	g_assert_cmpint (gdata_media_thumbnail_parse_time ("00:01:42.500"), ==, 102500);
+	g_assert_cmpint (gdata_media_thumbnail_parse_time ("00:02:45"), ==, 165000);
+	g_assert_cmpint (gdata_media_thumbnail_parse_time ("12:00:15.000"), ==, 43215000);
+	g_assert_cmpint (gdata_media_thumbnail_parse_time ("00:00:00"), ==, 0);
+	g_assert_cmpint (gdata_media_thumbnail_parse_time ("foobar"), ==, -1);
+
+	setlocale (LC_ALL, "");
+}
+
 int
 main (int argc, char *argv[])
 {
@@ -248,6 +266,8 @@ main (int argc, char *argv[])
 	g_test_add_func ("/query/categories", test_query_categories);
 	g_test_add_func ("/color/parsing", test_color_parsing);
 	g_test_add_func ("/color/output", test_color_output);
+	g_test_add_data_func ("/media/thumbnail/parse_time", "", test_media_thumbnail_parse_time);
+	g_test_add_data_func ("/media/thumbnail/parse_time", "de_DE", test_media_thumbnail_parse_time);
 
 	return g_test_run ();
 }

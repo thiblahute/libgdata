@@ -274,8 +274,7 @@ gdata_media_thumbnail_new (const gchar *uri, guint width, guint height, gint64 _
  * gdata_media_thumbnail_parse_time:
  * @time_string: a time string to parse
  *
- * Parses a time string in NTP format into a number of milliseconds since the
- * start of a media stream.
+ * Parses a time string in (a subset of) NTP format into a number of milliseconds since the start of a media stream.
  *
  * For more information about NTP format, see <ulink type="http" url="http://www.ietf.org/rfc/rfc2326.txt">RFC 2326 3.6 Normal Play Time</ulink>.
  *
@@ -287,7 +286,7 @@ gint64
 gdata_media_thumbnail_parse_time (const gchar *time_string)
 {
 	guint hours, minutes;
-	gfloat seconds;
+	gdouble seconds;
 	gchar *end_pointer;
 
 	g_return_val_if_fail (time_string != NULL, 0);
@@ -300,7 +299,7 @@ gdata_media_thumbnail_parse_time (const gchar *time_string)
 	if (end_pointer != time_string + 5)
 		return -1;
 
-	seconds = strtod (time_string + 6, &end_pointer);
+	seconds = g_ascii_strtod (time_string + 6, &end_pointer);
 	if (end_pointer != time_string + strlen (time_string))
 		return -1;
 

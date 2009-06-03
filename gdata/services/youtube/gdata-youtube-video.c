@@ -908,7 +908,7 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 		if (average == NULL)
 			average_double = 0;
 		else
-			average_double = strtod ((gchar*) average, NULL);
+			average_double = g_ascii_strtod ((gchar*) average, NULL);
 		xmlFree (average);
 
 		gdata_gd_rating_free (self->priv->rating);
