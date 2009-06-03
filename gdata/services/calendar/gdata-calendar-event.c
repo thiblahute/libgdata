@@ -459,7 +459,7 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 		xmlChar *edited = xmlNodeListGetString (doc, node->children, TRUE);
 		if (g_time_val_from_iso8601 ((gchar*) edited, &(self->priv->edited)) == FALSE) {
 			/* Error */
-			gdata_parser_error_not_iso8601_format ("app:edited", "entry", (gchar*) edited, error);
+			gdata_parser_error_not_iso8601_format (node, (gchar*) edited, error);
 			xmlFree (edited);
 			return FALSE;
 		}
@@ -494,28 +494,28 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 		/* gd:eventStatus */
 		xmlChar *value = xmlGetProp (node, (xmlChar*) "value");
 		if (value == NULL)
-			return gdata_parser_error_required_property_missing ("gd:eventStatus", "value", error);
+			return gdata_parser_error_required_property_missing (node, "value", error);
 		gdata_calendar_event_set_status (self, (gchar*) value);
 		xmlFree (value);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "visibility") == 0) {
 		/* gd:visibility */
 		xmlChar *value = xmlGetProp (node, (xmlChar*) "value");
 		if (value == NULL)
-			return gdata_parser_error_required_property_missing ("gd:visibility", "value", error);
+			return gdata_parser_error_required_property_missing (node, "value", error);
 		gdata_calendar_event_set_visibility (self, (gchar*) value);
 		xmlFree (value);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "transparency") == 0) {
 		/* gd:transparency */
 		xmlChar *value = xmlGetProp (node, (xmlChar*) "value");
 		if (value == NULL)
-			return gdata_parser_error_required_property_missing ("gd:transparency", "value", error);
+			return gdata_parser_error_required_property_missing (node, "value", error);
 		gdata_calendar_event_set_transparency (self, (gchar*) value);
 		xmlFree (value);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "uid") == 0) {
 		/* gCal:uid */
 		xmlChar *value = xmlGetProp (node, (xmlChar*) "value");
 		if (value == NULL)
-			return gdata_parser_error_required_property_missing ("gCal:uid", "value", error);
+			return gdata_parser_error_required_property_missing (node, "value", error);
 		gdata_calendar_event_set_uid (self, (gchar*) value);
 		xmlFree (value);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "sequence") == 0) {
@@ -525,7 +525,7 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 
 		value = xmlGetProp (node, (xmlChar*) "value");
 		if (value == NULL)
-			return gdata_parser_error_required_property_missing ("gCal:sequence", "value", error);
+			return gdata_parser_error_required_property_missing (node, "value", error);
 		else
 			value_uint = strtoul ((gchar*) value, NULL, 10);
 		xmlFree (value);
@@ -544,7 +544,7 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 			is_date = TRUE;
 		} else if (g_time_val_from_iso8601 ((gchar*) start_time, &start_time_timeval) == FALSE) {
 			/* Error */
-			gdata_parser_error_not_iso8601_format ("gd:when", "entry", (gchar*) start_time, error);
+			gdata_parser_error_not_iso8601_format (node, (gchar*) start_time, error);
 			xmlFree (start_time);
 			return FALSE;
 		}
@@ -562,7 +562,7 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 
 			if (success == FALSE) {
 				/* Error */
-				gdata_parser_error_not_iso8601_format ("gd:when", "entry", (gchar*) end_time, error);
+				gdata_parser_error_not_iso8601_format (node, (gchar*) end_time, error);
 				xmlFree (end_time);
 				return FALSE;
 			}
@@ -580,28 +580,28 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 		/* gCal:guestsCanModify */
 		xmlChar *value = xmlGetProp (node, (xmlChar*) "value");
 		if (value == NULL)
-			return gdata_parser_error_required_property_missing ("gCal:guestsCanModify", "value", error);
+			return gdata_parser_error_required_property_missing (node, "value", error);
 		gdata_calendar_event_set_guests_can_modify (self, (xmlStrcmp (value, (xmlChar*) "true") == 0) ? TRUE : FALSE);
 		xmlFree (value);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "guestsCanInviteOthers") == 0) {
 		/* gCal:guestsCanInviteOthers */
 		xmlChar *value = xmlGetProp (node, (xmlChar*) "value");
 		if (value == NULL)
-			return gdata_parser_error_required_property_missing ("gCal:guestsCanInviteOthers", "value", error);
+			return gdata_parser_error_required_property_missing (node, "value", error);
 		gdata_calendar_event_set_guests_can_invite_others (self, (xmlStrcmp (value, (xmlChar*) "true") == 0) ? TRUE : FALSE);
 		xmlFree (value);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "guestsCanSeeGuests") == 0) {
 		/* gCal:guestsCanSeeGuests */
 		xmlChar *value = xmlGetProp (node, (xmlChar*) "value");
 		if (value == NULL)
-			return gdata_parser_error_required_property_missing ("gCal:guestsCanSeeGuests", "value", error);
+			return gdata_parser_error_required_property_missing (node, "value", error);
 		gdata_calendar_event_set_guests_can_see_guests (self, (xmlStrcmp (value, (xmlChar*) "true") == 0) ? TRUE : FALSE);
 		xmlFree (value);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "anyoneCanAddSelf") == 0) {
 		/* gCal:anyoneCanAddSelf */
 		xmlChar *value = xmlGetProp (node, (xmlChar*) "value");
 		if (value == NULL)
-			return gdata_parser_error_required_property_missing ("gCal:anyoneCanAddSelf", "value", error);
+			return gdata_parser_error_required_property_missing (node, "value", error);
 		gdata_calendar_event_set_anyone_can_add_self (self, (xmlStrcmp (value, (xmlChar*) "true") == 0) ? TRUE : FALSE);
 		xmlFree (value);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "who") == 0) {

@@ -240,7 +240,7 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 		/* gAcl:role */
 		xmlChar *role = xmlGetProp (node, (xmlChar*) "value");
 		if (role == NULL)
-			return gdata_parser_error_required_property_missing ("gAcl:role", "value", error);
+			return gdata_parser_error_required_property_missing (node, "value", error);
 		gdata_access_rule_set_role (self, (gchar*) role);
 		xmlFree (role);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "scope") == 0) {
@@ -249,7 +249,7 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 
 		scope_type = xmlGetProp (node, (xmlChar*) "type");
 		if (scope_type == NULL)
-			return gdata_parser_error_required_property_missing ("gAcl:scope", "type", error);
+			return gdata_parser_error_required_property_missing (node, "type", error);
 
 		scope_value = xmlGetProp (node, (xmlChar*) "value");
 		gdata_access_rule_set_scope (self, (gchar*) scope_type, (gchar*) scope_value);

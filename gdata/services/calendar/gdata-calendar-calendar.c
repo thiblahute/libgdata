@@ -316,21 +316,21 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 		/* gCal:timezone */
 		xmlChar *_timezone = xmlGetProp (node, (xmlChar*) "value");
 		if (_timezone == NULL)
-			return gdata_parser_error_required_property_missing ("gCal:timezone", "value", error);
+			return gdata_parser_error_required_property_missing (node, "value", error);
 		gdata_calendar_calendar_set_timezone (self, (gchar*) _timezone);
 		xmlFree (_timezone);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "timesCleaned") == 0) {
 		/* gCal:timesCleaned */
 		xmlChar *times_cleaned = xmlGetProp (node, (xmlChar*) "value");
 		if (times_cleaned == NULL)
-			return gdata_parser_error_required_property_missing ("gCal:timesCleaned", "value", error);
+			return gdata_parser_error_required_property_missing (node, "value", error);
 		self->priv->times_cleaned = strtoul ((gchar*) times_cleaned, NULL, 10);
 		xmlFree (times_cleaned);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "hidden") == 0) {
 		/* gCal:hidden */
 		xmlChar *hidden = xmlGetProp (node, (xmlChar*) "value");
 		if (hidden == NULL)
-			return gdata_parser_error_required_property_missing ("gCal:hidden", "value", error);
+			return gdata_parser_error_required_property_missing (node, "value", error);
 		gdata_calendar_calendar_set_is_hidden (self, (xmlStrcmp (hidden, (xmlChar*) "true") == 0) ? TRUE : FALSE);
 		xmlFree (hidden);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "color") == 0) {
@@ -340,20 +340,18 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 
 		value = xmlGetProp (node, (xmlChar*) "value");
 		if (value == NULL)
-			return gdata_parser_error_required_property_missing ("gCal:color", "value", error);
+			return gdata_parser_error_required_property_missing (node, "value", error);
 		if (gdata_color_from_hexadecimal ((gchar*) value, &colour) == FALSE) {
 			/* Error */
-			/* Translators: the first parameter is the name of an XML element, the second parameter is the name of
-			 * another XML element which is owned by (possessive) the first parameter, and the third parameter is
-			 * the erroneous value (which was not in hexadecimal RGB format).
-			 * Do not translate the angle brackets ("<" and ">") — they enclose XML element names.
-			 *
-			 * For example:
-			 *  A <entry>'s <gCal:color> element ("00FG56") was not in hexadecimal RGB format. */
 			g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
-				     _("A <%s>'s <%s> element content (\"%s\") was not in hexadecimal RGB format."),
-				     "entry", "gCal:color", value);
+				     /* Translators: the first parameter is the name of an XML element (including the angle brackets ("<" and ">"),
+				      * and the second parameter is the erroneous value (which was not in hexadecimal RGB format).
+				      *
+				      * For example:
+				      *  The content of a <entry/gCal:color> element ("00FG56") was not in hexadecimal RGB format. */
+				     _("The content of a %s element (\"%s\") was not in hexadecimal RGB format."), "<entry/gCal:color>", value);
 			xmlFree (value);
+
 			return FALSE;
 		}
 
@@ -363,20 +361,20 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 		/* gCal:selected */
 		xmlChar *selected = xmlGetProp (node, (xmlChar*) "value");
 		if (selected == NULL)
-			return gdata_parser_error_required_property_missing ("gCal:selected", "value", error);
+			return gdata_parser_error_required_property_missing (node, "value", error);
 		gdata_calendar_calendar_set_is_selected (self, (xmlStrcmp (selected, (xmlChar*) "true") == 0) ? TRUE : FALSE);
 		xmlFree (selected);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "accesslevel") == 0) {
 		/* gCal:accesslevel */
 		self->priv->access_level = (gchar*) xmlGetProp (node, (xmlChar*) "value");
 		if (self->priv->access_level == NULL)
-			return gdata_parser_error_required_property_missing ("gCal:accesslevel", "value", error);
+			return gdata_parser_error_required_property_missing (node, "value", error);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "edited") == 0) {
 		/* app:edited */
 		xmlChar *edited = xmlNodeListGetString (doc, node->children, TRUE);
 		if (g_time_val_from_iso8601 ((gchar*) edited, &(self->priv->edited)) == FALSE) {
 			/* Error */
-			gdata_parser_error_not_iso8601_format ("app:edited", "entry", (gchar*) edited, error);
+			gdata_parser_error_not_iso8601_format (node, (gchar*) edited, error);
 			xmlFree (edited);
 			return FALSE;
 		}

@@ -656,7 +656,7 @@ parse_media_group_xml_node (GDataYouTubeVideo *self, xmlDoc *doc, xmlNode *node,
 		else if (xmlStrcmp (is_default, (xmlChar*) "true") == 0)
 			is_default_bool = TRUE;
 		else {
-			gdata_parser_error_unknown_property_value ("media:content", "isDefault", (gchar*) is_default, error);
+			gdata_parser_error_unknown_property_value (node, "isDefault", (gchar*) is_default, error);
 			xmlFree (is_default);
 			return FALSE;
 		}
@@ -671,7 +671,7 @@ parse_media_group_xml_node (GDataYouTubeVideo *self, xmlDoc *doc, xmlNode *node,
 		else if (xmlStrcmp (expression, (xmlChar*) "nonstop") == 0)
 			expression_enum = GDATA_MEDIA_EXPRESSION_NONSTOP;
 		else {
-			gdata_parser_error_unknown_property_value ("media:content", "expression", (gchar*) expression, error);
+			gdata_parser_error_unknown_property_value (node, "expression", (gchar*) expression, error);
 			xmlFree (expression);
 			return FALSE;
 		}
@@ -704,7 +704,7 @@ parse_media_group_xml_node (GDataYouTubeVideo *self, xmlDoc *doc, xmlNode *node,
 		/* Check the role property is "uploader" */
 		role = xmlGetProp (node, (xmlChar*) "role");
 		if (xmlStrcmp (role, (xmlChar*) "uploader") != 0) {
-			gdata_parser_error_unknown_property_value ("media:credit", "role", (gchar*) role, error);
+			gdata_parser_error_unknown_property_value (node, "role", (gchar*) role, error);
 			xmlFree (role);
 			return FALSE;
 		}
@@ -713,7 +713,7 @@ parse_media_group_xml_node (GDataYouTubeVideo *self, xmlDoc *doc, xmlNode *node,
 		/* Check the type property */
 		type = xmlGetProp (node, (xmlChar*) "type");
 		if (type != NULL && xmlStrcmp (type, (xmlChar*) "partner") != 0) {
-			gdata_parser_error_unknown_property_value ("media:credit", "type", (gchar*) type, error);
+			gdata_parser_error_unknown_property_value (node, "type", (gchar*) type, error);
 			xmlFree (type);
 			return FALSE;
 		}
@@ -756,7 +756,7 @@ parse_media_group_xml_node (GDataYouTubeVideo *self, xmlDoc *doc, xmlNode *node,
 		/* Check the type property is "country" */
 		type = xmlGetProp (node, (xmlChar*) "type");
 		if (xmlStrcmp (type, (xmlChar*) "country") != 0) {
-			gdata_parser_error_unknown_property_value ("media:restriction", "type", (gchar*) type, error);
+			gdata_parser_error_unknown_property_value (node, "type", (gchar*) type, error);
 			xmlFree (type);
 			return FALSE;
 		}
@@ -770,7 +770,7 @@ parse_media_group_xml_node (GDataYouTubeVideo *self, xmlDoc *doc, xmlNode *node,
 		else if (xmlStrcmp (relationship, (xmlChar*) "deny") == 0)
 			relationship_bool = FALSE;
 		else {
-			gdata_parser_error_unknown_property_value ("media:restriction", "relationship", (gchar*) relationship, error);
+			gdata_parser_error_unknown_property_value (node, "relationship", (gchar*) relationship, error);
 			xmlFree (relationship);
 			return FALSE;
 		}
@@ -789,13 +789,13 @@ parse_media_group_xml_node (GDataYouTubeVideo *self, xmlDoc *doc, xmlNode *node,
 		/* Get the width and height */
 		width = xmlGetProp (node, (xmlChar*) "width");
 		if (width == NULL)
-			return gdata_parser_error_required_property_missing ("media:thumbnail", "width", error);
+			return gdata_parser_error_required_property_missing (node, "width", error);
 		width_uint = strtoul ((gchar*) width, NULL, 10);
 		xmlFree (width);
 
 		height = xmlGetProp (node, (xmlChar*) "height");
 		if (height == NULL)
-			return gdata_parser_error_required_property_missing ("media:thumbnail", "height", error);
+			return gdata_parser_error_required_property_missing (node, "height", error);
 		height_uint = strtoul ((gchar*) height, NULL, 10);
 		xmlFree (height);
 
@@ -806,9 +806,7 @@ parse_media_group_xml_node (GDataYouTubeVideo *self, xmlDoc *doc, xmlNode *node,
 		} else {
 			time_int = gdata_media_thumbnail_parse_time ((gchar*) _time);
 			if (time_int == -1) {
-				g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
-					     _("The @time property (\"%s\") of a <media:thumbnail> could not be parsed."),
-					     (gchar*) _time);
+				gdata_parser_error_unknown_property_value (node, "time", (gchar*) _time, error);
 				xmlFree (_time);
 				return FALSE;
 			}
@@ -823,7 +821,7 @@ parse_media_group_xml_node (GDataYouTubeVideo *self, xmlDoc *doc, xmlNode *node,
 		/* yt:duration */
 		xmlChar *duration = xmlGetProp (node, (xmlChar*) "seconds");
 		if (duration == NULL)
-			return gdata_parser_error_required_property_missing ("yt:duration", "seconds", error);
+			return gdata_parser_error_required_property_missing (node, "seconds", error);
 
 		self->priv->duration = strtoul ((gchar*) duration, NULL, 10);
 		g_object_notify (G_OBJECT (self), "duration");
@@ -839,7 +837,7 @@ parse_media_group_xml_node (GDataYouTubeVideo *self, xmlDoc *doc, xmlNode *node,
 		uploaded = xmlNodeListGetString (doc, node->children, TRUE);
 		if (g_time_val_from_iso8601 ((gchar*) uploaded, &uploaded_timeval) == FALSE) {
 			/* Error */
-			gdata_parser_error_not_iso8601_format ("uploaded", "media:group", (gchar*) uploaded, error);
+			gdata_parser_error_not_iso8601_format (node, (gchar*) uploaded, error);
 			xmlFree (uploaded);
 			return FALSE;
 		}
@@ -855,7 +853,7 @@ parse_media_group_xml_node (GDataYouTubeVideo *self, xmlDoc *doc, xmlNode *node,
 		g_object_notify (G_OBJECT (self), "video-id");
 		xmlFree (video_id);
 	} else {
-		return gdata_parser_error_unhandled_element ((gchar*) node->ns->prefix, (gchar*) node->name, "media:group", error);
+		return gdata_parser_error_unhandled_element (node, error);
 	}
 
 	return TRUE;
@@ -890,11 +888,11 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 
 		min = xmlGetProp (node, (xmlChar*) "min");
 		if (min == NULL)
-			return gdata_parser_error_required_property_missing ("gd:rating", "min", error);
+			return gdata_parser_error_required_property_missing (node, "min", error);
 
 		max = xmlGetProp (node, (xmlChar*) "max");
 		if (max == NULL) {
-			gdata_parser_error_required_property_missing ("gd:rating", "max", error);
+			gdata_parser_error_required_property_missing (node, "max", error);
 			xmlFree (min);
 			return FALSE;
 		}
@@ -953,7 +951,7 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 		/* View count */
 		view_count = xmlGetProp (node, (xmlChar*) "viewCount");
 		if (view_count == NULL)
-			return gdata_parser_error_required_property_missing ("yt:statistics", "viewCount", error);
+			return gdata_parser_error_required_property_missing (node, "viewCount", error);
 		self->priv->view_count = strtoul ((gchar*) view_count, NULL, 10);
 		g_object_notify (G_OBJECT (self), "view-count");
 		xmlFree (view_count);
@@ -985,7 +983,7 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 		recorded = xmlNodeListGetString (doc, node->children, TRUE);
 		if (gdata_parser_time_val_from_date ((gchar*) recorded, &recorded_timeval) == FALSE) {
 			/* Error */
-			gdata_parser_error_not_iso8601_format ("recorded", "entry", (gchar*) recorded, error);
+			gdata_parser_error_not_iso8601_format (node, (gchar*) recorded, error);
 			xmlFree (recorded);
 			return FALSE;
 		}
@@ -1006,7 +1004,7 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 
 				name = xmlGetProp (child_node, (xmlChar*) "name");
 				if (name == NULL)
-					return gdata_parser_error_required_property_missing ("yt:state", "name", error);
+					return gdata_parser_error_required_property_missing (child_node, "name", error);
 
 				message = xmlNodeListGetString (doc, child_node->children, TRUE);
 				reason_code = xmlGetProp (child_node, (xmlChar*) "reasonCode");
@@ -1022,8 +1020,7 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 				xmlFree (help_uri);
 			} else {
 				/* Unhandled element */
-				return gdata_parser_error_unhandled_element ((gchar*) child_node->ns->prefix,
-									     (gchar*) child_node->name, "app:control", error);
+				return gdata_parser_error_unhandled_element (child_node, error);
 			}
 
 			child_node = child_node->next;

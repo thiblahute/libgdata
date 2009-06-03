@@ -125,6 +125,7 @@ _gdata_parsable_new_from_xml (GType parsable_type, const gchar *first_element, c
 	if (doc == NULL) {
 		xmlError *xml_error = xmlGetLastError ();
 		g_set_error (error, GDATA_PARSER_ERROR, GDATA_PARSER_ERROR_PARSING_STRING,
+			     /* Translators: the parameter is an error message */
 			     _("Error parsing XML: %s"),
 			     xml_error->message);
 		return NULL;
@@ -137,6 +138,7 @@ _gdata_parsable_new_from_xml (GType parsable_type, const gchar *first_element, c
 		xmlFreeDoc (doc);
 		g_set_error (error, GDATA_PARSER_ERROR, GDATA_PARSER_ERROR_EMPTY_DOCUMENT,
 			     _("Error parsing XML: %s"),
+			     /* Translators: this is a dummy error message to be substituted into "Error parsing XML: %s". */
 			     _("Empty document."));
 		return NULL;
 	}

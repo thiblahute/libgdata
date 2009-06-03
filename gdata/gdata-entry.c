@@ -263,7 +263,7 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 		updated = xmlNodeListGetString (doc, node->children, TRUE);
 		if (g_time_val_from_iso8601 ((gchar*) updated, &(self->priv->updated)) == FALSE) {
 			/* Error */
-			gdata_parser_error_not_iso8601_format ("updated", "entry", (gchar*) updated, error);
+			gdata_parser_error_not_iso8601_format (node, (gchar*) updated, error);
 			xmlFree (updated);
 			return FALSE;
 		}
@@ -275,7 +275,7 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 		published = xmlNodeListGetString (doc, node->children, TRUE);
 		if (g_time_val_from_iso8601 ((gchar*) published, &(self->priv->published)) == FALSE) {
 			/* Error */
-			gdata_parser_error_not_iso8601_format ("published", "entry", (gchar*) published, error);
+			gdata_parser_error_not_iso8601_format (node, (gchar*) published, error);
 			xmlFree (published);
 			return FALSE;
 		}
@@ -344,7 +344,7 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 			} else if (xmlStrcmp (author_node->name, (xmlChar*) "email") == 0) {
 				email = xmlNodeListGetString (doc, author_node->children, TRUE);
 			} else {
-				gdata_parser_error_unhandled_element ((gchar*) author_node->ns->prefix, (gchar*) author_node->name, "author", error);
+				gdata_parser_error_unhandled_element (author_node, error);
 				xmlFree (name);
 				xmlFree (uri);
 				xmlFree (email);

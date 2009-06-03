@@ -22,6 +22,7 @@
 #include <glib/gi18n-lib.h>
 #include <sys/time.h>
 #include <time.h>
+#include <libxml/parser.h>
 
 #include "gdata-service.h"
 #include "gdata-parser.h"
@@ -33,89 +34,148 @@ gdata_parser_error_quark (void)
 	return g_quark_from_static_string ("gdata-parser-error-quark");
 }
 
-gboolean
-gdata_parser_error_required_content_missing (const gchar *element_name, GError **error)
+static gchar *
+print_element (xmlNode *node)
 {
-	/* Translators: the parameter is the name of an XML element.
-	 * Do not translate the angle brackets ("<" and ">") — they enclose XML element names. */
-	g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
-		     _("A <%s> element was missing required content."),
-		     element_name);
-	return FALSE;
+	gboolean node_has_ns = (node->ns == NULL || node->ns->prefix == NULL ||
+				xmlStrcmp (node->ns->href, (xmlChar*) "http://www.w3.org/2005/Atom") == 0) ? FALSE : TRUE;
+
+	if (node->parent == NULL) {
+		/* No parent node */
+		if (node_has_ns == TRUE)
+			return g_strdup_printf ("<%s:%s>", node->ns->prefix, node->name);
+		else
+			return g_strdup_printf ("<%s>", node->name);
+	} else {
+		/* We have a parent node, which makes things a lot more complex */
+		gboolean parent_has_ns = (node->parent->ns == NULL || node->parent->ns->prefix == NULL ||
+					  xmlStrcmp (node->parent->ns->href, (xmlChar*) "http://www.w3.org/2005/Atom") == 0) ? FALSE : TRUE;
+
+		if (parent_has_ns == TRUE && node_has_ns == TRUE)
+			return g_strdup_printf ("<%s:%s/%s:%s>", node->parent->ns->prefix, node->parent->name, node->ns->prefix, node->name);
+		else if (parent_has_ns == FALSE && node_has_ns == TRUE)
+			return g_strdup_printf ("<%s/%s:%s>", node->parent->name, node->ns->prefix, node->name);
+		else
+			return g_strdup_printf ("<%s/%s>", node->parent->name, node->name);
+	}
 }
 
 gboolean
-gdata_parser_error_not_iso8601_format (const gchar *element_name, const gchar *parent_element_name, const gchar *actual_value, GError **error)
+gdata_parser_error_required_content_missing (xmlNode *element, GError **error)
 {
-	/* Translators: the first parameter is the name of an XML element, the second parameter is the name of
-	 * another XML element which is owned by (possessive) the first parameter, and the third parameter is
-	 * the erroneous value (which was not in ISO 8601 format).
-	 * Do not translate the angle brackets ("<" and ">") — they enclose XML element names.
+	gchar *element_string = print_element (element);
+
+	/* Translators: the parameter is the name of an XML element, including the angle brackets ("<" and ">").
 	 *
 	 * For example:
-	 *  A <media:group>'s <uploaded> element content ("2009-05-06 26:30Z") was not in ISO 8601 format. */
-	g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
-		     _("A <%s>'s <%s> element content (\"%s\") was not in ISO 8601 format."),
-		     parent_element_name, element_name, actual_value);
+	 *  A <title> element was missing required content. */
+	g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR, _("A %s element was missing required content."), element_string);
+	g_free (element_string);
+
 	return FALSE;
 }
 
 gboolean
-gdata_parser_error_unhandled_element (const gchar *element_namespace, const gchar *element_name, const gchar *parent_element_name, GError **error)
+gdata_parser_error_not_iso8601_format (xmlNode *element, const gchar *actual_value, GError **error)
 {
-	/* Translators: the first parameter is the name of an XML namespace, the second the name of an XML element, and the third the
-	 * name of the XML parent element.
-	 * Do not translate the angle brackets ("<" and ">") — they enclose XML element names. */
-	g_set_error (error, GDATA_PARSER_ERROR, GDATA_PARSER_ERROR_UNHANDLED_XML_ELEMENT,
-		     _("Unhandled <%s:%s> element as a child of <%s>."),
-		     element_namespace, element_name, parent_element_name);
+	gchar *element_string = print_element (element);
+	g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
+		     /* Translators: the first parameter is the name of an XML element (including the angle brackets ("<" and ">")), and the second parameter is
+		      * the erroneous value (which was not in ISO 8601 format).
+		      *
+		      * For example:
+		      *  The content of a <media:group/media:uploaded> element ("2009-05-06 26:30Z") was not in ISO 8601 format. */
+		     _("The content of a %s element (\"%s\") was not in ISO 8601 format."), element_string, actual_value);
+	g_free (element_string);
+
 	return FALSE;
 }
 
 gboolean
-gdata_parser_error_unknown_property_value (const gchar *element_name, const gchar *property_name, const gchar *actual_value, GError **error)
+gdata_parser_error_unhandled_element (xmlNode *element, GError **error)
 {
-	/* Translators: the first parameter is an unknown value, the second is the name of an XML element, and the third is
-	 * the name of an XML property.
-	 * Do not translate the angle brackets ("<" and ">") — they enclose XML element names. Similarly, do not translate (or remove)
-	 * the "@" from before the third parameter. */
-	g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
-		     _("Unknown value \"%s\" of a <%s> @%s property."),
-		     actual_value, element_name, property_name);
+	gchar *element_string = print_element (element);
+
+	/* Translators: the parameter is the name of an XML element, including the angle brackets ("<" and ">").
+	 *
+	 * For example:
+	 *  Unhandled <entry/yt:aspectRatio> element. */
+	g_set_error (error, GDATA_PARSER_ERROR, GDATA_PARSER_ERROR_UNHANDLED_XML_ELEMENT, _("Unhandled %s element."), element_string);
+	g_free (element_string);
+
 	return FALSE;
 }
 
 gboolean
-gdata_parser_error_required_property_missing (const gchar *element_name, const gchar *property_name, GError **error)
+gdata_parser_error_unknown_property_value (xmlNode *element, const gchar *property_name, const gchar *actual_value, GError **error)
 {
-	/* Translators: the first parameter is the name of an XML property, and the second is the name of an XML element.
-	 * Do not translate the angle brackets ("<" and ">") — they enclose XML element names. Similarly, do not translate (or remove)
-	 * the "@" from before the first parameter. */
+	gchar *property_string, *element_string;
+
+	property_string = g_strdup_printf ("@%s", property_name);
+	element_string = print_element (element);
+
 	g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
-		     _("A required @%s property of a <%s> was not present."),
-		     property_name, element_name);
+		     /* Translators: the first parameter is the name of an XML property, the second is the name of an XML element
+		      * (including the angle brackets ("<" and ">")) to which the property belongs, and the third is the unknown value.
+		      *
+		      * For example:
+		      *  The value of the @time property of a <media:group/media:thumbnail> element ("00:01:42.500") was unknown. */
+		     _("The value of the %s property of a %s element (\"%s\") was unknown."), property_string, element_string, actual_value);
+	g_free (property_string);
+	g_free (element_string);
+
+	return FALSE;
+}
+
+gboolean
+gdata_parser_error_required_property_missing (xmlNode *element, const gchar *property_name, GError **error)
+{
+	gchar *property_string, *element_string;
+
+	property_string = g_strdup_printf ("@%s", property_name);
+	element_string = print_element (element);
+
+	g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
+		     /* Translators: the first parameter is the name of an XML element (including the angle brackets ("<" and ">")),
+		      * and the second is the name of an XML property which it should have contained.
+		      *
+		      * For example:
+		      *  A required property of a <entry/gAcl:role> element (@value) was not present. */
+		     _("A required property of a %s element (%s) was not present."), property_string, element_string);
+	g_free (property_string);
+	g_free (element_string);
+
 	return FALSE;
 }
 
 gboolean
 gdata_parser_error_required_element_missing (const gchar *element_name, const gchar *parent_element_name, GError **error)
 {
-	/* Translators: the first parameter is the name of an XML element, and the second is the name of the XML parent element.
-	 * Do not translate the angle brackets ("<" and ">") — they enclose XML element names. */
-	g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
-		     _("A required <%s> element as a child of <%s> was not present."),
-		     element_name, parent_element_name);
+	/* NOTE: This can't take an xmlNode, since such a node wouldn't exist. */
+	gchar *element_string = g_strdup_printf ("<%s/%s>", parent_element_name, element_name);
+
+	/* Translators: the parameter is the name of an XML element, including the angle brackets ("<" and ">").
+	 *
+	 * For example:
+	 *  A required element (<entry/title>) was not present. */
+	g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR, _("A required element (%s) was not present."), element_string);
+	g_free (element_string);
+
 	return FALSE;
 }
 
 gboolean
-gdata_parser_error_duplicate_element (const gchar *element_name, const gchar *parent_element_name, GError **error)
+gdata_parser_error_duplicate_element (xmlNode *element, GError **error)
 {
-	/* Translators: the first parameter is the name of an XML element, and the second is the name of the XML parent element.
-	 * Do not translate the angle brackets ("<" and ">") — they enclose XML element names. */
-	g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
-		     _("A <%s> element as a child of <%s> was duplicated."),
-		     element_name, parent_element_name);
+	gchar *element_string = print_element (element);
+
+	/* Translators: the parameter is the name of an XML element, including the angle brackets ("<" and ">").
+	 *
+	 * For example:
+	 *  A singleton element (<feed/title>) was duplicated. */
+	g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR, _("A singleton element (%s) was duplicated."), element_string);
+	g_free (element_string);
+
 	return FALSE;
 }
 

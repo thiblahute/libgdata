@@ -407,19 +407,19 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 	} else if (xmlStrcmp (node->name, (xmlChar*) "title") == 0) {
 		/* atom:title */
 		if (self->priv->title != NULL)
-			return gdata_parser_error_duplicate_element ("title", "feed", error);
+			return gdata_parser_error_duplicate_element (node, error);
 
 		self->priv->title = (gchar*) xmlNodeListGetString (doc, node->children, TRUE);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "subtitle") == 0) {
 		/* atom:subtitle */
 		if (self->priv->subtitle != NULL)
-			return gdata_parser_error_duplicate_element ("subtitle", "feed", error);
+			return gdata_parser_error_duplicate_element (node, error);
 
 		self->priv->subtitle = (gchar*) xmlNodeListGetString (doc, node->children, TRUE);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "id") == 0) {
 		/* atom:id */
 		if (self->priv->id != NULL)
-			return gdata_parser_error_duplicate_element ("id", "feed", error);
+			return gdata_parser_error_duplicate_element (node, error);
 
 		self->priv->id = (gchar*) xmlNodeListGetString (doc, node->children, TRUE);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "updated") == 0) {
@@ -428,12 +428,12 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 
 		/* Duplicate checking */
 		if (self->priv->updated.tv_sec != 0 || self->priv->updated.tv_usec != 0)
-			return gdata_parser_error_duplicate_element ("updated", "feed", error);
+			return gdata_parser_error_duplicate_element (node, error);
 
 		/* Parse the string */
 		updated_string = xmlNodeListGetString (doc, node->children, TRUE);
 		if (g_time_val_from_iso8601 ((gchar*) updated_string, &(self->priv->updated)) == FALSE) {
-			gdata_parser_error_not_iso8601_format ("updated", "feed", (gchar*) updated_string, error);
+			gdata_parser_error_not_iso8601_format (node, (gchar*) updated_string, error);
 			xmlFree (updated_string);
 			return FALSE;
 		}
@@ -457,7 +457,7 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 	} else if (xmlStrcmp (node->name, (xmlChar*) "logo") == 0) {
 		/* atom:logo */
 		if (self->priv->logo != NULL)
-			return gdata_parser_error_duplicate_element ("logo", "feed", error);
+			return gdata_parser_error_duplicate_element (node, error);
 
 		self->priv->logo = (gchar*) xmlNodeListGetString (doc, node->children, TRUE);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "link") == 0) {
@@ -502,7 +502,7 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 			} else if (xmlStrcmp (author_node->name, (xmlChar*) "email") == 0) {
 				email = xmlNodeListGetString (doc, author_node->children, TRUE);
 			} else {
-				gdata_parser_error_unhandled_element ((gchar*) author_node->ns->prefix, (gchar*) author_node->name, "author", error);
+				gdata_parser_error_unhandled_element (author_node, error);
 				xmlFree (name);
 				xmlFree (uri);
 				xmlFree (email);
@@ -524,7 +524,7 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 
 		/* Duplicate checking */
 		if (self->priv->generator != NULL)
-			return gdata_parser_error_duplicate_element ("generator", "feed", error);
+			return gdata_parser_error_duplicate_element (node, error);
 
 		/* Parse the element's parameters */
 		name = xmlNodeListGetString (doc, node->children, TRUE);
@@ -542,12 +542,12 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 
 		/* Duplicate checking */
 		if (self->priv->total_results != 0)
-			return gdata_parser_error_duplicate_element ("totalResults", "feed", error);
+			return gdata_parser_error_duplicate_element (node, error);
 
 		/* Parse the number */
 		total_results_string = xmlNodeListGetString (doc, node->children, TRUE);
 		if (total_results_string == NULL)
-			return gdata_parser_error_required_content_missing ("openSearch:totalResults", error);
+			return gdata_parser_error_required_content_missing (node, error);
 
 		self->priv->total_results = strtoul ((gchar*) total_results_string, NULL, 10);
 		xmlFree (total_results_string);
@@ -557,12 +557,12 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 
 		/* Duplicate checking */
 		if (self->priv->start_index != 0)
-			return gdata_parser_error_duplicate_element ("startIndex", "feed", error);
+			return gdata_parser_error_duplicate_element (node, error);
 
 		/* Parse the number */
 		start_index_string = xmlNodeListGetString (doc, node->children, TRUE);
 		if (start_index_string == NULL)
-			return gdata_parser_error_required_content_missing ("openSearch:startIndex", error);
+			return gdata_parser_error_required_content_missing (node, error);
 
 		self->priv->start_index = strtoul ((gchar*) start_index_string, NULL, 10);
 		xmlFree (start_index_string);
@@ -572,12 +572,12 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 
 		/* Duplicate checking */
 		if (self->priv->items_per_page != 0)
-			return gdata_parser_error_duplicate_element ("itemsPerPage", "feed", error);
+			return gdata_parser_error_duplicate_element (node, error);
 
 		/* Parse the number */
 		items_per_page_string = xmlNodeListGetString (doc, node->children, TRUE);
 		if (items_per_page_string == NULL)
-			return gdata_parser_error_required_content_missing ("openSearch:itemsPerPage", error);
+			return gdata_parser_error_required_content_missing (node, error);
 
 		self->priv->items_per_page = strtoul ((gchar*) items_per_page_string, NULL, 10);
 		xmlFree (items_per_page_string);

@@ -242,7 +242,7 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 		xmlChar *edited = xmlNodeListGetString (doc, node->children, TRUE);
 		if (g_time_val_from_iso8601 ((gchar*) edited, &(self->priv->edited)) == FALSE) {
 			/* Error */
-			gdata_parser_error_not_iso8601_format ("app:edited", "entry", (gchar*) edited, error);
+			gdata_parser_error_not_iso8601_format (node, (gchar*) edited, error);
 			xmlFree (edited);
 			return FALSE;
 		}
@@ -255,7 +255,7 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 
 		address = xmlGetProp (node, (xmlChar*) "address");
 		if (address == NULL)
-			return gdata_parser_error_required_property_missing ("gd:email", "address", error);
+			return gdata_parser_error_required_property_missing (node, "address", error);
 
 		rel = xmlGetProp (node, (xmlChar*) "rel");
 		label = xmlGetProp (node, (xmlChar*) "label");
@@ -270,7 +270,7 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 		else if (xmlStrcmp (primary, (xmlChar*) "true") == 0)
 			primary_bool = TRUE;
 		else {
-			gdata_parser_error_unknown_property_value ("gd:email", "primary", (gchar*) primary, error);
+			gdata_parser_error_unknown_property_value (node, "primary", (gchar*) primary, error);
 			xmlFree (primary);
 			return FALSE;
 		}
@@ -291,7 +291,7 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 
 		address = xmlGetProp (node, (xmlChar*) "address");
 		if (address == NULL)
-			return gdata_parser_error_required_property_missing ("gd:im", "address", error);
+			return gdata_parser_error_required_property_missing (node, "address", error);
 
 		rel = xmlGetProp (node, (xmlChar*) "rel");
 		label = xmlGetProp (node, (xmlChar*) "label");
@@ -307,7 +307,7 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 		else if (xmlStrcmp (primary, (xmlChar*) "true") == 0)
 			primary_bool = TRUE;
 		else {
-			gdata_parser_error_unknown_property_value ("gd:im", "primary", (gchar*) primary, error);
+			gdata_parser_error_unknown_property_value (node, "primary", (gchar*) primary, error);
 			xmlFree (primary);
 			return FALSE;
 		}
@@ -329,7 +329,7 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 
 		number = xmlNodeListGetString (doc, node->children, TRUE);
 		if (number == NULL)
-			return gdata_parser_error_required_content_missing ("gd:phoneNumber", error);
+			return gdata_parser_error_required_content_missing (node, error);
 
 		rel = xmlGetProp (node, (xmlChar*) "rel");
 		label = xmlGetProp (node, (xmlChar*) "label");
@@ -345,7 +345,7 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 		else if (xmlStrcmp (primary, (xmlChar*) "true") == 0)
 			primary_bool = TRUE;
 		else {
-			gdata_parser_error_unknown_property_value ("gd:phoneNumber", "primary", (gchar*) primary, error);
+			gdata_parser_error_unknown_property_value (node, "primary", (gchar*) primary, error);
 			xmlFree (primary);
 			return FALSE;
 		}
@@ -367,7 +367,7 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 
 		address = xmlNodeListGetString (doc, node->children, TRUE);
 		if (address == NULL)
-			return gdata_parser_error_required_content_missing ("gd:postalAddress", error);
+			return gdata_parser_error_required_content_missing (node, error);
 
 		rel = xmlGetProp (node, (xmlChar*) "rel");
 		label = xmlGetProp (node, (xmlChar*) "label");
@@ -382,7 +382,7 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 		else if (xmlStrcmp (primary, (xmlChar*) "true") == 0)
 			primary_bool = TRUE;
 		else {
-			gdata_parser_error_unknown_property_value ("gd:postalAddress", "primary", (gchar*) primary, error);
+			gdata_parser_error_unknown_property_value (node, "primary", (gchar*) primary, error);
 			xmlFree (primary);
 			return FALSE;
 		}
@@ -408,7 +408,7 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 				if (name != NULL) {
 					xmlFree (name);
 					xmlFree (title);
-					return gdata_parser_error_duplicate_element ("gd:orgName", "gd:organization", error);
+					return gdata_parser_error_duplicate_element (child_node, error);
 				}
 				name = xmlNodeListGetString (doc, child_node->children, TRUE);
 			} else if (xmlStrcmp (child_node->name, (xmlChar*) "orgTitle") == 0) {
@@ -416,13 +416,12 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 				if (title != NULL) {
 					xmlFree (name);
 					xmlFree (title);
-					return gdata_parser_error_duplicate_element ("gd:orgTitle", "gd:organization", error);
+					return gdata_parser_error_duplicate_element (child_node, error);
 				}
 				title = xmlNodeListGetString (doc, child_node->children, TRUE);
 			} else {
 				/* Error */
-				gdata_parser_error_unhandled_element ((gchar*) child_node->ns->prefix, (gchar*) child_node->name,
-								      "gd:organization", error);
+				gdata_parser_error_unhandled_element (child_node, error);
 				xmlFree (name);
 				xmlFree (title);
 				return FALSE;
@@ -442,7 +441,7 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 		else if (xmlStrcmp (primary, (xmlChar*) "true") == 0)
 			primary_bool = TRUE;
 		else {
-			gdata_parser_error_unknown_property_value ("gd:organization", "primary", (gchar*) primary, error);
+			gdata_parser_error_unknown_property_value (node, "primary", (gchar*) primary, error);
 			xmlFree (primary);
 			return FALSE;
 		}
@@ -463,7 +462,7 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 
 		name = xmlGetProp (node, (xmlChar*) "name");
 		if (name == NULL)
-			return gdata_parser_error_required_property_missing ("gd:extendedProperty", "name", error);
+			return gdata_parser_error_required_property_missing (node, "name", error);
 
 		/* Get either the value property, or the element's content */
 		value = xmlGetProp (node, (xmlChar*) "value");
@@ -486,7 +485,7 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 
 		href = xmlGetProp (node, (xmlChar*) "href");
 		if (href == NULL)
-			return gdata_parser_error_required_property_missing ("gContact:groupMembershipInfo", "href", error);
+			return gdata_parser_error_required_property_missing (node, "href", error);
 
 		/* Has it been deleted? */
 		deleted = xmlGetProp (node, (xmlChar*) "deleted");
@@ -495,7 +494,7 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 		else if (xmlStrcmp (deleted, (xmlChar*) "true") == 0)
 			deleted_bool = TRUE;
 		else {
-			gdata_parser_error_unknown_property_value ("gContact:groupMembershipInfo", "deleted", (gchar*) deleted, error);
+			gdata_parser_error_unknown_property_value (node, "deleted", (gchar*) deleted, error);
 			xmlFree (deleted);
 			return FALSE;
 		}

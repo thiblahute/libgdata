@@ -136,14 +136,14 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 		/* gCal:timezone */
 		xmlChar *_timezone = xmlGetProp (node, (xmlChar*) "value");
 		if (_timezone == NULL)
-			return gdata_parser_error_required_property_missing ("gCal:timezone", "value", error);
+			return gdata_parser_error_required_property_missing (node, "value", error);
 		xmlFree (self->priv->timezone);
 		self->priv->timezone = (gchar*) _timezone;
 	} else if (xmlStrcmp (node->name, (xmlChar*) "timesCleaned") == 0) {
 		/* gCal:timesCleaned */
 		xmlChar *times_cleaned = xmlGetProp (node, (xmlChar*) "value");
 		if (times_cleaned == NULL)
-			return gdata_parser_error_required_property_missing ("gCal:timesCleaned", "value", error);
+			return gdata_parser_error_required_property_missing (node, "value", error);
 		self->priv->times_cleaned = strtoul ((gchar*) times_cleaned, NULL, 10);
 		xmlFree (times_cleaned);
 	} else if (GDATA_PARSABLE_CLASS (gdata_calendar_feed_parent_class)->parse_xml (parsable, doc, node, user_data, error) == FALSE) {

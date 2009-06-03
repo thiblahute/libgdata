@@ -281,12 +281,10 @@ parse_error_response (GDataService *self, GDataServiceError error_type, guint st
 				location = xmlNodeListGetString (doc, child_node->children, TRUE);
 			else if (xmlStrcmp (child_node->name, (xmlChar*) "internalReason") != 0) {
 				/* Unknown element (ignore internalReason) */
-				if (*error == NULL) {
-					gdata_parser_error_unhandled_element ((gchar*) child_node->ns->prefix, (gchar*) child_node->name,
-									      "error", error);
-				} else {
-					g_warning ("Unhandled <%s:%s> element as a child of <error>.", child_node->ns->prefix, child_node->name);
-				}
+				if (*error == NULL)
+					gdata_parser_error_unhandled_element (child_node, error);
+				else
+					g_warning ("Unhandled <error/%s> element.", child_node->name);
 
 				xmlFree (domain);
 				xmlFree (code);
@@ -317,11 +315,13 @@ parse_error_response (GDataService *self, GDataServiceError error_type, guint st
 						     _("You have made too many API calls recently. Please wait a few minutes and try again."));
 				} else if (xmlStrcmp (code, (xmlChar*) "too_many_entries") == 0) {
 					g_set_error (error, GDATA_YOUTUBE_SERVICE_ERROR, GDATA_YOUTUBE_SERVICE_ERROR_ENTRY_QUOTA_EXCEEDED,
-						     _("You have exceeded your entry quota with the entry \"%s\". "
-						       "Please delete some entries and try again."), location);
+						     _("You have exceeded your entry quota. Please delete some entries and try again."));
 				} else {
 					/* Protocol error */
 					g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
+						     /* Translators: the first parameter is an error code, which is a coded string. The second parameter
+						      * is an error domain, which is another coded string. The third parameter is the location of the
+						      * error, which is either a URI or an XPath. */
 						     _("Unknown error code \"%s\" in domain \"%s\" received with location \"%s\"."),
 						     code, domain, location);
 				}
