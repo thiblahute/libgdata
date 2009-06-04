@@ -96,7 +96,8 @@ libgdata_la_LIBADD = \
 	$(GNOME_LIBS)	\
 	services/youtube/libgdatayoutube.la	\
 	services/calendar/libgdatacalendar.la	\
-	services/contacts/libgdatacontacts.la
+	services/contacts/libgdatacontacts.la\
+	services/documents/libgdatadocuments.la
 
 libgdata_la_LDFLAGS = \
 	-version-info $(GDATA_LT_VERSION)	\

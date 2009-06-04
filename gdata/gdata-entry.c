@@ -234,6 +234,7 @@ pre_parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *root_node, gpointe
 static gboolean
 parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_data, GError **error)
 {
+	printf ("=====parseEntry======\n");
 	GDataEntry *self;
 
 	g_return_val_if_fail (GDATA_IS_ENTRY (parsable), FALSE);
