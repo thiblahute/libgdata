@@ -44,7 +44,7 @@
 static void gdata_documents_folder_finalize (GObject *object);
 static void get_namespaces (GDataEntry *entry, GHashTable *namespaces);
 static void get_xml (GDataEntry *entry, GString *xml_string);
-static gboolean parse_xml (GDataEntry *entry, xmlDoc *doc, xmlNode *node, GError **error);
+static gboolean parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_data, GError **error);
 
 
 struct _GDataDocumentsFolderPrivate 
@@ -94,13 +94,21 @@ gdata_documents_folder_new_from_xml (const gchar *xml, gint length, GError **err
 }
 
 static gboolean
-parse_xml (GDataEntry *entry, xmlDoc *doc, xmlNode *node, GError **error)
+parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_data, GError **error)
 {
-	GDataDocumentsFolder *self = GDATA_DOCUMENTS_FOLDER (entry);
+	GDataDocumentsFolder *self;
 
-	g_return_val_if_fail (GDATA_IS_DOCUMENTS_FOLDER (self), FALSE);
+	g_return_val_if_fail (GDATA_IS_DOCUMENTS_FOLDER (parsable), FALSE);
 	g_return_val_if_fail (doc != NULL, FALSE);
 	g_return_val_if_fail (node != NULL, FALSE);
+
+	self = GDATA_DOCUMENTS_FOLDER (parsable);
+	
+
+	if (GDATA_PARSABLE_CLASS (gdata_documents_folder_parent_class)->parse_xml (parsable, doc, node, user_data, error) == FALSE) {
+		/* Error! */
+		return FALSE;
+	}
 
 	/*TODO*/
 

@@ -63,13 +63,20 @@ GDataDocumentsEntry *gdata_documents_entry_new_from_xml (const gchar *xml, gint 
 gchar *gdata_documents_entry_get_path (GDataDocumentsEntry *self );
 void gdata_documents_entry_set_path (GDataDocumentsEntry *self, const gchar *path ); 
 
+gchar *gdata_documents_entry_get_resource_id (GDataDocumentsEntry *self );
+void gdata_documents_entry_set_resource_id (GDataDocumentsEntry *self, const gchar *resource_id ); 
+
 void gdata_documents_entry_get_edited (GDataDocumentsEntry *self, GTimeVal *edited);
+void gdata_documents_entry_get_last_viewed ( GDataDocumentsEntry *self, GTimeVal *last_viewed);
 
 void gdata_documents_entry_set_writers_can_invite(GDataDocumentsEntry *self, gboolean  writers_can_invite);
 gboolean gdata_documents_entry_get_writers_can_invite (GDataDocumentsEntry *self);
 
-void gdata_documents_entry_set_access_rules_uri (GDataDocumentsEntry *self, const gchar *access_rules_uri);
-gchar *gdata_documents_entry_get_access_rules_uri (GDataDocumentsEntry *self );
+void gdata_documents_entry_set_access_rules_uri (GDataDocumentsEntry *self, GDataGDFeedLink *access_rules_uri);
+GDataGDFeedLink *gdata_documents_entry_get_access_rules_uri (GDataDocumentsEntry *self );
+
+void gdata_documents_entry_set_last_modified_by (GDataDocumentsEntry *self, GDataAuthor *last_modified_by);
+GDataAuthor *gdata_documents_entry_get_last_modified_by (GDataDocumentsEntry *self);
 
 void gdata_documents_entry_add_a_mime_type (GDataDocumentsEntry *self, gchar *extension, gchar *mime_type );
 

@@ -54,19 +54,25 @@ static gboolean parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, 
 struct _GDataDocumentsEntryPrivate 
 {
 	GTimeVal edited;
+	GTimeVal last_viewed;
 	gchar *path;
+	gchar *resource_id;
 	GHashTable *mime_types;
 	gboolean writers_can_invite;
-	gchar *access_rules_uri;
-	GDataAuthor *lastModifiedBy;
+	GDataGDFeedLink *access_rules_uri;
+	GDataAuthor *last_modified_by;
 	GDataFeed *access_rules;
 };
 
 enum {
 	PROP_EDITED = 1,
+	PROP_LAST_VIEWED,
 	PROP_PATH,
+	PROP_RESSOURCE_ID,
+	PROOP_LAST_MODIFIED_BY,
 	PROP_WRITERS_CAN_INVITE,
-	PROP_ACCESS_RULES_URI
+	PROP_ACCESS_RULES_URI,
+	PROP_LAST_MODIFIED_BY
 };
 
 G_DEFINE_ABSTRACT_TYPE_WITH_CODE (GDataDocumentsEntry, gdata_documents_entry, GDATA_TYPE_ENTRY,\
@@ -101,10 +107,21 @@ gdata_documents_entry_class_init (GDataDocumentsEntryClass *klass)
 	 **/
 	g_object_class_install_property (gobject_class, PROP_EDITED,
 				g_param_spec_boxed ("edited",
-					"Edited", "The last time the documenentry was edited.",
+					"Edited", "The last time the document entry was edited.",
 					GDATA_TYPE_G_TIME_VAL,
 					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 
+	/**
+	 * GDataDocumentsEntry::last_viewed
+	 *
+	 * The last time the documentsEntry has been view. TODO if never viewed 
+	 *
+	 **/
+	g_object_class_install_property (gobject_class, PROP_LAST_VIEWED,
+				g_param_spec_boxed ("last-viewed",
+					"Last viewed", "The last time the document entry has been viewed.",
+					GDATA_TYPE_G_TIME_VAL,
+					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 	/**
 	 * GDataDocumentsEntry:writers_can_invite:
 	 *
@@ -112,7 +129,7 @@ gdata_documents_entry_class_init (GDataDocumentsEntryClass *klass)
 	 */
 	g_object_class_install_property (gobject_class, PROP_WRITERS_CAN_INVITE,
 				g_param_spec_boxed ("writers-can-invite",
-					"Writer can invite?", "Indicates whether writer can invite or not.",
+					"Writer can invite?", "Indicates whether writers can invite or not.",
 					FALSE,
 					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 	
@@ -123,21 +140,42 @@ gdata_documents_entry_class_init (GDataDocumentsEntryClass *klass)
 	 **/
 	g_object_class_install_property (gobject_class, PROP_PATH,
 				g_param_spec_string ("path",
-					"Path", "Indicates Indicates in what path the documentsEntry is.",
+					"Path", "Indicates in what path the documentsEntry is.",
+					NULL,
+					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
+
+	/**
+	 * GDataDocumentsEntry:resource_id
+	 *
+	 * Indicates the of the resourceId.
+	 **/
+	g_object_class_install_property (gobject_class, PROP_RESSOURCE_ID,
+				g_param_spec_string ("resource-id",
+					"resource id", "Indicates the resourcesId of the entry.",
 					NULL,
 					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * GDataDocumentsEntry:access_rules_uri
 	 *
+	 * A link to the document_entry's acls feed. It points to a #GDataGDFeedLink.
+	 *
 	 * Indicates the uri to get the documentsEntry access_Rules' feed.
 	 **/
 	g_object_class_install_property (gobject_class, PROP_ACCESS_RULES_URI,
-				g_param_spec_string ("access-rules-uri",
+				g_param_spec_pointer ("access-rules-uri",
 					"access rules_uri", "Indicates the uri to get the documentsEntry access rules feed.",
-					NULL,
 					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 
+	/**
+	 * GDataDocumentsEntry:last_modified_by
+	 *
+	 * Indicates the author of the last modification. It points to a #GDataAuthor.
+	 **/
+	g_object_class_install_property (gobject_class, PROP_LAST_MODIFIED_BY,
+				g_param_spec_pointer ("last-modified-by",
+					"Last modified by", "Indicates the author of the last modification.", 
+					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 }
 
 static void
@@ -202,9 +240,6 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 
 	self = GDATA_DOCUMENTS_ENTRY (parsable);
 
-	printf ("test");
-	
-
 	if (xmlStrcmp (node->name, (xmlChar*) "edited") == 0) {
 		xmlChar *edited = xmlNodeListGetString (doc, node->xmlChildrenNode, TRUE);
 		if (g_time_val_from_iso8601 ((gchar*) edited, &(self->priv->edited)) == FALSE) {
@@ -213,43 +248,67 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 			return FALSE;
 		}
 		xmlFree (edited);
+	}else if (xmlStrcmp (node->name, (xmlChar*) "lastViewed") == 0) {
+		xmlChar *last_viewed = xmlNodeListGetString (doc, node->xmlChildrenNode, TRUE);
+		if (g_time_val_from_iso8601 ((gchar*) last_viewed, &(self->priv->last_viewed)) == FALSE) {
+			gdata_parser_error_not_iso8601_format (node, (gchar*) last_viewed, error);
+			xmlFree (last_viewed);
+			return FALSE;
+		}
+		xmlFree (last_viewed);
 	}else if (xmlStrcmp (node->name, (xmlChar*) "writersCanInvite") ==  0){
 		xmlChar *_writers_can_invite = xmlGetProp (node, (xmlChar*) "value");
-		if (strcmp ( (char*) _writers_can_invite, (char*) "true") == 0) {
+		if (strcmp ( (char*) _writers_can_invite, (char*) "true") == 0)
 			gdata_documents_entry_set_writers_can_invite (self, TRUE);
-		}else if (strcmp ( (char*) _writers_can_invite, (char*) "false") == 0) {
+		else if (strcmp ( (char*) _writers_can_invite, (char*) "false") == 0)
 			gdata_documents_entry_set_writers_can_invite (self, FALSE);
-		}else{
+		else
 			return gdata_parser_error_unknown_property_value ("writersCanWrite", "value", (const gchar*) _writers_can_invite, error);
-		}
 		g_free (_writers_can_invite);
+	}else if (xmlStrcmp (node->name, (xmlChar*) "resourceId") ==  0){
+		gdata_documents_entry_set_resource_id  (self, (gchar*) xmlNodeListGetString (doc, node->children, TRUE));
 	}else if (xmlStrcmp (node->name, (xmlChar*) "feedLink") ==  0){
-		xmlChar *_access_rules_uri = xmlGetProp (node, (xmlChar*) "href");
-		gdata_documents_entry_set_access_rules_uri (self, (gchar*) _access_rules_uri); 
-	}else if (xmlStrcmp (node->name, (xmlChar*) "feedLink") ==  0){
-		xmlChar *_access_rules_uri = xmlGetProp (node, (xmlChar*) "href");
-		gdata_documents_entry_set_access_rules_uri (self, (gchar*) _access_rules_uri); 
-	}/* else if (xmlStrcmp (node->name, (xmlChar*) "lastModifiedBy" == 0)) {
+		xmlChar *rel, *href, *read_only, *count_hint;
+
+		rel = xmlGetProp (node, (xmlChar*) "rel");
+		href = xmlGetProp (node, (xmlChar*) "href");
+		read_only = xmlGetProp (node, (xmlChar*) "readOnly");
+		count_hint = xmlGetProp (node, (xmlChar*) "countHint");
+		gint count_hint_uint;
+
+		if (count_hint == NULL)
+			count_hint_uint = 0;
+		else
+			count_hint_uint = strtoul ((gchar*) count_hint, NULL, 10);
+		xmlFree (count_hint);
+		
+		gdata_gd_feed_link_free (self->priv->access_rules_uri);
+		gdata_documents_entry_set_access_rules_uri (self, gdata_gd_feed_link_new ((gchar*) href, (gchar*) rel, count_hint_uint,\
+														((xmlStrcmp (read_only, (xmlChar*) "true") == 0) ? TRUE : FALSE)));
+	}else if (xmlStrcmp (node->name, (xmlChar*) "lastModifiedBy") ==  0){
 		GDataAuthor *last_modified_by;
 		xmlNode *last_modified_by_node;
 		xmlChar *name = NULL, *email = NULL;
 
 		last_modified_by_node = node->children;
 		while (last_modified_by_node != NULL) {
-			if (xmlStrcmp (last_modified_by_node->name, (xmlChar*) "name") == 0) {
+			if (xmlStrcmp (last_modified_by_node->name, (xmlChar*) "name") == 0)
 				name = xmlNodeListGetString (doc, last_modified_by_node->children, TRUE);
-			} else if (xmlStrcmp (last_modified_by_node->name, (xmlChar*) "email") == 0) {
+			else if (xmlStrcmp (last_modified_by_node->name, (xmlChar*) "email") == 0)
 				email = xmlNodeListGetString (doc, last_modified_by_node->children, TRUE);
-			} else {
-				gdata_parser_error_unhandled_element ((gchar*) last_modified_by_node->ns->prefix, (gchar*) last_modified_by_node->name, "last_modified_by", error);
+			else{
+				gdata_parser_error_unhandled_element (node, error);
 				xmlFree (name);
 				xmlFree (email);
 				return FALSE;
 			}
-
 			last_modified_by_node = last_modified_by_node->next;
-		}*/
-
+		}
+		gdata_documents_entry_set_last_modified_by (self, gdata_author_new ((gchar*) name, NULL, (gchar*) email));
+	}else if (GDATA_PARSABLE_CLASS (gdata_documents_entry_parent_class)->parse_xml (parsable, doc, node, user_data, error) == FALSE) {
+		/* Error! */
+		return FALSE;
+	}
 	return TRUE;
 }
 
@@ -275,14 +334,23 @@ gdata_documents_entry_get_property (GObject *object, guint property_id, GValue *
 		case PROP_PATH:
 			g_value_set_string (value, priv->path);
 			break;
+		case PROP_RESSOURCE_ID:
+			g_value_set_string (value, priv->resource_id);
+			break;
 		case PROP_WRITERS_CAN_INVITE:
 			g_value_set_boolean (value, priv->writers_can_invite);
 			break;
 		case PROP_ACCESS_RULES_URI:
-			g_value_set_string (value, priv->access_rules_uri);
+			g_value_set_pointer (value, priv->access_rules_uri);
 			break;
 		case PROP_EDITED:
 			g_value_set_boxed (value, &(priv->edited));
+			break;
+		case PROP_LAST_VIEWED:
+			g_value_set_boxed (value, &(priv->last_viewed));
+			break;
+		case PROP_LAST_MODIFIED_BY:
+			g_value_set_pointer (value, priv->last_modified_by);
 			break;
 		default:
 			/* We don't have any other property... */
@@ -300,11 +368,17 @@ gdata_documents_entry_set_property (GObject *object, guint property_id, const GV
 		case PROP_PATH:
 			gdata_documents_entry_set_path (self, g_value_get_string (value));
 			break;
+		case PROP_RESSOURCE_ID:
+			gdata_documents_entry_set_resource_id (self, g_value_get_string (value));
+			break;
 		case PROP_WRITERS_CAN_INVITE:
 			gdata_documents_entry_set_writers_can_invite (self, g_value_get_boolean (value));
 			break;
 		case PROP_ACCESS_RULES_URI:
-			gdata_documents_entry_set_access_rules_uri (self, g_value_get_string (value));
+			gdata_documents_entry_set_access_rules_uri (self, g_value_get_pointer (value));
+			break;
+		case PROP_LAST_MODIFIED_BY:
+			gdata_documents_entry_set_last_modified_by (self, g_value_get_pointer (value));
 			break;
 		default:
 			/* We don't have any other property... */
@@ -315,7 +389,8 @@ gdata_documents_entry_set_property (GObject *object, guint property_id, const GV
 
 static void 
 get_xml (GDataEntry *entry, GString *xml_string)
-{ /*TODO*/
+{ 
+	GDataEntryPrivate *priv = self->priv;
 	;
 }
 
@@ -347,11 +422,26 @@ gdata_documents_entry_get_edited ( GDataDocumentsEntry *self, GTimeVal *edited)
 	*edited = self->priv->edited;
 }
 
+/** 
+ * gdata_documents_entry_get_last_viewed:
+ * @self: a #GDataDocumentsEntry
+ * @last_viewed: a #GTimeVal
+ *
+ * Gets the #GDataDocumentsEntry:last_viewed property and puts it in @last_viewed. If the property is unset,
+ * both fields in the #GTimeVal will be set to %0.
+ **/
+void
+gdata_documents_entry_get_last_viewed ( GDataDocumentsEntry *self, GTimeVal *last_viewed)
+{
+	g_return_val_if_fail ( GDATA_IS_DOCUMENTS_ENTRY ( self ), NULL );
+	g_return_if_fail (last_viewed != NULL);
+	*last_viewed = self->priv->last_viewed;
+}
 /**
  * gdata_documents_entry_get_path:
  * @self: a #GDataDocumentsEntry
  *
- * Gets the #GDataDocumentsEntry:foler property.
+ * Gets the #GDataDocumentsEntry:path property.
  *
  * Return value: the path in wich the document is.
  **/
@@ -367,7 +457,7 @@ gdata_documents_entry_get_path (GDataDocumentsEntry *self )
  * @self: a #GDataDocumentsEntry
  * @path: a new path (or NULL?)
  *
- * Sets the #GDataDocumentsEntry:foler property to path.
+ * Sets the #GDataDocumentsEntry:path property to path.
  **/
 void 
 gdata_documents_entry_set_path (GDataDocumentsEntry *self, const gchar *path )
@@ -378,6 +468,36 @@ gdata_documents_entry_set_path (GDataDocumentsEntry *self, const gchar *path )
 }
 
 /**
+ * gdata_documents_entry_get_resource_id:
+ * @self: a #GDataDocumentsEntry
+ *
+ * Gets the #GDataDocumentsEntry:resource_id property.
+ *
+ * Return value: the resource_id of the entry.
+ **/
+gchar*
+gdata_documents_entry_get_resource_id (GDataDocumentsEntry *self )
+{
+	g_return_val_if_fail ( GDATA_IS_DOCUMENTS_ENTRY ( self ), NULL );
+	return self->priv->path;
+}
+
+/**
+ * gdata_documents_entry_set_resource_id:
+ * @self: a #GDataDocumentsEntry
+ * @path: a new resource_id (or NULL?)
+ *
+ * Sets the #GDataDocumentsEntry:resource_id property to resource_id.
+ **/
+void 
+gdata_documents_entry_set_resource_id (GDataDocumentsEntry *self, const gchar *resource_id )
+{
+	g_return_if_fail ( GDATA_IS_DOCUMENTS_ENTRY ( self ) );
+	self->priv->resource_id = g_strdup ( resource_id );
+	g_object_notify (G_OBJECT (self), "resource-id");
+}
+
+/**
  * gdata_documents_entry_get_access_rules_uri:
  * @self: a #GDataDocumentsEntry
  *
@@ -385,7 +505,7 @@ gdata_documents_entry_set_path (GDataDocumentsEntry *self, const gchar *path )
  *
  * Return value: the access_rules_uri of this document.
  **/
-gchar*
+GDataGDFeedLink*
 gdata_documents_entry_get_access_rules_uri (GDataDocumentsEntry *self )
 {
 	g_return_val_if_fail ( GDATA_IS_DOCUMENTS_ENTRY ( self ), NULL );
@@ -399,10 +519,10 @@ gdata_documents_entry_get_access_rules_uri (GDataDocumentsEntry *self )
  * Sets the #GDataDocumentsEntry:access_rules_uri property to _access_rules_uri.
  **/
 void 
-gdata_documents_entry_set_access_rules_uri (GDataDocumentsEntry *self, const gchar *access_rules_uri)
+gdata_documents_entry_set_access_rules_uri (GDataDocumentsEntry *self, GDataGDFeedLink *access_rules_uri)
 {
 	g_return_if_fail ( GDATA_IS_DOCUMENTS_ENTRY ( self ) );
-	self->priv->access_rules_uri = g_strdup ( access_rules_uri );
+	self->priv->access_rules_uri =  access_rules_uri ;
 	g_object_notify (G_OBJECT (self), "access-rules-uri");
 }
 
@@ -419,7 +539,7 @@ gdata_documents_entry_set_writers_can_invite(GDataDocumentsEntry *self, gboolean
 {
 	g_return_if_fail ( GDATA_IS_DOCUMENTS_ENTRY ( self ) );
 	self->priv->writers_can_invite = writers_can_invite;
-	g_object_notify (G_OBJECT (self), "writer-can-invite");
+	//g_object_notify (G_OBJECT (self), "writers-can-invite");
 }
 
 /**
@@ -450,4 +570,33 @@ gdata_documents_entry_add_a_mime_type (GDataDocumentsEntry *self, gchar *extensi
 {
 	g_return_if_fail ( GDATA_IS_DOCUMENTS_ENTRY ( self ));
 	g_hash_table_insert (self->priv->mime_types, (gchar*)extension, (gchar*)mime_type);
+}
+
+/**
+ * gdata_documents_entry_set_last_modified_by:
+ * @self: a #GDataDocumentsEntry
+ * @last_modified_by: the GDataAuthor refering to this document entry
+ *
+ * Sets the GDataDocumentsEntry:last_modified_by to last_modified_by
+ **/
+void 
+gdata_documents_entry_set_last_modified_by (GDataDocumentsEntry *self, GDataAuthor *last_modified_by)
+{
+	g_return_if_fail ( GDATA_IS_DOCUMENTS_ENTRY ( self ) );
+	self->priv->last_modified_by = last_modified_by;
+	g_object_notify (G_OBJECT (self), "last-modified-by");
+}
+
+/** 
+ * gdata_documents_entry_get_last_modified_by:
+ * @self: a #GDataDocumentsEntry
+ * @last_modified_by: a #GDataAuthor
+ *
+ * Return value: the last_modified_by of the entry.
+ **/
+GDataAuthor*
+gdata_documents_entry_get_last_modified_by (GDataDocumentsEntry *self)
+{
+	g_return_val_if_fail ( GDATA_IS_DOCUMENTS_ENTRY (self), NULL );
+	return self->priv->last_modified_by;
 }

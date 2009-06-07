@@ -44,7 +44,7 @@
 static void gdata_documents_text_finalize (GObject *object);
 static void get_namespaces (GDataEntry *entry, GHashTable *namespaces);
 static void get_xml (GDataEntry *entry, GString *xml_string);
-static gboolean parse_xml (GDataEntry *entry, xmlDoc *doc, xmlNode *node, GError **error);
+static gboolean parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_data, GError **error);
 
 
 struct _GDataDocumentsTextPrivate 
@@ -99,19 +99,26 @@ gdata_documents_text_new_from_xml (const gchar *xml, gint length, GError **error
 }
 
 static gboolean
-parse_xml (GDataEntry *entry, xmlDoc *doc, xmlNode *node, GError **error)
+parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_data, GError **error)
 {
-	GDataDocumentsText *self = GDATA_DOCUMENTS_TEXT (entry);
+	GDataDocumentsText *self;
 
-	g_return_val_if_fail (GDATA_IS_DOCUMENTS_TEXT (self), FALSE);
+	g_return_val_if_fail (GDATA_IS_DOCUMENTS_TEXT (parsable), FALSE);
 	g_return_val_if_fail (doc != NULL, FALSE);
 	g_return_val_if_fail (node != NULL, FALSE);
+
+	self = GDATA_DOCUMENTS_TEXT (parsable);
+	
+
+	if (GDATA_PARSABLE_CLASS (gdata_documents_text_parent_class)->parse_xml (parsable, doc, node, user_data, error) == FALSE) {
+		/* Error! */
+		return FALSE;
+	}
 
 	/*TODO*/
 
 	return TRUE;
 }
-
 
 static void
 gdata_documents_text_finalize (GObject *object)

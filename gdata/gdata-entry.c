@@ -227,14 +227,13 @@ pre_parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *root_node, gpointe
 
 	/* Extract the ETag */
 	GDATA_ENTRY (parsable)->priv->etag = (gchar*) xmlGetProp (root_node, (xmlChar*) "etag");
-
+	
 	return TRUE;
 }
 
 static gboolean
 parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_data, GError **error)
 {
-	printf ("=====parseEntry======\n");
 	GDataEntry *self;
 
 	g_return_val_if_fail (GDATA_IS_ENTRY (parsable), FALSE);
@@ -344,7 +343,7 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 				uri = xmlNodeListGetString (doc, author_node->children, TRUE);
 			} else if (xmlStrcmp (author_node->name, (xmlChar*) "email") == 0) {
 				email = xmlNodeListGetString (doc, author_node->children, TRUE);
-			} else {
+			}else {
 				gdata_parser_error_unhandled_element (author_node, error);
 				xmlFree (name);
 				xmlFree (uri);
@@ -363,6 +362,7 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 		xmlFree (email);
 	} else if (GDATA_PARSABLE_CLASS (gdata_entry_parent_class)->parse_xml (parsable, doc, node, user_data, error) == FALSE) {
 		/* Error! */
+		g_print("SAMERE");
 		return FALSE;
 	}
 
