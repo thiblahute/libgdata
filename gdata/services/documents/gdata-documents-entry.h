@@ -79,6 +79,7 @@ void gdata_documents_entry_set_last_modified_by (GDataDocumentsEntry *self, GDat
 GDataAuthor *gdata_documents_entry_get_last_modified_by (GDataDocumentsEntry *self);
 
 void gdata_documents_entry_add_a_mime_type (GDataDocumentsEntry *self, gchar *extension, gchar *mime_type );
+gboolean gdata_documents_entry_set_access_rules (GDataDocumentsEntry *self);
 
 G_END_DECLS
 

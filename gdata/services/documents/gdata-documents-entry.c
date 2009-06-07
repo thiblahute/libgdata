@@ -390,8 +390,15 @@ gdata_documents_entry_set_property (GObject *object, guint property_id, const GV
 static void 
 get_xml (GDataEntry *entry, GString *xml_string)
 { 
-	GDataEntryPrivate *priv = self->priv;
-	;
+	GDataDocumentsEntryPrivate *priv = GDATA_DOCUMENTS_ENTRY (entry)->priv;
+	GTimeVal *edited;
+
+	/*chain up to the parent class*/
+	GDATA_ENTRY_CLASS (gdata_documents_entry_parent_class)->get_xml (entry, xml_string);
+
+	/*if (priv->edited){
+		g_string_append_printf (xml_string, "<app:edited xmlns:app='http://www.w3.org/2007/app'>%s</app:edited>", g_time_val_to_iso8601 (priv->edited));
+	}*/
 }
 
 static void
@@ -418,8 +425,9 @@ void
 gdata_documents_entry_get_edited ( GDataDocumentsEntry *self, GTimeVal *edited)
 {
 	g_return_val_if_fail ( GDATA_IS_DOCUMENTS_ENTRY ( self ), NULL );
-	g_return_if_fail (edited != NULL);
-	*edited = self->priv->edited;
+  /*g_return_if_fail (edited == NULL); TODO*/
+	edited = &(self->priv->edited);
+	g_print ("editionTime: %s\n" , g_time_val_to_iso8601 (edited));
 }
 
 /** 
@@ -599,4 +607,34 @@ gdata_documents_entry_get_last_modified_by (GDataDocumentsEntry *self)
 {
 	g_return_val_if_fail ( GDATA_IS_DOCUMENTS_ENTRY (self), NULL );
 	return self->priv->last_modified_by;
+}
+
+/**
+ * gdata_documents_entry_set_access_rules:
+ * @self: a #GDataDocumentsEntry
+ * @service: a #GDataService
+ * @cancellable: optional #GCancellable object, or %NULL
+ * @progress_callback: a #GDataQueryProgressCallback to call when a rule is loaded, or %NULL
+ * @progress_user_data: data to pass to the @progress_callback function
+ * @error: a #GError, or %NULL
+ *
+ * Retrieves a #GDataFeed containing all the access rules which apply to the given #GDataDocumentsEntry. Only the owner of a #GDataDocumentsEntry may
+ * view its rule feed.
+ *
+ * If @cancellable is not %NULL, then the operation can be cancelled by triggering the @cancellable object from another thread.
+ * If the operation was cancelled, the error %G_IO_ERROR_CANCELLED will be returned.
+ *
+ * A %GDATA_SERVICE_ERROR_WITH_QUERY will be returned if the server indicates there is a problem with the query.
+ *
+ * For each rule in the response feed, @progress_callback will be called in the main thread. If there was an error parsing the XML response,
+ * a #GDataParserError will be returned.
+ *
+ * Sets the access_rules with the feeds that has been retrieved.
+ */
+void 
+gdata_documents_entry_set_access_rules (GDataDocumentsEntry *self, GDataService *service, GCancellable *cancellable, GDataQueryProgressCallback progress_callback,\
+										gpointer progress_user_data, GError **error)
+{
+
+	self->access_rules = gdata_access_handler_get_rules (self, service, cancellable, progress_callback, progress_user_data, error);
 }
