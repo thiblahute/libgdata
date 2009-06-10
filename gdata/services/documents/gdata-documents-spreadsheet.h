@@ -60,10 +60,6 @@ GType gdata_documents_spreadsheet_get_type (void)G_GNUC_CONST;
 GDataDocumentsSpreadsheet *gdata_documents_spreadsheet_new (const gchar *id) G_GNUC_WARN_UNUSED_RESULT;
 GDataDocumentsSpreadsheet *gdata_documents_spreadsheet_new_from_xml (const gchar *xml, gint length, GError **error) G_GNUC_WARN_UNUSED_RESULT;
 
-void gdata_documents_spreadsheet_add_a_fmcmd (GDataDocumentsEntry *self, gchar *fmcmd, gchar *mime_type);
-void gdata_documents_spreadsheet_add_fmcmds (GDataDocumentsEntry *self);
-GHashTable *gdata_documents_entry_get_fmcmds (GDataDocumentsEntry *self);
-
 G_END_DECLS
 
 #endif /* !GDATA_DOCUMENTS_SPREADSHEET_H */

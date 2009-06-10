@@ -36,6 +36,7 @@ gdata_feed_get_generator
 gdata_feed_get_items_per_page
 gdata_feed_get_start_index
 gdata_feed_get_total_results
+gdata_feed_add_entry
 gdata_service_get_type
 gdata_service_error_quark
 gdata_authentication_error_quark
@@ -405,4 +406,6 @@ gdata_documents_folder_new
 gdata_documents_folder_new_from_xml
 gdata_documents_entry_get_type
 gdata_documents_service_get_type
+_gdata_documents_feed_new_from_xml
+gdata_documents_feed_get_type
 gdata_documents_query_get_type

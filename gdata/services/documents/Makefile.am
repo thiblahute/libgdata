@@ -1,6 +1,7 @@
 gdatadocumentsincludedir = $(pkgincludedir)/gdata/services/documents
 gdatadocumentsinclude_HEADERS = \
 	gdata-documents-service.h	\
+	gdata-documents-feed.h	\
 	gdata-documents-entry.h	\
 	gdata-documents-query.h
 	gdata-documents-text.h	\
@@ -15,6 +16,8 @@ libgdatadocuments_headers =
 libgdatadocuments_la_SOURCES = \
 	gdata-documents-service.c	\
 	gdata-documents-service.h	\
+	gdata-documents-feed.c	\
+	gdata-documents-feed.h	\
 	gdata-documents-entry.c	\
 	gdata-documents-entry.h	\
 	gdata-documents-text.c	\

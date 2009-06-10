@@ -1,4 +1,3 @@
-
 /* -*- Mode: C; indent-tabs-mode: t; c-basic-offset: 8; tab-width: 8 -*- */
 /*
  * GData Client
@@ -51,7 +50,6 @@ static gboolean parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, 
 
 struct _GDataDocumentsSpreadsheetPrivate
 {
-	GHashTable *fmcmd;
 };
 
 enum {
@@ -168,21 +166,6 @@ get_xml (GDataEntry *entry, GString *xml_string)
 
 /* TODO need get namespaces??*/
 
-void 
-gdata_documents_spreadsheet_add_a_fmcmd (GDataDocumentsEntry *self, gchar *fmcmd, gchar *mime_type)
-{
-	/*TODO*/;
-}
-
-void gdata_documents_spreadsheet_add_fmcmds (GDataDocumentsEntry *self)
-{
-	/*TODO*/;
-}
-
-GHashTable *gdata_documents_entry_get_fmcmds (GDataDocumentsEntry *self)
-{
-	/*TODO*/;
-}
 
 static void
 get_namespaces (GDataEntry *entry, GHashTable *namespaces)

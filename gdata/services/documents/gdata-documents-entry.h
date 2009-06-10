@@ -78,8 +78,8 @@ GDataGDFeedLink *gdata_documents_entry_get_access_rules_uri (GDataDocumentsEntry
 void gdata_documents_entry_set_last_modified_by (GDataDocumentsEntry *self, GDataAuthor *last_modified_by);
 GDataAuthor *gdata_documents_entry_get_last_modified_by (GDataDocumentsEntry *self);
 
-void gdata_documents_entry_add_a_mime_type (GDataDocumentsEntry *self, gchar *extension, gchar *mime_type );
-gboolean gdata_documents_entry_set_access_rules (GDataDocumentsEntry *self);
+/*void gdata_documents_entry_set_access_rules (GDataDocumentsEntry *self, GDataService *service, GCancellable *cancellable,\
+											 GDataQueryProgressCallback progress_callback,gpointer progress_user_data, GError **error);*/
 
 G_END_DECLS
 

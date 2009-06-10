@@ -57,7 +57,6 @@ struct _GDataDocumentsEntryPrivate
 	GTimeVal last_viewed;
 	gchar *path;
 	gchar *resource_id;
-	GHashTable *mime_types;
 	gboolean writers_can_invite;
 	GDataGDFeedLink *access_rules_uri;
 	GDataAuthor *last_modified_by;
@@ -122,11 +121,12 @@ gdata_documents_entry_class_init (GDataDocumentsEntryClass *klass)
 					"Last viewed", "The last time the document entry has been viewed.",
 					GDATA_TYPE_G_TIME_VAL,
 					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
+
 	/**
 	 * GDataDocumentsEntry:writers_can_invite:
 	 *
 	 * Indicates whether the document entry writers can invite others to write in the document.
-	 */
+	 **/
 	g_object_class_install_property (gobject_class, PROP_WRITERS_CAN_INVITE,
 				g_param_spec_boxed ("writers-can-invite",
 					"Writer can invite?", "Indicates whether writers can invite or not.",
@@ -201,7 +201,6 @@ static void
 gdata_documents_entry (GDataDocumentsEntry *self)
 {
 	self->priv = G_TYPE_INSTANCE_GET_PRIVATE (self, GDATA_TYPE_DOCUMENTS_ENTRY, GDataDocumentsEntryPrivate);
-	self->priv->mime_types = NULL;
 }
 
 GDataDocumentsEntry*
@@ -248,7 +247,7 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 			return FALSE;
 		}
 		xmlFree (edited);
-	}else if (xmlStrcmp (node->name, (xmlChar*) "lastViewed") == 0) {
+	} else if (xmlStrcmp (node->name, (xmlChar*) "lastViewed") == 0) {
 		xmlChar *last_viewed = xmlNodeListGetString (doc, node->xmlChildrenNode, TRUE);
 		if (g_time_val_from_iso8601 ((gchar*) last_viewed, &(self->priv->last_viewed)) == FALSE) {
 			gdata_parser_error_not_iso8601_format (node, (gchar*) last_viewed, error);
@@ -256,7 +255,7 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 			return FALSE;
 		}
 		xmlFree (last_viewed);
-	}else if (xmlStrcmp (node->name, (xmlChar*) "writersCanInvite") ==  0){
+	} else if (xmlStrcmp (node->name, (xmlChar*) "writersCanInvite") ==  0){
 		xmlChar *_writers_can_invite = xmlGetProp (node, (xmlChar*) "value");
 		if (strcmp ( (char*) _writers_can_invite, (char*) "true") == 0)
 			gdata_documents_entry_set_writers_can_invite (self, TRUE);
@@ -265,27 +264,27 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 		else
 			return gdata_parser_error_unknown_property_value ("writersCanWrite", "value", (const gchar*) _writers_can_invite, error);
 		g_free (_writers_can_invite);
-	}else if (xmlStrcmp (node->name, (xmlChar*) "resourceId") ==  0){
+	} else if (xmlStrcmp (node->name, (xmlChar*) "resourceId") ==  0){
 		gdata_documents_entry_set_resource_id  (self, (gchar*) xmlNodeListGetString (doc, node->children, TRUE));
-	}else if (xmlStrcmp (node->name, (xmlChar*) "feedLink") ==  0){
+	} else if (xmlStrcmp (node->name, (xmlChar*) "feedLink") ==  0){
 		xmlChar *rel, *href, *read_only, *count_hint;
+		gint count_hint_uint;
 
 		rel = xmlGetProp (node, (xmlChar*) "rel");
 		href = xmlGetProp (node, (xmlChar*) "href");
 		read_only = xmlGetProp (node, (xmlChar*) "readOnly");
 		count_hint = xmlGetProp (node, (xmlChar*) "countHint");
-		gint count_hint_uint;
 
 		if (count_hint == NULL)
 			count_hint_uint = 0;
 		else
 			count_hint_uint = strtoul ((gchar*) count_hint, NULL, 10);
+
 		xmlFree (count_hint);
-		
 		gdata_gd_feed_link_free (self->priv->access_rules_uri);
 		gdata_documents_entry_set_access_rules_uri (self, gdata_gd_feed_link_new ((gchar*) href, (gchar*) rel, count_hint_uint,\
 														((xmlStrcmp (read_only, (xmlChar*) "true") == 0) ? TRUE : FALSE)));
-	}else if (xmlStrcmp (node->name, (xmlChar*) "lastModifiedBy") ==  0){
+	} else if (xmlStrcmp (node->name, (xmlChar*) "lastModifiedBy") ==  0){
 		GDataAuthor *last_modified_by;
 		xmlNode *last_modified_by_node;
 		xmlChar *name = NULL, *email = NULL;
@@ -305,7 +304,7 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 			last_modified_by_node = last_modified_by_node->next;
 		}
 		gdata_documents_entry_set_last_modified_by (self, gdata_author_new ((gchar*) name, NULL, (gchar*) email));
-	}else if (GDATA_PARSABLE_CLASS (gdata_documents_entry_parent_class)->parse_xml (parsable, doc, node, user_data, error) == FALSE) {
+	} else if (GDATA_PARSABLE_CLASS (gdata_documents_entry_parent_class)->parse_xml (parsable, doc, node, user_data, error) == FALSE) {
 		/* Error! */
 		return FALSE;
 	}
@@ -318,7 +317,6 @@ gdata_documents_entry_finalize (GObject *object)
 	GDataDocumentsEntryPrivate *priv = GDATA_DOCUMENTS_ENTRY_GET_PRIVATE (object);
 
 	g_free (priv->path);
-	g_hash_table_destroy (priv->mime_types);
 	g_free (priv->access_rules_uri);
 
 	/* Chain up to the parent class */
@@ -566,21 +564,6 @@ gdata_documents_entry_get_writers_can_invite ( GDataDocumentsEntry *self )
 }
 
 /**
- * gdata_documents_entry_add_a_mime_type:
- * @self: a #GDataDocumentsEntry
- * @extension: The extension refering to the mime type
- * @mime_type: The mime type  string
- *
- * Adds  new mime type to the mime_types GHashtable.
- **/
-void 
-gdata_documents_entry_add_a_mime_type (GDataDocumentsEntry *self, gchar *extension, gchar *mime_type )
-{
-	g_return_if_fail ( GDATA_IS_DOCUMENTS_ENTRY ( self ));
-	g_hash_table_insert (self->priv->mime_types, (gchar*)extension, (gchar*)mime_type);
-}
-
-/**
  * gdata_documents_entry_set_last_modified_by:
  * @self: a #GDataDocumentsEntry
  * @last_modified_by: the GDataAuthor refering to this document entry
@@ -630,11 +613,11 @@ gdata_documents_entry_get_last_modified_by (GDataDocumentsEntry *self)
  * a #GDataParserError will be returned.
  *
  * Sets the access_rules with the feeds that has been retrieved.
- */
-void 
+ **/
+/*void 
 gdata_documents_entry_set_access_rules (GDataDocumentsEntry *self, GDataService *service, GCancellable *cancellable, GDataQueryProgressCallback progress_callback,\
 										gpointer progress_user_data, GError **error)
 {
 
 	self->access_rules = gdata_access_handler_get_rules (self, service, cancellable, progress_callback, progress_user_data, error);
-}
+}*/

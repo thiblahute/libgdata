@@ -148,9 +148,3 @@ get_namespaces (GDataEntry *entry, GHashTable *namespaces)
 
 }
 
-/*void 
-gdata_documents_entry_add_a_mime_type (GDataDocumentsEntry *self, gchar *extension, gchar *mime_type )
-{
-	g_return_if_fail ( GDATA_IS_DOCUMENTS_ENTRY ( self ));
-	g_hash_table_insert (self->priv->mime_types, (gchar*)extension, (gchar*)mime_type);
-}*/
