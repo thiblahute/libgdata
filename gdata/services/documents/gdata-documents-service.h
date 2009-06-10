@@ -85,7 +85,7 @@ void *gdata_documents_service_query_all_folders_async(	GDataDocumentsService *se
 void *gdata_documents_service_query_insert_folder(	GDataDocumentsService *self, gchar *full_path, GError **error);
 
 void *gdata_documents_service_query_insert_document(	GDataDocumentsService *self,	GDataDocumentsEntry *document,\
-												   	GDataDocumentsQuery *query, GCancellable *cancellable,GError **error);
+												   	GDataDocumentsQuery *query, GCancellable *cancellable, GError **error);
 
 void *gdata_documents_service_query_update_document(	GDataDocumentsService *self,	GDataDocumentsEntry *document,\
 													GFile updating_document, GDataDocumentsQuery *query,\

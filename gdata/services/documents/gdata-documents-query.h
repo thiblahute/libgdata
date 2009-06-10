@@ -62,29 +62,42 @@ GType gdata_documents_query_get_type (void)G_GNUC_CONST;
 GDataDocumentsQuery *gdata_documents_query_new (const gchar *q) G_GNUC_WARN_UNUSED_RESULT;
 GDataDocumentsQuery *gdata_documents_query_new_with_limits (const gchar *q, gint start_index, gint max_results) G_GNUC_WARN_UNUSED_RESULT;
 
-const gchar *gdata_documents_query_get_order_by (GDataDocumentsQuery *self);
-void gdata_documents_query_set_order_by (GDataDocumentsQuery *self, const gchar *order_by);
 
-gboolean gdata_documents_query_show_deleted (GDataDocumentsQuery *self);
-void gdata_documents_query_set_show_deleted (GDataDocumentsQuery *self, gboolean show_deleted);
+gboolean gdata_documents_query_get_deleted (GDataDocumentsQuery *self);
+void gdata_documents_query_set_deleted (GDataDocumentsQuery *self, gboolean deleted);
 
 gboolean gdata_documents_query_get_starred (GDataDocumentsQuery *self);
 void gdata_documents_query_set_starred (GDataDocumentsQuery *self, gboolean starred);
 
-gchar *gdata_documents_query_get_folder (GDataDocumentsQuery *self);
-void gdata_documents_query_set_folder (GDataDocumentsQuery *self, const gchar *folder);
+gboolean gdata_documents_query_get_metadata (GDataDocumentsQuery *self);
+void gdata_documents_query_set_metadata (GDataDocumentsQuery *self, gboolean metadata);
 
-GType gdata_documents_query_get_document_type (GDataDocumentsQuery *self);
-void gdata_documents_query_set_document_type (GDataDocumentsQuery *self, const gchar *type);
+gboolean gdata_documents_query_get_content (GDataDocumentsQuery *self);
+void gdata_documents_query_set_content (GDataDocumentsQuery *self, gboolean content);
 
-gboolean gdata_documents_query_is_starred (GDataDocumentsQuery *self);
-void gdata_documents_query_set_starred (GDataDocumentsQuery *self, gboolean starred);
+gboolean gdata_documents_query_get_only_sharred (GDataDocumentsQuery *self);
+void gdata_documents_query_set_only_sharred (GDataDocumentsQuery *self, gboolean only_sharred);
 
-gboolean gdata_documents_query_is_metadatas (GDataDocumentsQuery *self);
-void gdata_documents_query_set_metadatas (GDataDocumentsQuery *self, gboolean starred);
+gboolean gdata_documents_query_get_show_folder (GDataDocumentsQuery *self);
+void gdata_documents_query_set_show_folder (GDataDocumentsQuery *self, gboolean show_folder);
 
-gboolean gdata_documents_query_is_content (GDataDocumentsQuery *self);
-void gdata_documents_query_set_content (GDataDocumentsQuery *self, gboolean starred);
+gchar *gdata_documents_query_get_folder_id (GDataDocumentsQuery *self);
+void gdata_documents_query_set_folder_id (GDataDocumentsQuery *self, gchar *folder_id);
+
+gchar *gdata_documents_query_get_title (GDataDocumentsQuery *self);
+void gdata_documents_query_set_title (GDataDocumentsQuery *self, gchar *title);
+
+gchar *gdata_documents_query_get_export_format (GDataDocumentsQuery *self);
+void gdata_documents_query_set_export_format (GDataDocumentsQuery *self, gchar *export_format);
+
+gchar *gdata_documents_query_get_exact_title (GDataDocumentsQuery *self);
+void gdata_documents_query_set_exact_title (GDataDocumentsQuery *self, gchar *exact_title);
+
+GList *gdata_documents_query_get_types (GDataDocumentsQuery *self);
+void gdata_documents_query_set_types (GDataDocumentsQuery *self, GList *type);
+
+GList *gdata_documents_query_get_emails (GDataDocumentsQuery *self);
+void gdata_documents_query_set_emails (GDataDocumentsQuery *self, GList *emails);
 
 G_END_DECLS
 
