@@ -48,6 +48,9 @@ GHashTable *_gdata_parsable_get_extra_namespaces (GDataParsable *self);
 GDataFeed *_gdata_feed_new_from_xml (GType feed_type, const gchar *xml, gint length, GType entry_type,
 				     GDataQueryProgressCallback progress_callback, gpointer progress_user_data, GError **error) G_GNUC_WARN_UNUSED_RESULT;
 void _gdata_feed_add_entry (GDataFeed *self, GDataEntry *entry);
+gpointer _gdata_get_parse_data(GType entry_type, GDataQueryProgressCallback progress_callback, gpointer progress_user_data);
+void _gdata_feed_free_parse_data (gpointer data);
+void _gdata_feed_call_progres_callback (GDataFeed *self, gpointer user_data, GDataEntry *entry);
 
 #include "gdata-entry.h"
 GDataEntry *_gdata_entry_new_from_xml (GType entry_type, const gchar *xml, gint length, GError **error) G_GNUC_WARN_UNUSED_RESULT;

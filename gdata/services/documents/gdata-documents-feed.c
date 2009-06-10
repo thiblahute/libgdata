@@ -78,22 +78,19 @@ GDataDocumentsFeed*
 _gdata_documents_feed_new_from_xml (GType feed_type, const gchar *xml, gint length, GType entry_type,\
 			  GDataQueryProgressCallback progress_callback, gpointer progress_user_data, GError **error)
 {
-/*	ParseData *data;*/
+	gpointer *data;
 	GDataDocumentsFeed *feed;
 
 	g_return_val_if_fail (g_type_is_a (feed_type, GDATA_TYPE_DOCUMENTS_FEED) == TRUE, FALSE);
 	g_return_val_if_fail (xml != NULL, NULL);
 	g_return_val_if_fail (g_type_is_a (entry_type, GDATA_TYPE_DOCUMENTS_ENTRY) == TRUE, FALSE);
 
-/*	data = g_slice_new (ParseData);
-	data->entry_type = entry_type;
-	data->progress_callback = progress_callback;
-	data->progress_user_data = progress_user_data;
-	data->entry_i = 0;
-*/	
-	feed = GDATA_DOCUMENTS_FEED (_gdata_parsable_new_from_xml (feed_type, "feed", xml, length, progress_user_data, error));
-	/*g_slice_free (ParseData, data);*/
+	data = _gdata_get_parse_data(entry_type, progress_callback, progress_user_data);
+		
+	feed = GDATA_DOCUMENTS_FEED (_gdata_parsable_new_from_xml (feed_type, "feed", xml, length, data, error));
 
+	_gdata_feed_free_parse_data (data);
+	
 	return feed;
 }
 
@@ -126,29 +123,13 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 		if (entry == NULL)
 			return FALSE;
 
+		/* Call the progress callback in the main thread */
+		_gdata_feed_call_progres_callback (self, user_data, entry);
+
 		/* TODO: call the callback function as parse_xml in gdata-feed.c does (may need new private API), and add the entry to the
 		 * GDataFeed's list of entries (does need new private API) */
-
-		/* Call the progress callback in the main thread */
-		/*if (data->progress_callback != NULL) {
-			ProgressCallbackData *progress_data;
-
-			* Build the data for the callback *
-			progress_data = g_slice_new (ProgressCallbackData);
-			progress_data->progress_callback = data->progress_callback;
-			progress_data->progress_user_data = data->progress_user_data;
-			progress_data->entry = g_object_ref (entry);
-			progress_data->entry_i = data->entry_i;
-			progress_data->total_results = MIN (GDATA_FEED(self)->priv->items_per_page, self->priv->total_results);
-
-			*Send the callback; use G_PRIORITY_DEFAULT rather than G_PRIORITY_DEFAULT_IDLE
-			*to contend with the priorities used by the callback functions in GAsyncResult *
-			g_idle_add_full (G_PRIORITY_DEFAULT, (GSourceFunc) progress_callback_idle, progress_data, NULL);
-		}
-		data->entry_i++;*/
-		author = gdata_documents_entry_get_last_modified_by (entry);
-		if (author)
 		_gdata_feed_add_entry (self, entry);
+
 	} else if (GDATA_PARSABLE_CLASS (gdata_documents_feed_parent_class)->parse_xml (parsable, doc, node, user_data, error) == FALSE) {
 		/* Error! */
 		return FALSE;

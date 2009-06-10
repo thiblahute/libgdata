@@ -117,17 +117,12 @@ _gdata_parsable_new_from_xml (GType parsable_type, const gchar *first_element, c
 	g_return_val_if_fail (first_element != NULL, NULL);
 	g_return_val_if_fail (xml != NULL, NULL);
 
-	g_print ("Parse First_element: %s\n", first_element);
-	g_print ("Parse xml: %s\n", (gchar*) xml);
-	g_print ("Parse lenght: %d\n", length);
-
 	if (length == -1)
 		length = strlen (xml);
 
 	/* Parse the XML */
 	doc = xmlReadMemory (xml, length, "/dev/null", NULL, 0);
 	if (doc == NULL) {
-		g_print ("DOC == NULL");
 		xmlError *xml_error = xmlGetLastError ();
 		g_set_error (error, GDATA_PARSER_ERROR, GDATA_PARSER_ERROR_PARSING_STRING,
 			     /* Translators: the parameter is an error message */
@@ -139,7 +134,6 @@ _gdata_parsable_new_from_xml (GType parsable_type, const gchar *first_element, c
 	/* Get the root element */
 	node = xmlDocGetRootElement (doc);
 	if (node == NULL) {
-		g_print ("NODE == NULL");
 		/* XML document's empty */
 		xmlFreeDoc (doc);
 		g_set_error (error, GDATA_PARSER_ERROR, GDATA_PARSER_ERROR_EMPTY_DOCUMENT,
@@ -150,14 +144,11 @@ _gdata_parsable_new_from_xml (GType parsable_type, const gchar *first_element, c
 	}
 
 	if (xmlStrcmp (node->name, (xmlChar*) first_element) != 0) {
-		g_print ("Aucun feed");
 		/* No <entry> element (required) */
 		xmlFreeDoc (doc);
 		gdata_parser_error_required_element_missing (first_element, "root", error);
 		return NULL;
 	}
-
-	g_print ("\n\nParse Before new from NODE\n");
 
 	return _gdata_parsable_new_from_xml_node (parsable_type, first_element, doc, node, user_data, error);
 }

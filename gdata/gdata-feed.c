@@ -383,52 +383,29 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 	if (xmlStrcmp (node->name, (xmlChar*) "entry") == 0) {
 		/* atom:entry */
 		GDataEntry *entry = GDATA_ENTRY (_gdata_parsable_new_from_xml_node (data->entry_type, "entry", doc, node, NULL, error));
-		g_print ("== FEED entry== \n");
 		if (entry == NULL)
 			return FALSE;
-
-		/* Call the progress callback in the main thread */
-		if (data->progress_callback != NULL) {
-			ProgressCallbackData *progress_data;
-
-			/* Build the data for the callback */
-			progress_data = g_slice_new (ProgressCallbackData);
-			progress_data->progress_callback = data->progress_callback;
-			progress_data->progress_user_data = data->progress_user_data;
-			progress_data->entry = g_object_ref (entry);
-			progress_data->entry_i = data->entry_i;
-			progress_data->total_results = MIN (self->priv->items_per_page, self->priv->total_results);
-
-			/* Send the callback; use G_PRIORITY_DEFAULT rather than G_PRIORITY_DEFAULT_IDLE
-			 * to contend with the priorities used by the callback functions in GAsyncResult */
-			g_idle_add_full (G_PRIORITY_DEFAULT, (GSourceFunc) progress_callback_idle, progress_data, NULL);
-		}
-
-		data->entry_i++;
+		_gdata_feed_call_progres_callback (self, data, entry);
 		_gdata_feed_add_entry (self, entry);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "title") == 0) {
-		g_print ("== FEED title== \n");
 		/* atom:title */
 		if (self->priv->title != NULL)
 			return gdata_parser_error_duplicate_element (node, error);
 
 		self->priv->title = (gchar*) xmlNodeListGetString (doc, node->children, TRUE);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "subtitle") == 0) {
-		g_print ("== FEED subtitle== \n");
 		/* atom:subtitle */
 		if (self->priv->subtitle != NULL)
 			return gdata_parser_error_duplicate_element (node, error);
 
 		self->priv->subtitle = (gchar*) xmlNodeListGetString (doc, node->children, TRUE);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "id") == 0) {
-		g_print ("== FEED id== \n");
 		/* atom:id */
 		if (self->priv->id != NULL)
 			return gdata_parser_error_duplicate_element (node, error);
 
 		self->priv->id = (gchar*) xmlNodeListGetString (doc, node->children, TRUE);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "updated") == 0) {
-		g_print ("== FEED updated== \n");
 		/* atom:updated */
 		xmlChar *updated_string;
 
@@ -446,7 +423,6 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 
 		xmlFree (updated_string);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "category") == 0) {
-		g_print ("== FEED category== \n");
 		/* atom:category */
 		xmlChar *scheme, *term, *label;
 		GDataCategory *category;
@@ -462,14 +438,12 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 		xmlFree (term);
 		xmlFree (label);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "logo") == 0) {
-		g_print ("== FEED logo== \n");
 		/* atom:logo */
 		if (self->priv->logo != NULL)
 			return gdata_parser_error_duplicate_element (node, error);
 
 		self->priv->logo = (gchar*) xmlNodeListGetString (doc, node->children, TRUE);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "link") == 0) {
-		g_print ("== FEED link== \n");
 		/* atom:link */
 		xmlChar *href, *rel, *type, *hreflang, *link_title, *link_length;
 		gint length_int;
@@ -497,7 +471,6 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 		xmlFree (link_title);
 		xmlFree (link_length);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "author") == 0) {
-		g_print ("== FEED author== \n");
 		/* atom:author */
 		GDataAuthor *author;
 		xmlNode *author_node;
@@ -529,7 +502,6 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 		xmlFree (uri);
 		xmlFree (email);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "generator") == 0) {
-		g_print ("== FEED generator== \n");
 		/* atom:generator */
 		xmlChar *name, *uri, *version;
 
@@ -548,7 +520,6 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 		xmlFree (uri);
 		xmlFree (version);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "totalResults") == 0) {
-		g_print ("== FEED totalResult== \n");
 		/* openSearch:totalResults */
 		xmlChar *total_results_string;
 
@@ -564,7 +535,6 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 		self->priv->total_results = strtoul ((gchar*) total_results_string, NULL, 10);
 		xmlFree (total_results_string);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "startIndex") == 0) {
-		g_print ("== FEED startIndex== \n");
 		/* openSearch:startIndex */
 		xmlChar *start_index_string;
 
@@ -580,7 +550,6 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 		self->priv->start_index = strtoul ((gchar*) start_index_string, NULL, 10);
 		xmlFree (start_index_string);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "itemsPerPage") == 0) {
-		g_print ("== FEED itemsPerPage== \n");
 		/* openSearch:itemsPerPage */
 		xmlChar *items_per_page_string;
 
@@ -596,7 +565,6 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 		self->priv->items_per_page = strtoul ((gchar*) items_per_page_string, NULL, 10);
 		xmlFree (items_per_page_string);
 	} else if (GDATA_PARSABLE_CLASS (gdata_feed_parent_class)->parse_xml (parsable, doc, node, user_data, error) == FALSE) {
-		g_print ("== FEED mmmm== \n");
 		/* Error! */
 		return FALSE;
 	}
@@ -633,22 +601,15 @@ _gdata_feed_new_from_xml (GType feed_type, const gchar *xml, gint length, GType 
 	ParseData *data;
 	GDataFeed *feed;
 
-	g_print ("FEED NEw\n");
 	g_return_val_if_fail (g_type_is_a (feed_type, GDATA_TYPE_FEED) == TRUE, FALSE);
 	g_return_val_if_fail (xml != NULL, NULL);
 	g_return_val_if_fail (g_type_is_a (entry_type, GDATA_TYPE_ENTRY) == TRUE, FALSE);
 
-	data = g_slice_new (ParseData);
-	data->entry_type = entry_type;
-	data->progress_callback = progress_callback;
-	data->progress_user_data = progress_user_data;
-	data->entry_i = 0;
-	
-	g_print ("FEED Before new_from_xml\n");
+	data = _gdata_get_parse_data(entry_type, progress_callback, progress_user_data);
 
 	feed = GDATA_FEED (_gdata_parsable_new_from_xml (feed_type, "feed", xml, length, data, error));
 
-	g_slice_free (ParseData, data);
+	_gdata_feed_free_parse_data(data);
 
 	return feed;
 }
@@ -934,3 +895,47 @@ _gdata_feed_add_entry (GDataFeed *self, GDataEntry *entry)
 	g_return_if_fail (GDATA_IS_FEED (self));
 	self->priv->entries = g_list_prepend (self->priv->entries, entry);
 }
+
+
+gpointer
+_gdata_get_parse_data(GType entry_type, GDataQueryProgressCallback progress_callback, gpointer progress_user_data)
+{
+	ParseData *data;
+	data = g_slice_new (ParseData);
+	data->entry_type = entry_type;
+	data->progress_callback = progress_callback;
+	data->progress_user_data = progress_user_data;
+	data->entry_i = 0;
+	return data;
+}
+
+void
+_gdata_feed_free_parse_data (gpointer data)
+{
+	g_slice_free (ParseData, data);
+}
+
+
+void
+_gdata_feed_call_progres_callback (GDataFeed *self, gpointer user_data, GDataEntry *entry)
+{
+	ParseData *data = user_data;
+
+	if (data->progress_callback != NULL) {
+		ProgressCallbackData *progress_data;
+
+		/* Build the data for the callback */
+		progress_data = g_slice_new (ProgressCallbackData);
+		progress_data->progress_callback = data->progress_callback;
+		progress_data->progress_user_data = data->progress_user_data;
+		progress_data->entry = g_object_ref (entry);
+		progress_data->entry_i = data->entry_i;
+		progress_data->total_results = MIN (self->priv->items_per_page, self->priv->total_results);
+
+		/* Send the callback; use G_PRIORITY_DEFAULT rather than G_PRIORITY_DEFAULT_IDLE
+		* to contend with the priorities used by the callback functions in GAsyncResult */
+		g_idle_add_full (G_PRIORITY_DEFAULT, (GSourceFunc) progress_callback_idle, progress_data, NULL);
+	}
+	data->entry_i++;
+}
+

@@ -65,24 +65,6 @@ typedef struct {
 
 GType gdata_documents_feed_get_type (void) G_GNUC_CONST;
 
-/*GList *gdata_feed_get_entries (GDataDocumentsFeed *self);
-GDataEntry *gdata_feed_look_up_entry (GDataDocumentsFeed *self, const gchar *id);
-GList *gdata_feed_get_categories (GDataDocumentsFeed *self);
-GList *gdata_feed_get_links (GDataDocumentsFeed *self);
-GDataLink *gdata_feed_look_up_link (GDataDocumentsFeed *self, const gchar *rel);
-GList *gdata_feed_get_authors (GDataDocumentsFeed *self);
-
-const gchar *gdata_feed_get_title (GDataDocumentsFeed *self);
-const gchar *gdata_feed_get_subtitle (GDataDocumentsFeed *self);
-const gchar *gdata_feed_get_id (GDataDocumentsFeed *self);
-const gchar *gdata_feed_get_etag (GDataDocumentsFeed *self);
-void gdata_feed_get_updated (GDataDocumentsFeed *self, GTimeVal *updated);
-const gchar *gdata_feed_get_logo (GDataDocumentsFeed *self);
-GDataGenerator *gdata_feed_get_generator (GDataDocumentsFeed *self);
-guint gdata_feed_get_items_per_page (GDataDocumentsFeed *self);
-guint gdata_feed_get_start_index (GDataDocumentsFeed *self);
-guint gdata_feed_get_total_results (GDataDocumentsFeed *self);*/
-
 G_END_DECLS
 
 #endif /* !GDATA_DOCUMENTS_FEED_H */
