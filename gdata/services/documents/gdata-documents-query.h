@@ -63,20 +63,8 @@ GDataDocumentsQuery *gdata_documents_query_new (const gchar *q) G_GNUC_WARN_UNUS
 GDataDocumentsQuery *gdata_documents_query_new_with_limits (const gchar *q, gint start_index, gint max_results) G_GNUC_WARN_UNUSED_RESULT;
 
 
-gboolean gdata_documents_query_get_deleted (GDataDocumentsQuery *self);
-void gdata_documents_query_set_deleted (GDataDocumentsQuery *self, gboolean deleted);
-
-gboolean gdata_documents_query_get_starred (GDataDocumentsQuery *self);
-void gdata_documents_query_set_starred (GDataDocumentsQuery *self, gboolean starred);
-
-gboolean gdata_documents_query_get_metadata (GDataDocumentsQuery *self);
-void gdata_documents_query_set_metadata (GDataDocumentsQuery *self, gboolean metadata);
-
-gboolean gdata_documents_query_get_content (GDataDocumentsQuery *self);
-void gdata_documents_query_set_content (GDataDocumentsQuery *self, gboolean content);
-
-gboolean gdata_documents_query_get_only_sharred (GDataDocumentsQuery *self);
-void gdata_documents_query_set_only_sharred (GDataDocumentsQuery *self, gboolean only_sharred);
+gboolean gdata_documents_query_get_show_deleted (GDataDocumentsQuery *self);
+void gdata_documents_query_set_show_deleted (GDataDocumentsQuery *self, gboolean show_deleted);
 
 gboolean gdata_documents_query_get_show_folder (GDataDocumentsQuery *self);
 void gdata_documents_query_set_show_folder (GDataDocumentsQuery *self, gboolean show_folder);
@@ -87,17 +75,14 @@ void gdata_documents_query_set_folder_id (GDataDocumentsQuery *self, gchar *fold
 gchar *gdata_documents_query_get_title (GDataDocumentsQuery *self);
 void gdata_documents_query_set_title (GDataDocumentsQuery *self, gchar *title);
 
-gchar *gdata_documents_query_get_export_format (GDataDocumentsQuery *self);
-void gdata_documents_query_set_export_format (GDataDocumentsQuery *self, gchar *export_format);
-
-gchar *gdata_documents_query_get_exact_title (GDataDocumentsQuery *self);
-void gdata_documents_query_set_exact_title (GDataDocumentsQuery *self, gchar *exact_title);
+gboolean gdata_documents_query_get_exact_title (GDataDocumentsQuery *self);
+void gdata_documents_query_set_exact_title (GDataDocumentsQuery *self, gboolean exact_title);
 
 GList *gdata_documents_query_get_types (GDataDocumentsQuery *self);
 void gdata_documents_query_set_types (GDataDocumentsQuery *self, GList *type);
 
-GList *gdata_documents_query_get_emails (GDataDocumentsQuery *self);
-void gdata_documents_query_set_emails (GDataDocumentsQuery *self, GList *emails);
+gchar *gdata_documents_query_get_emails (GDataDocumentsQuery *self);
+void gdata_documents_query_set_emails (GDataDocumentsQuery *self, gchar *emails);
 
 G_END_DECLS
 

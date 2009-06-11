@@ -27,6 +27,7 @@
 #include <gdata/services/documents/gdata-documents-text.h>
 #include <gdata/services/documents/gdata-documents-folder.h>
 #include <gdata/services/documents/gdata-documents-feed.h>
+#include <gdata/services/documents/gdata-documents-query.h>
 #include <gdata/gdata-entry.h>
 #include <gdata/gdata-feed.h>
 #include "common.h"
@@ -49,6 +50,8 @@ main (int argc, char *argv[])
 	GDataQueryProgressCallback progress_callback = NULL;
 	gpointer progress_user_data = NULL;
 	GList *feed_entry_list;
+	GDataDocumentsQuery *query;
+	gchar *emails;
 
 	const gchar *xml_folder="<entry gd:etag='W/CUUNSXYyfCp7ImA9WxRVGUo.'><id>http://docs.google.com/feeds/folders/private/full/folder%3folder_id/document%3Adocument_id</id><published>0001-01-03T00:00:00.000Z</published><updated>2008-09-02T05:42:27.203Z</updated><category scheme='http://schemas.google.com/g/2005#kind' term='http://schemas.google.com/docs/2007#document' label='document'/><category scheme='http://schemas.google.com/docs/2007/folders/test.user@gmail.com' term='Folder 1' label='Folder 1'/><category scheme='http://schemas.google.com/docs/2007/folders/test.user@gmail.com' term='Folder 2' label='Folder 2'/><title type='TEEEEEEEEEEET'>Document 1</title><content type='text/html' src='http://docs.google.com/feeds/download/documents/RawDocContents?'/><link rel='http://schemas.google.com/docs/2007#parent' type='application/atom+xml' href='http://docs.google.com/feeds/documents/private/full/folder%3Afolder_id' title='Folder 1'/><link rel='http://schemas.google.com/docs/2007#parent' type='application/atom+xml' href='http://docs.google.com/feeds/documents/private/full/folder%3Afolder_id2' title='Folder'/><link rel='alternate' type='text/html' href='http://docs.google.com/Doc?id=document_id'/><link rel='self' type='application/atom+xml' href='http://docs.google.com/feeds/folders/private/full/folder%3Afolder_id/document%3Adocument_id'/><link rel='edit' type='application/atom+xml' href='http://docs.google.com/feeds/folders/private/full/folder%3Afolder_id/document%3Adocument_id'/><link rel='edit-media' type='text/html' href='http://docs.google.com/feeds/media/private/full/document%3Adocument_id'/><author><name>test.user</name><email>test.user@gmail.com</email></author><gd:resourceId>folder:folder_id</gd:resourceId></entry>";
 	const gchar *xml_spreadsheet ="<entry gd:etag='BxAUSh5RAyp7ImBq'><id>http://docs.google.com/feeds/documents/private/full/spreadsheet%3Akey</id><published>2009-03-16T23:26:12.503Z</published><updated>2009-03-16T23:26:12.503Z</updated><app:edited xmlns:app='http://www.w3.org/2007/app'>2009-03-18T05:41:45.311Z</app:edited><category scheme='http://schemas.google.com/g/2005#kind'  term='http://schemas.google.com/docs/2007#spreadsheet' label='spreadsheet'/><category scheme='http://schemas.google.com/docs/2007/folders/user_email' term='My Favorite Spreadsheets' label='My Favorite Spreadsheets'/><title type='text'>Test Spreadsheet</title><content type='text/html' src='http://spreadsheets.google.com/feeds/download/spreadsheets/Export?fmcmd=102&amp;key=key'/><link rel='alternate' type='text/html' href='http://spreadsheets.google.com/ccc?key=key' /><link href='http://spreadsheets.google.com/feeds/worksheets/key/private/full'  rel='http://schemas.google.com/spreadsheets/2006#worksheetsfeed' type='application/atom+xml' /><link rel='self' type='application/atom+xml' href='http://docs.google.com/feeds/documents/private/full/spreadsheet%3Akey'/><link rel='edit' type='application/atom+xml' href='http://docs.google.com/feeds/documents/private/full/spreadsheet%3Akey'/><link rel='edit-media' type='text/html' href='http://docs.google.com/feeds/media/private/full/spreadsheet%3Akey'/><author><name>test.user</name><email>test.user@gmail.com</email></author><gd:resourceId>spreadsheet:key</gd:resourceId><gd:lastModifiedBy><name>test.user</name><email>test.user@gmail.com</email></gd:lastModifiedBy><gd:lastViewed>2009-03-10T20:22:42.987Z</gd:lastViewed><docs:writersCanInvite value='true'/><gd:feedLink rel='http://schemas.google.com/acl/2007#accessControlList' href='http://docs.google.com/feeds/acl/private/full/spreadsheet%3Akey'/></entry>";
@@ -79,6 +82,8 @@ main (int argc, char *argv[])
 	
 	GDataDocumentsFeed *feed;
 	feed = GDATA_DOCUMENTS_FEED (_gdata_documents_feed_new_from_xml (feed_type, xml_feed, strlen (xml_feed) , entry_type, progress_callback, progress_user_data, error_feed));
+
+	query = GDATA_DOCUMENTS_QUERY (gdata_documents_query_new (NULL));
 
 	g_print ("\n====Folder ====\n");
 	g_print ("Folder etag: %s\n" ,gdata_entry_get_etag (documents_folder));
@@ -138,6 +143,14 @@ main (int argc, char *argv[])
 	feed_entry_list = gdata_feed_get_entries (feed);
 	g_print ("FirstEntry title: %s\n" ,gdata_entry_get_title (g_list_first (feed_entry_list)->data));
 	g_print ("SecondeEntry title: %s\n" ,gdata_entry_get_title (g_list_first (feed_entry_list)->next->data));
+
+	g_print ("\n===== QUERY ====\n");
+	gdata_query_set_categories (query, "Fritz/Oups");
+	emails = (gchar *) "unemai%40super.com%2CdeuxSuper%40super.com";
+	gdata_documents_query_set_emails (query, emails);
+//	gdata_documents_query_set_folder_id (query, "unId");
+	gdata_documents_query_set_title (query, "unDocument");
+	g_print ("uri: %s\n", gdata_query_get_query_uri (query, "http://docs.google.com"));
 
 	return 0;
 }

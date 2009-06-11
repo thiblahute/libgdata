@@ -27,7 +27,7 @@
  * those catered for by #GDataQuery.
  *
  * For more information on the custom GData query parameters supported by #GDataDocumentsQuery, see the <ulink type="http"
- * url="http://code.google.com/apis/contacts/docs/2.0/reference.html#Parameters">online documentation</ulink>.
+ * url="http://code.google.com/apis/documents/docs/2.0/reference.html#Parameters">online documentation</ulink>.
  **/
 
 #include <config.h>
@@ -45,31 +45,21 @@ static void get_query_uri (GDataQuery *self, const gchar *feed_uri, GString *que
 
 struct _GDataDocumentsQueryPrivate 
 {
-	gboolean deleted;
-	gboolean starred;
-	gboolean metadata;
-	gboolean content;
-	gboolean only_sharred;
+	gboolean show_deleted;
 	gboolean show_folder;
+	gboolean exact_title;
 	gchar *folder_id;
 	gchar *title;
-	gchar *exact_title;
-	gchar *export_format;
-	GList *types;
-	GList *emails;
+	gchar *emails;
 };
 
 enum{
 	PROP_DELETED = 1,
-	PROP_STARRED,
-	PROP_METADATA,
-	PROP_CONTENT,
-	PROP_ONLY_SHARRED,
+	PROP_ONLY_STARRED,
+	PROP_SHOW_FOLDER,
+	PROP_EXACT_TITLE,
 	PROP_FOLDER_ID,
 	PROP_TITLE,
-	PROP_EXACT_TITLE,
-	PROP_EXPORT_FORMAT,
-	PROP_TYPES,
 	PROP_EMAILS
 };
 
@@ -91,57 +81,35 @@ gdata_documents_query_class_init (GDataDocumentsQueryClass *klass)
 	query_class->get_query_uri = get_query_uri;
 
 	/**
-	 * GDataDocumentsQuery:deleted:
+	 * GDataDocumentsQuery:show_deleted:
 	 *
 	 * A shortcut to request all documents that have been deleted.
 	 **/
 	g_object_class_install_property (gobject_class, PROP_DELETED,
-				g_param_spec_boolean ("deleted",
+				g_param_spec_boolean ("show-deleted",
 					"Deleted?", "A shortcut to request all documents that have been deleted.",
 					FALSE,
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
 	/**
-	 * GDataDocumentsQuery:starred:
+	 * GDataDocumentsQuery:show_folder:
 	 *
-	 * A shortcut to request all starred documents.
+	 * Specifies if the request also returns  folders.
 	 **/
-	g_object_class_install_property (gobject_class, PROP_STARRED,
-				g_param_spec_boolean ("starred",
-					"Starred?", "A shortcut to request all starred documents.",
+	g_object_class_install_property (gobject_class, PROP_SHOW_FOLDER,
+				g_param_spec_boolean ("show-folders",
+					"Show folders?", "Specifies if the request also returns folders.",
 					FALSE,
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
 	/**
-	 * GDataDocumentsQuery:metadata:
+	 * GDataDocumentsQuery:exact_title:
 	 *
-	 * Specifies if the request is with or without metadatas
+	 * Specifies the exact title of the document querried
 	 **/
-	g_object_class_install_property (gobject_class, PROP_METADATA,
-				g_param_spec_boolean ("metadata",
-					"Metadata?", "Specifies if the request is with or without metadatas.",
-					FALSE,
-					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
-
-	/**
-	 * GDataDocumentsQuery:content:
-	 *
-	 * Specifies if the request is with or without the content
-	 **/
-	g_object_class_install_property (gobject_class, PROP_CONTENT,
-				g_param_spec_boolean ("content",
-					"Content?", "Specifies if the request is with or without content.",
-					FALSE,
-					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
-
-	/**
-	 * GDataDocumentsQuery:only_sharred:
-	 *
-	 * Specifies if the request concerned only sharred documents.
-	 **/
-	g_object_class_install_property (gobject_class, PROP_ONLY_SHARRED,
-				g_param_spec_boolean ("only-sharred",
-					"Only sharred?", "Specifies if the request concerned only sharred documents.",
+	g_object_class_install_property (gobject_class, PROP_EXACT_TITLE,
+				g_param_spec_boolean ("exact-title",
+					"Exact title", "Specifies if the title of the querry is the exact title or not.",
 					FALSE,
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
@@ -168,45 +136,14 @@ gdata_documents_query_class_init (GDataDocumentsQueryClass *klass)
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
 	/**
-	 * GDataDocumentsQuery:exact_title:
-	 *
-	 * Specifies the exact title of the document querried
-	 **/
-	g_object_class_install_property (gobject_class, PROP_EXACT_TITLE,
-				g_param_spec_string ("exact-title",
-					"Exact title", "Specifies the exact title of the document querried.",
-					NULL,
-					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
-
-	/**
-	 * GDataDocumentsQuery:export_format:
-	 *
-	 * Specifies the exportation format.
-	 **/
-	g_object_class_install_property (gobject_class, PROP_EXACT_TITLE,
-				g_param_spec_string ("export-format",
-					"Export format", "Specifies the exportation format.",
-					NULL,
-					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
-
-	/**
-	 * GDataDocumentsQuery:types:
-	 *
-	 * Specifies about which kind(s) of documents the querry is. Basicly it means: document, spreadsheet, presentation, starred, folder, trashed.
-	 **/
-	g_object_class_install_property (gobject_class, PROP_TYPES,
-				g_param_spec_pointer ("types",
-					"Types", "Specifies about what kinds of documents the querry is.",
-					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
-
-	/**
 	 * GDataDocumentsQuery:emails:
 	 *
-	 * Specifies about who the querry is. 
+	 * Specifies about 
 	 **/
 	g_object_class_install_property (gobject_class, PROP_EMAILS,
-				g_param_spec_pointer ("emails",
-					"Emails", "Specifies about who the querry is.",
+				g_param_spec_string ("emails",
+					"Emails", "Specifies the emails of the persons collaborating on the document concerned the querry sperated by '%2C', or %NULL if it is unset.",
+					"NULL",
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 }
 
@@ -223,22 +160,22 @@ gdata_documents_query_get_property (GObject *object, guint property_id, GValue *
 
 	switch (property_id) {
 		case PROP_DELETED:
-			g_value_set_boolean (value, priv->deleted);
+			g_value_set_boolean (value, priv->show_deleted);
 			break;
-		case PROP_STARRED:
-			g_value_set_boolean (value, priv->starred);
-			break;
-		case PROP_METADATA:
-			g_value_set_boolean (value, priv->metadata);
-			break;
-		case PROP_CONTENT:
-			g_value_set_boolean (value, priv->content);
+		case PROP_SHOW_FOLDER:
+			g_value_set_boolean (value, priv->show_folder);
 			break;
 		case PROP_FOLDER_ID:
-			g_value_set_string (value, priv->folder_id);
+			g_value_set_boolean (value, priv->folder_id);
 			break;
-		case PROP_TYPES:
-			g_value_set_string (value, priv->types);
+		case PROP_EXACT_TITLE:
+			g_value_set_boolean (value, priv->exact_title);
+			break;
+		case PROP_TITLE:
+			g_value_set_string (value, priv->title);
+			break;
+		case PROP_EMAILS:
+			g_value_set_string (value, priv->emails);
 			break;
 		default:
 			/* We don't have any other property... */
@@ -253,28 +190,62 @@ gdata_documents_query_set_property (GObject *object, guint property_id, const GV
 
 	switch (property_id) {
 		case PROP_DELETED:
-			gdata_documents_query_set_deleted (self, g_value_get_boolean (value));
+			gdata_documents_query_set_show_deleted (self, g_value_get_boolean (value));
 			break;
-		case PROP_STARRED:
-			gdata_documents_query_set_starred (self, g_value_get_boxed (value));
+		case PROP_SHOW_FOLDER:
+			gdata_documents_query_set_show_folder (self, g_value_get_boolean (value));
 			break;
-		case PROP_METADATA:
-			gdata_documents_query_set_metadata (self, g_value_get_boxed (value));
-			break;
-		case PROP_CONTENT:
-			gdata_documents_query_set_content (self, g_value_get_boolean (value));
+		case PROP_EXACT_TITLE:
+			gdata_documents_query_set_exact_title (self, g_value_get_boolean (value));
 			break;
 		case PROP_FOLDER_ID:
 			gdata_documents_query_set_folder_id (self, g_value_get_string (value));
 			break;
-		case PROP_TYPES:
-			gdata_documents_query_set_types (self, g_value_get_string (value));
+		case PROP_TITLE:
+			gdata_documents_query_set_title (self, g_value_get_string (value));
+			break;
+		case PROP_EMAILS:
+			gdata_documents_query_set_emails (self, g_value_get_string (value));
 			break;
 		default:
 			/* We don't have any other property... */
 			G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
 			break;
 	}
+}
+/**
+ * gdata_documents_query_new:
+ * @q: a query string
+ *
+ * Creates a new #GDataDocumentsQuery with its #GDataQuery:q property set to @q.
+ *
+ * Return value: a new #GDataDocumentsQuery
+ **/
+GDataDocumentsQuery *
+gdata_documents_query_new (const gchar *q)
+{
+	return g_object_new (GDATA_TYPE_DOCUMENTS_QUERY, "q", q, NULL);
+}
+
+/**
+ * gdata_documents_query_new_with_limits:
+ * @q: a query string
+ * @start_index: a one-based start index for the results
+ * @max_results: the maximum number of results to return
+ *
+ * Creates a new #GDataDocumentsQuery with its #GDataQuery:q property set to @q, and the limits @start_index and @max_results
+ * applied.
+ *
+ * Return value: a new #GDataDocumentsQuery
+ **/
+GDataDocumentsQuery *
+gdata_documents_query_new_with_limits (const gchar *q, gint start_index, gint max_results)
+{
+	return g_object_new (GDATA_TYPE_DOCUMENTS_QUERY,
+			     "q", q,
+			     "start-index", start_index,
+			     "max-results", max_results,
+			     NULL);
 }
 
 static void 
@@ -284,94 +255,91 @@ gdata_documents_query_finalize (GObject *object)
 
 	g_free (priv->folder_id);
 	g_free (priv->title);
-	g_free (priv->export_format);
-	g_free (priv->exact_title);
-	g_list_foreach (priv->types, (GFunc) g_free, NULL);
-	g_list_foreach (priv->emails, (GFunc) g_free, NULL);
+	g_free (priv->emails);
 }
 
 static void 
 get_query_uri (GDataQuery *self, const gchar *feed_uri, GString *query_uri, gboolean *params_started)
 {
-	/*TODO*/;
+	GDataDocumentsQueryPrivate *priv = GDATA_DOCUMENTS_QUERY (self)->priv;
+	
+	#define APPEND_SEP g_string_append_c (query_uri, (*params_started == FALSE) ? '?' : '&'); *params_started = TRUE;
+
+	if (priv->folder_id != NULL)
+	{
+		g_string_append (query_uri, "/folder%3A=");
+		g_string_append (query_uri, priv->folder_id);
+	}
+
+	/* Chain up to the parent class */
+	GDATA_QUERY_CLASS (gdata_documents_query_parent_class)->get_query_uri (self, feed_uri, query_uri, params_started);
+
+	if  (priv->emails != NULL){
+		APPEND_SEP
+		g_string_append (query_uri, "writer=");
+		g_string_append (query_uri, priv->emails);
+	}
+	if (priv->title != NULL){
+		APPEND_SEP
+		g_string_append (query_uri, "?title=");
+		g_string_append (query_uri, priv->title);
+		if (priv->exact_title = TRUE){
+			APPEND_SEP
+			g_string_append (query_uri, "title-exact=true");
+		}
+	}
+
+	APPEND_SEP
+	if (priv->show_deleted == TRUE)
+		g_string_append (query_uri, "showdeleted=true");
+	else
+		g_string_append (query_uri, "showdeleted=false");
+
+	APPEND_SEP
+	if (priv->show_folder == TRUE)
+		g_string_append (query_uri, "showfolders=true");
+	else
+		g_string_append (query_uri, "showfolders=false");
 }
 
+/**
+ * gdata_documents_query_get_show_deleted:
+ * @self: a #GDataDocumentsQuery
+ *ta_documents_query_get_only_sharred
+ * Gets the #GDataDocumentsQuery:show_deleted property.
+ *
+ * Return value: %TRUE if the request takes care of deleted entries otherwise %FALSE
+ **/
 gboolean 
-gdata_documents_query_get_deleted (GDataDocumentsQuery *self)
+gdata_documents_query_get_show_deleted (GDataDocumentsQuery *self)
 {
 	g_return_val_if_fail (GDATA_IS_DOCUMENTS_QUERY (self), FALSE);
-	return self->priv->deleted;
+	return self->priv->show_deleted;
 }
 
+/**
+ * gdata_documents_query_set_show_deleted:
+ * @self: a #GDataDocumentsQuery
+ * @show_deleted: %TRUE if the request takes care of show_deleted entries otherwise %FALSE
+ *
+ * Sets the #GDataDocumentsQuery:show_deleted property to @show_deleted.
+ **/
 void 
-gdata_documents_query_set_deleted (GDataDocumentsQuery *self, gboolean deleted)
+gdata_documents_query_set_show_deleted (GDataDocumentsQuery *self, gboolean show_deleted)
 {
 	g_return_if_fail (GDATA_IS_DOCUMENTS_QUERY (self));
-	self->priv->deleted = deleted;
-	g_object_notify (G_OBJECT (self), "deleted");
+	self->priv->show_deleted = show_deleted;
+	g_object_notify (G_OBJECT (self), "show-deleted");
 }
 
-gboolean 
-gdata_documents_query_get_starred (GDataDocumentsQuery *self)
-{
-	g_return_val_if_fail (GDATA_IS_DOCUMENTS_QUERY (self), FALSE);
-	return self->priv->starred;
-}
-
-void 
-gdata_documents_query_set_starred (GDataDocumentsQuery *self, gboolean starred)
-{
-	g_return_val_if_fail (GDATA_IS_DOCUMENTS_QUERY (self), FALSE);
-	self->priv->starred=starred;
-	g_object_notify (G_OBJECT (self), "starred");
-}
-
-gboolean 
-gdata_documents_query_get_metadata (GDataDocumentsQuery *self)
-{
-	g_return_if_fail (GDATA_IS_DOCUMENTS_QUERY (self));
-	return self->priv->metadata;
-}
-
-void 
-gdata_documents_query_set_metadata (GDataDocumentsQuery *self, gboolean metadata)
-{
-	g_return_if_fail (GDATA_IS_DOCUMENTS_QUERY (self));
-	self->priv->metadata=metadata;
-	g_object_notify (G_OBJECT (self), "metadata");
-}
-
-
-gboolean 
-gdata_documents_query_get_content (GDataDocumentsQuery *self)
-{
-	g_return_val_if_fail (GDATA_IS_DOCUMENTS_QUERY (self), FALSE);
-	return self->priv->content;
-}
-
-void 
-gdata_documents_query_set_content (GDataDocumentsQuery *self, gboolean content)
-{
-	g_return_if_fail (GDATA_IS_DOCUMENTS_QUERY (self));
-	self->priv->content = content;
-	g_object_notify (G_OBJECT (self), "deleted");
-}
-
-gboolean 
-gdata_documents_query_get_only_sharred (GDataDocumentsQuery *self)
-{
-	g_return_val_if_fail (GDATA_IS_DOCUMENTS_QUERY (self), FALSE);
-	return self->priv->only_sharred;
-}
-
-void 
-gdata_documents_query_set_only_sharred (GDataDocumentsQuery *self, gboolean only_sharred)
-{
-	g_return_if_fail (GDATA_IS_DOCUMENTS_QUERY (self));
-	self->priv->only_sharred=only_sharred;
-	g_object_notify (G_OBJECT (self), "only-sharred");
-}
-
+/**
+ * gdata_documents_query_get_show_folder:
+ * @self: a #GDataDocumentsQuery
+ *
+ * Gets the #GDataDocumentsQuery:show-folder property.
+ *
+ * Return value: %TRUE if the querry takes care about folder, %FALSE otherwise.
+ **/
 gboolean 
 gdata_documents_query_get_show_folder (GDataDocumentsQuery *self)
 {
@@ -379,6 +347,13 @@ gdata_documents_query_get_show_folder (GDataDocumentsQuery *self)
 	return self->priv->show_folder;
 }
 
+/**
+ * gdata_documents_query_get_show_folder:
+ * @self: a #GDataDocumentsQuery
+ * @show_folder: %TRUE if the querry takes care about folder, %FALSE otherwise.
+ *
+ * Sets the #GDataDocumentsQuery:show-folder property to show_folder.
+ **/
 void 
 gdata_documents_query_set_show_folder (GDataDocumentsQuery *self, gboolean show_folder)
 {
@@ -388,6 +363,14 @@ gdata_documents_query_set_show_folder (GDataDocumentsQuery *self, gboolean show_
 }
 
 
+/**
+ * gdata_documents_query_get_folder_id:
+ * @self: a #GDataDocumentsQuery
+ *
+ * Gets the #GDataDocumentsQuery:folder-id property.
+ *
+ * Return value: The id of the folder concerned by this querry, or %NULL if it is unset
+ **/
 gchar*
 gdata_documents_query_get_folder_id (GDataDocumentsQuery *self)
 {
@@ -395,6 +378,13 @@ gdata_documents_query_get_folder_id (GDataDocumentsQuery *self)
 	return self->priv->folder_id;
 }
 
+/**
+ * gdata_documents_query_set_folder_id:
+ * @self: a #GDataDocumentsQuery
+ * @folder_id: The id of the folder concerned by this querry, or %NULL if it is unset
+ *
+ * Sets the #GDataDocumentsQuery:folder-id property to @folder_id.
+ **/
 void 
 gdata_documents_query_set_folder_id (GDataDocumentsQuery *self, gchar *folder_id)
 {
@@ -403,80 +393,89 @@ gdata_documents_query_set_folder_id (GDataDocumentsQuery *self, gchar *folder_id
 	g_object_notify (G_OBJECT (self), "folder-id");
 }
 
+/**
+ * gdata_documents_query_get_title:
+ * @self: a #GDataDocumentsQuery
+ *
+ * Gets the #GDataDocumentsQuery:title property.
+ *
+ * Return value: A part of the title of the document we are querying, or %NULL if it is unset
+ **/
 gchar*
 gdata_documents_query_get_title (GDataDocumentsQuery *self)
 {
-	g_return_val_if_fail (GDATA_IS_DOCUMENTS_QUERY (self), FALSE);
+	g_return_val_if_fail (GDATA_IS_DOCUMENTS_QUERY (self), NULL);
 	return self->priv->title;
 }
 
+/**
+ * gdata_documents_query_set_title:
+ * @self: a #GDataDocumentsQuery
+ * @title: A part of the title of the document we are querying, or %NULL if it is unset
+ *
+ * Sets the #GDataDocumentsQuery:title property to @title.
+ **/
 void 
 gdata_documents_query_set_title (GDataDocumentsQuery *self, gchar *title)
 {
 	g_return_if_fail (GDATA_IS_DOCUMENTS_QUERY (self));
 	self->priv->title = g_strdup (title);
 	g_object_notify (G_OBJECT (self), "title");
-
 }
 
-
-gchar*
-gdata_documents_query_get_export_format (GDataDocumentsQuery *self)
-{
-	g_return_val_if_fail (GDATA_IS_DOCUMENTS_QUERY (self), NULL);
-	return self->priv->export_format;
-}
-
-void 
-gdata_documents_query_set_export_format (GDataDocumentsQuery *self, gchar *export_format)
-{
-	g_return_if_fail (GDATA_IS_DOCUMENTS_QUERY (self));
-	self->priv->export_format=strdup (export_format);
-	g_object_notify (G_OBJECT (self), "export-format");
-}
-
-
-gchar*
+/**
+ * gdata_documents_query_get_exact_title:
+ * @self: a #GDataDocumentsQuery
+ *
+ * Gets the #GDataDocumentsQuery:exact_title property.
+ *
+ * Return value: %TRUE if the title is the exact title of the document we are querying, or %FALSE otherwise.
+ **/
+gboolean
 gdata_documents_query_get_exact_title (GDataDocumentsQuery *self)
 {
 	g_return_val_if_fail (GDATA_IS_DOCUMENTS_QUERY (self), NULL);
 	return self->priv->exact_title;
 }
 
+/**
+ * gdata_documents_query_set_exact_title:
+ * @self: a #GDataDocumentsQuery
+ * @exact_title: %TRUE if the title is the exact title of the document we are querying, or %FALSE otherwise
+ *
+ * Sets the #GDataDocumentsQuery:exact_title property to exact_title.
+ * */
 void 
-gdata_documents_query_set_exact_title (GDataDocumentsQuery *self, gchar *exact_title)
+gdata_documents_query_set_exact_title (GDataDocumentsQuery *self, gboolean exact_title)
 {
 	g_return_if_fail (GDATA_IS_DOCUMENTS_QUERY (self));
-	self->priv->exact_title = g_strdup (exact_title);
+	self->priv->exact_title = exact_title;
 	g_object_notify (G_OBJECT (self), "exact-title");
 }
 
-
-GList*
-gdata_documents_query_get_types (GDataDocumentsQuery *self)
-{
-	g_return_val_if_fail (GDATA_IS_DOCUMENTS_QUERY (self), NULL);
-	return self->priv->types;
-}
-
-void 
-gdata_documents_query_set_types (GDataDocumentsQuery *self, GList *type)
-{
-	g_return_if_fail (GDATA_IS_DOCUMENTS_QUERY (self));
-	self->priv->types = type;
-	g_object_notify (G_OBJECT (self), "type");
-}
-
-
-GList* 
+/**
+ * gdata_documents_query_get_emails:
+ * @self: a #GDataDocumentsQuery
+ *
+ * Gets the #GDataDocumentsQuery:emails property.
+ *
+ * Return value: the emails of the persons concerned by the querry sperated by "%2C", or %NULL if it is unset
+ **/
+gchar* 
 gdata_documents_query_get_emails (GDataDocumentsQuery *self)
 {
 	g_return_val_if_fail (GDATA_IS_DOCUMENTS_QUERY (self), NULL);
 	return self->priv->emails;
 }
 
+/**
+ * gdata_documents_query_set_emails:
+ * @self: a #GDataDocumentsQuery
+ *
+ * Sets the #GDataDocumentsQuery:emails property to @emails.
+ **/
 void 
-gdata_documents_query_set_emails (GDataDocumentsQuery *self, GList *emails)
+gdata_documents_query_set_emails (GDataDocumentsQuery *self, gchar *emails)
 {
 	g_return_if_fail (GDATA_IS_DOCUMENTS_QUERY (self));
 	self->priv->emails=emails;

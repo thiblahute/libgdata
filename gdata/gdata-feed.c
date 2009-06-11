@@ -605,7 +605,7 @@ _gdata_feed_new_from_xml (GType feed_type, const gchar *xml, gint length, GType 
 	g_return_val_if_fail (xml != NULL, NULL);
 	g_return_val_if_fail (g_type_is_a (entry_type, GDATA_TYPE_ENTRY) == TRUE, FALSE);
 
-	data = _gdata_get_parse_data(entry_type, progress_callback, progress_user_data);
+	data = _gdata_get_parse_data (entry_type, progress_callback, progress_user_data);
 
 	feed = GDATA_FEED (_gdata_parsable_new_from_xml (feed_type, "feed", xml, length, data, error));
 
