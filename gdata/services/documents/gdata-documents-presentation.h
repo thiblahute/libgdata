@@ -60,6 +60,8 @@ GType gdata_documents_presentation_get_type (void)G_GNUC_CONST;
 
 GDataDocumentsPresentation *gdata_documents_presentation_new (const gchar *id) G_GNUC_WARN_UNUSED_RESULT;
 GDataDocumentsPresentation *gdata_documents_presentation_new_from_xml (const gchar *xml, gint length, GError **error) G_GNUC_WARN_UNUSED_RESULT;
+gchar *gdata_documents_presentation_download_document (GDataDocumentsEntry *self, GDataDocumentsService *service, gsize *length, gchar **content_type,\
+										gchar *export_format, GCancellable *cancellable, GError **error);
 
 
 G_END_DECLS

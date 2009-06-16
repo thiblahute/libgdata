@@ -1,8 +1,7 @@
 /* -*- Mode: C; indent-tabs-mode: t; c-basic-offset: 8; tab-width: 8 -*- */
-
 /*
  * GData Client
- * Copyright (C) Thibault Saunier 2009 <saunierthibault@gmail.com>
+ * Copyright (C) Philip Withnall 2009 <philip@tecnocode.co.uk>
  *
  * GData Client is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -22,135 +21,415 @@
 #include <unistd.h>
 
 #include "gdata.h"
-#include <gdata/services/documents/gdata-documents-spreadsheet.h>
-#include <gdata/services/documents/gdata-documents-presentation.h>
-#include <gdata/services/documents/gdata-documents-text.h>
-#include <gdata/services/documents/gdata-documents-folder.h>
-#include <gdata/services/documents/gdata-documents-feed.h>
-#include <gdata/services/documents/gdata-documents-query.h>
-#include <gdata/gdata-entry.h>
-#include <gdata/gdata-feed.h>
 #include "common.h"
 
+/* TODO: probably a better way to do this; some kind of data associated with the test suite? */
+static GDataService *service = NULL;
+static GMainLoop *main_loop = NULL;
+
+static GDataDocumentsEntry *
+get_documents (void)
+{
+	GDataDocumentsFeed *feed;
+	GDataEntry *entry;
+	GList *entries;
+	GError *error = NULL;
+
+	g_assert (service != NULL);
+
+	feed = gdata_documents_service_query_documents (GDATA_DOCUMENTS_SERVICE (service), NULL, NULL, NULL, NULL, &error);
+	g_assert_no_error (error);
+	g_assert (GDATA_IS_FEED (feed));
+	g_clear_error (&error);
+
+	entries = gdata_feed_get_entries (feed);
+	g_assert (entries != NULL);
+	entry = entries->data;
+	g_assert (GDATA_IS_DOCUMENTS_ENTRY (entry));
+
+	g_object_ref (entry);
+	g_object_unref (feed);
+
+	return GDATA_DOCUMENTS_ENTRY (entry);
+}
+
+static void
+test_authentication (void)
+{
+	gboolean retval;
+	GError *error = NULL;
+
+	/* Create a service */
+	service = GDATA_SERVICE (gdata_documents_service_new (CLIENT_ID));
+
+	g_assert (service != NULL);
+	g_assert (GDATA_IS_SERVICE (service));
+	g_assert_cmpstr (gdata_service_get_client_id (service), ==, CLIENT_ID);
+
+	/* Log in */
+	retval = gdata_service_authenticate (service, USERNAME, PASSWORD, NULL, &error);
+	g_assert_no_error (error);
+	g_assert (retval == TRUE);
+	g_clear_error (&error);
+
+	/* Check all is as it should be */
+	g_assert (gdata_service_is_authenticated (service) == TRUE);
+	g_assert_cmpstr (gdata_service_get_username (service), ==, USERNAME);
+	g_assert_cmpstr (gdata_service_get_password (service), ==, PASSWORD);
+}
+
+static void
+test_query_all_documents (void)
+{
+	GDataDocumentsFeed *feed;
+	GError *error = NULL;
+	GList *i;
+
+	g_assert (service != NULL);
+
+	feed = gdata_documents_service_query_documents (GDATA_DOCUMENTS_SERVICE (service), NULL, NULL, NULL, NULL, &error);
+	for (i = gdata_feed_get_entries (feed); i != NULL; i = i->next)
+	{
+		if (GDATA_IS_DOCUMENTS_PRESENTATION (i->data))
+			g_print ("Elment type: presentation\n");
+		if (GDATA_IS_DOCUMENTS_SPREADSHEET (i->data))
+			g_print ("Elment type: spreadsheet\n");
+		if (GDATA_IS_DOCUMENTS_TEXT (i->data))
+			g_print ("Elment type: text\n");
+		g_print ("Elment title: %s\n", gdata_entry_get_title (i->data));
+	}
+	g_assert_no_error (error);
+	g_assert (GDATA_IS_FEED (feed));
+	g_clear_error (&error);
+
+	/* TODO: check entries and feed properties */
+
+	g_object_unref (feed);
+}
+/*
+static void
+test_query_all_documents_async_cb (GDataService *service, GAsyncResult *async_result, gpointer user_data)
+{
+	GDataFeed *feed;
+	GError *error = NULL;
+
+	feed = gdata_service_query_finish (service, async_result, &error);
+	g_assert_no_error (error);
+	g_assert (GDATA_IS_FEED (feed));
+	g_clear_error (&error);
+
+	/* TODO: Tests? 
+	g_main_loop_quit (main_loop);
+
+	g_object_unref (feed);
+}
+
+static void
+test_query_all_documents_async (void)
+{
+	g_assert (service != NULL);
+
+	gdata_documents_service_query_documents_async (GDATA_DOCUMENTS_SERVICE (service), NULL, NULL, NULL,
+						     NULL, (GAsyncReadyCallback) test_query_all_documents_async_cb, NULL);
+
+	main_loop = g_main_loop_new (NULL, TRUE);
+	g_main_loop_run (main_loop);
+	g_main_loop_unref (main_loop);
+}
+
+static void
+test_insert_simple (void)
+{
+	GDataDocumentsContact *contact, *new_contact;
+	GDataCategory *category;
+	GDataGDEmailAddress *email_address1, *email_address2;
+	GDataGDPhoneNumber *phone_number1, *phone_number2;
+	GDataGDIMAddress *im_address;
+	GDataGDPostalAddress *postal_address;
+	gchar *xml;
+	GError *error = NULL;
+
+	g_assert (service != NULL);
+
+	contact = gdata_documents_contact_new (NULL);
+
+	gdata_entry_set_title (GDATA_ENTRY (contact), "Elizabeth Bennet");
+	gdata_entry_set_content (GDATA_ENTRY (contact), "Notes");
+	/* TODO: Have it add this category automatically? Same for GDataCalendarEvent 
+	category = gdata_category_new ("http://schemas.google.com/contact/2008#contact", "http://schemas.google.com/g/2005#kind", NULL);
+	gdata_entry_add_category (GDATA_ENTRY (contact), category);
+	email_address1 = gdata_gd_email_address_new ("liz@gmail.com", "http://schemas.google.com/g/2005#work", NULL, FALSE);
+	gdata_documents_contact_add_email_address (contact, email_address1);
+	email_address2 = gdata_gd_email_address_new ("liz@example.org", "http://schemas.google.com/g/2005#home", NULL, FALSE);
+	gdata_documents_contact_add_email_address (contact, email_address2);
+	phone_number1 = gdata_gd_phone_number_new ("(206)555-1212", "http://schemas.google.com/g/2005#work", NULL, NULL, TRUE);
+	gdata_documents_contact_add_phone_number (contact, phone_number1);
+	phone_number2 = gdata_gd_phone_number_new ("(206)555-1213", "http://schemas.google.com/g/2005#home", NULL, NULL, FALSE);
+	gdata_documents_contact_add_phone_number (contact, phone_number2);
+	im_address = gdata_gd_im_address_new ("liz@gmail.com", "http://schemas.google.com/g/2005#GOOGLE_TALK", "http://schemas.google.com/g/2005#home",
+					      NULL, FALSE);
+	gdata_documents_contact_add_im_address (contact, im_address);
+	postal_address = gdata_gd_postal_address_new ("1600 Amphitheatre Pkwy Mountain View", "http://schemas.google.com/g/2005#work", NULL, TRUE);
+	gdata_documents_contact_add_postal_address (contact, postal_address);
+
+	/* Check the XML 
+	xml = gdata_entry_get_xml (GDATA_ENTRY (contact));
+	g_assert_cmpstr (xml, ==,
+			 "<entry xmlns='http://www.w3.org/2005/Atom' "
+			 	"xmlns:gd='http://schemas.google.com/g/2005' "
+			 	"xmlns:app='http://www.w3.org/2007/app' "
+			 	"xmlns:gContact='http://schemas.google.com/contact/2008'>"
+			 	"<title type='text'>Elizabeth Bennet</title>"
+			 	"<content type='text'>Notes</content>"
+				"<category term='http://schemas.google.com/contact/2008#contact' scheme='http://schemas.google.com/g/2005#kind'/>"
+				"<gd:email address='liz@gmail.com' rel='http://schemas.google.com/g/2005#work' primary='false'/>"
+				"<gd:email address='liz@example.org' rel='http://schemas.google.com/g/2005#home' primary='false'/>"
+				"<gd:im address='liz@gmail.com' protocol='http://schemas.google.com/g/2005#GOOGLE_TALK' "
+					"rel='http://schemas.google.com/g/2005#home' primary='false'/>"
+				"<gd:phoneNumber rel='http://schemas.google.com/g/2005#work' primary='true'>(206)555-1212</gd:phoneNumber>"
+				"<gd:phoneNumber rel='http://schemas.google.com/g/2005#home' primary='false'>(206)555-1213</gd:phoneNumber>"
+				"<gd:postalAddress rel='http://schemas.google.com/g/2005#work' primary='true'>"
+					"1600 Amphitheatre Pkwy Mountain View"
+				"</gd:postalAddress>"
+			 "</entry>");
+	g_free (xml);
+
+	/* Insert the contact 
+	new_contact = gdata_documents_service_insert_contact (GDATA_DOCUMENTS_SERVICE (service), contact, NULL, &error);
+	g_assert_no_error (error);
+	g_assert (GDATA_IS_DOCUMENTS_ENTRY (new_contact));
+	g_clear_error (&error);
+
+	/* TODO: check entries and feed properties 
+
+	g_object_unref (contact);
+	g_object_unref (new_contact);
+}
+
+static void
+test_query_uri (void)
+{
+	gchar *query_uri;
+	GDataDocumentsQuery *query = gdata_documents_query_new ("q");
+
+	gdata_documents_query_set_order_by (query, "lastmodified");
+	g_assert_cmpstr (gdata_documents_query_get_order_by (query), ==, "lastmodified");
+
+	gdata_documents_query_set_show_deleted (query, TRUE);
+	g_assert (gdata_documents_query_show_deleted (query) == TRUE);
+
+	gdata_documents_query_set_sort_order (query, "descending");
+	g_assert_cmpstr (gdata_documents_query_get_sort_order (query), ==, "descending");
+
+	gdata_documents_query_set_group (query, "http://www.google.com/feeds/documents/groups/jo@gmail.com/base/1234a");
+	g_assert_cmpstr (gdata_documents_query_get_group (query), ==, "http://www.google.com/feeds/documents/groups/jo@gmail.com/base/1234a");
+
+	/* Check the built query URI with a normal feed URI 
+	query_uri = gdata_query_get_query_uri (GDATA_QUERY (query), "http://example.com");
+	g_assert_cmpstr (query_uri, ==, "http://example.com?q=q&orderby=lastmodified&showdeleted=true&sortorder=descending"
+					"&group=http%3A%2F%2Fwww.google.com%2Ffeeds%2Fdocuments%2Fgroups%2Fjo%40gmail.com%2Fbase%2F1234a");
+	g_free (query_uri);
+
+	/* …with a feed URI with a trailing slash 
+	query_uri = gdata_query_get_query_uri (GDATA_QUERY (query), "http://example.com/");
+	g_assert_cmpstr (query_uri, ==, "http://example.com/?q=q&orderby=lastmodified&showdeleted=true&sortorder=descending"
+					"&group=http%3A%2F%2Fwww.google.com%2Ffeeds%2Fdocuments%2Fgroups%2Fjo%40gmail.com%2Fbase%2F1234a");
+	g_free (query_uri);
+
+	/* …with a feed URI with pre-existing arguments 
+	query_uri = gdata_query_get_query_uri (GDATA_QUERY (query), "http://example.com/bar/?test=test&this=that");
+	g_assert_cmpstr (query_uri, ==, "http://example.com/bar/?test=test&this=that&q=q&orderby=lastmodified&showdeleted=true&sortorder=descending"
+					"&group=http%3A%2F%2Fwww.google.com%2Ffeeds%2Fdocuments%2Fgroups%2Fjo%40gmail.com%2Fbase%2F1234a");
+	g_free (query_uri);
+
+	g_object_unref (query);
+}
+
+static void
+test_parser_minimal (void)
+{
+	GDataDocumentsContact *contact;
+	GError *error = NULL;
+
+	g_test_bug ("580330");
+
+	contact = gdata_documents_contact_new_from_xml (
+		"<entry xmlns='http://www.w3.org/2005/Atom' "
+			"xmlns:gd='http://schemas.google.com/g/2005' "
+			"gd:etag='&quot;QngzcDVSLyp7ImA9WxJTFkoITgU.&quot;'>"
+			"<id>http://www.google.com/m8/feeds/documents/libgdata.test@googlemail.com/base/1b46cdd20bfbee3b</id>"
+			"<updated>2009-04-25T15:21:53.688Z</updated>"
+			"<app:edited xmlns:app='http://www.w3.org/2007/app'>2009-04-25T15:21:53.688Z</app:edited>"
+			"<category scheme='http://schemas.google.com/g/2005#kind' term='http://schemas.google.com/contact/2008#contact'/>"
+			"<title></title>" /* Here's where it all went wrong 
+			"<link rel='http://schemas.google.com/documents/2008/rel#photo' type='image/*' href='http://www.google.com/m8/feeds/photos/media/libgdata.test@googlemail.com/1b46cdd20bfbee3b'/>"
+			"<link rel='self' type='application/atom+xml' href='http://www.google.com/m8/feeds/documents/libgdata.test@googlemail.com/full/1b46cdd20bfbee3b'/>"
+			"<link rel='edit' type='application/atom+xml' href='http://www.google.com/m8/feeds/documents/libgdata.test@googlemail.com/full/1b46cdd20bfbee3b'/>"
+			"<gd:email rel='http://schemas.google.com/g/2005#other' address='bob@example.com'/>"
+		"</entry>", -1, &error);
+	g_assert_no_error (error);
+	g_assert (GDATA_IS_ENTRY (contact));
+	g_clear_error (&error);
+
+	/* Check the contact's properties 
+	g_assert (gdata_entry_get_title (GDATA_ENTRY (contact)) != NULL);
+	g_assert (*gdata_entry_get_title (GDATA_ENTRY (contact)) == '\0');
+
+	/* TODO: Check the other properties 
+
+	g_object_unref (contact);
+}
+
+static void
+test_photo_has_photo (void)
+{
+	GDataDocumentsContact *contact;
+	gsize length = 0;
+	gchar *content_type = NULL;
+	GError *error = NULL;
+
+	contact = gdata_documents_contact_new_from_xml (
+		"<entry xmlns='http://www.w3.org/2005/Atom' "
+			"xmlns:gd='http://schemas.google.com/g/2005'>"
+			"<id>http://www.google.com/m8/feeds/documents/libgdata.test@googlemail.com/base/1b46cdd20bfbee3b</id>"
+			"<updated>2009-04-25T15:21:53.688Z</updated>"
+			"<category scheme='http://schemas.google.com/g/2005#kind' term='http://schemas.google.com/contact/2008#contact'/>"
+			"<title></title>" /* Here's where it all went wrong 
+			"<link rel='http://schemas.google.com/documents/2008/rel#photo' type='image/*' "
+				"href='http://www.google.com/m8/feeds/photos/media/libgdata.test@googlemail.com/1b46cdd20bfbee3b'/>"
+		"</entry>", -1, &error);
+	g_assert_no_error (error);
+	g_assert (GDATA_IS_ENTRY (contact));
+	g_clear_error (&error);
+
+	/* Check for no photo 
+	g_assert (gdata_documents_contact_has_photo (contact) == FALSE);
+	g_assert (gdata_documents_contact_get_photo (contact, GDATA_DOCUMENTS_SERVICE (service), &length, &content_type, NULL, &error) == NULL);
+	g_assert_cmpint (length, ==, 0);
+	g_assert (content_type == NULL);
+	g_assert_no_error (error);
+
+	g_clear_error (&error);
+	g_free (content_type);
+	g_object_unref (contact);
+
+	/* Try again with a photo 
+	contact = gdata_documents_contact_new_from_xml (
+		"<entry xmlns='http://www.w3.org/2005/Atom' "
+			"xmlns:gd='http://schemas.google.com/g/2005'>"
+			"<id>http://www.google.com/m8/feeds/documents/libgdata.test@googlemail.com/base/1b46cdd20bfbee3b</id>"
+			"<updated>2009-04-25T15:21:53.688Z</updated>"
+			"<category scheme='http://schemas.google.com/g/2005#kind' term='http://schemas.google.com/contact/2008#contact'/>"
+			"<title></title>" /* Here's where it all went wrong 
+			"<link rel='http://schemas.google.com/documents/2008/rel#photo' type='image/*' "
+				"href='http://www.google.com/m8/feeds/photos/media/libgdata.test@googlemail.com/1b46cdd20bfbee3b' "
+				"gd:etag='&quot;QngzcDVSLyp7ImA9WxJTFkoITgU.&quot;'/>"
+		"</entry>", -1, &error);
+	g_assert_no_error (error);
+	g_assert (GDATA_IS_ENTRY (contact));
+	g_clear_error (&error);
+
+	g_assert (gdata_documents_contact_has_photo (contact) == TRUE);
+	g_object_unref (contact);
+}
+
+static void
+test_photo_add (void)
+{
+	GDataDocumentsContact *contact;
+	gchar *data;
+	gsize length;
+	gboolean retval;
+	GError *error = NULL;
+
+	/* Get the photo */
+	/* TODO: Fix the path 
+	g_assert (g_file_get_contents ("/home/philip/Development/libgdata/gdata/tests/photo.jpg", &data, &length, NULL) == TRUE);
+
+	/* Add it to the contact 
+	contact = get_contact ();
+	retval = gdata_documents_contact_set_photo (contact, service, data, length, NULL, &error);
+	g_assert_no_error (error);
+	g_assert (retval == TRUE);
+
+	g_clear_error (&error);
+	g_object_unref (contact);
+	g_free (data);
+}
+
+static void
+test_photo_get (void)
+{
+	GDataDocumentsContact *contact;
+	gchar *data, *content_type = NULL;
+	gsize length = 0;
+	GError *error = NULL;
+
+	contact = get_contact ();
+	g_assert (gdata_documents_contact_has_photo (contact) == TRUE);
+
+	/* Get the photo from the network 
+	data = gdata_documents_contact_get_photo (contact, GDATA_DOCUMENTS_SERVICE (service), &length, &content_type, NULL, &error);
+	g_assert_no_error (error);
+	g_assert (data != NULL);
+	g_assert (length != 0);
+	g_assert_cmpstr (content_type, ==, "image/jpg");
+
+	g_assert (gdata_documents_contact_has_photo (contact) == TRUE);
+
+	g_free (content_type);
+	g_free (data);
+	g_object_unref (contact);
+	g_clear_error (&error);
+}
+
+static void
+test_photo_delete (void)
+{
+	GDataDocumentsContact *contact;
+	GError *error = NULL;
+
+	contact = get_contact ();
+	g_assert (gdata_documents_contact_has_photo (contact) == TRUE);
+
+	/* Remove the contact's photo 
+	g_assert (gdata_documents_contact_set_photo (contact, service, NULL, 0, NULL, &error) == TRUE);
+	g_assert_no_error (error);
+
+	g_assert (gdata_documents_contact_has_photo (contact) == FALSE);
+
+	g_clear_error (&error);
+	g_object_unref (contact);
+}
+*/
 int
 main (int argc, char *argv[])
 {
+	gint retval;
+
 	g_type_init ();
+	g_thread_init (NULL);
+	g_test_init (&argc, &argv, NULL);
+	g_test_bug_base ("http://bugzilla.gnome.org/show_bug.cgi?id=");
 
-	GError **error_folder=NULL;
-	GError **error_text=NULL;
-	GError **error_spreadsheet=NULL;	
-	GError **error_presentation = NULL;
-	GError **error_feed = NULL;
-	GDataAuthor *author;
-	GTimeVal *editionTime =NULL;
-	GType feed_type = GDATA_TYPE_DOCUMENTS_FEED;
-	gint length;
-	GType entry_type = GDATA_TYPE_DOCUMENTS_ENTRY;
-	GDataQueryProgressCallback progress_callback = NULL;
-	gpointer progress_user_data = NULL;
-	GList *feed_entry_list;
-	GDataDocumentsQuery *query;
-	gchar *emails;
+	g_test_add_func ("/documents/authentication", test_authentication);
+	g_test_add_func ("/documents/query/all_documents", test_query_all_documents);
+/*	if (g_test_thorough () == TRUE)
+		g_test_add_func ("/documents/query/all_documents_async", test_query_all_documents_async);
+	if (g_test_slow () == TRUE)
+		g_test_add_func ("/documents/insert/simple", test_insert_simple);
+	g_test_add_func ("/documents/query/uri", test_query_uri);
+	g_test_add_func ("/documents/parser/minimal", test_parser_minimal);
+	g_test_add_func ("/documents/photo/has_photo", test_photo_has_photo);
+	if (g_test_slow () == TRUE) {
+		g_test_add_func ("/documents/photo/add", test_photo_add);
+		g_test_add_func ("/documents/photo/get", test_photo_get);
+		g_test_add_func ("/documents/photo/delete", test_photo_delete);
+	}
+*/
+	retval = g_test_run ();
+	if (service != NULL)
+		g_object_unref (service);
 
-	const gchar *xml_folder="<entry gd:etag='W/CUUNSXYyfCp7ImA9WxRVGUo.'><id>http://docs.google.com/feeds/folders/private/full/folder%3folder_id/document%3Adocument_id</id><published>0001-01-03T00:00:00.000Z</published><updated>2008-09-02T05:42:27.203Z</updated><category scheme='http://schemas.google.com/g/2005#kind' term='http://schemas.google.com/docs/2007#document' label='document'/><category scheme='http://schemas.google.com/docs/2007/folders/test.user@gmail.com' term='Folder 1' label='Folder 1'/><category scheme='http://schemas.google.com/docs/2007/folders/test.user@gmail.com' term='Folder 2' label='Folder 2'/><title type='TEEEEEEEEEEET'>Document 1</title><content type='text/html' src='http://docs.google.com/feeds/download/documents/RawDocContents?'/><link rel='http://schemas.google.com/docs/2007#parent' type='application/atom+xml' href='http://docs.google.com/feeds/documents/private/full/folder%3Afolder_id' title='Folder 1'/><link rel='http://schemas.google.com/docs/2007#parent' type='application/atom+xml' href='http://docs.google.com/feeds/documents/private/full/folder%3Afolder_id2' title='Folder'/><link rel='alternate' type='text/html' href='http://docs.google.com/Doc?id=document_id'/><link rel='self' type='application/atom+xml' href='http://docs.google.com/feeds/folders/private/full/folder%3Afolder_id/document%3Adocument_id'/><link rel='edit' type='application/atom+xml' href='http://docs.google.com/feeds/folders/private/full/folder%3Afolder_id/document%3Adocument_id'/><link rel='edit-media' type='text/html' href='http://docs.google.com/feeds/media/private/full/document%3Adocument_id'/><author><name>test.user</name><email>test.user@gmail.com</email></author><gd:resourceId>folder:folder_id</gd:resourceId></entry>";
-	const gchar *xml_spreadsheet ="<entry gd:etag='BxAUSh5RAyp7ImBq'><id>http://docs.google.com/feeds/documents/private/full/spreadsheet%3Akey</id><published>2009-03-16T23:26:12.503Z</published><updated>2009-03-16T23:26:12.503Z</updated><app:edited xmlns:app='http://www.w3.org/2007/app'>2009-03-18T05:41:45.311Z</app:edited><category scheme='http://schemas.google.com/g/2005#kind'  term='http://schemas.google.com/docs/2007#spreadsheet' label='spreadsheet'/><category scheme='http://schemas.google.com/docs/2007/folders/user_email' term='My Favorite Spreadsheets' label='My Favorite Spreadsheets'/><title type='text'>Test Spreadsheet</title><content type='text/html' src='http://spreadsheets.google.com/feeds/download/spreadsheets/Export?fmcmd=102&amp;key=key'/><link rel='alternate' type='text/html' href='http://spreadsheets.google.com/ccc?key=key' /><link href='http://spreadsheets.google.com/feeds/worksheets/key/private/full'  rel='http://schemas.google.com/spreadsheets/2006#worksheetsfeed' type='application/atom+xml' /><link rel='self' type='application/atom+xml' href='http://docs.google.com/feeds/documents/private/full/spreadsheet%3Akey'/><link rel='edit' type='application/atom+xml' href='http://docs.google.com/feeds/documents/private/full/spreadsheet%3Akey'/><link rel='edit-media' type='text/html' href='http://docs.google.com/feeds/media/private/full/spreadsheet%3Akey'/><author><name>test.user</name><email>test.user@gmail.com</email></author><gd:resourceId>spreadsheet:key</gd:resourceId><gd:lastModifiedBy><name>test.user</name><email>test.user@gmail.com</email></gd:lastModifiedBy><gd:lastViewed>2009-03-10T20:22:42.987Z</gd:lastViewed><docs:writersCanInvite value='true'/><gd:feedLink rel='http://schemas.google.com/acl/2007#accessControlList' href='http://docs.google.com/feeds/acl/private/full/spreadsheet%3Akey'/></entry>";
-	const gchar *xml_text= "<entry gd:etag='HxIRQkRWTip7ImBp'><id>http://docs.google.com/feeds/documents/private/full/document%3Adocument_id</id><published>2007-07-03T18:02:50.338Z</published><updated>2009-03-16T23:26:12.503Z</updated><app:edited xmlns:app='http://www.w3.org/2007/app'>2009-03-16T23:26:12.503Z</app:edited><category scheme='http://schemas.google.com/g/2005#kind' term='http://schemas.google.com/docs/2007#document' label='document'/><category scheme='http://schemas.google.com/g/2005/labels' term='http://schemas.google.com/g/2005/labels#starred' label='starred'/><title type='text'>Test Document</title><content src='http://docs.google.com/RawDocContents?action=fetch&amp;docID=document_id' type='text/html'/><link rel='alternate' type='text/html' href='http://foobar.com/Doc?id=document_id'/><link rel='self' type='application/atom+xml' href='http://docs.google.com/feeds/documents/private/full/document%3Adocument_id'/><link rel='edit' type='application/atom+xml' href='http://docs.google.com/feeds/documents/private/full/document%3Adocument_id'/><link rel='edit-media' type='text/html' href='http://docs.google.com/feeds/media/private/full/document%3Adocument_id'/><author><name>test.user</name><email>test.user@gmail.com</email></author><gd:resourceId>document:document_id</gd:resourceId><gd:lastModifiedBy><name>test.user</name><email>test.user@gmail.com</email></gd:lastModifiedBy><gd:lastViewed>2009-03-16T23:26:12.503Z</gd:lastViewed><docs:writersCanInvite value='true'/><gd:feedLink rel='http://schemas.google.com/acl/2007#accessControlList' href='http://docs.google.com/feeds/acl/private/full/document%3Adocument_id'/></entry>";
-	const gchar *xml_presentation= "<entry gd:etag='HxIRQkRWTip7ImBp'><id>http://docs.google.com/feeds/documents/private/full/document%3Adocument_id</id><published>2007-07-03T18:02:50.338Z</published><updated>2009-03-16T23:26:12.503Z</updated><app:edited xmlns:app='http://www.w3.org/2007/app'>2009-03-16T23:26:12.503Z</app:edited><category scheme='http://schemas.google.com/g/2005#kind' term='http://schemas.google.com/docs/2007#document' label='document'/><category scheme='http://schemas.google.com/g/2005/labels' term='http://schemas.google.com/g/2005/labels#starred' label='starred'/><title type='text'>Test Document</title><content src='http://docs.google.com/RawDocContents?action=fetch&amp;docID=document_id' type='text/html'/><link rel='alternate' type='text/html' href='http://foobar.com/Doc?id=document_id'/><link rel='self' type='application/atom+xml' href='http://docs.google.com/feeds/documents/private/full/document%3Adocument_id'/><link rel='edit' type='application/atom+xml' href='http://docs.google.com/feeds/documents/private/full/document%3Adocument_id'/><link rel='edit-media' type='text/html' href='http://docs.google.com/feeds/media/private/full/document%3Adocument_id'/><author><name>test.user</name><email>test.user@gmail.com</email></author><gd:resourceId>document:document_id</gd:resourceId><gd:lastModifiedBy><name>test.user</name><email>test.user@gmail.com</email></gd:lastModifiedBy><gd:lastViewed>2009-03-16T23:26:12.503Z</gd:lastViewed><docs:writersCanInvite value='true'/><gd:feedLink rel='http://schemas.google.com/acl/2007#accessControlList' href='http://docs.google.com/feeds/acl/private/full/document%3Adocument_id'/></entry>";
-	const gchar *xml_feed= "<?xml version='1.0' encoding='utf-8'?>\
-<feed gd:etag='W/CkYFSHg-fyp7ImA9WxRVGUo.'>\
-<id>http://www.google.com/calendar/feeds/default/alldocuments/full</id>\
-<updated>2008-11-18T01:01:59.657Z</updated>\
-<title>Coach's Calendar List</title>\
-<author><name>Coach</name><email>user@gmail.com</email></author>\
-<generator version='1.0' uri='http://www.google.com/calendar'>Google Calendar</generator>\
-<openSearch:startIndex>1</openSearch:startIndex>\
-<entry gd:etag='HxIRQkRWTip7ImBp'><id>http://docs.google.com/feeds/documents/private/full/document%3Adocument_id</id><published>2007-07-03T18:02:50.338Z</published><updated>2009-03-16T23:26:12.503Z</updated><app:edited xmlns:app='http://www.w3.org/2007/app'>2009-03-16T23:26:12.503Z</app:edited><category scheme='http://schemas.google.com/g/2005#kind' term='http://schemas.google.com/docs/2007#document' label='document'/><category scheme='http://schemas.google.com/g/2005/labels' term='http://schemas.google.com/g/2005/labels#starred' label='starred'/><title type='text'>Test Document</title><content src='http://docs.google.com/RawDocContents?action=fetch&amp;docID=document_id' type='text/html'/><link rel='alternate' type='text/html' href='http://foobar.com/Doc?id=document_id'/><link rel='self' type='application/atom+xml' href='http://docs.google.com/feeds/documents/private/full/document%3Adocument_id'/><link rel='edit' type='application/atom+xml' href='http://docs.google.com/feeds/documents/private/full/document%3Adocument_id'/><link rel='edit-media' type='text/html' href='http://docs.google.com/feeds/media/private/full/document%3Adocument_id'/><author><name>test.user</name><email>test.user@gmail.com</email></author><gd:resourceId>document:document_id</gd:resourceId><gd:lastModifiedBy><name>test.user</name><email>test.user@gmail.com</email></gd:lastModifiedBy><gd:lastViewed>2009-03-16T23:26:12.503Z</gd:lastViewed><docs:writersCanInvite value='true'/><gd:feedLink rel='http://schemas.google.com/acl/2007#accessControlList' href='http://docs.google.com/feeds/acl/private/full/document%3Adocument_id'/></entry>\
-<entry gd:etag='W/CUUNSXYyfCp7ImA9WxRVGUo.'><id>http://docs.google.com/feeds/folders/private/full/folder%3folder_id/document%3Adocument_id</id><published>0001-01-03T00:00:00.000Z</published><updated>2008-09-02T05:42:27.203Z</updated><category scheme='http://schemas.google.com/g/2005#kind' term='http://schemas.google.com/docs/2007#document' label='document'/><category scheme='http://schemas.google.com/docs/2007/folders/test.user@gmail.com' term='Folder 1' label='Folder 1'/><category scheme='http://schemas.google.com/docs/2007/folders/test.user@gmail.com' term='Folder 2' label='Folder 2'/><title type='TEEEEEEEEEEET'>Document 1</title><content type='text/html' src='http://docs.google.com/feeds/download/documents/RawDocContents?'/><link rel='http://schemas.google.com/docs/2007#parent' type='application/atom+xml' href='http://docs.google.com/feeds/documents/private/full/folder%3Afolder_id' title='Folder 1'/><link rel='http://schemas.google.com/docs/2007#parent' type='application/atom+xml' href='http://docs.google.com/feeds/documents/private/full/folder%3Afolder_id2' title='Folder'/><link rel='alternate' type='text/html' href='http://docs.google.com/Doc?id=document_id'/><link rel='self' type='application/atom+xml' href='http://docs.google.com/feeds/folders/private/full/folder%3Afolder_id/document%3Adocument_id'/><link rel='edit' type='application/atom+xml' href='http://docs.google.com/feeds/folders/private/full/folder%3Afolder_id/document%3Adocument_id'/><link rel='edit-media' type='text/html' href='http://docs.google.com/feeds/media/private/full/document%3Adocument_id'/><author><name>test.user</name><email>test.user@gmail.com</email></author><gd:resourceId>folder:folder_id</gd:resourceId></entry>\
-<entry gd:etag='HxIRQkRWTip7ImBp'><id>http://docs.google.com/feeds/documents/private/full/document%3Adocument_id</id><published>2007-07-03T18:02:50.338Z</published><updated>2009-03-16T23:26:12.503Z</updated><app:edited xmlns:app='http://www.w3.org/2007/app'>2009-03-16T23:26:12.503Z</app:edited><category scheme='http://schemas.google.com/g/2005#kind' term='http://schemas.google.com/docs/2007#document' label='document'/><category scheme='http://schemas.google.com/g/2005/labels' term='http://schemas.google.com/g/2005/labels#starred' label='starred'/><title type='text'>SUper Document</title><content src='http://docs.google.com/RawDocContents?action=fetch&amp;docID=document_id' type='text/html'/><link rel='alternate' type='text/html' href='http://foobar.com/Doc?id=document_id'/><link rel='self' type='application/atom+xml' href='http://docs.google.com/feeds/documents/private/full/document%3Adocument_id'/><link rel='edit' type='application/atom+xml' href='http://docs.google.com/feeds/documents/private/full/document%3Adocument_id'/><link rel='edit-media' type='text/html' href='http://docs.google.com/feeds/media/private/full/document%3Adocument_id'/><author><name>test.user</name><email>test.user@gmail.com</email></author><gd:resourceId>document:document_id</gd:resourceId><gd:lastModifiedBy><name>test.user</name><email>test.user@gmail.com</email></gd:lastModifiedBy><gd:lastViewed>2009-03-16T23:26:12.503Z</gd:lastViewed><docs:writersCanInvite value='true'/><gd:feedLink rel='http://schemas.google.com/acl/2007#accessControlList' href='http://docs.google.com/feeds/acl/private/full/document%3Adocument_id'/></entry>\
-<entry gd:etag='BxAUSh5RAyp7ImBq'><id>http://docs.google.com/feeds/documents/private/full/spreadsheet%3Akey</id><published>2009-03-16T23:26:12.503Z</published><updated>2009-03-16T23:26:12.503Z</updated><app:edited xmlns:app='http://www.w3.org/2007/app'>2009-03-18T05:41:45.311Z</app:edited><category scheme='http://schemas.google.com/g/2005#kind'  term='http://schemas.google.com/docs/2007#spreadsheet' label='spreadsheet'/><category scheme='http://schemas.google.com/docs/2007/folders/user_email' term='My Favorite Spreadsheets' label='My Favorite Spreadsheets'/><title type='text'>Test Spreadsheet</title><content type='text/html' src='http://spreadsheets.google.com/feeds/download/spreadsheets/Export?fmcmd=102&amp;key=key'/><link rel='alternate' type='text/html' href='http://spreadsheets.google.com/ccc?key=key' /><link href='http://spreadsheets.google.com/feeds/worksheets/key/private/full'  rel='http://schemas.google.com/spreadsheets/2006#worksheetsfeed' type='application/atom+xml' /><link rel='self' type='application/atom+xml' href='http://docs.google.com/feeds/documents/private/full/spreadsheet%3Akey'/>\
-<link rel='edit' type='application/atom+xml' href='http://docs.google.com/feeds/documents/private/full/spreadsheet%3Akey'/><link rel='edit-media' type='text/html' href='http://docs.google.com/feeds/media/private/full/spreadsheet%3Akey'/><author><name>test.user</name><email>test.user@gmail.com</email></author><gd:resourceId>spreadsheet:key</gd:resourceId><gd:lastModifiedBy><name>test.user</name><email>test.user@gmail.com</email></gd:lastModifiedBy><gd:lastViewed>2009-03-10T20:22:42.987Z</gd:lastViewed><docs:writersCanInvite value='true'/><gd:feedLink rel='http://schemas.google.com/acl/2007#accessControlList' href='http://docs.google.com/feeds/acl/private/full/spreadsheet%3Akey'/></entry></feed>";
-
-	GDataDocumentsFolder *documents_folder = GDATA_DOCUMENTS_FOLDER ( gdata_documents_folder_new_from_xml (xml_folder, strlen (xml_folder), error_folder));
-	GDataDocumentsSpreadsheet *documents_spreadsheet = GDATA_DOCUMENTS_SPREADSHEET( gdata_documents_spreadsheet_new_from_xml (xml_spreadsheet, \
-															strlen(xml_spreadsheet), error_spreadsheet));
-
-	GDataDocumentsText *documents_text = GDATA_DOCUMENTS_TEXT ( gdata_documents_text_new_from_xml (xml_text, strlen (xml_text), error_text));
-	
-	GDataDocumentsPresentation *documents_presentation = GDATA_DOCUMENTS_PRESENTATION ( gdata_documents_presentation_new_from_xml (xml_presentation,\
-															 strlen (xml_presentation), error_presentation));
-	
-	GDataDocumentsFeed *feed;
-	feed = GDATA_DOCUMENTS_FEED (_gdata_documents_feed_new_from_xml (feed_type, xml_feed, strlen (xml_feed) , entry_type, progress_callback, progress_user_data, error_feed));
-
-	query = GDATA_DOCUMENTS_QUERY (gdata_documents_query_new (NULL));
-
-	g_print ("\n====Folder ====\n");
-	g_print ("Folder etag: %s\n" ,gdata_entry_get_etag (documents_folder));
-	g_print ("Folder id: %s\n" ,gdata_entry_get_id (documents_folder));
-	if (gdata_documents_entry_get_writers_can_invite (documents_folder))
-		g_print ("Folder Writers_can_invite");
-	g_print ("Folder content: %s\n", gdata_entry_get_content (documents_folder));
-	g_print ("Folder title: %s\n" ,gdata_entry_get_title (documents_folder));
-	author = gdata_documents_entry_get_last_modified_by (documents_folder);
-	if (author)
-		g_print ("Folder lastModified: %s\n" , author->name);
-	editionTime = NULL;
-	gdata_documents_entry_get_edited ( documents_folder, editionTime);
-
-
-	g_print ("\n====Spreadsheet ====\n");
-	g_print ("Spreadsheet etag: %s\n" ,gdata_entry_get_etag (documents_spreadsheet));
-	g_print ("Spreadsheet id: %s\n" ,gdata_entry_get_id (documents_spreadsheet));
-	if (gdata_documents_entry_get_writers_can_invite (documents_spreadsheet))
-		g_print ("Spreadsheet Writers_can_invite\n");
-	g_print ("Spreadsheet content: %s\n", gdata_entry_get_content (documents_spreadsheet));
-	g_print ("Spreadsheet title: %s\n" ,gdata_entry_get_title (documents_spreadsheet));
-	author = gdata_documents_entry_get_last_modified_by (documents_spreadsheet);
-	if (author)
-		g_print ("Spreadsheet lastModified: %s\n" , author->name);
-	editionTime  = NULL;
-	gdata_documents_entry_get_edited ( documents_spreadsheet, editionTime);
-
-	g_print ("\n====Text ====\n");
-	g_print ("Text etag: %s\n" ,gdata_entry_get_etag (documents_text));
-	g_print ("Text id: %s\n" ,gdata_entry_get_id (documents_text));
-	if (gdata_documents_entry_get_writers_can_invite (documents_text))
-		g_print ("Text Writers_can_invite\n");
-	g_print ("Text content: %s\n", gdata_entry_get_content (documents_text));
-	g_print ("Text title: %s\n" ,gdata_entry_get_title (documents_text));
-	author = gdata_documents_entry_get_last_modified_by (documents_text);
-	if (author != NULL)
-		g_print ("Text lastModified: %s\n" , author->name);
-	editionTime  = NULL;
-	gdata_documents_entry_get_edited ( documents_text, editionTime);
-
-	g_print ("\n====Presentation ====\n");
-	g_print ("Presentation etag: %s\n" ,gdata_entry_get_etag (documents_presentation));
-	g_print ("Presentation id: %s\n" ,gdata_entry_get_id (documents_presentation));
-	if (gdata_documents_entry_get_writers_can_invite (documents_presentation))
-		g_print ("Presentation Writers_can_invite\n");
-	g_print ("Presentation content: %s\n", gdata_entry_get_content (documents_presentation));
-	g_print ("Presentation title: %s\n" ,gdata_entry_get_title (documents_presentation));
-	author = gdata_documents_entry_get_last_modified_by (documents_presentation);
-	if (author != NULL)
-		g_print ("Presentation lastModified: %s\n" , author->name);
-	editionTime  = NULL;
-	gdata_documents_entry_get_edited ( documents_presentation, editionTime);
-
-	g_print ("\n===== FEED ====\n");
-	g_print ("Feed titlee: %s,\n", gdata_feed_get_title (feed));
-	feed_entry_list = gdata_feed_get_entries (feed);
-	g_print ("FirstEntry title: %s\n" ,gdata_entry_get_title (g_list_first (feed_entry_list)->data));
-	g_print ("SecondeEntry title: %s\n" ,gdata_entry_get_title (g_list_first (feed_entry_list)->next->data));
-
-	g_print ("\n===== QUERY ====\n");
-	gdata_query_set_categories (query, "Fritz/Oups");
-	emails = (gchar *) "unemai%40super.com%2CdeuxSuper%40super.com";
-	gdata_documents_query_set_emails (query, emails);
-//	gdata_documents_query_set_folder_id (query, "unId");
-	gdata_documents_query_set_title (query, "unDocument");
-	g_print ("uri: %s\n", gdata_query_get_query_uri (query, "http://docs.google.com"));
-
-	return 0;
+	return retval;
 }

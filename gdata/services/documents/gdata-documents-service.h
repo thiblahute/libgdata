@@ -18,14 +18,15 @@
  */
 
 #ifndef GDATA_DOCUMENTS_SERVICE_H
+
 #define GDATA_DOCUMENTS_SERVICE_H
 
 #include <glib.h>
 #include <glib-object.h>
 
 #include <gdata/gdata-service.h>
-#include <gdata/services/documents/gdata-documents-entry.h>
 #include <gdata/services/documents/gdata-documents-query.h>
+#include <gdata/services/documents/gdata-documents-feed.h>
 #include <gio/gio.h>
 
 G_BEGIN_DECLS
@@ -64,40 +65,18 @@ GDataDocumentsService *gdata_documents_service_new (const gchar *client_id) G_GN
 
 
 
-GDataFeed *gdata_documents_service_query_all_documents(	GDataDocumentsService *self, GDataDocumentsQuery *query,
+GDataDocumentsFeed *gdata_documents_service_query_documents (GDataDocumentsService *self, GDataDocumentsQuery *query,
 													   	GCancellable *cancellable, GDataQueryProgressCallback progress_callback,
 														gpointer progress_user_data, GError **error);
 
-void *gdata_documents_service_query_all_documents_async(	GDataDocumentsService *self, GDataDocumentsQuery *query,\
-														GCancellable *cancellable, GDataQueryProgressCallback progress_callback,\
-														gpointer progress_user_data,GAsyncReadyCallback callback,
-														GError **error);
+void*
+gdata_documents_service_query_documents_async (GDataDocumentsService *self, GDataDocumentsQuery *query, GCancellable *cancellable,\
+					     GDataQueryProgressCallback progress_callback, gpointer progress_user_data,
+					     GAsyncReadyCallback callback, gpointer user_data);
 
-GDataFeed *gdata_documents_service_query_all_folders	(	GDataDocumentsService *self, GDataDocumentsQuery *query,
-													   	GCancellable *cancellable, GDataQueryProgressCallback progress_callback,
-														gpointer progress_user_data, GError **error, gchar *folder);
 
-void *gdata_documents_service_query_all_folders_async(	GDataDocumentsService *self, GDataDocumentsQuery *query,\
-														GCancellable *cancellable, GDataQueryProgressCallback progress_callback,\
-														gpointer progress_user_data,GAsyncReadyCallback callback,
-														GError **error);
-
-void *gdata_documents_service_query_insert_folder(	GDataDocumentsService *self, gchar *full_path, GError **error);
-
+#include <gdata/services/documents/gdata-documents-entry.h>
 void *gdata_documents_service_query_insert_document(	GDataDocumentsService *self,	GDataDocumentsEntry *document,\
 												   	GDataDocumentsQuery *query, GCancellable *cancellable, GError **error);
-
-void *gdata_documents_service_query_update_document(	GDataDocumentsService *self,	GDataDocumentsEntry *document,\
-													GFile updating_document, GDataDocumentsQuery *query,\
-													GCancellable *cancellable,GError **error);
-
-void *gdata_documents_service_query_document_append_content(	GDataDocumentsService *self,	GDataDocumentsEntry *document,\
-															gchar * appending_text, GDataDocumentsQuery *query,\
-															GCancellable *cancellable,GError **error);
-
-void *gdata_documents_service_query_upload_document(	GDataDocumentsService *self,GFile uploading_file,
-													GDataDocumentsEntry *document, GDataDocumentsQuery *query,\
-													GCancellable *cancellable,GError **error);
-
 
 #endif

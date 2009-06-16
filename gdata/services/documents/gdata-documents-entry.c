@@ -56,10 +56,10 @@ struct _GDataDocumentsEntryPrivate
 	GTimeVal edited;
 	GTimeVal last_viewed;
 	gchar *path;
-	gchar *resource_id;
+	gchar *document_id;
 	gboolean writers_can_invite;
-	GDataGDFeedLink *access_rules_uri;
 	GDataAuthor *last_modified_by;
+	GDataGDFeedLink *access_rules_uri;
 	GDataFeed *access_rules;
 };
 
@@ -67,14 +67,14 @@ enum {
 	PROP_EDITED = 1,
 	PROP_LAST_VIEWED,
 	PROP_PATH,
-	PROP_RESSOURCE_ID,
+	PROP_DOCUMENT_ID,
 	PROOP_LAST_MODIFIED_BY,
 	PROP_WRITERS_CAN_INVITE,
 	PROP_ACCESS_RULES_URI,
 	PROP_LAST_MODIFIED_BY
 };
 
-G_DEFINE_ABSTRACT_TYPE_WITH_CODE (GDataDocumentsEntry, gdata_documents_entry, GDATA_TYPE_ENTRY,\
+G_DEFINE_TYPE_WITH_CODE (GDataDocumentsEntry, gdata_documents_entry, GDATA_TYPE_ENTRY,\
 	   	G_IMPLEMENT_INTERFACE (GDATA_TYPE_ACCESS_HANDLER, (GInterfaceInitFunc) gdata_documents_entry_access_handler_init ))
 #define GDATA_DOCUMENTS_ENTRY_GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE ((obj), GDATA_TYPE_DOCUMENTS_ENTRY, GDataDocumentsEntryPrivate))
 
@@ -103,13 +103,13 @@ gdata_documents_entry_class_init (GDataDocumentsEntryClass *klass)
 	 *
 	 * For more information, see the <ulink type="http" url="http://www.atomenabled.org/developers/protocol/#appEdited">
 	 * Atom Publishing Protocol specification</ulink>.
-	 **/
+	 **
 	g_object_class_install_property (gobject_class, PROP_EDITED,
 				g_param_spec_boxed ("edited",
 					"Edited", "The last time the document entry was edited.",
 					GDATA_TYPE_G_TIME_VAL,
 					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
-
+*/
 	/**
 	 * GDataDocumentsEntry::last_viewed
 	 *
@@ -126,13 +126,13 @@ gdata_documents_entry_class_init (GDataDocumentsEntryClass *klass)
 	 * GDataDocumentsEntry:writers_can_invite:
 	 *
 	 * Indicates whether the document entry writers can invite others to write in the document.
-	 **/
+	 *
 	g_object_class_install_property (gobject_class, PROP_WRITERS_CAN_INVITE,
-				g_param_spec_boxed ("writers-can-invite",
+				g_param_spec_boolean ("writers-can-invite",
 					"Writer can invite?", "Indicates whether writers can invite or not.",
 					FALSE,
 					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
-	
+*/	
 	/**
 	 * GDataDocumentsEntry:path
 	 *
@@ -145,11 +145,11 @@ gdata_documents_entry_class_init (GDataDocumentsEntryClass *klass)
 					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 
 	/**
-	 * GDataDocumentsEntry:resource_id
+	 * GDataDocumentsEntry:document_id
 	 *
 	 * Indicates the of the resourceId.
 	 **/
-	g_object_class_install_property (gobject_class, PROP_RESSOURCE_ID,
+	g_object_class_install_property (gobject_class, PROP_DOCUMENT_ID,
 				g_param_spec_string ("resource-id",
 					"resource id", "Indicates the resourcesId of the entry.",
 					NULL,
@@ -182,6 +182,10 @@ static void
 gdata_documents_entry_init (GDataDocumentsEntry *self)
 {
 	self->priv = G_TYPE_INSTANCE_GET_PRIVATE (self, GDATA_TYPE_DOCUMENTS_ENTRY, GDataDocumentsEntryPrivate);
+	self->priv->edited.tv_sec = 0;
+	self->priv->edited.tv_usec = 0;
+	self->priv->last_viewed.tv_sec = 0;
+	self->priv->last_viewed.tv_usec = 0;
 }
 
 static gboolean
@@ -265,7 +269,11 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 			return gdata_parser_error_unknown_property_value ("writersCanWrite", "value", (const gchar*) _writers_can_invite, error);
 		g_free (_writers_can_invite);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "resourceId") ==  0){
-		gdata_documents_entry_set_resource_id  (self, (gchar*) xmlNodeListGetString (doc, node->children, TRUE));
+		gchar *document_id;
+		
+		document_id = xmlNodeListGetString (doc, node->children, TRUE);
+		document_id = g_strsplit ((gchar *)document_id, ":", 2)[1];
+		gdata_documents_entry_set_document_id  (self, document_id);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "feedLink") ==  0){
 		xmlChar *rel, *href, *read_only, *count_hint;
 		gint count_hint_uint;
@@ -332,8 +340,8 @@ gdata_documents_entry_get_property (GObject *object, guint property_id, GValue *
 		case PROP_PATH:
 			g_value_set_string (value, priv->path);
 			break;
-		case PROP_RESSOURCE_ID:
-			g_value_set_string (value, priv->resource_id);
+		case PROP_DOCUMENT_ID:
+			g_value_set_string (value, priv->document_id);
 			break;
 		case PROP_WRITERS_CAN_INVITE:
 			g_value_set_boolean (value, priv->writers_can_invite);
@@ -366,8 +374,8 @@ gdata_documents_entry_set_property (GObject *object, guint property_id, const GV
 		case PROP_PATH:
 			gdata_documents_entry_set_path (self, g_value_get_string (value));
 			break;
-		case PROP_RESSOURCE_ID:
-			gdata_documents_entry_set_resource_id (self, g_value_get_string (value));
+		case PROP_DOCUMENT_ID:
+			gdata_documents_entry_set_document_id (self, g_value_get_string (value));
 			break;
 		case PROP_WRITERS_CAN_INVITE:
 			gdata_documents_entry_set_writers_can_invite (self, g_value_get_boolean (value));
@@ -389,15 +397,17 @@ static void
 get_xml (GDataEntry *entry, GString *xml_string)
 { 
 	GDataDocumentsEntryPrivate *priv = GDATA_DOCUMENTS_ENTRY (entry)->priv;
-	GTimeVal *edited;
 
 	/*chain up to the parent class*/
 	GDATA_ENTRY_CLASS (gdata_documents_entry_parent_class)->get_xml (entry, xml_string);
 
-	/*if (priv->edited){
-		g_string_append_printf (xml_string, "<app:edited xmlns:app='http://www.w3.org/2007/app'>%s</app:edited>", g_time_val_to_iso8601 (priv->edited));
-	}*/
+	if (priv->writers_can_invite == TRUE)
+		g_string_append (xml_string, "<docs:writersCanInvite value='true'/>");
+	else
+		g_string_append (xml_string, "<docs:writersCanInvite value='false'/>");
+	
 }
+
 
 static void
 get_namespaces (GDataEntry *entry, GHashTable *namespaces)
@@ -406,7 +416,6 @@ get_namespaces (GDataEntry *entry, GHashTable *namespaces)
 	/* Chain up to the parent class */
 	GDATA_ENTRY_CLASS (gdata_documents_entry_parent_class)->get_namespaces (entry, namespaces);
 
-	g_hash_table_insert (namespaces, (gchar*) "gd", (gchar*) "http://schemas.google.com/g/2005");
 	g_hash_table_insert (namespaces, (gchar*) "docs", (gchar*) "http://schemas.google.com/docs/2007#document");
 
 }
@@ -474,32 +483,32 @@ gdata_documents_entry_set_path (GDataDocumentsEntry *self, const gchar *path )
 }
 
 /**
- * gdata_documents_entry_get_resource_id:
+ * gdata_documents_entry_get_document_id:
  * @self: a #GDataDocumentsEntry
  *
- * Gets the #GDataDocumentsEntry:resource_id property.
+ * Gets the #GDataDocumentsEntry:document_id property.
  *
- * Return value: the resource_id of the entry.
+ * Return value: the document_id of the entry.
  **/
 gchar*
-gdata_documents_entry_get_resource_id (GDataDocumentsEntry *self )
+gdata_documents_entry_get_document_id (GDataDocumentsEntry *self )
 {
 	g_return_val_if_fail ( GDATA_IS_DOCUMENTS_ENTRY ( self ), NULL );
 	return self->priv->path;
 }
 
 /**
- * gdata_documents_entry_set_resource_id:
+ * gdata_documents_entry_set_document_id:
  * @self: a #GDataDocumentsEntry
- * @path: a new resource_id (or NULL?)
+ * @path: a new document_id (or NULL?)
  *
- * Sets the #GDataDocumentsEntry:resource_id property to resource_id.
+ * Sets the #GDataDocumentsEntry:document_id property to document_id.
  **/
 void 
-gdata_documents_entry_set_resource_id (GDataDocumentsEntry *self, const gchar *resource_id )
+gdata_documents_entry_set_document_id (GDataDocumentsEntry *self, const gchar *document_id )
 {
 	g_return_if_fail ( GDATA_IS_DOCUMENTS_ENTRY ( self ) );
-	self->priv->resource_id = g_strdup ( resource_id );
+	self->priv->document_id = g_strdup ( document_id );
 	g_object_notify (G_OBJECT (self), "resource-id");
 }
 
@@ -531,7 +540,6 @@ gdata_documents_entry_set_access_rules_uri (GDataDocumentsEntry *self, GDataGDFe
 	self->priv->access_rules_uri =  access_rules_uri ;
 	g_object_notify (G_OBJECT (self), "access-rules-uri");
 }
-
 
 /**
  * gdata_documents_entry_set_writers_can_invite:
@@ -614,10 +622,93 @@ gdata_documents_entry_get_last_modified_by (GDataDocumentsEntry *self)
  *
  * Sets the access_rules with the feeds that has been retrieved.
  **/
-/*void 
+
+void 
 gdata_documents_entry_set_access_rules (GDataDocumentsEntry *self, GDataService *service, GCancellable *cancellable, GDataQueryProgressCallback progress_callback,\
 										gpointer progress_user_data, GError **error)
 {
 
-	self->access_rules = gdata_access_handler_get_rules (self, service, cancellable, progress_callback, progress_user_data, error);
-}*/
+	self->priv->access_rules = gdata_access_handler_get_rules (self, service, cancellable, progress_callback, progress_user_data, error);
+}
+
+/* gdata_documents_entry_download_document:
+ * @self: a #GDataDocumentsEntry
+ * @service: a #GDataDocumentsService
+ * @length: return location for the document length, in bytes
+ * @content_type: return location for the document's content type, or %NULL; free with g_free()
+ * @link: The link to download the document; freed in the function. 
+ * @cancellable: optional #GCancellable object, or %NULL
+ * @error: a #GError, or %NULL
+ *
+ * Downloads and returns the documents descibed here. If the documents doesn't exist, %NULL is returned, but
+ * no error is set in @error. TODO
+ *
+ * If @cancellable is not %NULL, then the operation can be cancelled by triggering the @cancellable object from another thread.
+ * If the operation was cancelled, the error %G_IO_ERROR_CANCELLED will be returned.
+ *
+ * If there is an error getting the documents, a %GDATA_SERVICE_ERROR_WITH_QUERY error will be returned.
+ *
+ * Return value: the document's data, or %NULL; free with g_free()
+ **/
+gchar *
+gdata_documents_entry_download_document (GDataDocumentsEntry *self, GDataDocumentsService *service, gsize *length, gchar **content_type,
+										GDataLink *link, GCancellable *cancellable, GError **error)
+{
+	GDataServiceClass *klass;
+	SoupMessage *message;
+	guint status;
+	gchar *data;
+
+	/* TODO: async version */
+	g_return_val_if_fail (GDATA_IS_DOCUMENTS_ENTRY (self), NULL);
+	g_return_val_if_fail (GDATA_IS_DOCUMENTS_SERVICE (service), NULL);
+	g_return_val_if_fail (length != NULL, NULL);
+
+	/*Return NULL if the document doesn't exist yet*/
+	/*TODO
+	if (gdata_documents_entry_exist (self) == FALSE)
+		return NULL;*/
+
+	/*Get the document URI */
+	g_assert (link != NULL);
+	message = soup_message_new (SOUP_METHOD_GET, link->href);
+
+	/*Make sure the headers are set */
+	klass = GDATA_SERVICE_GET_CLASS (service);
+	if (klass->append_query_headers != NULL)
+		klass->append_query_headers (GDATA_SERVICE (service), message);
+
+	/* Send the message */
+	status = _gdata_service_send_message (GDATA_SERVICE (service), message, error);
+	if (status == SOUP_STATUS_NONE) {
+		g_object_unref (message);
+		return NULL;
+	}
+
+	/* Check for cancellation */
+	if (g_cancellable_set_error_if_cancelled (cancellable, error) == TRUE) {
+		g_object_unref (message);
+		return NULL;
+	}
+
+	if (status != 200) {
+		/* Error */
+		g_assert (klass->parse_error_response != NULL);
+		klass->parse_error_response (GDATA_SERVICE (service), GDATA_SERVICE_ERROR_WITH_QUERY, status, message->reason_phrase,
+					     message->response_body->data, message->response_body->length, error);
+		g_object_unref (message);
+		return NULL;
+	}
+
+	g_assert (message->response_body->data != NULL);
+
+	/* Sort out the return values */
+	if (content_type != NULL)
+		*content_type = g_strdup (soup_message_headers_get_content_type (message->response_headers, NULL));
+	*length = message->response_body->length;
+	data = g_memdup (message->response_body->data, message->response_body->length);
+
+	g_object_unref (message);
+
+	return data;
+}

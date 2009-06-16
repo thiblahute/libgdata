@@ -42,6 +42,9 @@ typedef struct _GDataDocumentsEntryPrivate GDataDocumentsEntryPrivate;
 /* 
  * GDataDocumentsEntry:
  *
+ * @get_upload_xml: a function to get the XML file permiting to upload the document with content and metadata appending it to the provided
+ * #GString
+ *
  * All the fields in the #GDataDocumentsEntry structure are private and should never be accessed directly.
  */
 
@@ -52,6 +55,7 @@ typedef struct {
 
 typedef struct {
 	/*< private >*/
+
 	GDataEntryClass parent;
 } GDataDocumentsEntryClass;
 
@@ -63,8 +67,8 @@ GDataDocumentsEntry *gdata_documents_entry_new_from_xml (const gchar *xml, gint 
 gchar *gdata_documents_entry_get_path (GDataDocumentsEntry *self );
 void gdata_documents_entry_set_path (GDataDocumentsEntry *self, const gchar *path ); 
 
-gchar *gdata_documents_entry_get_resource_id (GDataDocumentsEntry *self );
-void gdata_documents_entry_set_resource_id (GDataDocumentsEntry *self, const gchar *resource_id ); 
+gchar *gdata_documents_entry_get_document_id (GDataDocumentsEntry *self );
+void gdata_documents_entry_set_document_id (GDataDocumentsEntry *self, const gchar *document_id ); 
 
 void gdata_documents_entry_get_edited (GDataDocumentsEntry *self, GTimeVal *edited);
 void gdata_documents_entry_get_last_viewed ( GDataDocumentsEntry *self, GTimeVal *last_viewed);
@@ -78,8 +82,13 @@ GDataGDFeedLink *gdata_documents_entry_get_access_rules_uri (GDataDocumentsEntry
 void gdata_documents_entry_set_last_modified_by (GDataDocumentsEntry *self, GDataAuthor *last_modified_by);
 GDataAuthor *gdata_documents_entry_get_last_modified_by (GDataDocumentsEntry *self);
 
-/*void gdata_documents_entry_set_access_rules (GDataDocumentsEntry *self, GDataService *service, GCancellable *cancellable,\
-											 GDataQueryProgressCallback progress_callback,gpointer progress_user_data, GError **error);*/
+gchar *gdata_documents_entry_download_link (GDataDocumentsEntry *self, gchar *export_url);
+
+#include <gdata/services/documents/gdata-documents-service.h>
+gchar *gdata_documents_entry_download_document (GDataDocumentsEntry *self, GDataDocumentsService *service, gsize *length, gchar **content_type,\
+										GDataLink *link, GCancellable *cancellable, GError **error);
+void gdata_documents_entry_set_access_rules (GDataDocumentsEntry *self, GDataService *service, GCancellable *cancellable,\
+											 GDataQueryProgressCallback progress_callback,gpointer progress_user_data, GError **error);
 
 G_END_DECLS
 

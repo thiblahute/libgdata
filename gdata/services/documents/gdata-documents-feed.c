@@ -38,6 +38,11 @@
 #include <string.h>
 
 #include "gdata-documents-feed.h"
+#include "gdata-documents-entry.h"
+#include "gdata-documents-spreadsheet.h"
+#include "gdata-documents-text.h"
+#include "gdata-documents-presentation.h"
+#include "gdata-documents-folder.h"
 #include "gdata-types.h"
 #include "gdata-private.h"
 #include "gdata-service.h"
@@ -62,8 +67,6 @@ gdata_documents_feed_class_init (GDataDocumentsFeedClass *klass)
 	GDataParsableClass *parsable_class = GDATA_PARSABLE_CLASS (klass);
 	GDataFeed *feed_class = GDATA_FEED_CLASS (klass);
 
-	g_type_class_add_private (klass, sizeof (GDataDocumentsFeedPrivate));
-
 	parsable_class->parse_xml = parse_xml;
 
 }
@@ -71,7 +74,7 @@ gdata_documents_feed_class_init (GDataDocumentsFeedClass *klass)
 static void
 gdata_documents_feed_init (GDataDocumentsFeed *self)
 {
-	self->priv = G_TYPE_INSTANCE_GET_PRIVATE (self, GDATA_TYPE_DOCUMENTS_FEED, GDataDocumentsFeedPrivate);
+	/*Nothing to be here*/
 }
 
 GDataDocumentsFeed*

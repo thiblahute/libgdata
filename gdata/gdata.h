@@ -58,4 +58,13 @@
 #include <gdata/services/contacts/gdata-contacts-contact.h>
 #include <gdata/services/contacts/gdata-contacts-query.h>
 
+/* Google Documents*/
+#include <gdata/services/documents/gdata-documents-entry.h>
+#include <gdata/services/documents/gdata-documents-text.h>
+#include <gdata/services/documents/gdata-documents-spreadsheet.h>
+#include <gdata/services/documents/gdata-documents-presentation.h>
+#include <gdata/services/documents/gdata-documents-query.h>
+#include <gdata/services/documents/gdata-documents-service.h>
+#include <gdata/services/documents/gdata-documents-feed.h>
+
 #endif /* !GDATA_H */

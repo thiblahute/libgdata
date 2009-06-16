@@ -23,11 +23,6 @@
 #include <glib.h>
 #include <glib-object.h>
 
-#include "gdata-documents-entry.h"
-#include "gdata-documents-spreadsheet.h"
-#include "gdata-documents-text.h"
-#include "gdata-documents-presentation.h"
-#include "gdata-documents-folder.h"
 #include <gdata/gdata-atom.h>
 #include <gdata/gdata-feed.h>
 
