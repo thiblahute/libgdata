@@ -72,12 +72,6 @@ gdata_documents_presentation_class_init (GDataDocumentsPresentationClass *klass)
 
 }
 
-static void
-gdata_documents_presentation (GDataDocumentsPresentation *self)
-{
-	self->priv = G_TYPE_INSTANCE_GET_PRIVATE (self, GDATA_TYPE_DOCUMENTS_PRESENTATION, GDataDocumentsPresentationPrivate);
-}
-
 GDataDocumentsPresentation*
 gdata_documents_presentation_new(const gchar *id)
 {
@@ -121,7 +115,7 @@ gdata_documents_presentation_init (GDataDocumentsPresentation *self)
 static void
 gdata_documents_presentation_finalize (GObject *object)
 {
-	GDataDocumentsPresentationPrivate *priv = GDATA_DOCUMENTS_PRESENTATION_GET_PRIVATE (object);
+	/*GDataDocumentsPresentationPrivate *priv = GDATA_DOCUMENTS_PRESENTATION_GET_PRIVATE (object);*/
 
 	/* Chain up to the parent class */
 	G_OBJECT_CLASS (gdata_documents_presentation_parent_class)->finalize (object);

@@ -190,27 +190,25 @@ gchar *
 gdata_documents_spreadsheet_download_document (GDataDocumentsEntry *self, GDataDocumentsService *service, gsize *length, gchar **content_type,
 										gchar *gid, gchar *fmcmd, GCancellable *cancellable, GError **error)
 {
-	gchar *link_href;
+	GString *link_href;
 	gchar *data;
-	GDataLink *link;
 
 	/* TODO: async version */
 	g_return_val_if_fail (GDATA_IS_DOCUMENTS_SPREADSHEET (self), NULL);
 	g_return_val_if_fail (GDATA_IS_DOCUMENTS_SERVICE (service), NULL);
 	g_return_val_if_fail (length != NULL, NULL);
 
-	link_href = (gchar*) "/feeds/download/spreadsheets/Export?key=";
-	g_string_append_printf (link_href, "%s&fmcmd=%s", gdata_documents_entry_get_document_id (GDATA_ENTRY (self)),\
-			fmcmd);
+	link_href = g_string_new ("http://spreadsheets.google.com/feeds/download/spreadsheets/Export?key=");
+	if (fmcmd != NULL)
+		g_print ("FMCMD: %s\n", fmcmd);
+
+	g_string_append_printf (link_href, "%s&fmcmd=%s", gdata_documents_entry_get_document_id (self), fmcmd);
+
 	if (strcmp (gid, "-1") != 0)
 		g_string_append_printf (link_href, "&gid=%d", gid);
 
-	link = gdata_gd_feed_link_new (link_href, NULL, 0, -1);
-	g_free (link_href);
-
 	/*Chain up to the parent class*/
-	data = gdata_documents_entry_download_document (GDATA_DOCUMENTS_ENTRY (self), service, length, content_type, link, cancellable, error);
-	gdata_gd_feed_link_free (link);
+	data = gdata_documents_entry_download_document (GDATA_DOCUMENTS_ENTRY (self), service, length, content_type, link_href->str, cancellable, error);
 
 	return data;
 }

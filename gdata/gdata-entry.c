@@ -396,6 +396,7 @@ _gdata_entry_new_from_xml (GType entry_type, const gchar *xml, gint length, GErr
 {
 	g_return_val_if_fail (xml != NULL, NULL);
 	g_return_val_if_fail (g_type_is_a (entry_type, GDATA_TYPE_ENTRY) == TRUE, FALSE);
+	g_print ("\n\n XML  %s\n", xml);
 
 	return GDATA_ENTRY (_gdata_parsable_new_from_xml (entry_type, "entry", xml, length, NULL, error));
 }

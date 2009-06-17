@@ -63,6 +63,7 @@
 #include <gdata/services/documents/gdata-documents-text.h>
 #include <gdata/services/documents/gdata-documents-spreadsheet.h>
 #include <gdata/services/documents/gdata-documents-presentation.h>
+#include <gdata/services/documents/gdata-documents-folder.h>
 #include <gdata/services/documents/gdata-documents-query.h>
 #include <gdata/services/documents/gdata-documents-service.h>
 #include <gdata/services/documents/gdata-documents-feed.h>

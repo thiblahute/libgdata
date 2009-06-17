@@ -94,7 +94,11 @@ gdata_access_handler_get_rules (GDataAccessHandler *self, GDataService *service,
 
 	/* Get the ACL URI */
 	link = gdata_entry_look_up_link (GDATA_ENTRY (self), "http://schemas.google.com/acl/2007#accessControlList");
-	g_assert (link != NULL);
+	
+	if ( link == NULL)
+		return NULL;
+
+	g_print ("Acces rules uri %s\n", link->href);
 	message = soup_message_new (SOUP_METHOD_GET, link->href);
 
 	/* Make sure subclasses set their headers */

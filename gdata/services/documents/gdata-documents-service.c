@@ -144,6 +144,9 @@ gdata_documents_service_query_documents(	GDataDocumentsService *self, GDataDocum
 												GCancellable *cancellable, GDataQueryProgressCallback progress_callback,
 												gpointer progress_user_data, GError **error)
 {
+	GDataDocumentsFeed *feed;
+	GList *i;
+
 	/* Ensure we're authenticated first */
 	if (gdata_service_is_authenticated (GDATA_SERVICE (self)) == FALSE) {
 		g_set_error_literal (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_AUTHENTICATION_REQUIRED,
@@ -151,8 +154,15 @@ gdata_documents_service_query_documents(	GDataDocumentsService *self, GDataDocum
 		return NULL;
 	}
 
-	return GDATA_DOCUMENTS_FEED (gdata_service_query (GDATA_SERVICE (self), "http://docs.google.com/feeds/documents/private/full", GDATA_QUERY (query),
+	feed = GDATA_DOCUMENTS_FEED (gdata_service_query (GDATA_SERVICE (self), "http://docs.google.com/feeds/documents/private/full", GDATA_QUERY (query),
 				    GDATA_TYPE_DOCUMENTS_ENTRY, cancellable, progress_callback, progress_user_data, error));
+
+	for (i = gdata_feed_get_entries (feed); i != NULL; i = i->next)
+	{
+		gdata_documents_entry_set_access_rules (i->data, self, cancellable,  progress_callback,	progress_user_data, error);
+	}
+
+	return feed;
 }
 
 
@@ -185,6 +195,6 @@ gdata_documents_service_query_documents_async (GDataDocumentsService *self, GDat
 		return;
 	}
 
-	gdata_service_query_async (GDATA_SERVICE (self), "http://www.google.com/m8/feeds/contacts/default/full", GDATA_QUERY (query),
+	gdata_service_query_async (GDATA_SERVICE (self), "http://docs.google.com/feeds/documents/private/full", GDATA_QUERY (query),
 				   GDATA_TYPE_DOCUMENTS_ENTRY, cancellable, progress_callback, progress_user_data, callback, user_data);
 }

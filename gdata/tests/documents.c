@@ -79,6 +79,41 @@ test_authentication (void)
 }
 
 static void
+test_query_all_documents_with_folder (void)
+{
+	GDataDocumentsFeed *feed;
+	GDataDocumentsQuery *query;
+	GError *error = NULL;
+	GList *i;
+
+	g_assert (service != NULL);
+
+	query = gdata_documents_query_new (NULL);
+	gdata_documents_query_set_show_folder (query, TRUE);
+
+	feed = gdata_documents_service_query_documents (GDATA_DOCUMENTS_SERVICE (service), query, NULL, NULL, NULL, &error);
+	for (i = gdata_feed_get_entries (feed); i != NULL; i = i->next)
+	{
+		if (GDATA_IS_DOCUMENTS_PRESENTATION (i->data))
+			g_print ("Presentation: %s Access Rules%d\n", gdata_entry_get_title (i->data), gdata_documents_entry_get_access_rules(i->data));
+		if (GDATA_IS_DOCUMENTS_SPREADSHEET (i->data))
+			g_print ("Spreasheet: %s Access Rules%d\n", gdata_entry_get_title (i->data), gdata_documents_entry_get_access_rules(i->data));
+		if (GDATA_IS_DOCUMENTS_TEXT (i->data))
+			g_print ("Document: %s Access Rules%d\n", gdata_entry_get_title (i->data), gdata_documents_entry_get_access_rules(i->data));
+		if (GDATA_IS_DOCUMENTS_FOLDER (i->data))
+			g_print ("Folder: %s Access Rules%d\n", gdata_entry_get_title (i->data), gdata_documents_entry_get_access_rules(i->data));
+		if ( gdata_documents_entry_get_access_rules(i->data) != NULL)
+			g_print ("Access_rules feed name %s\n:", gdata_feed_get_title (gdata_documents_entry_get_access_rules(i->data)));
+	}
+	g_assert_no_error (error);
+	g_assert (GDATA_IS_FEED (feed));
+	g_clear_error (&error);
+
+	/* TODO: check entries and feed properties */
+
+	g_object_unref (feed);
+}
+static void
 test_query_all_documents (void)
 {
 	GDataDocumentsFeed *feed;
@@ -91,12 +126,13 @@ test_query_all_documents (void)
 	for (i = gdata_feed_get_entries (feed); i != NULL; i = i->next)
 	{
 		if (GDATA_IS_DOCUMENTS_PRESENTATION (i->data))
-			g_print ("Elment type: presentation\n");
+			g_print ("Presentation: %s Access Rules%d\n", gdata_entry_get_title (i->data), gdata_documents_entry_get_access_rules(i->data));
 		if (GDATA_IS_DOCUMENTS_SPREADSHEET (i->data))
-			g_print ("Elment type: spreadsheet\n");
+			g_print ("Spreasheet: %s Access Rules%d\n", gdata_entry_get_title (i->data), gdata_documents_entry_get_access_rules(i->data));
 		if (GDATA_IS_DOCUMENTS_TEXT (i->data))
-			g_print ("Elment type: text\n");
-		g_print ("Elment title: %s\n", gdata_entry_get_title (i->data));
+			g_print ("Document: %s Access Rules%d\n", gdata_entry_get_title (i->data), gdata_documents_entry_get_access_rules(i->data));
+		if (GDATA_IS_DOCUMENTS_FOLDER (i->data))
+			g_print ("Folder: %s Access Rules%d\n", gdata_entry_get_title (i->data), gdata_documents_entry_get_access_rules(i->data));
 	}
 	g_assert_no_error (error);
 	g_assert (GDATA_IS_FEED (feed));
@@ -106,23 +142,36 @@ test_query_all_documents (void)
 
 	g_object_unref (feed);
 }
-/*
+
 static void
 test_query_all_documents_async_cb (GDataService *service, GAsyncResult *async_result, gpointer user_data)
 {
-	GDataFeed *feed;
+	GDataDocumentsFeed *feed;
 	GError *error = NULL;
+	GList *i;
 
 	feed = gdata_service_query_finish (service, async_result, &error);
+	for (i = gdata_feed_get_entries (feed); i != NULL; i = i->next)
+	{
+		if (GDATA_IS_DOCUMENTS_PRESENTATION (i->data))
+			g_print ("Presentation: %s Access Rules%d\n", gdata_entry_get_title (i->data), gdata_documents_entry_get_access_rules(i->data));
+		if (GDATA_IS_DOCUMENTS_SPREADSHEET (i->data))
+			g_print ("Spreasheet: %s Access Rules%d\n", gdata_entry_get_title (i->data), gdata_documents_entry_get_access_rules(i->data));
+		if (GDATA_IS_DOCUMENTS_TEXT (i->data))
+			g_print ("Document: %s Access Rules%d\n", gdata_entry_get_title (i->data), gdata_documents_entry_get_access_rules(i->data));
+		if (GDATA_IS_DOCUMENTS_FOLDER (i->data))
+			g_print ("Folder: %s Access Rules%d\n", gdata_entry_get_title (i->data), gdata_documents_entry_get_access_rules(i->data));
+	}
 	g_assert_no_error (error);
 	g_assert (GDATA_IS_FEED (feed));
 	g_clear_error (&error);
 
-	/* TODO: Tests? 
+	/* TODO: Tests? */
 	g_main_loop_quit (main_loop);
 
 	g_object_unref (feed);
 }
+
 
 static void
 test_query_all_documents_async (void)
@@ -137,6 +186,7 @@ test_query_all_documents_async (void)
 	g_main_loop_unref (main_loop);
 }
 
+/*
 static void
 test_insert_simple (void)
 {
@@ -356,33 +406,35 @@ test_photo_add (void)
 	g_object_unref (contact);
 	g_free (data);
 }
+*/
 
 static void
-test_photo_get (void)
+test_document_download (void)
 {
-	GDataDocumentsContact *contact;
+	GDataDocumentsSpreadsheet *spreadsheet;
 	gchar *data, *content_type = NULL;
 	gsize length = 0;
 	GError *error = NULL;
 
-	contact = get_contact ();
-	g_assert (gdata_documents_contact_has_photo (contact) == TRUE);
+	spreadsheet = get_documents ();
 
-	/* Get the photo from the network 
-	data = gdata_documents_contact_get_photo (contact, GDATA_DOCUMENTS_SERVICE (service), &length, &content_type, NULL, &error);
+	if (GDATA_IS_DOCUMENTS_SPREADSHEET (spreadsheet))
+		g_print ("Spreasheet: %s Access Rules%d\n", gdata_documents_entry_get_document_id (spreadsheet), gdata_documents_entry_get_access_rules(spreadsheet));
+
+	/* Get the document from the network */
+	data = gdata_documents_spreadsheet_download_document (spreadsheet, GDATA_DOCUMENTS_SERVICE (service), &length, &content_type, "-1", "4", NULL, &error);
 	g_assert_no_error (error);
 	g_assert (data != NULL);
 	g_assert (length != 0);
-	g_assert_cmpstr (content_type, ==, "image/jpg");
 
-	g_assert (gdata_documents_contact_has_photo (contact) == TRUE);
 
 	g_free (content_type);
 	g_free (data);
-	g_object_unref (contact);
+	g_object_unref (spreadsheet);
 	g_clear_error (&error);
 }
 
+/*
 static void
 test_photo_delete (void)
 {
@@ -413,7 +465,10 @@ main (int argc, char *argv[])
 	g_test_bug_base ("http://bugzilla.gnome.org/show_bug.cgi?id=");
 
 	g_test_add_func ("/documents/authentication", test_authentication);
-	g_test_add_func ("/documents/query/all_documents", test_query_all_documents);
+	/*g_test_add_func ("/documents/query/all_documents", test_query_all_documents);
+	g_test_add_func ("/documents/query/all_documents_with_folder", test_query_all_documents_with_folder);
+	g_test_add_func ("/documents/query/all_documents_async", test_query_all_documents_async);*/
+	g_test_add_func ("/documents/documenyts/download", test_document_download);
 /*	if (g_test_thorough () == TRUE)
 		g_test_add_func ("/documents/query/all_documents_async", test_query_all_documents_async);
 	if (g_test_slow () == TRUE)
@@ -423,7 +478,6 @@ main (int argc, char *argv[])
 	g_test_add_func ("/documents/photo/has_photo", test_photo_has_photo);
 	if (g_test_slow () == TRUE) {
 		g_test_add_func ("/documents/photo/add", test_photo_add);
-		g_test_add_func ("/documents/photo/get", test_photo_get);
 		g_test_add_func ("/documents/photo/delete", test_photo_delete);
 	}
 */

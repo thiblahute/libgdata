@@ -76,9 +76,6 @@ void gdata_documents_entry_get_last_viewed ( GDataDocumentsEntry *self, GTimeVal
 void gdata_documents_entry_set_writers_can_invite(GDataDocumentsEntry *self, gboolean  writers_can_invite);
 gboolean gdata_documents_entry_get_writers_can_invite (GDataDocumentsEntry *self);
 
-void gdata_documents_entry_set_access_rules_uri (GDataDocumentsEntry *self, GDataGDFeedLink *access_rules_uri);
-GDataGDFeedLink *gdata_documents_entry_get_access_rules_uri (GDataDocumentsEntry *self );
-
 void gdata_documents_entry_set_last_modified_by (GDataDocumentsEntry *self, GDataAuthor *last_modified_by);
 GDataAuthor *gdata_documents_entry_get_last_modified_by (GDataDocumentsEntry *self);
 
@@ -86,9 +83,10 @@ gchar *gdata_documents_entry_download_link (GDataDocumentsEntry *self, gchar *ex
 
 #include <gdata/services/documents/gdata-documents-service.h>
 gchar *gdata_documents_entry_download_document (GDataDocumentsEntry *self, GDataDocumentsService *service, gsize *length, gchar **content_type,\
-										GDataLink *link, GCancellable *cancellable, GError **error);
+										gchar *link, GCancellable *cancellable, GError **error);
 void gdata_documents_entry_set_access_rules (GDataDocumentsEntry *self, GDataService *service, GCancellable *cancellable,\
 											 GDataQueryProgressCallback progress_callback,gpointer progress_user_data, GError **error);
+GDataFeed *gdata_documents_entry_get_access_rules (GDataDocumentsEntry *self);
 
 G_END_DECLS
 

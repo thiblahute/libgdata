@@ -59,7 +59,6 @@ struct _GDataDocumentsEntryPrivate
 	gchar *document_id;
 	gboolean writers_can_invite;
 	GDataAuthor *last_modified_by;
-	GDataGDFeedLink *access_rules_uri;
 	GDataFeed *access_rules;
 };
 
@@ -103,17 +102,17 @@ gdata_documents_entry_class_init (GDataDocumentsEntryClass *klass)
 	 *
 	 * For more information, see the <ulink type="http" url="http://www.atomenabled.org/developers/protocol/#appEdited">
 	 * Atom Publishing Protocol specification</ulink>.
-	 **
+	 **/
 	g_object_class_install_property (gobject_class, PROP_EDITED,
 				g_param_spec_boxed ("edited",
 					"Edited", "The last time the document entry was edited.",
 					GDATA_TYPE_G_TIME_VAL,
 					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
-*/
+
 	/**
 	 * GDataDocumentsEntry::last_viewed
 	 *
-	 * The last time the documentsEntry has been view. TODO if never viewed 
+	 * The last time the documentsEntry has been view.
 	 *
 	 **/
 	g_object_class_install_property (gobject_class, PROP_LAST_VIEWED,
@@ -153,18 +152,6 @@ gdata_documents_entry_class_init (GDataDocumentsEntryClass *klass)
 				g_param_spec_string ("resource-id",
 					"resource id", "Indicates the resourcesId of the entry.",
 					NULL,
-					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
-
-	/**
-	 * GDataDocumentsEntry:access_rules_uri
-	 *
-	 * A link to the document_entry's acls feed. It points to a #GDataGDFeedLink.
-	 *
-	 * Indicates the uri to get the documentsEntry access_Rules' feed.
-	 **/
-	g_object_class_install_property (gobject_class, PROP_ACCESS_RULES_URI,
-				g_param_spec_pointer ("access-rules-uri",
-					"access rules_uri", "Indicates the uri to get the documentsEntry access rules feed.",
 					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 
 	/**
@@ -270,28 +257,22 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 		g_free (_writers_can_invite);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "resourceId") ==  0){
 		gchar *document_id;
-		
+
 		document_id = xmlNodeListGetString (doc, node->children, TRUE);
 		document_id = g_strsplit ((gchar *)document_id, ":", 2)[1];
 		gdata_documents_entry_set_document_id  (self, document_id);
+		g_free (document_id);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "feedLink") ==  0){
-		xmlChar *rel, *href, *read_only, *count_hint;
-		gint count_hint_uint;
+		xmlChar *rel, *href;
+		GDataLink *link;
 
 		rel = xmlGetProp (node, (xmlChar*) "rel");
 		href = xmlGetProp (node, (xmlChar*) "href");
-		read_only = xmlGetProp (node, (xmlChar*) "readOnly");
-		count_hint = xmlGetProp (node, (xmlChar*) "countHint");
 
-		if (count_hint == NULL)
-			count_hint_uint = 0;
-		else
-			count_hint_uint = strtoul ((gchar*) count_hint, NULL, 10);
+		link = gdata_link_new ((gchar*) href, (gchar*) rel, NULL, NULL, NULL, -1);
+		gdata_entry_add_link (self, link); 
+		g_print ("Acces rules, href: %s, rel: %s\n", link->href, link->rel);
 
-		xmlFree (count_hint);
-		gdata_gd_feed_link_free (self->priv->access_rules_uri);
-		gdata_documents_entry_set_access_rules_uri (self, gdata_gd_feed_link_new ((gchar*) href, (gchar*) rel, count_hint_uint,\
-														((xmlStrcmp (read_only, (xmlChar*) "true") == 0) ? TRUE : FALSE)));
 	} else if (xmlStrcmp (node->name, (xmlChar*) "lastModifiedBy") ==  0){
 		GDataAuthor *last_modified_by;
 		xmlNode *last_modified_by_node;
@@ -316,6 +297,7 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 		/* Error! */
 		return FALSE;
 	}
+
 	return TRUE;
 }
 
@@ -325,7 +307,6 @@ gdata_documents_entry_finalize (GObject *object)
 	GDataDocumentsEntryPrivate *priv = GDATA_DOCUMENTS_ENTRY_GET_PRIVATE (object);
 
 	g_free (priv->path);
-	g_free (priv->access_rules_uri);
 
 	/* Chain up to the parent class */
 	G_OBJECT_CLASS (gdata_documents_entry_parent_class)->finalize (object);
@@ -345,9 +326,6 @@ gdata_documents_entry_get_property (GObject *object, guint property_id, GValue *
 			break;
 		case PROP_WRITERS_CAN_INVITE:
 			g_value_set_boolean (value, priv->writers_can_invite);
-			break;
-		case PROP_ACCESS_RULES_URI:
-			g_value_set_pointer (value, priv->access_rules_uri);
 			break;
 		case PROP_EDITED:
 			g_value_set_boxed (value, &(priv->edited));
@@ -379,9 +357,6 @@ gdata_documents_entry_set_property (GObject *object, guint property_id, const GV
 			break;
 		case PROP_WRITERS_CAN_INVITE:
 			gdata_documents_entry_set_writers_can_invite (self, g_value_get_boolean (value));
-			break;
-		case PROP_ACCESS_RULES_URI:
-			gdata_documents_entry_set_access_rules_uri (self, g_value_get_pointer (value));
 			break;
 		case PROP_LAST_MODIFIED_BY:
 			gdata_documents_entry_set_last_modified_by (self, g_value_get_pointer (value));
@@ -494,7 +469,7 @@ gchar*
 gdata_documents_entry_get_document_id (GDataDocumentsEntry *self )
 {
 	g_return_val_if_fail ( GDATA_IS_DOCUMENTS_ENTRY ( self ), NULL );
-	return self->priv->path;
+	return self->priv->document_id;
 }
 
 /**
@@ -510,35 +485,6 @@ gdata_documents_entry_set_document_id (GDataDocumentsEntry *self, const gchar *d
 	g_return_if_fail ( GDATA_IS_DOCUMENTS_ENTRY ( self ) );
 	self->priv->document_id = g_strdup ( document_id );
 	g_object_notify (G_OBJECT (self), "resource-id");
-}
-
-/**
- * gdata_documents_entry_get_access_rules_uri:
- * @self: a #GDataDocumentsEntry
- *
- * Gets the #GDataDocumentsEntry:access_rules_uri property.
- *
- * Return value: the access_rules_uri of this document.
- **/
-GDataGDFeedLink*
-gdata_documents_entry_get_access_rules_uri (GDataDocumentsEntry *self )
-{
-	g_return_val_if_fail ( GDATA_IS_DOCUMENTS_ENTRY ( self ), NULL );
-	return self->priv->access_rules_uri;
-}
-
-/**
- * gdata_documents_entry_set_access_rules_uri:
- * @self: a #GDataDocumentsEntry
- *
- * Sets the #GDataDocumentsEntry:access_rules_uri property to _access_rules_uri.
- **/
-void 
-gdata_documents_entry_set_access_rules_uri (GDataDocumentsEntry *self, GDataGDFeedLink *access_rules_uri)
-{
-	g_return_if_fail ( GDATA_IS_DOCUMENTS_ENTRY ( self ) );
-	self->priv->access_rules_uri =  access_rules_uri ;
-	g_object_notify (G_OBJECT (self), "access-rules-uri");
 }
 
 /**
@@ -593,13 +539,25 @@ gdata_documents_entry_set_last_modified_by (GDataDocumentsEntry *self, GDataAuth
  *
  * Return value: the last_modified_by of the entry.
  **/
-GDataAuthor*
+GDataAuthor *
 gdata_documents_entry_get_last_modified_by (GDataDocumentsEntry *self)
 {
 	g_return_val_if_fail ( GDATA_IS_DOCUMENTS_ENTRY (self), NULL );
 	return self->priv->last_modified_by;
 }
 
+/** 
+ * gdata_documents_entry_get_access_rules:
+ * @self: a #GDataDocumentsEntry
+ *
+ * Return value: the GdataFeed acces_rules property or %NULL.
+ **/
+GDataFeed *
+gdata_documents_entry_get_access_rules (GDataDocumentsEntry *self)
+{
+	g_return_val_if_fail (GDATA_IS_DOCUMENTS_ENTRY (self), NULL);
+	return self->priv->access_rules;
+}
 /**
  * gdata_documents_entry_set_access_rules:
  * @self: a #GDataDocumentsEntry
@@ -627,7 +585,7 @@ void
 gdata_documents_entry_set_access_rules (GDataDocumentsEntry *self, GDataService *service, GCancellable *cancellable, GDataQueryProgressCallback progress_callback,\
 										gpointer progress_user_data, GError **error)
 {
-
+	g_return_val_if_fail (GDATA_IS_DOCUMENTS_ENTRY (self), NULL);
 	self->priv->access_rules = gdata_access_handler_get_rules (self, service, cancellable, progress_callback, progress_user_data, error);
 }
 
@@ -636,7 +594,7 @@ gdata_documents_entry_set_access_rules (GDataDocumentsEntry *self, GDataService 
  * @service: a #GDataDocumentsService
  * @length: return location for the document length, in bytes
  * @content_type: return location for the document's content type, or %NULL; free with g_free()
- * @link: The link to download the document; freed in the function. 
+ * @link: The link to download the document;
  * @cancellable: optional #GCancellable object, or %NULL
  * @error: a #GError, or %NULL
  *
@@ -652,7 +610,7 @@ gdata_documents_entry_set_access_rules (GDataDocumentsEntry *self, GDataService 
  **/
 gchar *
 gdata_documents_entry_download_document (GDataDocumentsEntry *self, GDataDocumentsService *service, gsize *length, gchar **content_type,
-										GDataLink *link, GCancellable *cancellable, GError **error)
+										gchar *link, GCancellable *cancellable, GError **error)
 {
 	GDataServiceClass *klass;
 	SoupMessage *message;
@@ -671,7 +629,8 @@ gdata_documents_entry_download_document (GDataDocumentsEntry *self, GDataDocumen
 
 	/*Get the document URI */
 	g_assert (link != NULL);
-	message = soup_message_new (SOUP_METHOD_GET, link->href);
+	g_print ("Message link->href: %s\n", link);
+	message = soup_message_new (SOUP_METHOD_GET, link);
 
 	/*Make sure the headers are set */
 	klass = GDATA_SERVICE_GET_CLASS (service);
