@@ -1,3 +1,4 @@
+
 /* -*- Mode: C; indent-tabs-mode: t; c-basic-offset: 8; tab-width: 8 -*- */
 /*
  * GData Client
@@ -28,6 +29,9 @@
  *
  * For more details of Google Document's GData API, see the <ulink type="http" url:"http://code.google.com/apis/document/docs/2.0/reference.html"
  * online documentation</ulink>. 
+ *
+ * Fore more details about the spreadsheet downloads handling, see the <ulink type="http" url:"http://groups.google.com/group/Google-Docs-Data-APIs/browse_thread/thread/bfc50e94e303a29a?pli=1"
+ * Online explaination about the problem</ulink>
  **/
 
 #include <config.h>
@@ -44,15 +48,14 @@
 static void gdata_documents_service_finalize (GObject *object);
 static void gdata_documents_service_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec);
 static void gdata_documents_service_set_property (GObject *object, guint property_id, const GValue *value, GParamSpec *pspec);
+static void notify_authenticated_cb (GObject *service, GParamSpec *pspec, GObject *self);
 
 struct _GDataDocumentsServicePrivate {
-	/*TODO
-	 * gchar *documents_user;
-	 * */
+	GDataService *spreadsheet_service;
 };
 
 enum {
-	PROP_DOCUMENTS_USER
+	PROP_SPREADSHEET_SERVICE = 1
 };
 
 G_DEFINE_TYPE (GDataDocumentsService, gdata_documents_service, GDATA_TYPE_SERVICE)
@@ -64,29 +67,34 @@ gdata_documents_service_class_init (GDataDocumentsServiceClass *klass)
 	GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
 	GDataServiceClass *service_class = GDATA_SERVICE_CLASS (klass);
 
+	g_type_class_add_private (klass, sizeof (GDataDocumentsServicePrivate));
+
+	gobject_class->set_property = gdata_documents_service_set_property;
+	gobject_class->get_property = gdata_documents_service_get_property;
 	service_class->service_name = "writely";
 	service_class->feed_type = GDATA_TYPE_DOCUMENTS_FEED;
 
-	//g_type_class_add_private (klass, sizeof (GDataDocumentsServicePrivate));
 
-/*TODO make things clearer
- *
- *	gobject_class->set_property = gdata_documents_service_set_property;
-	gobject_class->get_property = gdata_documents_service_get_property;
-	gobject_class->finalize = gdata_documents_service_finalize;
+	/**
+	 * GDataService:spreadsheet_service:
+	 *
+	 * Another service for spreadsheets.
+	 *
+	 * Fore more details about the spreadsheet downloads handling, see the <ulink type="http" url:"http://groups.google.com/group/Google-Docs-Data-APIs/browse_thread/thread/bfc50e94e303a29a?pli=1"
+	 * Online explaination about the problem</ulink>
+	 **/
+	g_object_class_install_property (gobject_class, PROP_SPREADSHEET_SERVICE,
+				g_param_spec_pointer ("spreadsheet-service",
+					"Spreadsheet service", "Another service for spreadsheets.",
+					 G_PARAM_READWRITE));
 
-	service_class->service_name = "documents";
-	service_class->authentication_uri = "https://www.google.com/documents/accounts/ClientLogin";
-	service_class->parse_authentication_response = parse_authentication_response;
-	service_class->append_query_headers = append_query_headers;
-	service_class->parse_error_response = parse_error_response;
-*/
 }
 
 static void
 gdata_documents_service_init (GDataDocumentsService *self)
 {
-	/* Nothing to see here */
+	self->priv = G_TYPE_INSTANCE_GET_PRIVATE (self, GDATA_TYPE_DOCUMENTS_SERVICE, GDataDocumentsServicePrivate);
+	g_signal_connect (self, "notify::authenticated", G_CALLBACK (notify_authenticated_cb), NULL);
 }
 
 /**
@@ -110,17 +118,37 @@ gdata_documents_service_new (const gchar *client_id)
 static void 
 gdata_documents_service_finalize (GObject *object)
 {
-	;
+	GDataDocumentsServicePrivate *priv = GDATA_DOCUMENTS_SERVICE_GET_PRIVATE (object);
+
+	gdata_service_finalize (GDATA_SERVICE (priv->spreadsheet_service));
 }
 static void 
 gdata_documents_service_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec)
 {
-	;
+	GDataDocumentsServicePrivate *priv = GDATA_DOCUMENTS_SERVICE_GET_PRIVATE (object);
+
+	switch (property_id) {
+		case PROP_SPREADSHEET_SERVICE:
+			g_value_set_pointer (value, priv->spreadsheet_service);
+			break;
+		default:
+			/* We don't have any other property... */
+			G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
+			break;
+	}
 }
 static void 
 gdata_documents_service_set_property (GObject *object, guint property_id, const GValue *value, GParamSpec *pspec)
 {
-	;
+	GDataDocumentsServicePrivate *priv = GDATA_DOCUMENTS_SERVICE_GET_PRIVATE (object);
+
+	switch (property_id) {
+		default:
+			/* We don't have any other property... */
+			G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
+			break;
+	}
+
 }
 
 
@@ -197,4 +225,56 @@ gdata_documents_service_query_documents_async (GDataDocumentsService *self, GDat
 
 	gdata_service_query_async (GDATA_SERVICE (self), "http://docs.google.com/feeds/documents/private/full", GDATA_QUERY (query),
 				   GDATA_TYPE_DOCUMENTS_ENTRY, cancellable, progress_callback, progress_user_data, callback, user_data);
+}
+
+/**
+ * gdata_documents_service_upload_document:
+ * @self: a #GDataDocumentsService
+ * @document_entry : the #GDataDocumentsEntry to insert
+ * @document : the document to upload or %NULL if uploading without datas.
+ * @metadata: TRUE if upload with metadata otherwise FALSE
+ * @cancellable: optional #GCancellable object, or %NULL
+ * @error: a #GError, or %NULL
+ *
+ * Upload @document to the online if not NULL otherwise create an empty document to the google documents service.
+ *
+ *
+ * For more details, see gdata_service_insert_entry().
+ *
+ * Return value: an updated #GDataDocumentsEntry, or %NULL
+ **/
+GDataDocumentsEntry *
+gdata_documents_service_upload_document (GDataDocumentsService *self, GDataDocumentsEntry *document_entry, GFile *document,\
+		gboolean metadata, GCancellable *cancellable, GError **error)
+{
+	/* TODO: Async variant */
+	gchar *uri;
+	GDataEntry *entry;
+
+	g_return_val_if_fail (GDATA_IS_DOCUMENTS_SERVICE (self), NULL);
+	g_return_val_if_fail (GDATA_IS_DOCUMENTS_ENTRY (document_entry), NULL);
+
+	entry = gdata_service_insert_entry (GDATA_SERVICE (self), uri, GDATA_ENTRY (entry), cancellable, error);
+	g_free (uri);
+
+	return GDATA_DOCUMENTS_ENTRY (entry);
+}
+
+static void
+notify_authenticated_cb (GObject *service, GParamSpec *pspec, GObject *self)
+{
+	GDataDocumentsServicePrivate *priv = GDATA_DOCUMENTS_SERVICE_GET_PRIVATE (GDATA_DOCUMENTS_SERVICE (service));
+
+	GDataService *spreadsheet_service = g_object_new (GDATA_TYPE_SERVICE, "client-id", gdata_service_get_client_id (service), NULL);
+	GDATA_SERVICE_GET_CLASS (spreadsheet_service)->service_name = "wise";
+	gdata_service_authenticate (spreadsheet_service, gdata_service_get_username (service), gdata_service_get_password (service), NULL, NULL);
+	priv->spreadsheet_service = spreadsheet_service;
+}
+
+GDataService *
+gdata_documents_service_get_spreadsheet_service(GDataDocumentsService *self)
+{
+	g_return_val_if_fail (GDATA_IS_DOCUMENTS_SERVICE (self), NULL);
+	g_return_val_if_fail (self->priv->spreadsheet_service !=NULL, NULL);
+	return self->priv->spreadsheet_service;
 }

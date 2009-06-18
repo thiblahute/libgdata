@@ -140,6 +140,7 @@ get_xml (GDataEntry *entry, GString *xml_string)
  * @service: a #GDataDocumentsService
  * @length: return location for the document length, in bytes
  * @content_type: return location for the document's content type, or %NULL; free with g_free()
+ * @destination_folder: the destination folder
  * @cancellable: optional #GCancellable object, or %NULL
  * @error: a #GError, or %NULL
  *
@@ -153,29 +154,29 @@ get_xml (GDataEntry *entry, GString *xml_string)
  *
  * Return value: the document's data, or %NULL; free with g_free()
  **/
-gchar *
+void
 gdata_documents_presentation_download_document (GDataDocumentsEntry *self, GDataDocumentsService *service, gsize *length, gchar **content_type,
-										gchar *export_format, GCancellable *cancellable, GError **error)
+										gchar *export_format, gchar *destination_folder, GCancellable *cancellable, GError **error)
 {
-	gchar *link_href;
-	gchar *data;
-	GDataLink *link;
+	GString *link_href;
+	gchar *data, document_id;
 
 	/* TODO: async version */
 	g_return_val_if_fail (GDATA_IS_DOCUMENTS_PRESENTATION (self), NULL);
 	g_return_val_if_fail (GDATA_IS_DOCUMENTS_SERVICE (service), NULL);
 	g_return_val_if_fail (length != NULL, NULL);
+	g_return_val_if_fail (export_format != NULL, NULL);
 
-	link_href = (gchar*) "/feeds/download/presentations/Export?docID=";
-	g_string_append_printf (link_href, "%s&exportFormat=%s", gdata_documents_entry_get_document_id (GDATA_ENTRY (self)),\
-			export_format);
-	link = gdata_gd_feed_link_new (link_href, NULL, 0, -1);
-	g_free (link_href);
+	document_id = gdata_documents_entry_get_document_id (self);
+
+	g_return_val_if_fail (document_id != NULL, NULL);
+
+	link_href = g_string_new ("http://docs.google.com/feeds/download/presentation/Export?docID=");
+	g_string_append_printf (link_href, "%s&exportFormat=%s", document_id, export_format);
 
 	/*Chain up to the parent class*/
-	data = gdata_documents_entry_download_document (GDATA_DOCUMENTS_ENTRY (self), service, length, content_type, link, cancellable, error);
-	gdata_gd_feed_link_free (link);
+	gdata_documents_entry_download_document (GDATA_DOCUMENTS_ENTRY (self), service, length, content_type, link_href->str, destination_folder, export_format, cancellable, error);
 
-	return data;
+	g_string_free (link_href, TRUE);
+	g_free (document_id);
 }
-

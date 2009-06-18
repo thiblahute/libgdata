@@ -595,6 +595,7 @@ gdata_documents_entry_set_access_rules (GDataDocumentsEntry *self, GDataService 
  * @length: return location for the document length, in bytes
  * @content_type: return location for the document's content type, or %NULL; free with g_free()
  * @link: The link to download the document;
+ * @destination_folder: the destination file
  * @cancellable: optional #GCancellable object, or %NULL
  * @error: a #GError, or %NULL
  *
@@ -608,34 +609,51 @@ gdata_documents_entry_set_access_rules (GDataDocumentsEntry *self, GDataService 
  *
  * Return value: the document's data, or %NULL; free with g_free()
  **/
-gchar *
-gdata_documents_entry_download_document (GDataDocumentsEntry *self, GDataDocumentsService *service, gsize *length, gchar **content_type,
-										gchar *link, GCancellable *cancellable, GError **error)
+void
+gdata_documents_entry_download_document (GDataDocumentsEntry *self, GDataService *service, gsize *length, gchar **content_type,
+										gchar *link, gchar *destination_folder, gchar *file_extension, GCancellable *cancellable, GError **error)
 {
 	GDataServiceClass *klass;
+	GFileOutputStream *file_stream;
+	GFile *destination_file;
 	SoupMessage *message;
 	guint status;
-	gchar *data;
+	gchar *document_title;
+	GString  *path;
 
 	/* TODO: async version */
 	g_return_val_if_fail (GDATA_IS_DOCUMENTS_ENTRY (self), NULL);
-	g_return_val_if_fail (GDATA_IS_DOCUMENTS_SERVICE (service), NULL);
+	g_return_val_if_fail (GDATA_IS_SERVICE (service), NULL);
 	g_return_val_if_fail (length != NULL, NULL);
 
-	/*Return NULL if the document doesn't exist yet*/
+	/*Return NULL if the document doesn't exist yet on the server*/
 	/*TODO
 	if (gdata_documents_entry_exist (self) == FALSE)
 		return NULL;*/
 
+	/*prepare the GFile*/
+	document_title = gdata_entry_get_title (self);
+	path = g_string_new (destination_folder);
+	g_string_append_printf (path, "/%s.%s", document_title, file_extension);
+	destination_file = g_file_new_for_path (path->str);
+	g_string_free (path, FALSE);
+	file_stream = g_file_create (destination_file, G_FILE_CREATE_NONE, NULL, error);
+
+	g_print ("File uri: %s\n", g_file_get_uri (destination_file));
+
 	/*Get the document URI */
-	g_assert (link != NULL);
-	g_print ("Message link->href: %s\n", link);
+	/*g_assert (link != NULL);
+	g_print ("Message link->href: %s\n", link);*/
 	message = soup_message_new (SOUP_METHOD_GET, link);
+	soup_message_body_set_accumulate (message->response_body, FALSE);
 
 	/*Make sure the headers are set */
 	klass = GDATA_SERVICE_GET_CLASS (service);
 	if (klass->append_query_headers != NULL)
 		klass->append_query_headers (GDATA_SERVICE (service), message);
+
+	/*connect the on_chunk signal to get the have the folder downloading parts*/
+	g_signal_connect (message, "got-chunk", (GCallback) _on_chunk_signal, file_stream);
 
 	/* Send the message */
 	status = _gdata_service_send_message (GDATA_SERVICE (service), message, error);
@@ -659,15 +677,12 @@ gdata_documents_entry_download_document (GDataDocumentsEntry *self, GDataDocumen
 		return NULL;
 	}
 
-	g_assert (message->response_body->data != NULL);
-
-	/* Sort out the return values */
-	if (content_type != NULL)
-		*content_type = g_strdup (soup_message_headers_get_content_type (message->response_headers, NULL));
-	*length = message->response_body->length;
-	data = g_memdup (message->response_body->data, message->response_body->length);
-
 	g_object_unref (message);
+}
 
-	return data;
+
+void 
+_on_chunk_signal (SoupMessage *message, SoupBuffer *chunk, gpointer user_data)
+{
+	g_output_stream_write (user_data, (const void *) chunk->data, chunk->length, NULL, NULL);
 }

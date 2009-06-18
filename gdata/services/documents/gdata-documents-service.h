@@ -38,7 +38,7 @@ G_BEGIN_DECLS
 #define GDATA_IS_DOCUMENTS_SERVICE_CLASS(k)	(G_TYPE_CHECK_CLASS_TYPE ((k), GDATA_TYPE_DOCUMENTS_SERVICE))
 #define GDATA_DOCUMENTS_SERVICE_GET_CLASS(o)	(G_TYPE_INSTANCE_GET_CLASS ((o), GDATA_TYPE_DOCUMENTS_SERVICE, GDataDocumentsServiceClass))
 
-typedef struct _GDataDocumentsServicePrivate	GDataDocumentsServicePrivate; /*Is it necessary since I shouldn't need private members*/
+typedef struct _GDataDocumentsServicePrivate	GDataDocumentsServicePrivate;
 
 /**
  * GDataDocumentsService:
@@ -47,6 +47,7 @@ typedef struct _GDataDocumentsServicePrivate	GDataDocumentsServicePrivate; /*Is 
  **/
 typedef struct {
 	GDataService parent;
+	GDataDocumentsServicePrivate *priv;
 } GDataDocumentsService;
 
 /**
@@ -78,5 +79,6 @@ gdata_documents_service_query_documents_async (GDataDocumentsService *self, GDat
 #include <gdata/services/documents/gdata-documents-entry.h>
 void *gdata_documents_service_query_insert_document(	GDataDocumentsService *self,	GDataDocumentsEntry *document,\
 												   	GDataDocumentsQuery *query, GCancellable *cancellable, GError **error);
+GDataService *gdata_documents_service_get_spreadsheet_service(GDataDocumentsService *self);
 
 #endif

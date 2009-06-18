@@ -60,7 +60,7 @@ test_authentication (void)
 	GError *error = NULL;
 
 	/* Create a service */
-	service = GDATA_SERVICE (gdata_documents_service_new (CLIENT_ID));
+	service = gdata_documents_service_new (CLIENT_ID);
 
 	g_assert (service != NULL);
 	g_assert (GDATA_IS_SERVICE (service));
@@ -415,6 +415,7 @@ test_document_download (void)
 	gchar *data, *content_type = NULL;
 	gsize length = 0;
 	GError *error = NULL;
+	gchar *destination_folder = "/tmp";
 
 	spreadsheet = get_documents ();
 
@@ -422,11 +423,8 @@ test_document_download (void)
 		g_print ("Spreasheet: %s Access Rules%d\n", gdata_documents_entry_get_document_id (spreadsheet), gdata_documents_entry_get_access_rules(spreadsheet));
 
 	/* Get the document from the network */
-	data = gdata_documents_spreadsheet_download_document (spreadsheet, GDATA_DOCUMENTS_SERVICE (service), &length, &content_type, "-1", "4", NULL, &error);
+	gdata_documents_spreadsheet_download_document (spreadsheet, GDATA_DOCUMENTS_SERVICE (service), &length, &content_type, "-1", "102", destination_folder, NULL, &error);
 	g_assert_no_error (error);
-	g_assert (data != NULL);
-	g_assert (length != 0);
-
 
 	g_free (content_type);
 	g_free (data);
