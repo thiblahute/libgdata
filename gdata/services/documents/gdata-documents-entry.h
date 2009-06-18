@@ -82,8 +82,8 @@ GDataAuthor *gdata_documents_entry_get_last_modified_by (GDataDocumentsEntry *se
 gchar *gdata_documents_entry_download_link (GDataDocumentsEntry *self, gchar *export_url);
 
 #include <gdata/services/documents/gdata-documents-service.h>
-void gdata_documents_entry_download_document (GDataDocumentsEntry *self, GDataService *service, gsize *length, gchar **content_type,\
-										gchar *link, gchar *destination_folder, gchar *file_extension, GCancellable *cancellable, GError **error);
+GFile *gdata_documents_entry_download_document (GDataDocumentsEntry *self, GDataService *service, gchar **content_type, gchar *link, gchar *destination_folder,\
+					gchar *file_extension, gboolean replace_file_if_exist, GCancellable *cancellable, GError **error);
 void gdata_documents_entry_set_access_rules (GDataDocumentsEntry *self, GDataService *service, GCancellable *cancellable,\
 											 GDataQueryProgressCallback progress_callback,gpointer progress_user_data, GError **error);
 GDataFeed *gdata_documents_entry_get_access_rules (GDataDocumentsEntry *self);

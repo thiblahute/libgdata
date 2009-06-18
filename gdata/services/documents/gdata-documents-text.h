@@ -59,8 +59,9 @@ GType gdata_documents_text_get_type (void)G_GNUC_CONST;
 
 GDataDocumentsText *gdata_documents_text_new (const gchar *id) G_GNUC_WARN_UNUSED_RESULT;
 GDataDocumentsText *gdata_documents_text_new_from_xml (const gchar *xml, gint length, GError **error) G_GNUC_WARN_UNUSED_RESULT;
-void gdata_documents_text_download_document (GDataDocumentsEntry *self, GDataDocumentsService *service, gsize *length, gchar **content_type,\
-										gchar *export_format, gchar *destination_folder, GCancellable *cancellable, GError **error);
+GFile *gdata_documents_text_download_document (GDataDocumentsEntry *self, GDataDocumentsService *service, gchar **content_type,\
+										gchar *export_format, gchar *destination_folder, gboolean replace_file_if_exist,\
+									   	GCancellable *cancellable, GError **error);
 G_END_DECLS
 
 #endif /* !GDATA_DOCUMENTS_TEXT_H */

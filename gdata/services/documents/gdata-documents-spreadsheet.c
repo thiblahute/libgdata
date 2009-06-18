@@ -172,7 +172,6 @@ get_xml (GDataEntry *entry, GString *xml_string)
 /* gdata_documents_spreadsheet_download_document:
  * @self: a #GDataDocumentsPresentation
  * @service: a #GDataDocumentsService
- * @length: return location for the document length, in bytes
  * @content_type: return location for the document's content type, or %NULL; free with g_free()
  * @gid: refers to the number of the spreasheet sheet you want to download, -1 if you want to download all.
  * @destination_folder: the destination folder
@@ -189,25 +188,25 @@ get_xml (GDataEntry *entry, GString *xml_string)
  *
  * Return value: the document's data, or %NULL; free with g_free()
  **/
-void
-gdata_documents_spreadsheet_download_document (GDataDocumentsEntry *self, GDataDocumentsService *service, gsize *length, gchar **content_type,
-										gchar *gid, gchar *fmcmd, gchar *destination_folder, GCancellable *cancellable, GError **error)
+GFile *
+gdata_documents_spreadsheet_download_document (GDataDocumentsEntry *self, GDataDocumentsService *service, gchar **content_type, gchar *gid,\
+	   	gchar *fmcmd, gchar *destination_folder, gboolean replace_file_if_exist, GCancellable *cancellable, GError **error)
 {
 	GString *link_href;
+	GFile *destination_file;
 	gchar *data, *document_id, *document_title, *extension;
 	GDataService *spreadsheet_service;
 
 	/* TODO: async version */
-	g_return_if_fail (GDATA_IS_DOCUMENTS_SPREADSHEET (self));
-	g_return_if_fail (GDATA_IS_DOCUMENTS_SERVICE (service));
-	g_return_if_fail (length != NULL);
-	g_return_if_fail (fmcmd != NULL);
+	g_return_val_if_fail (GDATA_IS_DOCUMENTS_SPREADSHEET (self), NULL);
+	g_return_val_if_fail (GDATA_IS_DOCUMENTS_SERVICE (service), NULL);
+	g_return_val_if_fail (fmcmd != NULL, NULL);
 
 	document_id = gdata_documents_entry_get_document_id (self);
 	extension = get_extension_from_fmcmd (fmcmd);
 
-	g_return_if_fail (document_id != NULL);
-	g_return_if_fail (extension != NULL);
+	g_return_val_if_fail (document_id != NULL, NULL);
+	g_return_val_if_fail (extension != NULL, NULL);
 
 	link_href = g_string_new ("http://spreadsheets.google.com/feeds/download/spreadsheets/Export?key=");
 	g_string_append_printf (link_href, "%s&fmcmd=%s", document_id, fmcmd);
@@ -218,9 +217,10 @@ gdata_documents_spreadsheet_download_document (GDataDocumentsEntry *self, GDataD
 	/*Get the spreadsheet service*/
 	spreadsheet_service = gdata_documents_service_get_spreadsheet_service (service);
 	/*Chain up to the parent class*/
-	gdata_documents_entry_download_document (GDATA_DOCUMENTS_ENTRY (self), spreadsheet_service, length, content_type, link_href->str, destination_folder, extension,  cancellable, error);
+	destination_file = gdata_documents_entry_download_document (GDATA_DOCUMENTS_ENTRY (self), spreadsheet_service, content_type, link_href->str, destination_folder, extension, replace_file_if_exist, cancellable, error);
 
 	g_string_free (link_href, FALSE);
+	return destination_file;
 }
 
 static gchar *

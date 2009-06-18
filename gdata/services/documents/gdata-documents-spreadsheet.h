@@ -60,8 +60,8 @@ GType gdata_documents_spreadsheet_get_type (void)G_GNUC_CONST;
 GDataDocumentsSpreadsheet *gdata_documents_spreadsheet_new (const gchar *id) G_GNUC_WARN_UNUSED_RESULT;
 GDataDocumentsSpreadsheet *gdata_documents_spreadsheet_new_from_xml (const gchar *xml, gint length, GError **error) G_GNUC_WARN_UNUSED_RESULT;
 
-void gdata_documents_spreadsheet_download_document (GDataDocumentsEntry *self, GDataDocumentsService *service, gsize *length, gchar **content_type,\
-										gchar *gid, gchar *fmcmd, gchar *destination_folder, GCancellable *cancellable, GError **error);
+GFile *gdata_documents_spreadsheet_download_document (GDataDocumentsEntry *self, GDataDocumentsService *service, gchar **content_type,\
+										gchar *gid, gchar *fmcmd, gchar *destination_folder, gboolean replace_file_if_exist, GCancellable *cancellable, GError **error);
 G_END_DECLS
 
 #endif /* !GDATA_DOCUMENTS_SPREADSHEET_H */

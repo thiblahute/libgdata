@@ -411,24 +411,33 @@ test_photo_add (void)
 static void
 test_document_download (void)
 {
-	GDataDocumentsSpreadsheet *spreadsheet;
-	gchar *data, *content_type = NULL;
-	gsize length = 0;
+	GDataDocumentsFeed *feed;
 	GError *error = NULL;
+	gchar *content_type = NULL;
 	gchar *destination_folder = "/tmp";
+	GFile *destination_file;
+	GList *i;
 
-	spreadsheet = get_documents ();
-
-	if (GDATA_IS_DOCUMENTS_SPREADSHEET (spreadsheet))
-		g_print ("Spreasheet: %s Access Rules%d\n", gdata_documents_entry_get_document_id (spreadsheet), gdata_documents_entry_get_access_rules(spreadsheet));
-
-	/* Get the document from the network */
-	gdata_documents_spreadsheet_download_document (spreadsheet, GDATA_DOCUMENTS_SERVICE (service), &length, &content_type, "-1", "102", destination_folder, NULL, &error);
+	feed = gdata_documents_service_query_documents (GDATA_DOCUMENTS_SERVICE (service), NULL, NULL, NULL, NULL, &error);
+	for (i = gdata_feed_get_entries (feed); i != NULL; i = i->next)
+	{
+		if (GDATA_IS_DOCUMENTS_PRESENTATION (i->data)){
+			destination_file = gdata_documents_presentation_download_document (i->data, GDATA_DOCUMENTS_SERVICE (service), &content_type, "ppt", destination_folder, TRUE, NULL, &error);
+			if ( destination_file != NULL)
+				g_print ("Presentation destination: %s\n", g_file_get_uri (destination_file));
+		}else if (GDATA_IS_DOCUMENTS_SPREADSHEET (i->data)){
+			destination_file = gdata_documents_spreadsheet_download_document (i->data, GDATA_DOCUMENTS_SERVICE (service), &content_type, "-1", "102", destination_folder, TRUE, NULL, &error);
+			if ( destination_file != NULL)
+				g_print ("Spreasheet destination: %s\n", g_file_get_uri (destination_file));
+		}else if (GDATA_IS_DOCUMENTS_TEXT (i->data)){
+			destination_file = gdata_documents_text_download_document (i->data, GDATA_DOCUMENTS_SERVICE (service), &content_type, "odt", destination_folder, FALSE, NULL, &error);
+			if ( destination_file != NULL)
+				g_print ("Document destination: %s\n", g_file_get_uri (destination_file));
+		}else if (GDATA_IS_DOCUMENTS_FOLDER (i->data))
+			g_print ("Folder: %s Access Rules%d\n", gdata_entry_get_title (i->data), gdata_documents_entry_get_access_rules(i->data));
+	}
 	g_assert_no_error (error);
-
-	g_free (content_type);
-	g_free (data);
-	g_object_unref (spreadsheet);
+	g_assert (GDATA_IS_FEED (feed));
 	g_clear_error (&error);
 }
 

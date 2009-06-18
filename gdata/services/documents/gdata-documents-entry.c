@@ -592,15 +592,16 @@ gdata_documents_entry_set_access_rules (GDataDocumentsEntry *self, GDataService 
 /* gdata_documents_entry_download_document:
  * @self: a #GDataDocumentsEntry
  * @service: a #GDataDocumentsService
- * @length: return location for the document length, in bytes
  * @content_type: return location for the document's content type, or %NULL; free with g_free()
  * @link: The link to download the document;
- * @destination_folder: the destination file
+ * @destination_folder: the destination file, if it's wrong an error will be set
+ * @file_extension: the extension of the downloading file
+ * @replace_file_if_exist: %TRUE if you want to replace the file if it exists, %FALSE otherwise. If it's set to %False
+ * a G_IO_ERROR_EXISTS will be set
  * @cancellable: optional #GCancellable object, or %NULL
  * @error: a #GError, or %NULL
  *
- * Downloads and returns the documents descibed here. If the documents doesn't exist, %NULL is returned, but
- * no error is set in @error. TODO
+ * Downloads and returns the documents descibed here. If the documents doesn't exist the download document will contained error explaination.
  *
  * If @cancellable is not %NULL, then the operation can be cancelled by triggering the @cancellable object from another thread.
  * If the operation was cancelled, the error %G_IO_ERROR_CANCELLED will be returned.
@@ -609,9 +610,9 @@ gdata_documents_entry_set_access_rules (GDataDocumentsEntry *self, GDataService 
  *
  * Return value: the document's data, or %NULL; free with g_free()
  **/
-void
-gdata_documents_entry_download_document (GDataDocumentsEntry *self, GDataService *service, gsize *length, gchar **content_type,
-										gchar *link, gchar *destination_folder, gchar *file_extension, GCancellable *cancellable, GError **error)
+GFile *
+gdata_documents_entry_download_document (GDataDocumentsEntry *self, GDataService *service, gchar **content_type, gchar *link, gchar *destination_folder,\
+						gchar *file_extension, gboolean replace_file_if_exist, GCancellable *cancellable, GError **error)
 {
 	GDataServiceClass *klass;
 	GFileOutputStream *file_stream;
@@ -624,12 +625,6 @@ gdata_documents_entry_download_document (GDataDocumentsEntry *self, GDataService
 	/* TODO: async version */
 	g_return_val_if_fail (GDATA_IS_DOCUMENTS_ENTRY (self), NULL);
 	g_return_val_if_fail (GDATA_IS_SERVICE (service), NULL);
-	g_return_val_if_fail (length != NULL, NULL);
-
-	/*Return NULL if the document doesn't exist yet on the server*/
-	/*TODO
-	if (gdata_documents_entry_exist (self) == FALSE)
-		return NULL;*/
 
 	/*prepare the GFile*/
 	document_title = gdata_entry_get_title (self);
@@ -637,13 +632,21 @@ gdata_documents_entry_download_document (GDataDocumentsEntry *self, GDataService
 	g_string_append_printf (path, "/%s.%s", document_title, file_extension);
 	destination_file = g_file_new_for_path (path->str);
 	g_string_free (path, FALSE);
-	file_stream = g_file_create (destination_file, G_FILE_CREATE_NONE, NULL, error);
-
-	g_print ("File uri: %s\n", g_file_get_uri (destination_file));
+	
+	/*Check if the file exists*/
+	if (g_file_query_exists (destination_file, cancellable) == TRUE){
+		if (replace_file_if_exist == TRUE)
+			file_stream = g_file_replace (destination_file, NULL, TRUE, G_FILE_CREATE_NONE, cancellable, error);
+		else{
+			g_set_error (error, G_IO_ERROR_EXISTS, 1, NULL);
+			return NULL;
+		}
+	}
+	else
+		file_stream = g_file_create (destination_file, G_FILE_CREATE_NONE, cancellable, error);
 
 	/*Get the document URI */
-	/*g_assert (link != NULL);
-	g_print ("Message link->href: %s\n", link);*/
+	g_assert (link != NULL);
 	message = soup_message_new (SOUP_METHOD_GET, link);
 	soup_message_body_set_accumulate (message->response_body, FALSE);
 
@@ -677,7 +680,13 @@ gdata_documents_entry_download_document (GDataDocumentsEntry *self, GDataService
 		return NULL;
 	}
 
+	/* Sort out the return values */
+	if (content_type != NULL)
+		*content_type = g_strdup (soup_message_headers_get_content_type (message->response_headers, NULL));
+
 	g_object_unref (message);
+	g_object_unref (file_stream);
+	return destination_file;
 }
 
 
