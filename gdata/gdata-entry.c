@@ -749,6 +749,12 @@ gdata_entry_look_up_link (GDataEntry *self, const gchar *rel)
 	g_return_val_if_fail (GDATA_IS_ENTRY (self), NULL);
 	g_return_val_if_fail (rel != NULL, NULL);
 
+/*
+	for (i = self->priv->links; i != NULL; i = i->next)
+	{
+		g_print ("Link rel: %s href: %s\n ", ((GDataLink*) i->data)->rel, ((GDataLink*) i->data)->href);
+	}
+*/
 	element = g_list_find_custom (self->priv->links, rel, (GCompareFunc) link_compare_cb);
 	if (element == NULL){
 		return NULL;

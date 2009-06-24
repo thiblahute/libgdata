@@ -295,7 +295,6 @@ get_query_uri (GDataQuery *self, const gchar *feed_uri, GString *query_uri, gboo
 		g_string_append (query_uri, "showfolders=true");
 	else
 		g_string_append (query_uri, "showfolders=false");
-	g_print ("Querry url: %s\n", query_uri->str);
 }
 
 /**

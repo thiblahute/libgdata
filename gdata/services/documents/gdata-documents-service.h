@@ -82,4 +82,6 @@ GDataService *gdata_documents_service_get_spreadsheet_service(GDataDocumentsServ
 /*TODO use a GDataDocumentsFolder*/
 GDataDocumentsEntry *gdata_documents_service_upload_document (GDataDocumentsService *self, GDataDocumentsEntry *document, GDataDocumentsEntry *folder,\
 			   	GFile *document_file, gboolean metadata, GCancellable *cancellable, GError **error);
+GDataDocumentsEntry *gdata_documents_service_update_document (GDataDocumentsService *self, GDataDocumentsEntry *document,\
+	   	GFile *document_file, gboolean metadata, GCancellable *cancellable, GError **error);
 #endif

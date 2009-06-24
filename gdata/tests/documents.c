@@ -27,6 +27,35 @@
 static GDataService *service = NULL;
 static GMainLoop *main_loop = NULL;
 
+static GDataDocumentsEntry *
+get_documents (void)
+{
+	GDataDocumentsFeed *feed;
+	GDataEntry *entry;
+	GDataDocumentsQuery *query;
+	GList *entries;
+	GError *error = NULL;
+
+	g_assert (service != NULL);
+
+	query = gdata_documents_query_new (NULL);
+	gdata_documents_query_set_show_folder (query, TRUE);
+
+	feed = gdata_documents_service_query_documents (GDATA_DOCUMENTS_SERVICE (service), query, TRUE, NULL, NULL, NULL, &error);
+	g_assert_no_error (error);
+	g_assert (GDATA_IS_FEED (feed));
+	g_clear_error (&error);
+
+	entries = gdata_feed_get_entries (feed);
+	g_assert (entries != NULL);
+	entry = entries->data;
+	g_assert (GDATA_IS_DOCUMENTS_ENTRY (entry));
+
+	g_object_ref (entry);
+	g_object_unref (feed);
+
+	return GDATA_DOCUMENTS_ENTRY (entry);
+}
 static void
 test_authentication (void)
 {
@@ -34,11 +63,11 @@ test_authentication (void)
 	GError *error = NULL;
 
 	/* Create a service */
-	service = gdata_documents_service_new (USERNAME);
+	service = gdata_documents_service_new (CLIENT_ID);
 
 	g_assert (service != NULL);
 	g_assert (GDATA_IS_SERVICE (service));
-	g_assert_cmpstr (gdata_service_get_client_id (service), ==, USERNAME);
+	g_assert_cmpstr (gdata_service_get_client_id (service), ==, CLIENT_ID);
 
 	/* Log in */
 	retval = gdata_service_authenticate (service, USERNAME, PASSWORD, NULL, &error);
@@ -48,7 +77,7 @@ test_authentication (void)
 
 	/* Check all is as it should be */
 	g_assert (gdata_service_is_authenticated (service) == TRUE);
-	g_assert_cmpstr (gdata_service_get_username (service), ==, CLIENT_ID);
+	g_assert_cmpstr (gdata_service_get_username (service), ==, USERNAME);
 	g_assert_cmpstr (gdata_service_get_password (service), ==, PASSWORD);
 }
 
@@ -69,13 +98,13 @@ test_query_all_documents_with_folder (void)
 	for (i = gdata_feed_get_entries (feed); i != NULL; i = i->next)
 	{
 		if (GDATA_IS_DOCUMENTS_PRESENTATION (i->data))
-			g_print ("Presentation: %s Access Rules %d\n", gdata_entry_get_title (i->data), gdata_documents_entry_get_access_rules(i->data));
+			g_print ("	Presentation: %s Access Rules %d\n", gdata_entry_get_title (i->data), gdata_documents_entry_get_access_rules(i->data));
 		if (GDATA_IS_DOCUMENTS_SPREADSHEET (i->data))
-			g_print ("Spreasheet: %s Access Rules %d\n", gdata_entry_get_title (i->data), gdata_documents_entry_get_access_rules(i->data));
+			g_print ("	Spreasheet: %s Access Rules %d\n", gdata_entry_get_title (i->data), gdata_documents_entry_get_access_rules(i->data));
 		if (GDATA_IS_DOCUMENTS_TEXT (i->data))
-			g_print ("Document: %s Access Rules %d\n", gdata_entry_get_title (i->data), gdata_documents_entry_get_access_rules(i->data));
+			g_print ("	Document: %s Access Rules %d\n", gdata_entry_get_title (i->data), gdata_documents_entry_get_access_rules(i->data));
 		if (GDATA_IS_DOCUMENTS_FOLDER (i->data)){
-			g_print ("Folder: %s Access Rules %d\n", gdata_entry_get_title (i->data), gdata_documents_entry_get_access_rules(i->data));
+			g_print ("	Folder: %s Access Rules %d\n", gdata_entry_get_title (i->data), gdata_documents_entry_get_access_rules(i->data));
 		}
 	}
 	g_assert_no_error (error);
@@ -83,7 +112,6 @@ test_query_all_documents_with_folder (void)
 	g_clear_error (&error);
 
 	/* TODO: check entries and feed properties */
-
 	g_object_unref (feed);
 }
 static void
@@ -99,19 +127,14 @@ test_query_all_documents (void)
 	for (i = gdata_feed_get_entries (feed); i != NULL; i = i->next)
 	{
 		if (GDATA_IS_DOCUMENTS_PRESENTATION (i->data))
-			g_print ("Presentation: %s Access Rules%d\n", gdata_entry_get_title (i->data), gdata_documents_entry_get_access_rules(i->data));
+			g_print ("	Presentation: %s Access Rules%d\n", gdata_entry_get_title (i->data), gdata_documents_entry_get_access_rules(i->data));
 		if (GDATA_IS_DOCUMENTS_SPREADSHEET (i->data)){
-			g_print ("Spreasheet: %s Access Rules%d\n", gdata_entry_get_title (i->data), gdata_documents_entry_get_access_rules(i->data));
-			if (strcmp (gdata_entry_get_title (i->data), "comptespapathibault2") == 0){
-				gchar *content_type;
-				gdata_documents_spreadsheet_download_document ( i->data, service, &content_type, "-1", "4", "/home/thibault", TRUE, NULL, error);
-				g_print ("\n\nDownload\n:");
-			}
+			g_print ("	Spreasheet: %s Access Rules%d\n", gdata_entry_get_title (i->data), gdata_documents_entry_get_access_rules(i->data));
 		}
 		if (GDATA_IS_DOCUMENTS_TEXT (i->data))
-			g_print ("Document: %s Access Rules%d\n", gdata_entry_get_title (i->data), gdata_documents_entry_get_access_rules(i->data));
+			g_print ("	Document: %s Access Rules%d\n", gdata_entry_get_title (i->data), gdata_documents_entry_get_access_rules(i->data));
 		if (GDATA_IS_DOCUMENTS_FOLDER (i->data))
-			g_print ("Folder: %s Access Rules%d\n", gdata_entry_get_title (i->data), gdata_documents_entry_get_access_rules(i->data));
+			g_print ("	Folder: %s Access Rules%d\n", gdata_entry_get_title (i->data), gdata_documents_entry_get_access_rules(i->data));
 	}
 	g_assert_no_error (error);
 	g_assert (GDATA_IS_FEED (feed));
@@ -133,13 +156,13 @@ test_query_all_documents_async_cb (GDataService *service, GAsyncResult *async_re
 	for (i = gdata_feed_get_entries (feed); i != NULL; i = i->next)
 	{
 		if (GDATA_IS_DOCUMENTS_PRESENTATION (i->data))
-			g_print ("Presentation: %s Access Rules%d\n", gdata_entry_get_title (i->data), gdata_documents_entry_get_access_rules(i->data));
+			g_print ("	Presentation: %s Access Rules%d\n", gdata_entry_get_title (i->data), gdata_documents_entry_get_access_rules(i->data));
 		if (GDATA_IS_DOCUMENTS_SPREADSHEET (i->data))
-			g_print ("Spreasheet: %s Access Rules%d\n", gdata_entry_get_title (i->data), gdata_documents_entry_get_access_rules(i->data));
+			g_print ("	Spreasheet: %s Access Rules%d\n", gdata_entry_get_title (i->data), gdata_documents_entry_get_access_rules(i->data));
 		if (GDATA_IS_DOCUMENTS_TEXT (i->data))
-			g_print ("Document: %s Access Rules%d\n", gdata_entry_get_title (i->data), gdata_documents_entry_get_access_rules(i->data));
+			g_print ("	Document: %s Access Rules%d\n", gdata_entry_get_title (i->data), gdata_documents_entry_get_access_rules(i->data));
 		if (GDATA_IS_DOCUMENTS_FOLDER (i->data))
-			g_print ("Folder: %s Access Rules%d\n", gdata_entry_get_title (i->data), gdata_documents_entry_get_access_rules(i->data));
+			g_print ("	Folder: %s Access Rules%d\n", gdata_entry_get_title (i->data), gdata_documents_entry_get_access_rules(i->data));
 	}
 	g_assert_no_error (error);
 	g_assert (GDATA_IS_FEED (feed));
@@ -147,7 +170,6 @@ test_query_all_documents_async_cb (GDataService *service, GAsyncResult *async_re
 
 	/* TODO: Tests? */
 	g_main_loop_quit (main_loop);
-
 	g_object_unref (feed);
 }
 
@@ -198,22 +220,22 @@ static void
 test_upload_metadata_file (void)
 {
 	GDataDocumentsSpreadsheet *document, *new_document;
-	GDataDocumentsFolder *folder;
-	gchar *xml;
+	GFile *document_file;
 	GDataCategory *category;
 	GError *error = NULL;
 
 	g_assert (service != NULL);
 
-	document = gdata_documents_spreadsheet_new (NULL);
-	folder = gdata_documents_folder_new ("rysSyYDFOJgnn3jPpaIN-_Q");
-	category = gdata_category_new ("http://schemas.google.com/docs/2007#folder", "http://schemas.google.com/g/2005#kind", "folder");
+	document_file = g_file_new_for_path ( "/home/thibault/workspace/gsoc/libgdata/libgdata/gdata/tests/test.ods");
 
-	gdata_entry_set_title (GDATA_ENTRY (document), "myNewFolder");
+	document = gdata_documents_spreadsheet_new (NULL);
+	category = gdata_category_new ("http://schemas.google.com/docs/2007#document", "http://schemas.google.com/g/2005#kind", "document");
+
+	gdata_entry_set_title (GDATA_ENTRY (document), "testingDocument");
 	gdata_entry_add_category (GDATA_ENTRY (document), category);
 
 	/* Insert the document */
-	new_document = gdata_documents_service_upload_document (GDATA_DOCUMENTS_SERVICE (service), document, folder, NULL, TRUE, NULL, &error);
+	new_document = gdata_documents_service_upload_document (GDATA_DOCUMENTS_SERVICE (service), document, NULL, document_file, TRUE, NULL, &error);
 	g_assert_no_error (error);
 	g_assert (GDATA_IS_DOCUMENTS_ENTRY (new_document));
 	g_clear_error (&error);
@@ -225,7 +247,110 @@ test_upload_metadata_file (void)
 }
 
 static void
-test_document_download (void)
+test_upload_file (void)
+{
+	GDataDocumentsSpreadsheet *document, *new_document;
+	GFile *document_file;
+	GDataCategory *category;
+	GError *error = NULL;
+
+	g_assert (service != NULL);
+
+	document_file = g_file_new_for_path ( "/home/thibault/workspace/gsoc/libgdata/libgdata/gdata/tests/test.ppt");
+
+	document = gdata_documents_spreadsheet_new (NULL);
+	category = gdata_category_new ("http://schemas.google.com/docs/2007#presentation", "http://schemas.google.com/g/2005#kind", "presentation");
+
+	gdata_entry_set_title (GDATA_ENTRY (document), "testingDocument");
+	gdata_entry_add_category (GDATA_ENTRY (document), category);
+
+	/* Insert the document */
+	new_document = gdata_documents_service_upload_document (GDATA_DOCUMENTS_SERVICE (service), document, NULL, document_file, FALSE, NULL, &error);
+	g_assert_no_error (error);
+	g_assert (GDATA_IS_DOCUMENTS_ENTRY (new_document));
+	g_clear_error (&error);
+
+	/* TODO: check entries and feed properties */
+	g_object_unref (document);
+	g_object_unref (new_document);
+}
+
+static void
+test_update_metadata (void)
+{
+	GDataDocumentsSpreadsheet *document, *new_document;
+	GDataCategory *category;
+	GError *error = NULL;
+
+	g_assert (service != NULL);
+
+	document = get_documents();
+	gdata_entry_set_title (document, "MyNewTitle");
+
+	/* Insert the document */
+	new_document = gdata_documents_service_update_document (GDATA_DOCUMENTS_SERVICE (service), document, NULL, TRUE, NULL, &error);
+	g_assert_no_error (error);
+	g_assert (GDATA_IS_DOCUMENTS_ENTRY (new_document));
+	g_clear_error (&error);
+
+	/* TODO: check entries and feed properties */
+
+	g_object_unref (document);
+	g_object_unref (new_document);
+}
+
+static void
+test_update_metadata_file (void)
+{
+	GDataDocumentsSpreadsheet *document, *new_document;
+	GFile *document_file;
+	GDataCategory *category;
+	GError *error = NULL;
+
+	g_assert (service != NULL);
+
+	document_file = g_file_new_for_path ( "/home/thibault/workspace/gsoc/libgdata/libgdata/gdata/tests/test.ods");
+	document = get_documents();
+
+	/* Insert the document */
+	new_document = gdata_documents_service_update_document (GDATA_DOCUMENTS_SERVICE (service), document, document_file, TRUE, NULL, &error);
+	g_assert_no_error (error);
+	g_assert (GDATA_IS_DOCUMENTS_ENTRY (new_document));
+	g_clear_error (&error);
+
+	/* TODO: check entries and feed properties */
+
+	g_object_unref (document);
+	g_object_unref (new_document);
+}
+
+static void
+test_update_file (void)
+{
+	GDataDocumentsSpreadsheet *document, *new_document;
+	GFile *document_file;
+	GDataCategory *category;
+	GError *error = NULL;
+
+	g_assert (service != NULL);
+
+	document_file = g_file_new_for_path ( "/home/thibault/workspace/gsoc/libgdata/libgdata/gdata/tests/test.ods");
+	document = get_documents();
+
+	/* Insert the document */
+	new_document = gdata_documents_service_update_document (GDATA_DOCUMENTS_SERVICE (service), document, document_file, FALSE, NULL, &error);
+	g_assert_no_error (error);
+	g_assert (GDATA_IS_DOCUMENTS_ENTRY (new_document));
+	g_clear_error (&error);
+
+	/* TODO: check entries and feed properties */
+
+	g_object_unref (document);
+	g_object_unref (new_document);
+}
+
+static void
+test_download_all_documents (void)
 {
 	GDataDocumentsFeed *feed;
 	GError *error = NULL;
@@ -240,20 +365,21 @@ test_document_download (void)
 		if (GDATA_IS_DOCUMENTS_PRESENTATION (i->data)){
 			destination_file = gdata_documents_presentation_download_document (i->data, GDATA_DOCUMENTS_SERVICE (service), &content_type, "ppt", destination_folder, TRUE, NULL, &error);
 			if ( destination_file != NULL)
-				g_print ("Presentation destination: %s\n", g_file_get_uri (destination_file));
+				g_print ("	Presentation destination: %s\n", g_file_get_uri (destination_file));
 		}else if (GDATA_IS_DOCUMENTS_SPREADSHEET (i->data)){
 			destination_file = gdata_documents_spreadsheet_download_document (i->data, GDATA_DOCUMENTS_SERVICE (service), &content_type, "-1", "102", destination_folder, TRUE, NULL, &error);
 			if ( destination_file != NULL)
-				g_print ("Spreasheet destination: %s\n", g_file_get_uri (destination_file));
+				g_print ("	Spreasheet destination: %s\n", g_file_get_uri (destination_file));
 		}else if (GDATA_IS_DOCUMENTS_TEXT (i->data)){
 			destination_file = gdata_documents_text_download_document (i->data, GDATA_DOCUMENTS_SERVICE (service), &content_type, "odt", destination_folder, TRUE, NULL, &error);
 			if ( destination_file != NULL)
-				g_print ("Document destination: %s\n", g_file_get_uri (destination_file));
+				g_print ("	Document destination: %s\n", g_file_get_uri (destination_file));
 		}else if (GDATA_IS_DOCUMENTS_FOLDER (i->data))
-			g_print ("Folder: %s Access Rules%d\n", gdata_entry_get_title (i->data), gdata_documents_entry_get_access_rules(i->data));
+			g_print ("	Folder: %s Access Rules%d\n", gdata_entry_get_title (i->data), gdata_documents_entry_get_access_rules(i->data));
 	}
 	g_assert_no_error (error);
 	g_assert (GDATA_IS_FEED (feed));
+	g_object_unref (feed);
 	g_clear_error (&error);
 }
 
@@ -268,15 +394,20 @@ main (int argc, char *argv[])
 	g_test_bug_base ("http://bugzilla.gnome.org/show_bug.cgi?id=");
 
 	g_test_add_func ("/documents/authentication", test_authentication);
-	g_test_add_func ("/documents/upload/only_metadata", test_upload_metadata_file);
 
-/*
-	g_test_add_func ("/documents/query/all_documents", test_query_all_documents);
 	g_test_add_func ("/documents/query/all_documents_with_folder", test_query_all_documents_with_folder);
+	g_test_add_func ("/documents/query/all_documents", test_query_all_documents);
 	g_test_add_func ("/documents/query/all_documents_async", test_query_all_documents_async);
-	g_test_add_func ("/documents/documenyts/download", test_document_download);
+	
+	g_test_add_func ("/documents/upload/only_file", test_upload_file);
 	g_test_add_func ("/documents/upload/only_metadata", test_upload_metadata);
-*/
+	g_test_add_func ("/documents/upload/metadata_file", test_upload_metadata_file);
+	
+	g_test_add_func ("/documents/update/only_file", test_update_file);
+	g_test_add_func ("/documents/update/only_metadata", test_update_metadata);
+	g_test_add_func ("/documents/update/metadata_file", test_update_metadata_file);
+
+	g_test_add_func ("/documents/documenyts/download_all", test_download_all_documents);
 
 	retval = g_test_run ();
 	if (service != NULL)

@@ -48,6 +48,8 @@ static void gdata_documents_service_finalize (GObject *object);
 static void gdata_documents_service_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec);
 static void gdata_documents_service_set_property (GObject *object, guint property_id, const GValue *value, GParamSpec *pspec);
 static void notify_authenticated_cb (GObject *service, GParamSpec *pspec, GObject *self);
+GDataDocumentsEntry *gdata_documents_service_upload_update_document (GDataDocumentsService *self, GDataDocumentsEntry *document,\
+			   	gchar *link, GFile *document_file, gboolean metadata, GCancellable *cancellable, GError **error);
 
 struct _GDataDocumentsServicePrivate {
 	GDataService *spreadsheet_service;
@@ -283,9 +285,70 @@ gdata_documents_service_upload_document (GDataDocumentsService *self, GDataDocum
 		upload_uri = g_strconcat (upload_uri, folder_id, NULL);
 	}else
 		upload_uri = "http://docs.google.com/feeds/documents/private/full";
-	message = soup_message_new (SOUP_METHOD_POST, upload_uri);
-	/*g_free (upload_uri); FIXME
-	g_free (folder_id);*/
+
+	return gdata_documents_service_upload_update_document (self, document, upload_uri, document_file, metadata, cancellable, error);
+}
+
+/**
+ * gdata_documents_service_update_document:
+ * @self: a #GDataDocumentsService
+ * @document_entry : the #GDataDocumentsEntry to insert
+ * @document : the document to upload or %NULL if uploading without datas.
+ * @metadata: TRUE if upload with metadata otherwise FALSE
+ * @cancellable: optional #GCancellable object, or %NULL
+ * @error: a #GError, or %NULL
+ *
+ * Upload @document to the online if not NULL otherwise create an empty document to the google documents service.
+ * if @metadata is %FALSE and @document_file is %NULL metadatas are uploaded
+ *
+ * For more details, see gdata_service_insert_entry().
+ *
+ * Return value: an updated #GDataDocumentsEntry, or %NULL
+ **/
+GDataDocumentsEntry *
+gdata_documents_service_update_document (GDataDocumentsService *self, GDataDocumentsEntry *document, GFile *document_file,\
+						gboolean metadata, GCancellable *cancellable, GError **error)
+{
+	GDataLink *update_uri;    
+
+	g_return_val_if_fail (GDATA_IS_DOCUMENTS_SERVICE (self), NULL);
+	g_return_val_if_fail (GDATA_IS_DOCUMENTS_ENTRY (document), NULL);
+
+	if (gdata_service_is_authenticated (GDATA_SERVICE (self)) == FALSE) {
+		g_set_error_literal (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_AUTHENTICATION_REQUIRED,
+				     _("You must be authenticated to query documents."));
+		return NULL;
+	}
+
+	if (document_file =! NULL)
+		update_uri = gdata_entry_look_up_link (GDATA_ENTRY (document), "edit-media");
+	else
+		update_uri = gdata_entry_look_up_link (GDATA_ENTRY (document), "edit");
+
+	g_return_val_if_fail (update_uri != NULL, NULL);
+
+	return gdata_documents_service_upload_update_document (self, document, update_uri->href, document_file, metadata, cancellable, error);
+}
+
+GDataDocumentsEntry *gdata_documents_service_upload_update_document (GDataDocumentsService *self, GDataDocumentsEntry *document,\
+			   	gchar *link, GFile *document_file, gboolean metadata, GCancellable *cancellable, GError **error)
+{
+	/* TODO: Async variant */
+	#define BOUNDARY_STRING "END_OF_PART"
+
+	GDataServiceClass *klass;
+	GDataEntry *updated_document;
+	SoupMessage *message;
+	gchar *entry_xml, *second_chunk_header, *upload_data, *document_contents, *i;
+	const gchar *first_chunk_header, *footer, *folder_id;
+	GFileInfo *document_file_info;
+	guint status;
+	gsize content_length, first_chunk_header_length, second_chunk_header_length, entry_xml_length, document_length, footer_length;
+
+	g_print ("Link: %s	", link);
+	
+	message = soup_message_new (SOUP_METHOD_POST, link);
+	/*g_free (link);*/
 
 	/* Make sure subclasses set their headers */
 	klass = GDATA_SERVICE_GET_CLASS (self);
@@ -337,16 +400,24 @@ gdata_documents_service_upload_document (GDataDocumentsService *self, GDataDocum
 
 
 		if (document_file != NULL){
-			second_chunk_header = g_strdup_printf ("\n--" BOUNDARY_STRING "\nContent-Type: %s", g_file_info_get_content_type (document_file_info));
+			const gchar *content_type = g_file_info_get_content_type (document_file_info);
+			
 			first_chunk_header = "--" BOUNDARY_STRING "\nContent-Type: application/atom+xml; charset=UTF-8\n\n<?xml version='1.0'?>";
-			first_chunk_header_length = strlen (first_chunk_header);
+			/*Corrects a strange bug on spreadsheets mime types handling*/
+			if (strcmp (content_type, "application/vnd.oasis.opendocument.spreadsheet") == 0){
+				g_free (content_type);
+				second_chunk_header = g_strdup_printf ("\n--" BOUNDARY_STRING "\nContent-Type: %s\n\n", "application/x-vnd.oasis.opendocument.spreadsheet");
+			}
+			else
+				second_chunk_header = g_strdup_printf ("\n--" BOUNDARY_STRING "\nContent-Type: %s\n\n", content_type);
 			footer = "\n--" BOUNDARY_STRING "--";
 
+			first_chunk_header_length = strlen (first_chunk_header);
 			second_chunk_header_length = strlen (second_chunk_header);
-			footer_length = strlen (footer);
 			entry_xml_length = strlen (entry_xml);
-
+			footer_length = strlen (footer);
 			content_length = first_chunk_header_length + entry_xml_length + second_chunk_header_length + document_length + footer_length;
+
 
 			/* Build the upload data */
 			upload_data = i = g_malloc (content_length);
