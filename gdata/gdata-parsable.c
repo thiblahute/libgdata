@@ -117,6 +117,7 @@ _gdata_parsable_new_from_xml (GType parsable_type, const gchar *first_element, c
 	g_return_val_if_fail (first_element != NULL, NULL);
 	g_return_val_if_fail (xml != NULL, NULL);
 
+/*	g_print ("\nXML\n\n %s \n\n", xml);*/
 	if (length == -1)
 		length = strlen (xml);
 

@@ -98,7 +98,6 @@ gdata_access_handler_get_rules (GDataAccessHandler *self, GDataService *service,
 	if ( link == NULL)
 		return NULL;
 
-	g_print ("Acces rules uri %s\n", link->href);
 	message = soup_message_new (SOUP_METHOD_GET, link->href);
 
 	/* Make sure subclasses set their headers */

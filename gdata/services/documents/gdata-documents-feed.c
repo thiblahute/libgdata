@@ -88,11 +88,11 @@ _gdata_documents_feed_new_from_xml (GType feed_type, const gchar *xml, gint leng
 	g_return_val_if_fail (xml != NULL, NULL);
 	g_return_val_if_fail (g_type_is_a (entry_type, GDATA_TYPE_DOCUMENTS_ENTRY) == TRUE, FALSE);
 
-	data = _gdata_get_parse_data(entry_type, progress_callback, progress_user_data);
+	data = _gdata_feed_parse_data_new(entry_type, progress_callback, progress_user_data);
 		
 	feed = GDATA_DOCUMENTS_FEED (_gdata_parsable_new_from_xml (feed_type, "feed", xml, length, data, error));
 
-	_gdata_feed_free_parse_data (data);
+	_gdata_feed_parse_data_free (data);
 	
 	return feed;
 }
@@ -127,7 +127,7 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 			return FALSE;
 
 		/* Call the progress callback in the main thread */
-		_gdata_feed_call_progres_callback (self, user_data, entry);
+		_gdata_feed_call_progress_callback (self, user_data, entry);
 
 		/* TODO: call the callback function as parse_xml in gdata-feed.c does (may need new private API), and add the entry to the
 		 * GDataFeed's list of entries (does need new private API) */
@@ -150,16 +150,11 @@ is_spreadsheet_entry (xmlDoc *doc, xmlNode *node)
 	entry_node = node->children;	
 
 	while (entry_node != NULL) {
-		if ( strcmp ((gchar*) entry_node->name, "resourceId") == 0) {
-			document_type = (gchar*) xmlGetProp (entry_node, (xmlChar*) "resourceId");
-			document_type = xmlNodeListGetString (doc, entry_node->children, TRUE);
-			document_type = g_strsplit ((const gchar *)document_type, ":", 2)[0];
-			if (document_type == NULL) 
-				return FALSE;
-			if (strcmp( (const gchar*) document_type, "spreadsheet") == 0)
+		if ( strcmp ((gchar*) entry_node->name, "category") == 0){
+			const gchar *label= (const gchar*) (xmlGetProp (entry_node, (xmlChar*) "label"));
+			if (strcmp (label, "spreadsheet") == 0){
 				return TRUE;
-			else
-				return FALSE;
+			}
 		}
 		entry_node= entry_node->next;
 	}
@@ -176,16 +171,11 @@ is_text_entry (xmlDoc *doc, xmlNode *node)
 	entry_node = node->children;	
 
 	while (entry_node != NULL) {
-		if ( strcmp ((gchar*) entry_node->name, "resourceId") == 0) {
-			document_type = (gchar*) xmlGetProp (entry_node, (xmlChar*) "resourceId");
-			document_type = xmlNodeListGetString (doc, entry_node->children, TRUE);
-			document_type = g_strsplit ((const gchar *)document_type, ":", 2)[0];
-			if (document_type == NULL) 
-				return FALSE;
-			if (strcmp( (const gchar*) document_type, "document") == 0)
+		if ( strcmp ((gchar*) entry_node->name, "category") == 0){
+			const gchar *label= (const gchar*) (xmlGetProp (entry_node, (xmlChar*) "label"));
+			if (strcmp (label, "document") == 0){
 				return TRUE;
-			else
-				return FALSE;
+			}
 		}
 		entry_node= entry_node->next;
 	}
@@ -202,16 +192,11 @@ is_presentation_entry (xmlDoc *doc, xmlNode *node)
 	entry_node = node->children;	
 
 	while (entry_node != NULL) {
-		if ( strcmp ((gchar*) entry_node->name, "resourceId") == 0) {
-			document_type = (gchar*) xmlGetProp (entry_node, (xmlChar*) "resourceId");
-			document_type = xmlNodeListGetString (doc, entry_node->children, TRUE);
-			document_type = g_strsplit ((const gchar *)document_type, ":", 2)[0];
-			if (document_type == NULL) 
-				return FALSE;
-			if (strcmp( (const gchar*) document_type, "presentation") == 0)
+		if ( strcmp ((gchar*) entry_node->name, "category") == 0){
+			const gchar *label= (const gchar*) (xmlGetProp (entry_node, (xmlChar*) "label"));
+			if (strcmp (label, "presentation") == 0){
 				return TRUE;
-			else
-				return FALSE;
+			}
 		}
 		entry_node= entry_node->next;
 	}
@@ -228,16 +213,11 @@ is_folder_entry (xmlDoc *doc, xmlNode *node)
 	entry_node = node->children;	
 
 	while (entry_node != NULL) {
-		if ( strcmp ((gchar*) entry_node->name, "resourceId") == 0) {
-			document_type = (gchar*) xmlGetProp (entry_node, (xmlChar*) "resourceId");
-			document_type = xmlNodeListGetString (doc, entry_node->children, TRUE);
-			document_type = g_strsplit ((const gchar *)document_type, ":", 2)[0];
-			if (document_type == NULL) 
-				return FALSE;
-			if (strcmp( (const gchar*) document_type, "folder") == 0)
+		if ( strcmp ((gchar*) entry_node->name, "category") == 0){
+			const gchar *label= (const gchar*) (xmlGetProp (entry_node, (xmlChar*) "label"));
+			if (strcmp (label, "folder") == 0){
 				return TRUE;
-			else
-				return FALSE;
+			}
 		}
 		entry_node= entry_node->next;
 	}

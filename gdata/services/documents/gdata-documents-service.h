@@ -24,6 +24,7 @@
 #include <glib.h>
 #include <glib-object.h>
 
+#include <gio/gio.h>
 #include <gdata/gdata-service.h>
 #include <gdata/services/documents/gdata-documents-query.h>
 #include <gdata/services/documents/gdata-documents-feed.h>
@@ -63,22 +64,22 @@ typedef struct {
 GType gdata_documents_service_get_type (void) G_GNUC_CONST;
 
 GDataDocumentsService *gdata_documents_service_new (const gchar *client_id) G_GNUC_WARN_UNUSED_RESULT;
-
-
-
-GDataDocumentsFeed *gdata_documents_service_query_documents (GDataDocumentsService *self, GDataDocumentsQuery *query,
+GDataDocumentsFeed *gdata_documents_service_query_documents (GDataDocumentsService *self, GDataDocumentsQuery *query, gboolean set_access_rules,\
 													   	GCancellable *cancellable, GDataQueryProgressCallback progress_callback,
 														gpointer progress_user_data, GError **error);
-
-void*
+void
 gdata_documents_service_query_documents_async (GDataDocumentsService *self, GDataDocumentsQuery *query, GCancellable *cancellable,\
 					     GDataQueryProgressCallback progress_callback, gpointer progress_user_data,
 					     GAsyncReadyCallback callback, gpointer user_data);
 
+#include <gdata/services/documents/gdata-documents-folder.h>
 
-#include <gdata/services/documents/gdata-documents-entry.h>
-void *gdata_documents_service_query_insert_document(	GDataDocumentsService *self,	GDataDocumentsEntry *document,\
-												   	GDataDocumentsQuery *query, GCancellable *cancellable, GError **error);
+GDataDocumentsEntry *gdata_documents_service_upload_document (GDataDocumentsService *self, GDataDocumentsEntry *document,\
+	   	GDataDocumentsEntry *folder, GFile *document_file, gboolean metadata, GCancellable *cancellable, GError **error);
 GDataService *gdata_documents_service_get_spreadsheet_service(GDataDocumentsService *self);
 
+
+/*TODO use a GDataDocumentsFolder*/
+GDataDocumentsEntry *gdata_documents_service_upload_document (GDataDocumentsService *self, GDataDocumentsEntry *document, GDataDocumentsEntry *folder,\
+			   	GFile *document_file, gboolean metadata, GCancellable *cancellable, GError **error);
 #endif

@@ -362,7 +362,6 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 		xmlFree (email);
 	} else if (GDATA_PARSABLE_CLASS (gdata_entry_parent_class)->parse_xml (parsable, doc, node, user_data, error) == FALSE) {
 		/* Error! */
-		g_print("SAMERE");
 		return FALSE;
 	}
 
@@ -396,7 +395,6 @@ _gdata_entry_new_from_xml (GType entry_type, const gchar *xml, gint length, GErr
 {
 	g_return_val_if_fail (xml != NULL, NULL);
 	g_return_val_if_fail (g_type_is_a (entry_type, GDATA_TYPE_ENTRY) == TRUE, FALSE);
-	g_print ("\n\n XML  %s\n", xml);
 
 	return GDATA_ENTRY (_gdata_parsable_new_from_xml (entry_type, "entry", xml, length, NULL, error));
 }
@@ -747,13 +745,14 @@ GDataLink *
 gdata_entry_look_up_link (GDataEntry *self, const gchar *rel)
 {
 	GList *element;
-
+	GList *i;
 	g_return_val_if_fail (GDATA_IS_ENTRY (self), NULL);
 	g_return_val_if_fail (rel != NULL, NULL);
 
 	element = g_list_find_custom (self->priv->links, rel, (GCompareFunc) link_compare_cb);
-	if (element == NULL)
+	if (element == NULL){
 		return NULL;
+	}
 	return (GDataLink*) (element->data);
 }
 

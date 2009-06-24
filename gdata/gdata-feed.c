@@ -360,15 +360,6 @@ typedef struct {
 } ProgressCallbackData;
 
 static gboolean
-progress_callback_idle (ProgressCallbackData *data)
-{
-	data->progress_callback (data->entry, data->entry_i, data->total_results, data->progress_user_data);
-	g_object_unref (data->entry);
-	g_slice_free (ProgressCallbackData, data);
-	return FALSE;
-}
-
-static gboolean
 parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_data, GError **error)
 {
 	GDataFeed *self;
@@ -385,7 +376,7 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 		GDataEntry *entry = GDATA_ENTRY (_gdata_parsable_new_from_xml_node (data->entry_type, "entry", doc, node, NULL, error));
 		if (entry == NULL)
 			return FALSE;
-		_gdata_feed_call_progres_callback (self, data, entry);
+		_gdata_feed_call_progress_callback (self, data, entry);
 		_gdata_feed_add_entry (self, entry);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "title") == 0) {
 		/* atom:title */
@@ -605,11 +596,11 @@ _gdata_feed_new_from_xml (GType feed_type, const gchar *xml, gint length, GType 
 	g_return_val_if_fail (xml != NULL, NULL);
 	g_return_val_if_fail (g_type_is_a (entry_type, GDATA_TYPE_ENTRY) == TRUE, FALSE);
 
-	data = _gdata_get_parse_data (entry_type, progress_callback, progress_user_data);
+	data = _gdata_feed_parse_data_new (entry_type, progress_callback, progress_user_data);
 
 	feed = GDATA_FEED (_gdata_parsable_new_from_xml (feed_type, "feed", xml, length, data, error));
 
-	_gdata_feed_free_parse_data(data);
+	_gdata_feed_parse_data_free(data);
 
 	return feed;
 }
@@ -898,7 +889,7 @@ _gdata_feed_add_entry (GDataFeed *self, GDataEntry *entry)
 
 
 gpointer
-_gdata_get_parse_data(GType entry_type, GDataQueryProgressCallback progress_callback, gpointer progress_user_data)
+_gdata_feed_parse_data_new (GType entry_type, GDataQueryProgressCallback progress_callback, gpointer progress_user_data)
 {
 	ParseData *data;
 	data = g_slice_new (ParseData);
@@ -910,14 +901,23 @@ _gdata_get_parse_data(GType entry_type, GDataQueryProgressCallback progress_call
 }
 
 void
-_gdata_feed_free_parse_data (gpointer data)
+_gdata_feed_parse_data_free (gpointer data)
 {
 	g_slice_free (ParseData, data);
 }
 
 
+static gboolean
+progress_callback_idle (ProgressCallbackData *data)
+{
+	data->progress_callback (data->entry, data->entry_i, data->total_results, data->progress_user_data);
+	g_object_unref (data->entry);
+	g_slice_free (ProgressCallbackData, data);
+	return FALSE;
+}
+
 void
-_gdata_feed_call_progres_callback (GDataFeed *self, gpointer user_data, GDataEntry *entry)
+_gdata_feed_call_progress_callback (GDataFeed *self, gpointer user_data, GDataEntry *entry)
 {
 	ParseData *data = user_data;
 
