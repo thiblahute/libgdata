@@ -26,11 +26,14 @@ youtube_SOURCES			 = youtube.c $(TEST_SRCS)
 TEST_PROGS			+= calendar
 calendar_SOURCES		 = calendar.c $(TEST_SRCS)
 
-TEST_PROGS			+= documents
-documents_SOURCES		 = documents.c $(TEST_SRCS)
-
 TEST_PROGS			+= contacts
 contacts_SOURCES		 = contacts.c $(TEST_SRCS)
+
+TEST_PROGS			+= picasaweb
+picasaweb_SOURCES		 = picasaweb.c $(TEST_SRCS)
+
+TEST_PROGS			+= documents
+documents_SOURCES		 = documents.c $(TEST_SRCS)
 
 TEST_PROGS			+= memory
 memory_SOURCES			 = memory.c $(TEST_SRCS)

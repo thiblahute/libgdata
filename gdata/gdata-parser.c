@@ -24,15 +24,8 @@
 #include <time.h>
 #include <libxml/parser.h>
 
-#include "gdata-service.h"
 #include "gdata-parser.h"
-#include "gdata-private.h"
-
-GQuark
-gdata_parser_error_quark (void)
-{
-	return g_quark_from_static_string ("gdata-parser-error-quark");
-}
+#include "gdata-service.h"
 
 static gchar *
 print_element (xmlNode *node)
@@ -92,21 +85,6 @@ gdata_parser_error_not_iso8601_format (xmlNode *element, const gchar *actual_val
 }
 
 gboolean
-gdata_parser_error_unhandled_element (xmlNode *element, GError **error)
-{
-	gchar *element_string = print_element (element);
-
-	/* Translators: the parameter is the name of an XML element, including the angle brackets ("<" and ">").
-	 *
-	 * For example:
-	 *  Unhandled <entry/yt:aspectRatio> element. */
-	g_set_error (error, GDATA_PARSER_ERROR, GDATA_PARSER_ERROR_UNHANDLED_XML_ELEMENT, _("Unhandled %s element."), element_string);
-	g_free (element_string);
-
-	return FALSE;
-}
-
-gboolean
 gdata_parser_error_unknown_property_value (xmlNode *element, const gchar *property_name, const gchar *actual_value, GError **error)
 {
 	gchar *property_string, *element_string;
@@ -122,6 +100,23 @@ gdata_parser_error_unknown_property_value (xmlNode *element, const gchar *proper
 		      *  The value of the @time property of a <media:group/media:thumbnail> element ("00:01:42.500") was unknown. */
 		     _("The value of the %s property of a %s element (\"%s\") was unknown."), property_string, element_string, actual_value);
 	g_free (property_string);
+	g_free (element_string);
+
+	return FALSE;
+}
+
+gboolean
+gdata_parser_error_unknown_content (xmlNode *element, const gchar *actual_content, GError **error)
+{
+	gchar *element_string = print_element (element);
+
+	g_set_error (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_PROTOCOL_ERROR,
+		     /* Translators: the first parameter is the name of an XML element (including the angle brackets ("<" and ">")),
+		      * and the second parameter is the unknown content of that element.
+		      *
+		      * For example:
+		      *  The content of a <gphoto:access> element ("protected") was unknown. */
+		     _("The content of a %s element (\"%s\") was unknown."), element_string, actual_content);
 	g_free (element_string);
 
 	return FALSE;

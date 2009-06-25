@@ -37,6 +37,7 @@
 
 #include "gdata-youtube-query.h"
 #include "gdata-query.h"
+#include "gdata-youtube-content.h"
 
 static void gdata_youtube_query_finalize (GObject *object);
 static void gdata_youtube_query_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec);
@@ -93,7 +94,7 @@ gdata_youtube_query_class_init (GDataYouTubeQueryClass *klass)
 	/**
 	 * GDataYouTubeQuery:format:
 	 *
-	 * Specifies that videos must be available in a particular video format. Use %GDATA_YOUTUBE_FORMAT_ALL to
+	 * Specifies that videos must be available in a particular video format. Use %GDATA_YOUTUBE_FORMAT_UNKNOWN to
 	 * retrieve videos irrespective of their format availability.
 	 *
 	 * Since: 0.3.0
@@ -101,7 +102,7 @@ gdata_youtube_query_class_init (GDataYouTubeQueryClass *klass)
 	g_object_class_install_property (gobject_class, PROP_FORMAT,
 				g_param_spec_enum ("format",
 					"Format", "Specifies that videos must be available in a particular video format.",
-					GDATA_TYPE_YOUTUBE_FORMAT, GDATA_YOUTUBE_FORMAT_ALL,
+					GDATA_TYPE_YOUTUBE_FORMAT, GDATA_YOUTUBE_FORMAT_UNKNOWN,
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
 	/**
@@ -462,7 +463,7 @@ get_query_uri (GDataQuery *self, const gchar *feed_uri, GString *query_uri, gboo
 			g_assert_not_reached ();
 	}
 
-	if (priv->format != GDATA_YOUTUBE_FORMAT_ALL)
+	if (priv->format != GDATA_YOUTUBE_FORMAT_UNKNOWN)
 		g_string_append_printf (query_uri, "&format=%u", priv->format);
 
 	if (priv->latitude >= -90.0 && priv->latitude <= 90.0 &&
@@ -533,7 +534,7 @@ gdata_youtube_query_new (const gchar *q)
 GDataYouTubeFormat
 gdata_youtube_query_get_format (GDataYouTubeQuery *self)
 {
-	g_return_val_if_fail (GDATA_IS_YOUTUBE_QUERY (self), GDATA_YOUTUBE_FORMAT_ALL);
+	g_return_val_if_fail (GDATA_IS_YOUTUBE_QUERY (self), GDATA_YOUTUBE_FORMAT_UNKNOWN);
 	return self->priv->format;
 }
 

@@ -36,7 +36,6 @@
 #include <string.h>
 
 #include "gdata-documents-text.h"
-#include "gdata-gdata.h"
 #include "gdata-parser.h"
 #include "gdata-types.h"
 #include "gdata-private.h"
@@ -58,13 +57,12 @@ static void
 gdata_documents_text_class_init (GDataDocumentsTextClass *klass)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
-	GDataEntryClass *entry_class = GDATA_ENTRY_CLASS (klass);
 	GDataParsableClass *parsable_class = GDATA_PARSABLE_CLASS (klass);
 	GDataDocumentsEntryClass *documents_entry_class = GDATA_DOCUMENTS_ENTRY_CLASS (klass);
 
 	gobject_class->finalize = gdata_documents_text_finalize;
 
-	entry_class->get_xml = get_xml;
+	parsable_class->get_xml = get_xml;
 	parsable_class->parse_xml = parse_xml;
 
 	/*TODO Properties?*/
@@ -123,7 +121,7 @@ static void
 get_xml (GDataEntry *entry, GString *xml_string)
 {
 	/*chain up to the parent class*/
-	GDATA_ENTRY_CLASS (gdata_documents_text_parent_class)->get_xml (entry, xml_string);
+	GDATA_PARSABLE_CLASS (gdata_documents_text_parent_class)->get_xml (entry, xml_string);
 
 	gchar *document_id = gdata_documents_entry_get_document_id (GDATA_DOCUMENTS_ENTRY (entry));
 

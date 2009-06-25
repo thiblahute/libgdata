@@ -35,14 +35,13 @@
 #include <string.h>
 
 #include "gdata-access-rule.h"
-#include "gdata-gdata.h"
 #include "gdata-parser.h"
 #include "gdata-types.h"
 #include "gdata-private.h"
 
 static void gdata_access_rule_finalize (GObject *object);
-static void get_namespaces (GDataEntry *entry, GHashTable *namespaces);
-static void get_xml (GDataEntry *entry, GString *xml_string);
+static void get_namespaces (GDataParsable *parsable, GHashTable *namespaces);
+static void get_xml (GDataParsable *parsable, GString *xml_string);
 static void gdata_access_rule_set_property (GObject *object, guint property_id, const GValue *value, GParamSpec *pspec);
 static void gdata_access_rule_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec);
 static gboolean parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_data, GError **error);
@@ -67,7 +66,6 @@ gdata_access_rule_class_init (GDataAccessRuleClass *klass)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
 	GDataParsableClass *parsable_class = GDATA_PARSABLE_CLASS (klass);
-	GDataEntryClass *entry_class = GDATA_ENTRY_CLASS (klass);
 
 	g_type_class_add_private (klass, sizeof (GDataAccessRulePrivate));
 
@@ -76,9 +74,8 @@ gdata_access_rule_class_init (GDataAccessRuleClass *klass)
 	gobject_class->get_property = gdata_access_rule_get_property; 
 
 	parsable_class->parse_xml = parse_xml;
-
-	entry_class->get_xml = get_xml;
-	entry_class->get_namespaces = get_namespaces;
+	parsable_class->get_xml = get_xml;
+	parsable_class->get_namespaces = get_namespaces;
 
 	/**
 	 * GDataAccessRule:role:
@@ -91,7 +88,7 @@ gdata_access_rule_class_init (GDataAccessRuleClass *klass)
 				g_param_spec_string ("role",
 					"Role", "The role of the person concerned by this ACL.",
 					NULL,
-					G_PARAM_READWRITE ));
+					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * GDataAccessRule:scope-type:
@@ -104,7 +101,7 @@ gdata_access_rule_class_init (GDataAccessRuleClass *klass)
 				g_param_spec_string ("scope-type",
 					"Scope type", "Specifies to whom this access rule applies.",
 					NULL,
-					G_PARAM_READWRITE ));
+					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * GDataAccessRule:scope-value:
@@ -118,7 +115,7 @@ gdata_access_rule_class_init (GDataAccessRuleClass *klass)
 				g_param_spec_string ("scope-value",
 					"Scope value", "The scope value for this access rule.",
 					NULL,
-					G_PARAM_READWRITE ));
+					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 }
 
 /**
@@ -264,21 +261,21 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 }
 
 static void
-get_xml (GDataEntry *entry, GString *xml_string)
+get_xml (GDataParsable *parsable, GString *xml_string)
 {
 	GDataCategory *category;
-	GDataAccessRulePrivate *priv = GDATA_ACCESS_RULE (entry)->priv;
+	GDataAccessRulePrivate *priv = GDATA_ACCESS_RULE (parsable)->priv;
 
 	/* Ensure we have the correct category/kind */
 	category = gdata_category_new ("http://schemas.google.com/acl/2007#accessRule", "http://schemas.google.com/g/2005#kind", NULL);
-	gdata_entry_add_category (entry, category);
+	gdata_entry_add_category (GDATA_ENTRY (parsable), category);
 
 	/* So it's valid Atom, set the title if one doesn't already exist */
-	if (gdata_entry_get_title (entry) == NULL)
-		gdata_entry_set_title (entry, priv->role);
+	if (gdata_entry_get_title (GDATA_ENTRY (parsable)) == NULL)
+		gdata_entry_set_title (GDATA_ENTRY (parsable), priv->role);
 
 	/* Chain up to the parent class */
-	GDATA_ENTRY_CLASS (gdata_access_rule_parent_class)->get_xml (entry, xml_string);
+	GDATA_PARSABLE_CLASS (gdata_access_rule_parent_class)->get_xml (parsable, xml_string);
 
 	if (priv->role != NULL)
 		/* gAcl:role */
@@ -294,10 +291,10 @@ get_xml (GDataEntry *entry, GString *xml_string)
 }
 
 static void
-get_namespaces (GDataEntry *entry, GHashTable *namespaces)
+get_namespaces (GDataParsable *parsable, GHashTable *namespaces)
 {
 	/* Chain up to the parent class */
-	GDATA_ENTRY_CLASS (gdata_access_rule_parent_class)->get_namespaces (entry, namespaces);
+	GDATA_PARSABLE_CLASS (gdata_access_rule_parent_class)->get_namespaces (parsable, namespaces);
 
 	g_hash_table_insert (namespaces, (gchar*) "gAcl", (gchar*) "http://schemas.google.com/acl/2007"); 
 }

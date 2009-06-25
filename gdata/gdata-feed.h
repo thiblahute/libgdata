@@ -23,9 +23,10 @@
 #include <glib.h>
 #include <glib-object.h>
 
-#include <gdata/gdata-entry.h>
-#include <gdata/gdata-atom.h>
 #include <gdata/gdata-parsable.h>
+#include <gdata/gdata-entry.h>
+#include <gdata/atom/gdata-link.h>
+#include <gdata/atom/gdata-generator.h>
 
 G_BEGIN_DECLS
 

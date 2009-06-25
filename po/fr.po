@@ -1,0 +1,292 @@
+# French translation of libgdata
+# Copyright (C) 2009 Free Software Foundation, Inc.
+# This file is distributed under the same license as the libgdata package.
+#
+# Laurent Coudeur <laurentc@iol.ie>, 2009
+# Claude Paroz <claude@2xlibre.net>, 2009
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: libgdata master\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
+"product=libgdata&component=general\n"
+"POT-Creation-Date: 2009-06-04 10:37+0000\n"
+"PO-Revision-Date: 2009-06-04 11:49+0100\n"
+"Last-Translator: Claude Paroz <claude@2xlibre.net>\n"
+"Language-Team: GNOME French Team <gnomefr@traduc.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../gdata/gdata-access-handler.c:176
+msgid "The rule has already been inserted."
+msgstr "La règle a déjà été insérée."
+
+#: ../gdata/gdata-access-handler.c:378
+msgid "The owner's rule may not be deleted."
+msgstr "La règle du propriétaire ne peut pas être supprimée."
+
+#. Translators: the parameter is an error message
+#: ../gdata/gdata-parsable.c:129 ../gdata/gdata-parsable.c:140
+#, c-format
+msgid "Error parsing XML: %s"
+msgstr "Erreur lors de l'analyse XML : %s"
+
+#. Translators: this is a dummy error message to be substituted into "Error parsing XML: %s".
+#: ../gdata/gdata-parsable.c:142
+msgid "Empty document."
+msgstr "Document vide."
+
+#. Translators: the parameter is the name of an XML element, including the angle brackets ("<" and ">").
+#. *
+#. * For example:
+#. *  A <title> element was missing required content.
+#: ../gdata/gdata-parser.c:72
+#, c-format
+msgid "A %s element was missing required content."
+msgstr "Un élément %s ne contient pas le contenu requis."
+
+#. Translators: the first parameter is the name of an XML element (including the angle brackets ("<" and ">")), and the second parameter is
+#. * the erroneous value (which was not in ISO 8601 format).
+#. *
+#. * For example:
+#. *  The content of a <media:group/media:uploaded> element ("2009-05-06 26:30Z") was not in ISO 8601 format.
+#: ../gdata/gdata-parser.c:88
+#, c-format
+msgid "The content of a %s element (\"%s\") was not in ISO 8601 format."
+msgstr "Un contenu (« %s ») de l'élément %s n'est pas dans le format ISO 8601."
+
+#. Translators: the parameter is the name of an XML element, including the angle brackets ("<" and ">").
+#. *
+#. * For example:
+#. *  Unhandled <entry/yt:aspectRatio> element.
+#: ../gdata/gdata-parser.c:103
+#, c-format
+msgid "Unhandled %s element."
+msgstr "Élément %s non géré"
+
+#. Translators: the first parameter is the name of an XML property, the second is the name of an XML element
+#. * (including the angle brackets ("<" and ">")) to which the property belongs, and the third is the unknown value.
+#. *
+#. * For example:
+#. *  The value of the @time property of a <media:group/media:thumbnail> element ("00:01:42.500") was unknown.
+#: ../gdata/gdata-parser.c:123
+#, c-format
+msgid "The value of the %s property of a %s element (\"%s\") was unknown."
+msgstr "La valeur de la propriété %s d'un élément %s (« %s ») est inconnue."
+
+#. Translators: the first parameter is the name of an XML element (including the angle brackets ("<" and ">")),
+#. * and the second is the name of an XML property which it should have contained.
+#. *
+#. * For example:
+#. *  A required property of a <entry/gAcl:role> element (@value) was not present.
+#: ../gdata/gdata-parser.c:144
+#, c-format
+msgid "A required property of a %s element (%s) was not present."
+msgstr "Une propriété requise d'un élément %s (%s) est manquante."
+
+#. Translators: the parameter is the name of an XML element, including the angle brackets ("<" and ">").
+#. *
+#. * For example:
+#. *  A required element (<entry/title>) was not present.
+#: ../gdata/gdata-parser.c:161
+#, c-format
+msgid "A required element (%s) was not present."
+msgstr "Un élément requis (%s) est manquant."
+
+#. Translators: the parameter is the name of an XML element, including the angle brackets ("<" and ">").
+#. *
+#. * For example:
+#. *  A singleton element (<feed/title>) was duplicated.
+#: ../gdata/gdata-parser.c:176
+#, c-format
+msgid "A singleton element (%s) was duplicated."
+msgstr "Un élément singleton (%s) est à double."
+
+#: ../gdata/gdata-service.c:308 ../gdata/gdata-service.c:738
+#: ../gdata/services/youtube/gdata-youtube-service.c:201
+msgid "The server returned a malformed response."
+msgstr "La réponse du serveur n'est pas conforme."
+
+#. Translators: the parameter is an error message returned by the server.
+#: ../gdata/gdata-service.c:340
+#, c-format
+msgid "Invalid request URI or header, or unsupported nonstandard parameter: %s"
+msgstr ""
+"Requête URI ou en-tête non valide, ou paramètre anormal non pris en charge : %s"
+
+#. Translators: the parameter is an error message returned by the server.
+#: ../gdata/gdata-service.c:346
+#, c-format
+msgid "Authentication required: %s"
+msgstr "Authentification requise : %s"
+
+#. Translators: the parameter is an error message returned by the server.
+#: ../gdata/gdata-service.c:351
+#, c-format
+msgid "The requested resource was not found: %s"
+msgstr "La ressource demandée n'a pas été trouvée : %s"
+
+#. Translators: the parameter is an error message returned by the server.
+#: ../gdata/gdata-service.c:356
+#, c-format
+msgid "The entry has been modified since it was downloaded: %s"
+msgstr "L'entrée a été modifiée depuis son téléchargement : %s"
+
+#. Translators: the first parameter is a HTTP status, and the second is an error message returned by the server.
+#: ../gdata/gdata-service.c:369
+#, c-format
+msgid "Error code %u when inserting an entry: %s"
+msgstr "Code d'erreur %u lors de l'insertion d'une entrée : %s"
+
+#. Translators: the first parameter is a HTTP status, and the second is an error message returned by the server.
+#: ../gdata/gdata-service.c:374
+#, c-format
+msgid "Error code %u when updating an entry: %s"
+msgstr "Code d'erreur %u lors de la mise à jour d'une entrée : %s"
+
+#. Translators: the first parameter is a HTTP status, and the second is an error message returned by the server.
+#: ../gdata/gdata-service.c:379
+#, c-format
+msgid "Error code %u when deleting an entry: %s"
+msgstr "Code d'erreur %u lors de la suppression d'une entrée : %s"
+
+#. Translators: the first parameter is a HTTP status, and the second is an error message returned by the server.
+#: ../gdata/gdata-service.c:384
+#, c-format
+msgid "Error code %u when querying: %s"
+msgstr "Code d'erreur %u lors de la requête : %s"
+
+#: ../gdata/gdata-service.c:626
+msgid "A CAPTCHA must be filled out to log in."
+msgstr "Un CAPTCHA doit être complété pour se connecter."
+
+#: ../gdata/gdata-service.c:650
+msgid "Your username or password were incorrect."
+msgstr "Nom d'utilisateur ou mot de passe incorrect."
+
+#. Translators: the parameter is a URI for further information.
+#: ../gdata/gdata-service.c:669
+#, c-format
+msgid "Your account's e-mail address has not been verified. (%s)"
+msgstr "L'adresse électronique de votre compte n'est pas vérifiée (%s)."
+
+#. Translators: the parameter is a URI for further information.
+#: ../gdata/gdata-service.c:674
+#, c-format
+msgid "You have not agreed to the service's terms and conditions. (%s)"
+msgstr "Vous n'avez pas accepté les conditions générales du service (%s)."
+
+#. Translators: the parameter is a URI for further information.
+#: ../gdata/gdata-service.c:679
+#, c-format
+msgid "This account has been deleted. (%s)"
+msgstr "Ce compte a été supprimé (%s)."
+
+#. Translators: the parameter is a URI for further information.
+#: ../gdata/gdata-service.c:684
+#, c-format
+msgid "This account has been disabled. (%s)"
+msgstr "Ce compte a été désactivé (%s)."
+
+#. Translators: the parameter is a URI for further information.
+#: ../gdata/gdata-service.c:689
+#, c-format
+msgid "This account's access to this service has been disabled. (%s)"
+msgstr "L'accès à ce service est désactivé pour ce compte (%s)."
+
+#. Translators: the parameter is a URI for further information.
+#: ../gdata/gdata-service.c:694
+#, c-format
+msgid "This service is not available at the moment. (%s)"
+msgstr "Ce service n'est pas disponible pour le moment (%s)."
+
+#. Translators: the parameter is the URI which is invalid.
+#: ../gdata/gdata-service.c:808
+#, c-format
+msgid "Invalid redirect URI: %s"
+msgstr "L'URI redirigé n'est pas valide : %s"
+
+#: ../gdata/gdata-service.c:1206
+#: ../gdata/services/youtube/gdata-youtube-service.c:628
+msgid "The entry has already been inserted."
+msgstr "L'entrée a déjà été insérée."
+
+#. Translators: the first parameter is the name of an XML element (including the angle brackets ("<" and ">"),
+#. * and the second parameter is the erroneous value (which was not in hexadecimal RGB format).
+#. *
+#. * For example:
+#. *  The content of a <entry/gCal:color> element ("00FG56") was not in hexadecimal RGB format.
+#: ../gdata/services/calendar/gdata-calendar-calendar.c:352
+#, c-format
+msgid "The content of a %s element (\"%s\") was not in hexadecimal RGB format."
+msgstr ""
+"Le contenu (« %s ») de l'élément %s n'est pas dans le format RVB hexadécimal."
+
+#: ../gdata/services/calendar/gdata-calendar-service.c:106
+#: ../gdata/services/calendar/gdata-calendar-service.c:140
+msgid "You must be authenticated to query all calendars."
+msgstr "Vous devez vous authentifier pour interroger tous les calendriers."
+
+#: ../gdata/services/calendar/gdata-calendar-service.c:172
+#: ../gdata/services/calendar/gdata-calendar-service.c:206
+#: ../gdata/services/calendar/gdata-calendar-service.c:240
+msgid "You must be authenticated to query your own calendars."
+msgstr "Vous devez vous authentifier pour interroger vos propres calendriers."
+
+#: ../gdata/services/calendar/gdata-calendar-service.c:249
+msgid "The calendar did not have a content source."
+msgstr "Le calendrier ne possède pas de source de contenu."
+
+#: ../gdata/services/contacts/gdata-contacts-service.c:104
+#: ../gdata/services/contacts/gdata-contacts-service.c:139
+msgid "You must be authenticated to query contacts."
+msgstr "Vous devez vous authentifier pour interroger les contacts."
+
+#: ../gdata/services/youtube/gdata-youtube-service.c:305
+#, c-format
+msgid "This service is not available at the moment."
+msgstr "Ce service n'est pas disponible pour le moment."
+
+#: ../gdata/services/youtube/gdata-youtube-service.c:310
+#, c-format
+msgid "You must be authenticated to do this."
+msgstr "Vous devez vous authentifier pour faire cela."
+
+#: ../gdata/services/youtube/gdata-youtube-service.c:315
+#, c-format
+msgid ""
+"You have made too many API calls recently. Please wait a few minutes and try "
+"again."
+msgstr ""
+"Vous avez effectué trop d'appels API en peu de temps. Veuillez patienter quelques "
+"minutes puis essayez de nouveau."
+
+#: ../gdata/services/youtube/gdata-youtube-service.c:318
+#, c-format
+msgid ""
+"You have exceeded your entry quota. Please delete some entries and try again."
+msgstr ""
+"Vous avez dépassé votre quota d'entrées. Veuillez supprimer quelques entrées "
+"et essayez de nouveau."
+
+#. Translators: the first parameter is an error code, which is a coded string. The second parameter
+#. * is an error domain, which is another coded string. The third parameter is the location of the
+#. * error, which is either a URI or an XPath.
+#: ../gdata/services/youtube/gdata-youtube-service.c:325
+#: ../gdata/services/youtube/gdata-youtube-service.c:331
+#, c-format
+msgid ""
+"Unknown error code \"%s\" in domain \"%s\" received with location \"%s\"."
+msgstr ""
+"Code d'erreur inconnu « %s » dans le domaine « %s » reçu à l'emplacement « %"
+"s »."
+
+#: ../gdata/services/youtube/gdata-youtube-service.c:541
+#: ../gdata/services/youtube/gdata-youtube-service.c:582
+msgid "The video did not have a related videos <link>."
+msgstr "La vidéo n'a pas de vidéo connexe <link>."
+
+#: ../gdata/services/youtube/gdata-youtube-service.c:634
+msgid "You must be authenticated to upload a video."
+msgstr "Vous devez vous authentifier pour envoyer une vidéo."

@@ -24,7 +24,11 @@
 #include <glib-object.h>
 
 #include <gdata/gdata-entry.h>
-#include <gdata/gdata-gdata.h>
+#include <gdata/gd/gdata-gd-email-address.h>
+#include <gdata/gd/gdata-gd-im-address.h>
+#include <gdata/gd/gdata-gd-organization.h>
+#include <gdata/gd/gdata-gd-phone-number.h>
+#include <gdata/gd/gdata-gd-postal-address.h>
 
 G_BEGIN_DECLS
 
@@ -99,7 +103,7 @@ GList *gdata_contacts_contact_get_groups (GDataContactsContact *self) G_GNUC_WAR
 gboolean gdata_contacts_contact_has_photo (GDataContactsContact *self);
 gchar *gdata_contacts_contact_get_photo (GDataContactsContact *self, GDataContactsService *service, gsize *length, gchar **content_type,
 					  GCancellable *cancellable, GError **error) G_GNUC_WARN_UNUSED_RESULT;
-gboolean gdata_contacts_contact_set_photo (GDataContactsContact *self, GDataService *service, gchar *data, gsize length,
+gboolean gdata_contacts_contact_set_photo (GDataContactsContact *self, GDataService *service, const gchar *data, gsize length,
 					   GCancellable *cancellable, GError **error);
 
 G_END_DECLS

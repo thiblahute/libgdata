@@ -251,16 +251,20 @@ test_insert_simple (void)
 	gdata_entry_set_content (GDATA_ENTRY (event), "Meet for a quick lesson.");
 	category = gdata_category_new ("http://schemas.google.com/g/2005#event", "http://schemas.google.com/g/2005#kind", NULL);
 	gdata_entry_add_category (GDATA_ENTRY (event), category);
+	g_object_unref (category);
 	gdata_calendar_event_set_transparency (event, "http://schemas.google.com/g/2005#event.opaque");
 	gdata_calendar_event_set_status (event, "http://schemas.google.com/g/2005#event.confirmed");
 	where = gdata_gd_where_new (NULL, "Rolling Lawn Courts", NULL);
 	gdata_calendar_event_add_place (event, where);
+	g_object_unref (where);
 	who = gdata_gd_who_new ("http://schemas.google.com/g/2005#event.organizer", "John Smith‽", "john.smith@example.com");
 	gdata_calendar_event_add_person (event, who);
+	g_object_unref (who);
 	g_time_val_from_iso8601 ("2009-04-17T15:00:00.000Z", &start_time);
 	g_time_val_from_iso8601 ("2009-04-17T17:00:00.000Z", &end_time);
-	when = gdata_gd_when_new (&start_time, &end_time, FALSE, NULL, NULL);
+	when = gdata_gd_when_new (&start_time, &end_time, FALSE);
 	gdata_calendar_event_add_time (event, when);
+	g_object_unref (when);
 
 	/* Check the XML */
 	xml = gdata_entry_get_xml (GDATA_ENTRY (event));
@@ -304,6 +308,7 @@ test_xml_dates (void)
 	GDataCalendarEvent *event;
 	GList *times, *i;
 	GDataGDWhen *when;
+	GTimeVal time_val;
 	gchar *xml;
 	GError *error = NULL;
 
@@ -327,39 +332,45 @@ test_xml_dates (void)
 	times = i = gdata_calendar_event_get_times (event);
 
 	/* First time */
-	when = (GDataGDWhen*) i->data;
+	when = GDATA_GD_WHEN (i->data);
 	g_assert (i->next != NULL);
-	g_assert (when->is_date == TRUE);
-	g_assert_cmpint (when->start_time.tv_sec, ==, 1239926400);
-	g_assert_cmpint (when->start_time.tv_usec, ==, 0);
-	g_assert_cmpint (when->end_time.tv_sec, ==, 0);
-	g_assert_cmpint (when->end_time.tv_usec, ==, 0);
-	g_assert (when->value_string == NULL);
-	g_assert (when->reminders == NULL);
+	g_assert (gdata_gd_when_is_date (when) == TRUE);
+	gdata_gd_when_get_start_time (when, &time_val);
+	g_assert_cmpint (time_val.tv_sec, ==, 1239926400);
+	g_assert_cmpint (time_val.tv_usec, ==, 0);
+	gdata_gd_when_get_end_time (when, &time_val);
+	g_assert_cmpint (time_val.tv_sec, ==, 0);
+	g_assert_cmpint (time_val.tv_usec, ==, 0);
+	g_assert (gdata_gd_when_get_value_string (when) == NULL);
+	g_assert (gdata_gd_when_get_reminders (when) == NULL);
 
 	/* Second time */
 	i = i->next;
-	when = (GDataGDWhen*) i->data;
+	when = GDATA_GD_WHEN (i->data);
 	g_assert (i->next != NULL);
-	g_assert (when->is_date == FALSE);
-	g_assert_cmpint (when->start_time.tv_sec, ==, 1239926400 + 54000);
-	g_assert_cmpint (when->start_time.tv_usec, ==, 0);
-	g_assert_cmpint (when->end_time.tv_sec, ==, 0);
-	g_assert_cmpint (when->end_time.tv_usec, ==, 0);
-	g_assert (when->value_string == NULL);
-	g_assert (when->reminders == NULL);
+	g_assert (gdata_gd_when_is_date (when) == FALSE);
+	gdata_gd_when_get_start_time (when, &time_val);
+	g_assert_cmpint (time_val.tv_sec, ==, 1239926400 + 54000);
+	g_assert_cmpint (time_val.tv_usec, ==, 0);
+	gdata_gd_when_get_end_time (when, &time_val);
+	g_assert_cmpint (time_val.tv_sec, ==, 0);
+	g_assert_cmpint (time_val.tv_usec, ==, 0);
+	g_assert (gdata_gd_when_get_value_string (when) == NULL);
+	g_assert (gdata_gd_when_get_reminders (when) == NULL);
 
 	/* Third time */
 	i = i->next;
-	when = (GDataGDWhen*) i->data;
+	when = GDATA_GD_WHEN (i->data);
 	g_assert (i->next == NULL);
-	g_assert (when->is_date == TRUE);
-	g_assert_cmpint (when->start_time.tv_sec, ==, 1239926400 + 864000);
-	g_assert_cmpint (when->start_time.tv_usec, ==, 0);
-	g_assert_cmpint (when->end_time.tv_sec, ==, 1241568000);
-	g_assert_cmpint (when->end_time.tv_usec, ==, 0);
-	g_assert (when->value_string == NULL);
-	g_assert (when->reminders == NULL);
+	g_assert (gdata_gd_when_is_date (when) == TRUE);
+	gdata_gd_when_get_start_time (when, &time_val);
+	g_assert_cmpint (time_val.tv_sec, ==, 1239926400 + 864000);
+	g_assert_cmpint (time_val.tv_usec, ==, 0);
+	gdata_gd_when_get_end_time (when, &time_val);
+	g_assert_cmpint (time_val.tv_sec, ==, 1241568000);
+	g_assert_cmpint (time_val.tv_usec, ==, 0);
+	g_assert (gdata_gd_when_get_value_string (when) == NULL);
+	g_assert (gdata_gd_when_get_reminders (when) == NULL);
 
 	/* Check the XML */
 	xml = gdata_entry_get_xml (GDATA_ENTRY (event));
@@ -595,9 +606,9 @@ test_acls_insert_rule (void)
 	g_assert (categories != NULL);
 	g_assert_cmpuint (g_list_length (categories), ==, 1);
 	category = categories->data;
-	g_assert_cmpstr (category->term, ==, "http://schemas.google.com/acl/2007#accessRule");
-	g_assert_cmpstr (category->scheme, ==, "http://schemas.google.com/g/2005#kind");
-	g_assert (category->label == NULL);
+	g_assert_cmpstr (gdata_category_get_term (category), ==, "http://schemas.google.com/acl/2007#accessRule");
+	g_assert_cmpstr (gdata_category_get_scheme (category), ==, "http://schemas.google.com/g/2005#kind");
+	g_assert (gdata_category_get_label (category) == NULL);
 
 	/* TODO: Check more properties? */
 

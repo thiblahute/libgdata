@@ -487,9 +487,9 @@ gdata_documents_service_update_document (GDataDocumentsService *self, GDataDocum
 
 	g_return_if_fail (update_uri != NULL);
 
-	g_print ("Adresse: %s\n", update_uri->href);
-	message = soup_message_new (SOUP_METHOD_PUT, update_uri->href);
-	gdata_link_free (update_uri);
+	g_print ("Adresse: %s\n", gdata_link_get_uri (update_uri));
+	message = soup_message_new (SOUP_METHOD_PUT, gdata_link_get_uri (update_uri));
+	g_object_unref (update_uri);
 
 	/* Make sure subclasses set their headers */
 	/*if (GDATA_IS_DOCUMENTS_SPREADSHEET (document)){
@@ -671,7 +671,7 @@ gdata_documents_service_move_document_to_folder (GDataDocumentsService *self, GD
 	}
 
 	/* TODO check it*/
-	upload_uri = ((GDataLink*) gdata_entry_look_up_link (GDATA_ENTRY (folder), "self"))->href;
+	upload_uri = (gdata_link_get_uri ((GDataLink*) gdata_entry_look_up_link (GDATA_ENTRY (folder), "self")));
 /*	folder_id = gdata_entry_get_id (GDATA_ENTRY (folder));
 	g_return_val_if_fail ( folder_id != NULL, NULL);
 	upload_uri = "http://docs.google.com/feeds/folders/private/full/folder\%3A";
@@ -766,7 +766,7 @@ gdata_documents_service_remove_document_from_folder (GDataDocumentsService *self
 	document_id = gdata_entry_get_id (GDATA_ENTRY (document));
 	g_return_if_fail (document_id != NULL);
 	/* TODO check it*/
-	upload_uri = ((GDataLink*) gdata_entry_look_up_link (GDATA_ENTRY (folder), "self"))->href;
+	upload_uri = gdata_link_get_uri (((GDataLink*) gdata_entry_look_up_link (GDATA_ENTRY (folder), "self")));
 	upload_uri = g_strconcat (upload_uri, "/document\%3A%");
 	upload_uri = g_strconcat (upload_uri, document_id);
 /*	folder_id = gdata_entry_get_id (GDATA_ENTRY (folder));

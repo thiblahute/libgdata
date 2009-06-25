@@ -24,22 +24,15 @@
 
 G_BEGIN_DECLS
 
-/**
- * GDataParserError:
- * @GDATA_PARSER_ERROR_PARSING_STRING: Error parsing the XML syntax itself
- * @GDATA_PARSER_ERROR_EMPTY_DOCUMENT: Empty document
- * @GDATA_PARSER_ERROR_UNHANDLED_XML_ELEMENT: Unknown or unhandled XML element (fatal error)
- *
- * Error codes for XML parsing operations.
- **/
-typedef enum {
-	GDATA_PARSER_ERROR_PARSING_STRING = 1,
-	GDATA_PARSER_ERROR_EMPTY_DOCUMENT,
-	GDATA_PARSER_ERROR_UNHANDLED_XML_ELEMENT
-} GDataParserError;
-
-#define GDATA_PARSER_ERROR gdata_parser_error_quark ()
-GQuark gdata_parser_error_quark (void) G_GNUC_CONST;
+gboolean gdata_parser_error_required_content_missing (xmlNode *element, GError **error);
+gboolean gdata_parser_error_not_iso8601_format (xmlNode *element, const gchar *actual_value, GError **error);
+gboolean gdata_parser_error_unknown_property_value (xmlNode *element, const gchar *property_name, const gchar *actual_value, GError **error);
+gboolean gdata_parser_error_unknown_content (xmlNode *element, const gchar *actual_content, GError **error);
+gboolean gdata_parser_error_required_property_missing (xmlNode *element, const gchar *property_name, GError **error);
+gboolean gdata_parser_error_required_element_missing (const gchar *element_name, const gchar *parent_element_name, GError **error);
+gboolean gdata_parser_error_duplicate_element (xmlNode *element, GError **error);
+gboolean gdata_parser_time_val_from_date (const gchar *date, GTimeVal *_time);
+gchar *gdata_parser_date_from_time_val (GTimeVal *_time) G_GNUC_WARN_UNUSED_RESULT;
 
 G_END_DECLS
 

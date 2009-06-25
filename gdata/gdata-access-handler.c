@@ -94,11 +94,8 @@ gdata_access_handler_get_rules (GDataAccessHandler *self, GDataService *service,
 
 	/* Get the ACL URI */
 	link = gdata_entry_look_up_link (GDATA_ENTRY (self), "http://schemas.google.com/acl/2007#accessControlList");
-	
-	if ( link == NULL)
-		return NULL;
-
-	message = soup_message_new (SOUP_METHOD_GET, link->href);
+	g_assert (link != NULL);
+	message = soup_message_new (SOUP_METHOD_GET, gdata_link_get_uri (link));
 
 	/* Make sure subclasses set their headers */
 	klass = GDATA_SERVICE_GET_CLASS (service);
@@ -183,7 +180,7 @@ gdata_access_handler_insert_rule (GDataAccessHandler *self, GDataService *servic
 	/* Get the ACL URI */
 	link = gdata_entry_look_up_link (GDATA_ENTRY (self), "http://schemas.google.com/acl/2007#accessControlList");
 	g_assert (link != NULL);
-	message = soup_message_new (SOUP_METHOD_POST, link->href);
+	message = soup_message_new (SOUP_METHOD_POST, gdata_link_get_uri (link));
 
 	/* Make sure subclasses set their headers */
 	klass = GDATA_SERVICE_GET_CLASS (service);
@@ -239,15 +236,15 @@ get_soup_message (GDataAccessHandler *access_handler, GDataAccessRule *rule, con
 	/* Get the edit URI */
 	link = gdata_entry_look_up_link (GDATA_ENTRY (rule), "edit");
 	if (link != NULL)
-		return soup_message_new (method, link->href);
+		return soup_message_new (method, gdata_link_get_uri (link));
 
 	/* Try building the URI instead */
 	link = gdata_entry_look_up_link (GDATA_ENTRY (access_handler), "http://schemas.google.com/acl/2007#accessControlList");
 	g_assert (link != NULL);
 	gdata_access_rule_get_scope (rule, &scope_type, &scope_value);
 
-	uri_string = g_string_sized_new (strlen (link->href) + 30);
-	g_string_append_printf (uri_string, "%s/", link->href);
+	uri_string = g_string_sized_new (strlen (gdata_link_get_uri (link)) + 30);
+	g_string_append_printf (uri_string, "%s/", gdata_link_get_uri (link));
 	g_string_append_uri_escaped (uri_string, scope_type, NULL, TRUE);
 	if (scope_value != NULL) {
 		g_string_append (uri_string, "%3A");

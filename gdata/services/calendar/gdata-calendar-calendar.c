@@ -38,7 +38,6 @@
 #include "gdata-calendar-calendar.h"
 #include "gdata-private.h"
 #include "gdata-service.h"
-#include "gdata-gdata.h"
 #include "gdata-parser.h"
 #include "gdata-types.h"
 #include "gdata-access-handler.h"
@@ -47,9 +46,9 @@ static void gdata_calendar_calendar_access_handler_init (GDataAccessHandlerIface
 static void gdata_calendar_calendar_finalize (GObject *object);
 static void gdata_calendar_calendar_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec);
 static void gdata_calendar_calendar_set_property (GObject *object, guint property_id, const GValue *value, GParamSpec *pspec);
-static void get_xml (GDataEntry *entry, GString *xml_string);
+static void get_xml (GDataParsable *parsable, GString *xml_string);
 static gboolean parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_data, GError **error);
-static void get_namespaces (GDataEntry *entry, GHashTable *namespaces);
+static void get_namespaces (GDataParsable *parsable, GHashTable *namespaces);
 
 struct _GDataCalendarCalendarPrivate {
 	gchar *timezone;
@@ -81,7 +80,6 @@ gdata_calendar_calendar_class_init (GDataCalendarCalendarClass *klass)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
 	GDataParsableClass *parsable_class = GDATA_PARSABLE_CLASS (klass);
-	GDataEntryClass *entry_class = GDATA_ENTRY_CLASS (klass);
 
 	g_type_class_add_private (klass, sizeof (GDataCalendarCalendarPrivate));
 
@@ -90,9 +88,8 @@ gdata_calendar_calendar_class_init (GDataCalendarCalendarClass *klass)
 	gobject_class->finalize = gdata_calendar_calendar_finalize;
 
 	parsable_class->parse_xml = parse_xml;
-
-	entry_class->get_xml = get_xml;
-	entry_class->get_namespaces = get_namespaces;
+	parsable_class->get_xml = get_xml;
+	parsable_class->get_namespaces = get_namespaces;
 
 	/**
 	 * GDataCalendarCalendar:timezone:
@@ -388,19 +385,19 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 }
 
 static void
-get_xml (GDataEntry *entry, GString *xml_string)
+get_xml (GDataParsable *parsable, GString *xml_string)
 {
 	gchar *colour;
-	GDataCalendarCalendarPrivate *priv = GDATA_CALENDAR_CALENDAR (entry)->priv;
+	GDataCalendarCalendarPrivate *priv = GDATA_CALENDAR_CALENDAR (parsable)->priv;
 
 	/* Chain up to the parent class */
-	GDATA_ENTRY_CLASS (gdata_calendar_calendar_parent_class)->get_xml (entry, xml_string);
+	GDATA_PARSABLE_CLASS (gdata_calendar_calendar_parent_class)->get_xml (parsable, xml_string);
 
 	/* Add all the Calendar-specific XML */
 	if (priv->timezone != NULL) {
-		gchar *timezone = g_markup_escape_text (priv->timezone, -1);
-		g_string_append_printf (xml_string, "<gCal:timezone value='%s'/>", timezone);
-		g_free (timezone);
+		gchar *_timezone = g_markup_escape_text (priv->timezone, -1);
+		g_string_append_printf (xml_string, "<gCal:timezone value='%s'/>", _timezone);
+		g_free (_timezone);
 	}
 
 	if (priv->is_hidden == TRUE)
@@ -419,10 +416,10 @@ get_xml (GDataEntry *entry, GString *xml_string)
 }
 
 static void
-get_namespaces (GDataEntry *entry, GHashTable *namespaces)
+get_namespaces (GDataParsable *parsable, GHashTable *namespaces)
 {
 	/* Chain up to the parent class */
-	GDATA_ENTRY_CLASS (gdata_calendar_calendar_parent_class)->get_namespaces (entry, namespaces);
+	GDATA_PARSABLE_CLASS (gdata_calendar_calendar_parent_class)->get_namespaces (parsable, namespaces);
 
 	g_hash_table_insert (namespaces, (gchar*) "gCal", (gchar*) "http://schemas.google.com/gCal/2005");
 	g_hash_table_insert (namespaces, (gchar*) "app", (gchar*) "http://www.w3.org/2007/app");

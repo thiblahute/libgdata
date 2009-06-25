@@ -41,8 +41,7 @@ GDataParsable *_gdata_parsable_new_from_xml (GType parsable_type, const gchar *f
 					     GError **error) G_GNUC_WARN_UNUSED_RESULT;
 GDataParsable *_gdata_parsable_new_from_xml_node (GType parsable_type, const gchar *first_element, xmlDoc *doc, xmlNode *node, gpointer user_data,
 						  GError **error) G_GNUC_WARN_UNUSED_RESULT;
-const gchar *_gdata_parsable_get_extra_xml (GDataParsable *self);
-GHashTable *_gdata_parsable_get_extra_namespaces (GDataParsable *self);
+gchar *_gdata_parsable_get_xml (GDataParsable *self, const gchar *first_element, gboolean at_top_level) G_GNUC_WARN_UNUSED_RESULT;
 
 #include "gdata-feed.h"
 GDataFeed *_gdata_feed_new_from_xml (GType feed_type, const gchar *xml, gint length, GType entry_type,
@@ -56,15 +55,6 @@ void _gdata_feed_call_progress_callback (GDataFeed *self, gpointer user_data, GD
 GDataEntry *_gdata_entry_new_from_xml (GType entry_type, const gchar *xml, gint length, GError **error) G_GNUC_WARN_UNUSED_RESULT;
 
 #include "gdata-parser.h"
-gboolean gdata_parser_error_required_content_missing (xmlNode *element, GError **error);
-gboolean gdata_parser_error_not_iso8601_format (xmlNode *element, const gchar *actual_value, GError **error);
-gboolean gdata_parser_error_unhandled_element (xmlNode *element, GError **error);
-gboolean gdata_parser_error_unknown_property_value (xmlNode *element, const gchar *property_name, const gchar *actual_value, GError **error);
-gboolean gdata_parser_error_required_property_missing (xmlNode *element, const gchar *property_name, GError **error);
-gboolean gdata_parser_error_required_element_missing (const gchar *element_name, const gchar *parent_element_name, GError **error);
-gboolean gdata_parser_error_duplicate_element (xmlNode *element, GError **error);
-gboolean gdata_parser_time_val_from_date (const gchar *date, GTimeVal *_time);
-gchar *gdata_parser_date_from_time_val (GTimeVal *_time) G_GNUC_WARN_UNUSED_RESULT;
 
 G_END_DECLS
 

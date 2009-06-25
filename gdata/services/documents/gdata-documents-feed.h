@@ -23,7 +23,7 @@
 #include <glib.h>
 #include <glib-object.h>
 
-#include <gdata/gdata-atom.h>
+/* #include <gdata/atom/gdata-atom.h> FIXME*/
 #include <gdata/gdata-feed.h>
 
 G_BEGIN_DECLS

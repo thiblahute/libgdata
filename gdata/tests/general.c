@@ -46,26 +46,40 @@ test_entry_get_xml (void)
 	/* Categories */
 	category = gdata_category_new ("test", NULL, NULL);
 	gdata_entry_add_category (entry, category);
+	g_object_unref (category);
 	category = gdata_category_new ("example", NULL, "Example stuff");
 	gdata_entry_add_category (entry, category);
+	g_object_unref (category);
 	category = gdata_category_new ("Film", "http://gdata.youtube.com/schemas/2007/categories.cat", "Film & Animation");
 	gdata_entry_add_category (entry, category);
+	g_object_unref (category);
 
 	/* Links */
-	link = gdata_link_new ("http://test.com/", "self", "application/atom+xml", NULL, NULL, -1);
+	link = gdata_link_new ("http://test.com/", "self");
+	gdata_link_set_content_type (link, "application/atom+xml");
 	gdata_entry_add_link (entry, link);
-	link = gdata_link_new ("http://example.com/", NULL, NULL, NULL, NULL, -1);
+	g_object_unref (link);
+	link = gdata_link_new ("http://example.com/", NULL);
 	gdata_entry_add_link (entry, link);
-	link = gdata_link_new ("http://test.mn/", "related", "text/html", "mn", "A treatise on Mongolian test websites & other stuff.", 5010);
+	g_object_unref (link);
+	link = gdata_link_new ("http://test.mn/", "related");
+	gdata_link_set_content_type (link, "text/html");
+	gdata_link_set_language (link, "mn");
+	gdata_link_set_title (link, "A treatise on Mongolian test websites & other stuff.");
+	gdata_link_set_length (link, 5010);
 	gdata_entry_add_link (entry, link);
+	g_object_unref (link);
 
 	/* Authors */
 	author = gdata_author_new ("Joe Bloggs", "http://example.com/", "joe@example.com");
 	gdata_entry_add_author (entry, author);
+	g_object_unref (author);
 	author = gdata_author_new ("John Smith", NULL, "smith.john@example.com");
 	gdata_entry_add_author (entry, author);
+	g_object_unref (author);
 	author = gdata_author_new ("F. Barr؟", NULL, NULL);
 	gdata_entry_add_author (entry, author);
+	g_object_unref (author);
 
 	/* Check the generated XML's OK */
 	xml = gdata_entry_get_xml (entry);
@@ -237,7 +251,7 @@ test_color_output (void)
 	g_free (color_string);
 }
 
-static void
+/*static void
 test_media_thumbnail_parse_time (const gchar *locale)
 {
 	g_test_bug ("584737");
@@ -252,7 +266,7 @@ test_media_thumbnail_parse_time (const gchar *locale)
 	g_assert_cmpint (gdata_media_thumbnail_parse_time ("foobar"), ==, -1);
 
 	setlocale (LC_ALL, "");
-}
+}*/
 
 int
 main (int argc, char *argv[])
@@ -266,8 +280,8 @@ main (int argc, char *argv[])
 	g_test_add_func ("/query/categories", test_query_categories);
 	g_test_add_func ("/color/parsing", test_color_parsing);
 	g_test_add_func ("/color/output", test_color_output);
-	g_test_add_data_func ("/media/thumbnail/parse_time", "", test_media_thumbnail_parse_time);
-	g_test_add_data_func ("/media/thumbnail/parse_time", "de_DE", test_media_thumbnail_parse_time);
+	/*g_test_add_data_func ("/media/thumbnail/parse_time", "", test_media_thumbnail_parse_time);
+	g_test_add_data_func ("/media/thumbnail/parse_time", "de_DE", test_media_thumbnail_parse_time);*/
 
 	return g_test_run ();
 }

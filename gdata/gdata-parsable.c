@@ -39,6 +39,12 @@
 #include "gdata-private.h"
 #include "gdata-parser.h"
 
+GQuark
+gdata_parser_error_quark (void)
+{
+	return g_quark_from_static_string ("gdata-parser-error-quark");
+}
+
 static void gdata_parsable_finalize (GObject *object);
 static gboolean real_parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_data, GError **error);
 
@@ -117,7 +123,6 @@ _gdata_parsable_new_from_xml (GType parsable_type, const gchar *first_element, c
 	g_return_val_if_fail (first_element != NULL, NULL);
 	g_return_val_if_fail (xml != NULL, NULL);
 
-/*	g_print ("\nXML\n\n %s \n\n", xml);*/
 	if (length == -1)
 		length = strlen (xml);
 
@@ -198,16 +203,73 @@ _gdata_parsable_new_from_xml_node (GType parsable_type, const gchar *first_eleme
 	return parsable;
 }
 
-const gchar *
-_gdata_parsable_get_extra_xml (GDataParsable *self)
+static void
+build_namespaces_cb (gchar *prefix, gchar *href, GString *output)
 {
-	g_return_val_if_fail (GDATA_IS_PARSABLE (self), NULL);
-	return self->priv->extra_xml->str;
+	g_string_append_printf (output, " xmlns:%s='%s'", prefix, href);
 }
 
-GHashTable *
-_gdata_parsable_get_extra_namespaces (GDataParsable *self)
+static gboolean
+filter_namespaces_cb (gchar *prefix, gchar *href, GHashTable *canonical_namespaces)
 {
-	g_return_val_if_fail (GDATA_IS_PARSABLE (self), NULL);
-	return self->priv->extra_namespaces;
+	if (g_hash_table_lookup (canonical_namespaces, prefix) != NULL)
+		return TRUE;
+	return FALSE;
+}
+
+gchar *
+_gdata_parsable_get_xml (GDataParsable *self, const gchar *first_element, gboolean at_top_level)
+{
+	GDataParsableClass *klass;
+	GString *xml_string;
+	guint length;
+	GHashTable *namespaces = NULL; /* shut up, gcc */
+
+	klass = GDATA_PARSABLE_GET_CLASS (self);
+
+	/* Get the namespaces the class uses */
+	if (at_top_level == TRUE && klass->get_namespaces != NULL) {
+		namespaces = g_hash_table_new (g_str_hash, g_str_equal);
+		klass->get_namespaces (self, namespaces);
+
+		/* Remove any duplicate extra namespaces */
+		g_hash_table_foreach_remove (self->priv->extra_namespaces, (GHRFunc) filter_namespaces_cb, namespaces);
+	}
+
+	/* Build up the namespace list */
+	xml_string = g_string_sized_new (100);
+	g_string_append_printf (xml_string, "<%s", first_element);
+
+	/* We only include the normal namespaces if we're not at the top level of XML building */
+	if (at_top_level == TRUE) {
+		g_string_append (xml_string, " xmlns='http://www.w3.org/2005/Atom'");
+		g_hash_table_foreach (namespaces, (GHFunc) build_namespaces_cb, xml_string);
+		g_hash_table_destroy (namespaces);
+	}
+
+	g_hash_table_foreach (self->priv->extra_namespaces, (GHFunc) build_namespaces_cb, xml_string);
+
+	/* Add anything the class thinks is suitable */
+	if (klass->pre_get_xml != NULL)
+		klass->pre_get_xml (self, xml_string);
+	g_string_append_c (xml_string, '>');
+
+	/* Store the length before we close the opening tag, so we can determine whether to self-close later on */
+	length = xml_string->len;
+
+	/* Add the rest of the XML */
+	if (klass->get_xml != NULL)
+		klass->get_xml (self, xml_string);
+
+	/* Any extra XML? */
+	if (self->priv->extra_xml != NULL && self->priv->extra_xml->str != NULL)
+		g_string_append (xml_string, self->priv->extra_xml->str);
+
+	/* Close the element; either by self-closing the opening tag, or by writing out a closing tag */
+	if (xml_string->len == length)
+		g_string_overwrite (xml_string, length - 1, "/>");
+	else
+		g_string_append_printf (xml_string, "</%s>", first_element);
+
+	return g_string_free (xml_string, FALSE);
 }

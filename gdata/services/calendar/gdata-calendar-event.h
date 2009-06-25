@@ -24,8 +24,10 @@
 #include <glib-object.h>
 
 #include <gdata/gdata-entry.h>
-#include <gdata/gdata-gdata.h>
 #include <gdata/gdata-types.h>
+#include <gdata/gd/gdata-gd-when.h>
+#include <gdata/gd/gdata-gd-where.h>
+#include <gdata/gd/gdata-gd-who.h>
 
 G_BEGIN_DECLS
 

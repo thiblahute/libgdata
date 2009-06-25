@@ -36,7 +36,6 @@
 #include <string.h>
 
 #include "gdata-documents-entry.h"
-#include "gdata-gdata.h"
 #include "gdata-parser.h"
 #include "gdata-types.h"
 #include "gdata-private.h"
@@ -93,8 +92,8 @@ gdata_documents_entry_class_init (GDataDocumentsEntryClass *klass)
 
 	parsable_class->parse_xml = parse_xml;
 	
-	entry_class->get_xml = get_xml;
-	entry_class->get_namespaces = get_namespaces;
+	parsable_class->get_xml = get_xml;
+	parsable_class->get_namespaces = get_namespaces;
 
 	/**
 	 * GDataDocumentsEntry::edited
@@ -259,7 +258,7 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 		rel = xmlGetProp (node, (xmlChar*) "rel");
 		href = xmlGetProp (node, (xmlChar*) "href");
 
-		link = gdata_link_new ((gchar*) href, (gchar*) rel, NULL, NULL, NULL, -1);
+		link = gdata_link_new ((const gchar*) href, (const gchar*) rel);
 		gdata_entry_add_link ( GDATA_ENTRY (self), link); 
 	} else if (xmlStrcmp (node->name, (xmlChar*) "lastModifiedBy") ==  0){
 		GDataAuthor *last_modified_by;
@@ -273,7 +272,6 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 			else if (xmlStrcmp (last_modified_by_node->name, (xmlChar*) "email") == 0)
 				email = xmlNodeListGetString (doc, last_modified_by_node->children, TRUE);
 			else{
-				gdata_parser_error_unhandled_element (node, error);
 				xmlFree (name);
 				xmlFree (email);
 				return FALSE;
@@ -297,7 +295,7 @@ gdata_documents_entry_finalize (GObject *object)
 
 	g_free (priv->path);
 	g_free (priv->document_id);
-	gdata_author_free (priv->last_modified_by);
+	g_object_unref (priv->last_modified_by);
 /*	g_object_unref (priv->access_rules); FIXME*/
 
 	/* Chain up to the parent class */
@@ -374,14 +372,14 @@ get_xml (GDataEntry *entry, GString *xml_string)
 	for (categories = gdata_entry_get_categories (GDATA_ENTRY (entry)); categories != NULL; categories = categories->next) {
 		GDataCategory *category = (GDataCategory*) categories->data;
 
-		if (strcmp (category->scheme, "http://schemas.google.com/g/2005#kind") == 0){
-			g_string_append_printf (xml_string, "<category term='%s'", category->term);
+		if (strcmp (gdata_category_get_scheme (category), "http://schemas.google.com/g/2005#kind") == 0){
+			g_string_append_printf (xml_string, "<category term='%s'", gdata_category_get_term (category));
 
-			if (G_LIKELY (category->scheme != NULL))
-				g_string_append_printf (xml_string, " scheme='%s'", category->scheme);
+			if (G_LIKELY (gdata_category_get_scheme (category) != NULL))
+				g_string_append_printf (xml_string, " scheme='%s'", gdata_category_get_scheme (category));
 
-			if (G_UNLIKELY (category->label != NULL)) {
-				gchar *label = g_markup_escape_text (category->label, -1);
+			if (G_UNLIKELY (gdata_category_get_label (category) != NULL)) {
+				gchar *label = g_markup_escape_text (gdata_category_get_label (category), -1);
 				g_string_append_printf (xml_string, " label='%s'", label);
 				g_free (label);
 			}
@@ -403,7 +401,7 @@ get_namespaces (GDataEntry *entry, GHashTable *namespaces)
 {
 	/*TODO check it after writing get_xml*/
 	/* Chain up to the parent class */
-	GDATA_ENTRY_CLASS (gdata_documents_entry_parent_class)->get_namespaces (entry, namespaces);
+	GDATA_PARSABLE_CLASS (gdata_documents_entry_parent_class)->get_namespaces (entry, namespaces);
 
 	g_hash_table_insert (namespaces, (gchar*) "docs", (gchar*) "http://schemas.google.com/docs/2007");
 
@@ -473,9 +471,9 @@ gdata_documents_entry_set_path (GDataDocumentsEntry *self)
 	parent_folders_list = gdata_entry_look_up_links (GDATA_ENTRY (self), "http://schemas.google.com/docs/2007#parent");
 	for (element = parent_folders_list; element != NULL; element = element->next){
 		if (self->priv->path == NULL)
-			self->priv->path = ((GDataLink*) element->data)->title;
+			self->priv->path = gdata_link_get_title (((GDataLink*) element->data));
 		else
-			self->priv->path = g_strconcat (self->priv->path, ((GDataLink*) element->data)->title);
+			self->priv->path = g_strconcat (self->priv->path, gdata_link_get_title (((GDataLink*) element->data)));
 	}
 	g_object_notify (G_OBJECT (self), "path");
 }

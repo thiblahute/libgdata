@@ -26,7 +26,7 @@
 #include <glib-object.h>
 
 #include <gdata/services/documents/gdata-documents-entry.h>
-#include <gdata/gdata-gdata.h>
+/*#include <gdata/gdata-gdata.h> FIXME*/
 #include <gdata/gdata-types.h>
 
 G_BEGIN_DECLS

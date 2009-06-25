@@ -30,24 +30,26 @@ gdatayoutubeincludedir = $(pkgincludedir)/gdata/services/youtube
 gdatayoutubeinclude_HEADERS = \
 	gdata-youtube-service.h		\
 	gdata-youtube-video.h		\
-	gdata-youtube.h			\
+	gdata-youtube-content.h		\
+	gdata-youtube-credit.h		\
 	gdata-youtube-enums.h		\
-	gdata-youtube-query.h
+	gdata-youtube-query.h		\
+	gdata-youtube-state.h
 
 noinst_LTLIBRARIES = libgdatayoutube.la
 
-libgdatayoutube_headers =
-
 libgdatayoutube_la_SOURCES = \
-	$(GDATA_YOUTUBE_ENUM_FILES)	\
+	gdata-youtube-enums.c		\
 	gdata-youtube-service.c		\
-	gdata-youtube-service.h		\
 	gdata-youtube-video.c		\
-	gdata-youtube-video.h		\
-	gdata-youtube.c			\
-	gdata-youtube.h			\
+	gdata-youtube-content.c		\
+	gdata-youtube-credit.c		\
 	gdata-youtube-query.c		\
-	gdata-youtube-query.h
+	gdata-youtube-group.c		\
+	gdata-youtube-group.h		\
+	gdata-youtube-state.c		\
+	gdata-youtube-control.c		\
+	gdata-youtube-control.h
 
 libgdatayoutube_la_CPPFLAGS = \
 	-I$(top_srcdir)				\

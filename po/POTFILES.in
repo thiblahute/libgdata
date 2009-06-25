@@ -11,5 +11,6 @@ gdata/services/calendar/gdata-calendar-calendar.c
 gdata/services/calendar/gdata-calendar-event.c
 gdata/services/calendar/gdata-calendar-service.c
 gdata/services/contacts/gdata-contacts-service.c
+gdata/services/picasaweb/gdata-picasaweb-service.c
 gdata/services/youtube/gdata-youtube-service.c
 gdata/services/youtube/gdata-youtube-video.c

@@ -25,7 +25,6 @@
 #include <glib-object.h>
 
 #include <gdata/gdata-entry.h>
-#include <gdata/gdata-gdata.h>
 
 G_BEGIN_DECLS
 

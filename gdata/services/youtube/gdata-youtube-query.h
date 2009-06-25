@@ -26,27 +26,9 @@
 #include <gdata/gdata-query.h>
 #include <gdata/gdata-types.h>
 #include <gdata/services/youtube/gdata-youtube-enums.h>
+#include <gdata/services/youtube/gdata-youtube-content.h>
 
 G_BEGIN_DECLS
-
-/**
- * GDataYouTubeFormat:
- * @GDATA_YOUTUBE_FORMAT_ALL: retrieve videos in all formats when querying the service
- * @GDATA_YOUTUBE_FORMAT_RTSP_H263_AMR: RTSP streaming URL for mobile video playback; H.263 video (up to 176×144) and AMR audio
- * @GDATA_YOUTUBE_FORMAT_HTTP_SWF: HTTP URL to the embeddable player (SWF) for this video
- * @GDATA_YOUTUBE_FORMAT_RTSP_MPEG4_AAC: RTSP streaming URL for mobile video playback; MPEG-4 SP video (up to 176×144) and AAC audio
- *
- * Video formats available on YouTube. For more information, see the
- * <ulink type="http" url="http://code.google.com/apis/youtube/2.0/reference.html#formatsp">online documentation</ulink>.
- *
- * Since: 0.3.0
- **/
-typedef enum {
-	GDATA_YOUTUBE_FORMAT_ALL = 0,
-	GDATA_YOUTUBE_FORMAT_RTSP_H263_AMR = 1,
-	GDATA_YOUTUBE_FORMAT_HTTP_SWF = 5,
-	GDATA_YOUTUBE_FORMAT_RTSP_MPEG4_AAC = 6
-} GDataYouTubeFormat;
 
 /**
  * GDataYouTubeSafeSearch:

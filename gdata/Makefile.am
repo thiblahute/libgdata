@@ -1,5 +1,5 @@
-SUBDIRS = services . tests
-DIST_SUBDIRS = services tests
+SUBDIRS = atom gd media services . tests
+DIST_SUBDIRS = atom gd media services tests
 
 # Marshalling
 GDATA_MARSHAL_FILES = \
@@ -47,10 +47,6 @@ gdata_headers = \
 	gdata-feed.h		\
 	gdata-service.h		\
 	gdata-query.h		\
-	gdata-atom.h		\
-	gdata-media-rss.h	\
-	gdata-gdata.h		\
-	gdata-parser.h		\
 	gdata-access-handler.h	\
 	gdata-access-rule.h	\
 	gdata-parsable.h
@@ -69,14 +65,12 @@ libgdata_la_SOURCES = \
 	gdata-service.c		\
 	gdata-types.c		\
 	gdata-query.c		\
-	gdata-atom.c		\
-	gdata-media-rss.c	\
-	gdata-gdata.c		\
 	gdata-parser.c		\
 	gdata-access-handler.c	\
 	gdata-access-rule.c	\
+	gdata-parsable.c	\
 	gdata-private.h		\
-	gdata-parsable.c
+	gdata-parser.h
 
 libgdata_la_CPPFLAGS = \
 	-I$(top_srcdir)			\
@@ -92,12 +86,16 @@ libgdata_la_CFLAGS = \
 	-D_GNU_SOURCE
 
 libgdata_la_LIBADD = \
-	$(GDATA_LIBS)	\
-	$(GNOME_LIBS)	\
+	$(GDATA_LIBS)				\
+	$(GNOME_LIBS)				\
+	atom/libgdataatom.la			\
+	gd/libgdatagd.la			\
+	media/libgdatamedia.la			\
 	services/youtube/libgdatayoutube.la	\
 	services/calendar/libgdatacalendar.la	\
-	services/contacts/libgdatacontacts.la\
-	services/documents/libgdatadocuments.la
+	services/picasaweb/libgdatapicasaweb.la	\
+	services/documents/libgdatadocuments.la \
+	services/contacts/libgdatacontacts.la
 
 libgdata_la_LDFLAGS = \
 	-version-info $(GDATA_LT_VERSION)	\

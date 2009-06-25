@@ -38,16 +38,16 @@
 #include "gdata-calendar-event.h"
 #include "gdata-private.h"
 #include "gdata-service.h"
-#include "gdata-gdata.h"
 #include "gdata-parser.h"
 #include "gdata-types.h"
 
+static void gdata_calendar_event_dispose (GObject *object);
 static void gdata_calendar_event_finalize (GObject *object);
 static void gdata_calendar_event_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec);
 static void gdata_calendar_event_set_property (GObject *object, guint property_id, const GValue *value, GParamSpec *pspec);
-static void get_xml (GDataEntry *entry, GString *xml_string);
+static void get_xml (GDataParsable *parsable, GString *xml_string);
 static gboolean parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_data, GError **error);
-static void get_namespaces (GDataEntry *entry, GHashTable *namespaces);
+static void get_namespaces (GDataParsable *parsable, GHashTable *namespaces);
 
 struct _GDataCalendarEventPrivate {
 	GTimeVal edited;
@@ -93,18 +93,17 @@ gdata_calendar_event_class_init (GDataCalendarEventClass *klass)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
 	GDataParsableClass *parsable_class = GDATA_PARSABLE_CLASS (klass);
-	GDataEntryClass *entry_class = GDATA_ENTRY_CLASS (klass);
 
 	g_type_class_add_private (klass, sizeof (GDataCalendarEventPrivate));
 
-	gobject_class->set_property = gdata_calendar_event_set_property;
 	gobject_class->get_property = gdata_calendar_event_get_property;
+	gobject_class->set_property = gdata_calendar_event_set_property;
+	gobject_class->dispose = gdata_calendar_event_dispose;
 	gobject_class->finalize = gdata_calendar_event_finalize;
 
 	parsable_class->parse_xml = parse_xml;
-
-	entry_class->get_xml = get_xml;
-	entry_class->get_namespaces = get_namespaces;
+	parsable_class->get_xml = get_xml;
+	parsable_class->get_namespaces = get_namespaces;
 
 	/**
 	 * GDataCalendarEvent:edited:
@@ -293,20 +292,41 @@ gdata_calendar_event_init (GDataCalendarEvent *self)
 }
 
 static void
+gdata_calendar_event_dispose (GObject *object)
+{
+	GDataCalendarEventPrivate *priv = GDATA_CALENDAR_EVENT (object)->priv;
+
+	if (priv->times != NULL) {
+		g_list_foreach (priv->times, (GFunc) g_object_unref, NULL);
+		g_list_free (priv->times);
+	}
+	priv->times = NULL;
+
+	if (priv->people != NULL) {
+		g_list_foreach (priv->people, (GFunc) g_object_unref, NULL);
+		g_list_free (priv->people);
+	}
+	priv->people = NULL;
+
+	if (priv->places != NULL) {
+		g_list_foreach (priv->places, (GFunc) g_object_unref, NULL);
+		g_list_free (priv->places);
+	}
+	priv->places = NULL;
+
+	/* Chain up to the parent class */
+	G_OBJECT_CLASS (gdata_calendar_event_parent_class)->dispose (object);
+}
+
+static void
 gdata_calendar_event_finalize (GObject *object)
 {
-	GDataCalendarEventPrivate *priv = GDATA_CALENDAR_EVENT_GET_PRIVATE (object);
+	GDataCalendarEventPrivate *priv = GDATA_CALENDAR_EVENT (object)->priv;
 
 	g_free (priv->status);
 	g_free (priv->visibility);
 	g_free (priv->transparency);
 	g_free (priv->uid);
-	g_list_foreach (priv->times, (GFunc) gdata_gd_when_free, NULL);
-	g_list_free (priv->times);
-	g_list_foreach (priv->people, (GFunc) gdata_gd_who_free, NULL);
-	g_list_free (priv->people);
-	g_list_foreach (priv->places, (GFunc) gdata_gd_where_free, NULL);
-	g_list_free (priv->places);
 	g_free (priv->recurrence);
 	xmlFree ((xmlChar*) priv->original_event_id);
 	xmlFree ((xmlChar*) priv->original_event_uri);
@@ -533,49 +553,11 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 		gdata_calendar_event_set_sequence (self, value_uint);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "when") == 0) {
 		/* gd:when */
-		xmlChar *start_time, *end_time, *value_string;
-		GTimeVal start_time_timeval, end_time_timeval;
-		GDataGDWhen *when;
-		gboolean is_date = FALSE;
-
-		/* Start time */
-		start_time = xmlGetProp (node, (xmlChar*) "startTime");
-		if (gdata_parser_time_val_from_date ((gchar*) start_time, &start_time_timeval) == TRUE) {
-			is_date = TRUE;
-		} else if (g_time_val_from_iso8601 ((gchar*) start_time, &start_time_timeval) == FALSE) {
-			/* Error */
-			gdata_parser_error_not_iso8601_format (node, (gchar*) start_time, error);
-			xmlFree (start_time);
+		GDataGDWhen *when = GDATA_GD_WHEN (_gdata_parsable_new_from_xml_node (GDATA_TYPE_GD_WHEN, "when", doc, node, NULL, error));
+		if (when == NULL)
 			return FALSE;
-		}
-		xmlFree (start_time);
-
-		/* End time (optional) */
-		end_time = xmlGetProp (node, (xmlChar*) "endTime");
-		if (end_time != NULL) {
-			gboolean success;
-
-			if (is_date == TRUE)
-				success = gdata_parser_time_val_from_date ((gchar*) end_time, &end_time_timeval);
-			else
-				success = g_time_val_from_iso8601 ((gchar*) end_time, &end_time_timeval);
-
-			if (success == FALSE) {
-				/* Error */
-				gdata_parser_error_not_iso8601_format (node, (gchar*) end_time, error);
-				xmlFree (end_time);
-				return FALSE;
-			}
-			xmlFree (end_time);
-		}
-
-		value_string = xmlGetProp (node, (xmlChar*) "value");
-		when = gdata_gd_when_new (&start_time_timeval, (end_time == NULL) ? NULL : &end_time_timeval, is_date, (gchar*) value_string, NULL);
-		xmlFree (value_string);
 
 		gdata_calendar_event_add_time (self, when);
-
-		/* TODO: Deal with reminders (<gd:reminder> child elements) */
 	} else if (xmlStrcmp (node->name, (xmlChar*) "guestsCanModify") == 0) {
 		/* gCal:guestsCanModify */
 		xmlChar *value = xmlGetProp (node, (xmlChar*) "value");
@@ -606,34 +588,16 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 		xmlFree (value);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "who") == 0) {
 		/* gd:who */
-		xmlChar *email, *rel, *value_string;
-		GDataGDWho *who;
-
-		rel = xmlGetProp (node, (xmlChar*) "rel");
-		value_string = xmlGetProp (node, (xmlChar*) "valueString");
-		email = xmlGetProp (node, (xmlChar*) "email");
-		/* TODO: deal with the attendeeType, attendeeStatus and entryLink */
-
-		who = gdata_gd_who_new ((gchar*) rel, (gchar*) value_string, (gchar*) email);
-		xmlFree (rel);
-		xmlFree (value_string);
-		xmlFree (email);
+		GDataGDWho *who = GDATA_GD_WHO (_gdata_parsable_new_from_xml_node (GDATA_TYPE_GD_WHO, "who", doc, node, NULL, error));
+		if (who == NULL)
+			return FALSE;
 
 		gdata_calendar_event_add_person (self, who);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "where") == 0) {
 		/* gd:where */
-		xmlChar *label, *rel, *value_string;
-		GDataGDWhere *where;
-
-		rel = xmlGetProp (node, (xmlChar*) "rel");
-		value_string = xmlGetProp (node, (xmlChar*) "valueString");
-		label = xmlGetProp (node, (xmlChar*) "label");
-		/* TODO: deal with the entryLink */
-
-		where = gdata_gd_where_new ((gchar*) rel, (gchar*) value_string, (gchar*) label);
-		xmlFree (rel);
-		xmlFree (value_string);
-		xmlFree (label);
+		GDataGDWhere *where = GDATA_GD_WHERE (_gdata_parsable_new_from_xml_node (GDATA_TYPE_GD_WHERE, "where", doc, node, NULL, error));
+		if (where == NULL)
+			return FALSE;
 
 		gdata_calendar_event_add_place (self, where);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "recurrence") == 0) {
@@ -658,13 +622,13 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 }
 
 static void
-get_xml (GDataEntry *entry, GString *xml_string)
+get_xml (GDataParsable *parsable, GString *xml_string)
 {
-	GDataCalendarEventPrivate *priv = GDATA_CALENDAR_EVENT (entry)->priv;
+	GDataCalendarEventPrivate *priv = GDATA_CALENDAR_EVENT (parsable)->priv;
 	GList *i;
 
 	/* Chain up to the parent class */
-	GDATA_ENTRY_CLASS (gdata_calendar_event_parent_class)->get_xml (entry, xml_string);
+	GDATA_PARSABLE_CLASS (gdata_calendar_event_parent_class)->get_xml (parsable, xml_string);
 
 	/* Add all the Calendar-specific XML */
 
@@ -708,67 +672,14 @@ get_xml (GDataEntry *entry, GString *xml_string)
 	if (priv->recurrence != NULL)
 		g_string_append_printf (xml_string, "<gd:recurrence>%s</gd:recurrence>", priv->recurrence);
 
-	for (i = priv->times; i != NULL; i = i->next) {
-		gchar *start_time;
-		GDataGDWhen *when = (GDataGDWhen*) i->data;
+	for (i = priv->times; i != NULL; i = i->next)
+		g_string_append (xml_string, _gdata_parsable_get_xml (GDATA_PARSABLE (i->data), "gd:when", FALSE));
 
-		if (when->is_date == TRUE)
-			start_time = gdata_parser_date_from_time_val (&(when->start_time));
-		else
-			start_time = g_time_val_to_iso8601 (&(when->start_time));
+	for (i = priv->people; i != NULL; i = i->next)
+		g_string_append (xml_string, _gdata_parsable_get_xml (GDATA_PARSABLE (i->data), "gd:who", FALSE));
 
-		g_string_append_printf (xml_string, "<gd:when startTime='%s'", start_time);
-		g_free (start_time);
-
-		if (when->end_time.tv_sec != 0 || when->end_time.tv_usec != 0) {
-			gchar *end_time;
-
-			if (when->is_date == TRUE)
-				end_time = gdata_parser_date_from_time_val (&(when->end_time));
-			else
-				end_time = g_time_val_to_iso8601 (&(when->end_time));
-
-			g_string_append_printf (xml_string, " endTime='%s'", end_time);
-			g_free (end_time);
-		}
-
-		if (when->value_string != NULL)
-			g_string_append_printf (xml_string, " value='%s'", when->value_string);
-
-		g_string_append (xml_string, "/>");
-
-		/* TODO: Deal with reminders (<gd:reminder> child elements) */
-	}
-
-	for (i = priv->people; i != NULL; i = i->next) {
-		GDataGDWho *who = (GDataGDWho*) i->data;
-
-		g_string_append (xml_string, "<gd:who");
-		if (who->email != NULL)
-			g_string_append_printf (xml_string, " email='%s'", who->email);
-		if (who->rel != NULL)
-			g_string_append_printf (xml_string, " rel='%s'", who->rel);
-		if (who->value_string != NULL)
-			g_string_append_printf (xml_string, " valueString='%s'", who->value_string);
-		g_string_append (xml_string, "/>");
-
-		/* TODO: deal with the attendeeType, attendeeStatus and entryLink */
-	}
-
-	for (i = priv->places; i != NULL; i = i->next) {
-		GDataGDWhere *where = (GDataGDWhere*) i->data;
-
-		g_string_append (xml_string, "<gd:where");
-		if (where->label != NULL)
-			g_string_append_printf (xml_string, " label='%s'", where->label);
-		if (where->rel != NULL)
-			g_string_append_printf (xml_string, " rel='%s'", where->rel);
-		if (where->value_string != NULL)
-			g_string_append_printf (xml_string, " valueString='%s'", where->value_string);
-		g_string_append (xml_string, "/>");
-
-		/* TODO: deal with the entryLink */
-	}
+	for (i = priv->places; i != NULL; i = i->next)
+		g_string_append (xml_string, _gdata_parsable_get_xml (GDATA_PARSABLE (i->data), "gd:where", FALSE));
 
 	/* TODO:
 	 * - Finish supporting all tags
@@ -780,10 +691,10 @@ get_xml (GDataEntry *entry, GString *xml_string)
 }
 
 static void
-get_namespaces (GDataEntry *entry, GHashTable *namespaces)
+get_namespaces (GDataParsable *parsable, GHashTable *namespaces)
 {
 	/* Chain up to the parent class */
-	GDATA_ENTRY_CLASS (gdata_calendar_event_parent_class)->get_namespaces (entry, namespaces);
+	GDATA_PARSABLE_CLASS (gdata_calendar_event_parent_class)->get_namespaces (parsable, namespaces);
 
 	g_hash_table_insert (namespaces, (gchar*) "gd", (gchar*) "http://schemas.google.com/g/2005");
 	g_hash_table_insert (namespaces, (gchar*) "gCal", (gchar*) "http://schemas.google.com/gCal/2005");
@@ -1102,8 +1013,7 @@ gdata_calendar_event_set_anyone_can_add_self (GDataCalendarEvent *self, gboolean
  * @self: a #GDataCalendarEvent
  * @who: a #GDataGDWho to add
  *
- * Adds the person @who to the event as a guest (attendee, organiser, performer, etc.).
- * The #GDataCalendarEvent takes ownership of @who, so it must not be freed after being added.
+ * Adds the person @who to the event as a guest (attendee, organiser, performer, etc.), and increments its reference count.
  *
  * Duplicate people will not be added to the list.
  **/
@@ -1114,9 +1024,7 @@ gdata_calendar_event_add_person (GDataCalendarEvent *self, GDataGDWho *who)
 	g_return_if_fail (who != NULL);
 
 	if (g_list_find_custom (self->priv->people, who, (GCompareFunc) gdata_gd_who_compare) == NULL)
-		self->priv->people = g_list_append (self->priv->people, who);
-	else
-		gdata_gd_who_free (who);
+		self->priv->people = g_list_append (self->priv->people, g_object_ref (who));
 }
 
 /**
@@ -1141,8 +1049,7 @@ gdata_calendar_event_get_people (GDataCalendarEvent *self)
  * @self: a #GDataCalendarEvent
  * @where: a #GDataGDWhere to add
  *
- * Adds the place @where to the event as a location.
- * The #GDataCalendarEvent takes ownership of @where, so it must not be freed after being added.
+ * Adds the place @where to the event as a location and increments its reference count.
  *
  * Duplicate places will not be added to the list.
  **/
@@ -1153,9 +1060,7 @@ gdata_calendar_event_add_place (GDataCalendarEvent *self, GDataGDWhere *where)
 	g_return_if_fail (where != NULL);
 
 	if (g_list_find_custom (self->priv->places, where, (GCompareFunc) gdata_gd_where_compare) == NULL)
-		self->priv->places = g_list_append (self->priv->places, where);
-	else
-		gdata_gd_where_free (where);
+		self->priv->places = g_list_append (self->priv->places, g_object_ref (where));
 }
 
 /**
@@ -1180,8 +1085,7 @@ gdata_calendar_event_get_places (GDataCalendarEvent *self)
  * @self: a #GDataCalendarEvent
  * @when: a #GDataGDWhen to add
  *
- * Adds @when to the event as a time period when the event happens.
- * The #GDataCalendarEvent takes ownership of @when, so it must not be freed after being added.
+ * Adds @when to the event as a time period when the event happens, and increments its reference count.
  *
  * Duplicate times will not be added to the list.
  *
@@ -1191,12 +1095,10 @@ void
 gdata_calendar_event_add_time (GDataCalendarEvent *self, GDataGDWhen *when)
 {
 	g_return_if_fail (GDATA_IS_CALENDAR_EVENT (self));
-	g_return_if_fail (when != NULL);
+	g_return_if_fail (GDATA_IS_GD_WHEN (when));
 
 	if (g_list_find_custom (self->priv->times, when, (GCompareFunc) gdata_gd_when_compare) == NULL)
-		self->priv->times = g_list_append (self->priv->times, when);
-	else
-		gdata_gd_when_free (when);
+		self->priv->times = g_list_append (self->priv->times, g_object_ref (when));
 }
 
 /**
@@ -1243,11 +1145,11 @@ gdata_calendar_event_get_primary_time (GDataCalendarEvent *self, GTimeVal *start
 	if (self->priv->times == NULL || self->priv->times->next != NULL)
 		return FALSE;
 
-	primary_when = (GDataGDWhen*) self->priv->times->data;
+	primary_when = GDATA_GD_WHEN (self->priv->times->data);
 	if (start_time != NULL)
-		*start_time = primary_when->start_time;
+		gdata_gd_when_get_start_time (primary_when, start_time);
 	if (end_time != NULL)
-		*end_time = primary_when->end_time;
+		gdata_gd_when_get_end_time (primary_when, end_time);
 	if (when != NULL)
 		*when = primary_when;
 

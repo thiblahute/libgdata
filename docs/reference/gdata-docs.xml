@@ -11,77 +11,129 @@
 		</releaseinfo>
 	</bookinfo>
 
-	<chapter>
+	<part>
 		<title>GData Overview</title>
 		<xi:include href="gdata-overview.xml"/>
-	</chapter>
+		<chapter>
+			<title>Object Hierarchy</title>
+			<xi:include href="xml/tree_index.sgml"/>
+		</chapter>
+	</part>
 
-	<chapter>
+	<part>
 		<title>Core API</title>
-		<xi:include href="xml/gdata-service.xml"/>
-		<xi:include href="xml/gdata-query.xml"/>
-		<xi:include href="xml/gdata-feed.xml"/>
-		<xi:include href="xml/gdata-entry.xml"/>
-		<xi:include href="xml/gdata-types.xml"/>
-		<xi:include href="xml/gdata-parsable.xml"/>
-	</chapter>
+		<chapter>
+			<title>Core API</title>
+			<xi:include href="xml/gdata-service.xml"/>
+			<xi:include href="xml/gdata-query.xml"/>
+			<xi:include href="xml/gdata-feed.xml"/>
+			<xi:include href="xml/gdata-entry.xml"/>
+			<xi:include href="xml/gdata-types.xml"/>
+			<xi:include href="xml/gdata-parsable.xml"/>
+		</chapter>
 
-	<chapter>
-		<title>Access Control List API</title>
-		<xi:include href="xml/gdata-access-handler.xml"/>
-		<xi:include href="xml/gdata-access-rule.xml"/>
-	</chapter>
+		<chapter>
+			<title>Access Control List API</title>
+			<xi:include href="xml/gdata-access-handler.xml"/>
+			<xi:include href="xml/gdata-access-rule.xml"/>
+		</chapter>
+	</part>
 
-	<chapter>
+	<part>
 		<title>Namespace API</title>
-		<xi:include href="xml/gdata-atom.xml"/>
-		<xi:include href="xml/gdata-gdata.xml"/>
-		<xi:include href="xml/gdata-media.xml"/>
-		<xi:include href="xml/gdata-youtube.xml"/>
-	</chapter>
+		<chapter>
+			<title>Atom API</title>
+			<xi:include href="xml/gdata-author.xml"/>
+			<xi:include href="xml/gdata-category.xml"/>
+			<xi:include href="xml/gdata-generator.xml"/>
+			<xi:include href="xml/gdata-link.xml"/>
+			<xi:include href="xml/gdata-gdata.xml"/>
+		</chapter>
 
-	<chapter>
-		<title>YouTube Service API</title>
-		<xi:include href="xml/gdata-youtube-service.xml"/>
-		<xi:include href="xml/gdata-youtube-query.xml"/>
-		<xi:include href="xml/gdata-youtube-video.xml"/>
-	</chapter>
+		<chapter>
+			<title>GData API</title>
+			<xi:include href="xml/gdata-gd-email-address.xml"/>
+			<xi:include href="xml/gdata-gd-im-address.xml"/>
+			<xi:include href="xml/gdata-gd-organization.xml"/>
+			<xi:include href="xml/gdata-gd-phone-number.xml"/>
+			<xi:include href="xml/gdata-gd-postal-address.xml"/>
+			<xi:include href="xml/gdata-gd-reminder.xml"/>
+			<xi:include href="xml/gdata-gd-when.xml"/>
+			<xi:include href="xml/gdata-gd-where.xml"/>
+			<xi:include href="xml/gdata-gd-who.xml"/>
+		</chapter>
 
-	<chapter>
-		<title>Google Calendar API</title>
-		<xi:include href="xml/gdata-calendar-service.xml"/>
-		<xi:include href="xml/gdata-calendar-feed.xml"/>
-		<xi:include href="xml/gdata-calendar-query.xml"/>
-		<xi:include href="xml/gdata-calendar-calendar.xml"/>
-		<xi:include href="xml/gdata-calendar-event.xml"/>
-	</chapter>
+		<chapter>
+			<title>Media RSS API</title>
+			<xi:include href="xml/gdata-media-category.xml"/>
+			<xi:include href="xml/gdata-media-content.xml"/>
+			<xi:include href="xml/gdata-media-credit.xml"/>
+			<xi:include href="xml/gdata-media-thumbnail.xml"/>
+		</chapter>
 
-	<chapter>
-		<title>Google Contacts API</title>
-		<xi:include href="xml/gdata-contacts-service.xml"/>
-		<xi:include href="xml/gdata-contacts-query.xml"/>
-		<xi:include href="xml/gdata-contacts-contact.xml"/>
-	</chapter>
+		<chapter>
+			<title>YouTube API</title>
+			<xi:include href="xml/gdata-youtube-content.xml"/>
+			<xi:include href="xml/gdata-youtube-credit.xml"/>
+			<xi:include href="xml/gdata-youtube-state.xml"/>
+		</chapter>
+	</part>
 
-	<chapter id="object-tree">
-		<title>Object Hierarchy</title>
-		<xi:include href="xml/tree_index.sgml"/>
-	</chapter>
+	<part>
+		<title>Service APIs</title>
+		<chapter>
+			<title>YouTube API</title>
+			<xi:include href="xml/gdata-youtube-service.xml"/>
+			<xi:include href="xml/gdata-youtube-query.xml"/>
+			<xi:include href="xml/gdata-youtube-video.xml"/>
+		</chapter>
 
-	<index id="api-index-full">
-		<title>API Index</title>
-		<xi:include href="xml/api-index-full.xml"><xi:fallback/></xi:include>
-	</index>
-	<index role="0.1.1">
-		<title>Index of new symbols in 0.1.1</title>
-		<xi:include href="xml/api-index-0.1.1.xml"><xi:fallback/></xi:include>
-	</index>
-	<index role="0.2.0">
-		<title>Index of new symbols in 0.2.0</title>
-		<xi:include href="xml/api-index-0.2.0.xml"><xi:fallback/></xi:include>
-	</index>
-	<index role="0.3.0">
-		<title>Index of new symbols in 0.3.0</title>
-		<xi:include href="xml/api-index-0.3.0.xml"><xi:fallback/></xi:include>
-	</index>
+		<chapter>
+			<title>Google Calendar API</title>
+			<xi:include href="xml/gdata-calendar-service.xml"/>
+			<xi:include href="xml/gdata-calendar-feed.xml"/>
+			<xi:include href="xml/gdata-calendar-query.xml"/>
+			<xi:include href="xml/gdata-calendar-calendar.xml"/>
+			<xi:include href="xml/gdata-calendar-event.xml"/>
+		</chapter>
+
+		<chapter>
+			<title>Google Contacts API</title>
+			<xi:include href="xml/gdata-contacts-service.xml"/>
+			<xi:include href="xml/gdata-contacts-query.xml"/>
+			<xi:include href="xml/gdata-contacts-contact.xml"/>
+		</chapter>
+
+		<chapter>
+			<title>Google PicasaWeb API</title>
+			<xi:include href="xml/gdata-picasaweb-service.xml"/>
+			<xi:include href="xml/gdata-picasaweb-query.xml"/>
+			<xi:include href="xml/gdata-picasaweb-album.xml"/>
+			<xi:include href="xml/gdata-picasaweb-file.xml"/>
+		</chapter>
+	</part>
+
+	<part>
+		<title>Appendices</title>
+		<index id="api-index-full">
+			<title>API Index</title>
+			<xi:include href="xml/api-index-full.xml"><xi:fallback/></xi:include>
+		</index>
+		<index role="0.1.1">
+			<title>Index of new symbols in 0.1.1</title>
+			<xi:include href="xml/api-index-0.1.1.xml"><xi:fallback/></xi:include>
+		</index>
+		<index role="0.2.0">
+			<title>Index of new symbols in 0.2.0</title>
+			<xi:include href="xml/api-index-0.2.0.xml"><xi:fallback/></xi:include>
+		</index>
+		<index role="0.3.0">
+			<title>Index of new symbols in 0.3.0</title>
+			<xi:include href="xml/api-index-0.3.0.xml"><xi:fallback/></xi:include>
+		</index>
+		<index role="0.4.0">
+			<title>Index of new symbols in 0.4.0</title>
+			<xi:include href="xml/api-index-0.4.0.xml"><xi:fallback/></xi:include>
+		</index>
+	</part>
 </book>

@@ -50,7 +50,20 @@ CFILE_GLOB=$(top_srcdir)/gdata/*.c $(top_srcdir)/gdata/services/*/*.c
 
 # Header files to ignore when scanning.
 # e.g. IGNORE_HFILES=gtkdebug.h gtkintl.h
-IGNORE_HFILES=common.h gdata-private.h gdata-marshal.h gdata-enums.h
+IGNORE_HFILES = \
+	common.h		\
+	gdata-private.h		\
+	gdata-parser.h		\
+	gdata-marshal.h		\
+	gdata-enums.h		\
+	gdata-media-enums.h	\
+	gdata-media-group.c	\
+	gdata-media-group.h	\
+	gdata-youtube-group.c	\
+	gdata-youtube-group.h	\
+	gdata-youtube-control.c	\
+	gdata-youtube-control.h	\
+	gdata-picasaweb-enums.h
 
 # Images to copy into HTML directory.
 # e.g. HTML_IMAGES=$(top_srcdir)/gtk/stock-icons/stock_about_24.png

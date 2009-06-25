@@ -147,19 +147,26 @@ test_insert_simple (void)
 	/* TODO: Have it add this category automatically? Same for GDataCalendarEvent */
 	category = gdata_category_new ("http://schemas.google.com/contact/2008#contact", "http://schemas.google.com/g/2005#kind", NULL);
 	gdata_entry_add_category (GDATA_ENTRY (contact), category);
+	g_object_unref (category);
 	email_address1 = gdata_gd_email_address_new ("liz@gmail.com", "http://schemas.google.com/g/2005#work", NULL, FALSE);
 	gdata_contacts_contact_add_email_address (contact, email_address1);
+	g_object_unref (email_address1);
 	email_address2 = gdata_gd_email_address_new ("liz@example.org", "http://schemas.google.com/g/2005#home", NULL, FALSE);
 	gdata_contacts_contact_add_email_address (contact, email_address2);
+	g_object_unref (email_address2);
 	phone_number1 = gdata_gd_phone_number_new ("(206)555-1212", "http://schemas.google.com/g/2005#work", NULL, NULL, TRUE);
 	gdata_contacts_contact_add_phone_number (contact, phone_number1);
+	g_object_unref (phone_number1);
 	phone_number2 = gdata_gd_phone_number_new ("(206)555-1213", "http://schemas.google.com/g/2005#home", NULL, NULL, FALSE);
 	gdata_contacts_contact_add_phone_number (contact, phone_number2);
+	g_object_unref (phone_number2);
 	im_address = gdata_gd_im_address_new ("liz@gmail.com", "http://schemas.google.com/g/2005#GOOGLE_TALK", "http://schemas.google.com/g/2005#home",
 					      NULL, FALSE);
 	gdata_contacts_contact_add_im_address (contact, im_address);
+	g_object_unref (im_address);
 	postal_address = gdata_gd_postal_address_new ("1600 Amphitheatre Pkwy Mountain View", "http://schemas.google.com/g/2005#work", NULL, TRUE);
 	gdata_contacts_contact_add_postal_address (contact, postal_address);
+	g_object_unref (postal_address);
 
 	/* Check the XML */
 	xml = gdata_entry_get_xml (GDATA_ENTRY (contact));

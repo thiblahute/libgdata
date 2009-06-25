@@ -26,6 +26,23 @@
 
 G_BEGIN_DECLS
 
+/**
+ * GDataParserError:
+ * @GDATA_PARSER_ERROR_PARSING_STRING: Error parsing the XML syntax itself
+ * @GDATA_PARSER_ERROR_EMPTY_DOCUMENT: Empty document
+ * @GDATA_PARSER_ERROR_UNHANDLED_XML_ELEMENT: Unknown or unhandled XML element (fatal error)
+ *
+ * Error codes for XML parsing operations.
+ **/
+typedef enum {
+	GDATA_PARSER_ERROR_PARSING_STRING = 1,
+	GDATA_PARSER_ERROR_EMPTY_DOCUMENT,
+	GDATA_PARSER_ERROR_UNHANDLED_XML_ELEMENT
+} GDataParserError;
+
+#define GDATA_PARSER_ERROR gdata_parser_error_quark ()
+GQuark gdata_parser_error_quark (void) G_GNUC_CONST;
+
 #define GDATA_TYPE_PARSABLE		(gdata_parsable_get_type ())
 #define GDATA_PARSABLE(o)		(G_TYPE_CHECK_INSTANCE_CAST ((o), GDATA_TYPE_PARSABLE, GDataParsable))
 #define GDATA_PARSABLE_CLASS(k)		(G_TYPE_CHECK_CLASS_CAST((k), GDATA_TYPE_PARSABLE, GDataParsableClass))
@@ -54,6 +71,10 @@ typedef struct {
  * and used in @parsable
  * @parse_xml: a function to parse an XML representation of the #GDataParsable to set the properties of the @parsable
  * @post_parse_xml: a function called after parsing an XML tree, to allow the @parsable to validate the parsed properties
+ * @pre_get_xml: a function called before building the XML representation of the children of the #GDataParsable, which allows attributes of the root
+ * XML node to be added to @xml_string
+ * @get_xml: a function to build an XML representation of the #GDataParsable in its current state, appending it to the provided #GString
+ * @get_namespaces: a function to return a string containing the namespace declarations used by the @parsable when represented in XML form
  *
  * The class structure for the #GDataParsable class.
  *
@@ -65,9 +86,13 @@ typedef struct {
 	gboolean (*pre_parse_xml) (GDataParsable *parsable, xmlDoc *doc, xmlNode *root_node, gpointer user_data, GError **error);
 	gboolean (*parse_xml) (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_data, GError **error);
 	gboolean (*post_parse_xml) (GDataParsable *parsable, gpointer user_data, GError **error);
+
+	void (*pre_get_xml) (GDataParsable *parsable, GString *xml_string);
+	void (*get_xml) (GDataParsable *parsable, GString *xml_string);
+	void (*get_namespaces) (GDataParsable *parsable, GHashTable *namespaces);
 } GDataParsableClass;
 
-GType gdata_parsable_get_type (void);
+GType gdata_parsable_get_type (void) G_GNUC_CONST;
 
 G_END_DECLS
 
