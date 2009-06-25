@@ -126,13 +126,12 @@ gdata_documents_entry_class_init (GDataDocumentsEntryClass *klass)
 	 * GDataDocumentsEntry:writers_can_invite:
 	 *
 	 * Indicates whether the document entry writers can invite others to write in the document.
-	 *
+	 **/
 	g_object_class_install_property (gobject_class, PROP_WRITERS_CAN_INVITE,
 				g_param_spec_boolean ("writers-can-invite",
 					"Writer can invite?", "Indicates whether writers can invite or not.",
 					FALSE,
-					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
-*/	
+					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 	/**
 	 * GDataDocumentsEntry:path
 	 *
@@ -142,16 +141,16 @@ gdata_documents_entry_class_init (GDataDocumentsEntryClass *klass)
 				g_param_spec_string ("path",
 					"Path", "Indicates in what path the documentsEntry is.",
 					NULL,
-					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
+					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
 	/**
 	 * GDataDocumentsEntry:document_id
 	 *
-	 * Indicates the of the resourceId.
+	 * Indicates the id of the entry.
 	 **/
 	g_object_class_install_property (gobject_class, PROP_DOCUMENT_ID,
 				g_param_spec_string ("resource-id",
-					"resource id", "Indicates the resourcesId of the entry.",
+					"resource id", "Indicates the id of the entry.",
 					NULL,
 					G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
 
@@ -343,7 +342,7 @@ gdata_documents_entry_set_property (GObject *object, guint property_id, const GV
 
 	switch (property_id) {
 		case PROP_PATH:
-			gdata_documents_entry_set_path (self, g_value_get_string (value));
+			gdata_documents_entry_set_path (self);
 			break;
 		case PROP_DOCUMENT_ID:
 			gdata_documents_entry_set_document_id (self, g_value_get_string (value));
@@ -365,9 +364,31 @@ static void
 get_xml (GDataEntry *entry, GString *xml_string)
 { 
 	GDataDocumentsEntryPrivate *priv = GDATA_DOCUMENTS_ENTRY (entry)->priv;
+	gchar *title;
+	GList *categories;
 
-	/*chain up to the parent class*/
-	GDATA_ENTRY_CLASS (gdata_documents_entry_parent_class)->get_xml (entry, xml_string);
+	title = g_markup_escape_text (gdata_entry_get_title (entry), -1);
+	g_string_append_printf (xml_string, "<title type='text'>%s</title>", title);
+	g_free (title);
+
+	for (categories = gdata_entry_get_categories (GDATA_ENTRY (entry)); categories != NULL; categories = categories->next) {
+		GDataCategory *category = (GDataCategory*) categories->data;
+
+		if (strcmp (category->scheme, "http://schemas.google.com/g/2005#kind") == 0){
+			g_string_append_printf (xml_string, "<category term='%s'", category->term);
+
+			if (G_LIKELY (category->scheme != NULL))
+				g_string_append_printf (xml_string, " scheme='%s'", category->scheme);
+
+			if (G_UNLIKELY (category->label != NULL)) {
+				gchar *label = g_markup_escape_text (category->label, -1);
+				g_string_append_printf (xml_string, " label='%s'", label);
+				g_free (label);
+			}
+
+			g_string_append (xml_string, "/>");
+		}
+	}
 
 	if (priv->writers_can_invite == TRUE)
 		g_string_append (xml_string, "<docs:writersCanInvite value='true'/>");
@@ -431,6 +452,7 @@ gchar *
 gdata_documents_entry_get_path (GDataDocumentsEntry *self )
 {
 	g_return_val_if_fail ( GDATA_IS_DOCUMENTS_ENTRY ( self ), NULL );
+
 	return self->priv->path;
 }
 
@@ -439,13 +461,22 @@ gdata_documents_entry_get_path (GDataDocumentsEntry *self )
  * @self: a #GDataDocumentsEntry
  * @path: a new path (or NULL?)
  *
- * Sets the #GDataDocumentsEntry:path property to path.
+ * Create or recreates the path property with the document properties. 
  **/
 void 
-gdata_documents_entry_set_path (GDataDocumentsEntry *self, const gchar *path )
+gdata_documents_entry_set_path (GDataDocumentsEntry *self)
 {
+	GList *element, *parent_folders_list;
 	g_return_if_fail ( GDATA_IS_DOCUMENTS_ENTRY ( self ) );
-	self->priv->path = g_strdup ( path );
+
+	g_free (self->priv->path);
+	parent_folders_list = gdata_entry_look_up_links (GDATA_ENTRY (self), "http://schemas.google.com/docs/2007#parent");
+	for (element = parent_folders_list; element != NULL; element = element->next){
+		if (self->priv->path == NULL)
+			self->priv->path = ((GDataLink*) element->data)->title;
+		else
+			self->priv->path = g_strconcat (self->priv->path, ((GDataLink*) element->data)->title);
+	}
 	g_object_notify (G_OBJECT (self), "path");
 }
 

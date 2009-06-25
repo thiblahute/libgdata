@@ -737,7 +737,7 @@ link_compare_cb (const GDataLink *link, const gchar *rel)
  *
  * Looks up a link by <structfield>rel</structfield> value from the list of links in the entry.
  *
- * Return value: a #GDataLink, or %NULL if one was not found
+ * Return value: a #GDataLink, or %NULL if no one was not found
  *
  * Since: 0.1.1
  **/
@@ -749,8 +749,7 @@ gdata_entry_look_up_link (GDataEntry *self, const gchar *rel)
 	g_return_val_if_fail (GDATA_IS_ENTRY (self), NULL);
 	g_return_val_if_fail (rel != NULL, NULL);
 
-/*
-	for (i = self->priv->links; i != NULL; i = i->next)
+/*	for (i = self->priv->links; i != NULL; i = i->next)
 	{
 		g_print ("Link rel: %s href: %s\n ", ((GDataLink*) i->data)->rel, ((GDataLink*) i->data)->href);
 	}
@@ -760,6 +759,29 @@ gdata_entry_look_up_link (GDataEntry *self, const gchar *rel)
 		return NULL;
 	}
 	return (GDataLink*) (element->data);
+}
+
+/**
+ * gdata_entry_look_up_links
+ * @self : a @GDataEntry
+ * @rel: the value of the <structfield>rel</structfield> attribute of the desired link
+ *
+ * Looks up the links by <structfield>rel</structfield> value from the list of links in the entry.
+ *
+ * Return value : a list of #GDataLink, or %NULL if no one was found
+ **/
+GList *
+gdata_entry_look_up_links (GDataEntry *self, const gchar *rel)
+{
+	GList *list_to_return = NULL;
+	GList *i;
+
+	for (i = self->priv->links; i != NULL; i = i->next)
+	{
+		if ((((GDataLink*) i->data)->rel, rel) == 0)
+			list_to_return = g_list_append (list_to_return, i);
+	}
+	return list_to_return;
 }
 
 /**

@@ -33,15 +33,20 @@ get_documents (void)
 	GDataDocumentsFeed *feed;
 	GDataEntry *entry;
 	GDataDocumentsQuery *query;
+	GList *i;
 	GList *entries;
 	GError *error = NULL;
 
 	g_assert (service != NULL);
 
-	query = gdata_documents_query_new (NULL);
-	gdata_documents_query_set_show_folder (query, TRUE);
-
-	feed = gdata_documents_service_query_documents (GDATA_DOCUMENTS_SERVICE (service), query, TRUE, NULL, NULL, NULL, &error);
+	feed = gdata_documents_service_query_documents (GDATA_DOCUMENTS_SERVICE (service), NULL, FALSE, NULL, NULL, NULL, &error);
+	for (i = gdata_feed_get_entries (feed); i != NULL; i = i->next)
+	{
+		g_print ("Document Type: %s\n", G_OBJECT_TYPE_NAME (i->data));
+		if (GDATA_IS_DOCUMENTS_TEXT (i->data))
+				return GDATA_DOCUMENTS_TEXT (i->data);
+	}
+/*
 	g_assert_no_error (error);
 	g_assert (GDATA_IS_FEED (feed));
 	g_clear_error (&error);
@@ -55,7 +60,9 @@ get_documents (void)
 	g_object_unref (feed);
 
 	return GDATA_DOCUMENTS_ENTRY (entry);
+*/
 }
+
 static void
 test_authentication (void)
 {
@@ -70,14 +77,14 @@ test_authentication (void)
 	g_assert_cmpstr (gdata_service_get_client_id (service), ==, CLIENT_ID);
 
 	/* Log in */
-	retval = gdata_service_authenticate (service, USERNAME, PASSWORD, NULL, &error);
+	retval = gdata_service_authenticate (service, DOCUMENTS_USERNAME, PASSWORD, NULL, &error);
 	g_assert_no_error (error);
 	g_assert (retval == TRUE);
 	g_clear_error (&error);
 
 	/* Check all is as it should be */
 	g_assert (gdata_service_is_authenticated (service) == TRUE);
-	g_assert_cmpstr (gdata_service_get_username (service), ==, USERNAME);
+	g_assert_cmpstr (gdata_service_get_username (service), ==, DOCUMENTS_USERNAME);
 	g_assert_cmpstr (gdata_service_get_password (service), ==, PASSWORD);
 }
 
@@ -188,7 +195,7 @@ test_query_all_documents_async (void)
 }
 
 static void
-test_upload_metadata (void)
+test_upload_metadata_remove (void)
 {
 	GDataDocumentsSpreadsheet *document, *new_document;
 	gchar *xml;
@@ -205,6 +212,7 @@ test_upload_metadata (void)
 
 	/* Insert the document */
 	new_document = gdata_documents_service_upload_document (GDATA_DOCUMENTS_SERVICE (service), document, NULL, NULL, TRUE, NULL, &error);
+	gdata_service_delete_entry (service, new_document, NULL, error);
 
 	/*Check if evrything is as it should be*/
 	g_assert_no_error (error);
@@ -219,23 +227,22 @@ test_upload_metadata (void)
 static void
 test_upload_metadata_file (void)
 {
-	GDataDocumentsSpreadsheet *document, *new_document;
+	GDataDocumentsText *document, *new_document;
 	GFile *document_file;
 	GDataCategory *category;
 	GError *error = NULL;
 
 	g_assert (service != NULL);
 
-	document_file = g_file_new_for_path ( "/home/thibault/workspace/gsoc/libgdata/libgdata/gdata/tests/test.ods");
+	document_file = g_file_new_for_path ( "/home/thibault/workspace/gsoc/libgdata/libgdata/gdata/tests/test.odt");
 
 	document = gdata_documents_spreadsheet_new (NULL);
 	category = gdata_category_new ("http://schemas.google.com/docs/2007#document", "http://schemas.google.com/g/2005#kind", "document");
-
-	gdata_entry_set_title (GDATA_ENTRY (document), "testingDocument");
+	gdata_entry_set_title (GDATA_ENTRY (document), "nexTextDoc");
 	gdata_entry_add_category (GDATA_ENTRY (document), category);
 
 	/* Insert the document */
-	new_document = gdata_documents_service_upload_document (GDATA_DOCUMENTS_SERVICE (service), document, NULL, document_file, TRUE, NULL, &error);
+	new_document = gdata_documents_service_upload_document (GDATA_DOCUMENTS_SERVICE (service), document, document_file, NULL, TRUE, NULL, &error);
 	g_assert_no_error (error);
 	g_assert (GDATA_IS_DOCUMENTS_ENTRY (new_document));
 	g_clear_error (&error);
@@ -265,38 +272,79 @@ test_upload_file (void)
 	gdata_entry_add_category (GDATA_ENTRY (document), category);
 
 	/* Insert the document */
-	new_document = gdata_documents_service_upload_document (GDATA_DOCUMENTS_SERVICE (service), document, NULL, document_file, FALSE, NULL, &error);
+	new_document = gdata_documents_service_upload_document (GDATA_DOCUMENTS_SERVICE (service), document, document_file, NULL, FALSE, NULL, &error);
+	
+	/*Check is evrything is fine*/
 	g_assert_no_error (error);
 	g_assert (GDATA_IS_DOCUMENTS_ENTRY (new_document));
 	g_clear_error (&error);
-
-	/* TODO: check entries and feed properties */
 	g_object_unref (document);
 	g_object_unref (new_document);
 }
 
 static void
+test_upload_file_metadata_in_new_folder (void)
+{
+	GDataDocumentsFolder *folder, *new_folder;
+	GDataDocumentsSpreadsheet *document, *new_document;
+	GFile *document_file;
+	GDataCategory *folder_category, *document_category;
+	GError *error = NULL;
+
+	g_assert (service != NULL);
+
+	document_file = g_file_new_for_path ( "/home/thibault/workspace/gsoc/libgdata/libgdata/gdata/tests/test.ods");
+
+	folder = gdata_documents_folder_new (NULL);
+	folder_category = gdata_category_new ("http://schemas.google.com/docs/2007#folder", "http://schemas.google.com/g/2005#kind", "folder");
+	gdata_entry_set_title (GDATA_ENTRY (folder), "newFolder");
+	gdata_entry_add_category (GDATA_ENTRY (folder), folder_category);
+
+	document = gdata_documents_spreadsheet_new (NULL);
+	document_category = gdata_category_new ("http://schemas.google.com/docs/2007#document", "http://schemas.google.com/g/2005#kind", "document");
+	gdata_entry_set_title (GDATA_ENTRY (document), "testingDocument");
+	gdata_entry_add_category (GDATA_ENTRY (document), document_category);
+
+
+	/* Insert the folder */
+	new_folder = gdata_documents_service_upload_document (GDATA_DOCUMENTS_SERVICE (service), folder, NULL, NULL, TRUE, NULL, &error);
+	g_assert_no_error (error);
+	/* Insert the document in the new folder */
+//	gdata_documents_entry_get_document_id (GDATA_ENTRY (new_folder));
+	new_document = gdata_documents_service_upload_document (GDATA_DOCUMENTS_SERVICE (service), document, document_file, new_folder, TRUE, NULL, &error);
+
+	/*Check is evrything is fine*/
+	g_assert_no_error (error);
+	g_assert (GDATA_IS_DOCUMENTS_ENTRY (new_document));
+	g_assert (GDATA_IS_DOCUMENTS_ENTRY (new_folder));
+	g_clear_error (&error);
+	g_object_unref (document);
+	g_object_unref (new_document);
+	g_object_unref (folder);
+	g_object_unref (new_folder);
+}
+
+static void
 test_update_metadata (void)
 {
-	GDataDocumentsSpreadsheet *document, *new_document;
+	GDataDocumentsSpreadsheet *document;
 	GDataCategory *category;
 	GError *error = NULL;
 
 	g_assert (service != NULL);
 
 	document = get_documents();
-	gdata_entry_set_title (document, "MyNewTitle");
+	gdata_entry_set_title (document, "MySuperTitle");
 
-	/* Insert the document */
-	new_document = gdata_documents_service_update_document (GDATA_DOCUMENTS_SERVICE (service), document, NULL, TRUE, NULL, &error);
+	/* Update the document */
+	g_print ("	New document title: %s\n", gdata_entry_get_title (document));
+	gdata_documents_service_update_document (GDATA_DOCUMENTS_SERVICE (service), document, NULL, TRUE, NULL, &error);
 	g_assert_no_error (error);
-	g_assert (GDATA_IS_DOCUMENTS_ENTRY (new_document));
 	g_clear_error (&error);
 
 	/* TODO: check entries and feed properties */
 
-	g_object_unref (document);
-	g_object_unref (new_document);
+	//g_object_unref (document);
 }
 
 static void
@@ -312,8 +360,8 @@ test_update_metadata_file (void)
 	document_file = g_file_new_for_path ( "/home/thibault/workspace/gsoc/libgdata/libgdata/gdata/tests/test.ods");
 	document = get_documents();
 
-	/* Insert the document */
-	new_document = gdata_documents_service_update_document (GDATA_DOCUMENTS_SERVICE (service), document, document_file, TRUE, NULL, &error);
+	/* Update the document */
+	gdata_documents_service_update_document (GDATA_DOCUMENTS_SERVICE (service), document, document_file, TRUE, NULL, &error);
 	g_assert_no_error (error);
 	g_assert (GDATA_IS_DOCUMENTS_ENTRY (new_document));
 	g_clear_error (&error);
@@ -327,18 +375,20 @@ test_update_metadata_file (void)
 static void
 test_update_file (void)
 {
-	GDataDocumentsSpreadsheet *document, *new_document;
+	GDataDocumentsText *document, *new_document;
 	GFile *document_file;
 	GDataCategory *category;
 	GError *error = NULL;
 
 	g_assert (service != NULL);
 
-	document_file = g_file_new_for_path ( "/home/thibault/workspace/gsoc/libgdata/libgdata/gdata/tests/test.ods");
+	document_file = g_file_new_for_path ( "/home/thibault/workspace/gsoc/libgdata/libgdata/gdata/tests/test.odt");
+
+	g_print ("	Doc file %d\n", document_file);
 	document = get_documents();
 
-	/* Insert the document */
-	new_document = gdata_documents_service_update_document (GDATA_DOCUMENTS_SERVICE (service), document, document_file, FALSE, NULL, &error);
+	/* Update the document */
+	gdata_documents_service_update_document (GDATA_DOCUMENTS_SERVICE (service), document, document_file, FALSE, NULL, &error);
 	g_assert_no_error (error);
 	g_assert (GDATA_IS_DOCUMENTS_ENTRY (new_document));
 	g_clear_error (&error);
@@ -394,21 +444,23 @@ main (int argc, char *argv[])
 	g_test_bug_base ("http://bugzilla.gnome.org/show_bug.cgi?id=");
 
 	g_test_add_func ("/documents/authentication", test_authentication);
-
+/*
 	g_test_add_func ("/documents/query/all_documents_with_folder", test_query_all_documents_with_folder);
 	g_test_add_func ("/documents/query/all_documents", test_query_all_documents);
 	g_test_add_func ("/documents/query/all_documents_async", test_query_all_documents_async);
 	
 	g_test_add_func ("/documents/upload/only_file", test_upload_file);
-	g_test_add_func ("/documents/upload/only_metadata", test_upload_metadata);
 	g_test_add_func ("/documents/upload/metadata_file", test_upload_metadata_file);
-	
-	g_test_add_func ("/documents/update/only_file", test_update_file);
+	g_test_add_func ("/documents/upload/only_metadata_delete", test_upload_metadata_remove);
+	g_test_add_func ("/documents/upload/metadata_file_in_new_folder", test_upload_file_metadata_in_new_folder);
+*/
 	g_test_add_func ("/documents/update/only_metadata", test_update_metadata);
+/*
+ 	g_test_add_func ("/documents/update/only_file", test_update_file);
 	g_test_add_func ("/documents/update/metadata_file", test_update_metadata_file);
-
+*/
 	g_test_add_func ("/documents/documenyts/download_all", test_download_all_documents);
-
+	
 	retval = g_test_run ();
 	if (service != NULL)
 		g_object_unref (service);

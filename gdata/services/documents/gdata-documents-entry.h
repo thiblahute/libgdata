@@ -65,7 +65,7 @@ GDataDocumentsEntry *gdata_documents_entry_new (const gchar *id) G_GNUC_WARN_UNU
 GDataDocumentsEntry *gdata_documents_entry_new_from_xml (const gchar *xml, gint length, GError **error) G_GNUC_WARN_UNUSED_RESULT;
 
 gchar *gdata_documents_entry_get_path (GDataDocumentsEntry *self );
-void gdata_documents_entry_set_path (GDataDocumentsEntry *self, const gchar *path ); 
+void gdata_documents_entry_set_path (GDataDocumentsEntry *self); 
 
 gchar *gdata_documents_entry_get_document_id (GDataDocumentsEntry *self );
 void gdata_documents_entry_set_document_id (GDataDocumentsEntry *self, const gchar *document_id ); 
