@@ -25,7 +25,6 @@
 #include <glib-object.h>
 
 #include <gdata/services/documents/gdata-documents-entry.h>
-/*#include <gdata/gdata-gdata.h> FIXME*/
 #include <gdata/gdata-types.h>
 
 G_BEGIN_DECLS
@@ -38,6 +37,17 @@ G_BEGIN_DECLS
 #define GDATA_DOCUMENTS_TEXT_GET_CLASS(o)	(G_TYPE_INSTANCE_GET_CLASS ((o), GDATA_TYPE_DOCUMENTS_TEXT, GDataDocumentsTextClass))
 
 typedef struct _GDataDocumentsTextPrivate GDataDocumentsTextPrivate;
+
+typedef enum{
+	GDATA_DOCUMENTS_TEXT_DOC = 1,
+	GDATA_DOCUMENTS_TEXT_HTML,
+	GDATA_DOCUMENTS_TEXT_ODT,
+	GDATA_DOCUMENTS_TEXT_PDF,
+	GDATA_DOCUMENTS_TEXT_PNG,
+	GDATA_DOCUMENTS_TEXT_RTF,
+	GDATA_DOCUMENTS_TEXT_TXT,
+	GDATA_DOCUMENTS_TEXT_ZIP,
+} GDataDocumentsTextFormat;
 
 /* 
  * GDataDocumentsText:
@@ -59,9 +69,9 @@ GType gdata_documents_text_get_type (void)G_GNUC_CONST;
 
 GDataDocumentsText *gdata_documents_text_new (const gchar *id) G_GNUC_WARN_UNUSED_RESULT;
 GDataDocumentsText *gdata_documents_text_new_from_xml (const gchar *xml, gint length, GError **error) G_GNUC_WARN_UNUSED_RESULT;
-GFile *gdata_documents_text_download_document (GDataDocumentsEntry *self, GDataDocumentsService *service, gchar **content_type,\
-										gchar *export_format, gchar *destination_folder, gboolean replace_file_if_exist,\
-									   	GCancellable *cancellable, GError **error);
-G_END_DECLS
+GFile *gdata_documents_text_download_document (GDataDocumentsEntry *self, GDataDocumentsService *service, gchar **content_type,
+											   GDataDocumentsTextFormat export_format, gchar *destination_folder, gboolean replace_file_if_exist,
+			    							   GCancellable *cancellable, GError **error) G_GNUC_WARN_UNUSED_RESULT;
 
+G_END_DECLS
 #endif /* !GDATA_DOCUMENTS_TEXT_H */

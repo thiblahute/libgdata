@@ -54,6 +54,10 @@ void _gdata_feed_call_progress_callback (GDataFeed *self, gpointer user_data, GD
 #include "gdata-entry.h"
 GDataEntry *_gdata_entry_new_from_xml (GType entry_type, const gchar *xml, gint length, GError **error) G_GNUC_WARN_UNUSED_RESULT;
 
+#include "gdata/services/documents/gdata-documents-entry.h"
+GFile *_gdata_documents_entry_download_document (GDataDocumentsEntry *self, GDataService *service, gchar **content_type, gchar *link, gchar *destination_folder,\
+					gchar *file_extension, gboolean replace_file_if_exist, GCancellable *cancellable, GError **error) G_GNUC_WARN_UNUSED_RESULT;
+
 #include "gdata-parser.h"
 
 G_END_DECLS

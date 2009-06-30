@@ -64,26 +64,23 @@ typedef struct {
 GType gdata_documents_service_get_type (void) G_GNUC_CONST;
 
 GDataDocumentsService *gdata_documents_service_new (const gchar *client_id) G_GNUC_WARN_UNUSED_RESULT;
-GDataDocumentsFeed *gdata_documents_service_query_documents (GDataDocumentsService *self, GDataDocumentsQuery *query, gboolean set_access_rules,\
-													   	GCancellable *cancellable, GDataQueryProgressCallback progress_callback,
-														gpointer progress_user_data, GError **error);
-void
-gdata_documents_service_query_documents_async (GDataDocumentsService *self, GDataDocumentsQuery *query, GCancellable *cancellable,\
+GDataDocumentsFeed *gdata_documents_service_query_documents (GDataDocumentsService *self, GDataDocumentsQuery *query, GCancellable *cancellable,
+														 	 GDataQueryProgressCallback progress_callback, gpointer progress_user_data, GError **error);
+void gdata_documents_service_query_documents_async (GDataDocumentsService *self, GDataDocumentsQuery *query, GCancellable *cancellable,\
 					     GDataQueryProgressCallback progress_callback, gpointer progress_user_data,
 					     GAsyncReadyCallback callback, gpointer user_data);
 
 #include <gdata/services/documents/gdata-documents-folder.h>
 
-/*TODO use a GDataDocumentsFolder*/
 GDataDocumentsEntry *gdata_documents_service_upload_document (GDataDocumentsService *self, GDataDocumentsEntry *document, GFile *document_file,\
-	   	GDataDocumentsEntry *folder, gboolean metadata, GCancellable *cancellable, GError **error);
+	   	GDataDocumentsEntry *folder, gboolean metadata, GCancellable *cancellable, GError **error);/*TODO use a GDataDocumentsFolder*/
 GDataService *gdata_documents_service_get_spreadsheet_service(GDataDocumentsService *self);
-void gdata_documents_service_update_document (GDataDocumentsService *self, GDataDocumentsEntry *document,\
+GDataDocumentsEntry *gdata_documents_service_update_document (GDataDocumentsService *self, GDataDocumentsEntry *document,\
 	   	GFile *document_file, gboolean metadata, GCancellable *cancellable, GError **error);
-/*TODO use a GDataDocumentsFolder*/
-void gdata_documents_service_remove_document_from_folder (GDataDocumentsService *self, GDataDocumentsEntry *document, GDataDocumentsEntry *folder,
-						GCancellable *cancellable, GError **error);
-/*TODO use a GDataDocumentsFolder*/
-void gdata_documents_service_move_document_to_folder (GDataDocumentsService *self, GDataDocumentsEntry *document, GDataDocumentsEntry *folder,
-						GCancellable *cancellable, GError **error);
+GDataDocumentsEntry *gdata_documents_service_remove_document_from_folder (GDataDocumentsService *self, GDataDocumentsEntry *document, GDataDocumentsEntry *folder,
+						GCancellable *cancellable, GError **error);/*TODO use a GDataDocumentsFolder*/
+GDataDocumentsEntry *gdata_documents_service_move_document_to_folder (GDataDocumentsService *self, GDataDocumentsEntry *document, GDataDocumentsEntry *folder,
+						GCancellable *cancellable, GError **error);/*TODO use a GDataDocumentsFolder*/
+
+G_END_DECLS
 #endif

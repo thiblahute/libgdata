@@ -1,7 +1,7 @@
 /* -*- Mode: C; indent-tabs-mode: t; c-basic-offset: 8; tab-width: 8 -*- */
 /*
  * GData Client
- * Copyright (C) Thibault Saunier <saunierthibault@gmail.com
+ * Copyright (C) Thibault Saunier 2009 <saunierthibault@gmail.com>
  *
  * GData Client is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -41,15 +41,7 @@
 #include "gdata-types.h"
 #include "gdata-private.h"
 
-static void gdata_documents_presentation_finalize (GObject *object);
 static void get_xml (GDataEntry *entry, GString *xml_string);
-static gboolean parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_data, GError **error);
-
-
-struct _GDataDocumentsPresentationPrivate 
-{
-	/*TODO*/
-};
 
 G_DEFINE_TYPE (GDataDocumentsPresentation, gdata_documents_presentation, GDATA_TYPE_DOCUMENTS_ENTRY)
 #define GDATA_DOCUMENTS_PRESENTATION_GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE ((obj), GDATA_TYPE_DOCUMENTS_PRESENTATION, GDataDocumentsPresentationPrivate))
@@ -57,17 +49,9 @@ G_DEFINE_TYPE (GDataDocumentsPresentation, gdata_documents_presentation, GDATA_T
 static void
 gdata_documents_presentation_class_init (GDataDocumentsPresentationClass *klass)
 {
-	GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
 	GDataParsableClass *parsable_class = GDATA_PARSABLE_CLASS (klass);
-	GDataDocumentsEntryClass *documents_entry_class = GDATA_DOCUMENTS_ENTRY_CLASS (klass);
-
-	gobject_class->finalize = gdata_documents_presentation_finalize;
 
 	parsable_class->get_xml = get_xml;
-	parsable_class->parse_xml = parse_xml;
-
-	/*TODO Properties?*/
-
 }
 
 GDataDocumentsPresentation*
@@ -82,41 +66,10 @@ gdata_documents_presentation_new_from_xml (const gchar *xml, gint length, GError
 	return GDATA_DOCUMENTS_PRESENTATION (_gdata_entry_new_from_xml (GDATA_TYPE_DOCUMENTS_PRESENTATION, xml, length, error));
 }
 
-static gboolean
-parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_data, GError **error)
-{
-	GDataDocumentsPresentation *self;
-
-	g_return_val_if_fail (GDATA_IS_DOCUMENTS_PRESENTATION (parsable), FALSE);
-	g_return_val_if_fail (doc != NULL, FALSE);
-	g_return_val_if_fail (node != NULL, FALSE);
-
-	self = GDATA_DOCUMENTS_PRESENTATION (parsable);
-	
-
-	if (GDATA_PARSABLE_CLASS (gdata_documents_presentation_parent_class)->parse_xml (parsable, doc, node, user_data, error) == FALSE) {
-		/* Error! */
-		return FALSE;
-	}
-
-	/*TODO*/
-
-	return TRUE;
-}
-
 static void
 gdata_documents_presentation_init (GDataDocumentsPresentation *self)
 {
-	/*Nothing to be here*/
-}
-
-static void
-gdata_documents_presentation_finalize (GObject *object)
-{
-	/*GDataDocumentsPresentationPrivate *priv = GDATA_DOCUMENTS_PRESENTATION_GET_PRIVATE (object);*/
-
-	/* Chain up to the parent class */
-	G_OBJECT_CLASS (gdata_documents_presentation_parent_class)->finalize (object);
+	/*Why am I writing it?*/
 }
 
 static void 
@@ -129,14 +82,13 @@ get_xml (GDataEntry *entry, GString *xml_string)
 
 	if (document_id != NULL)
 		g_string_append_printf (xml_string, "<gd:resourceId>presentation:%s</gd:resourceId>", document_id);
-
-	g_free (document_id);
 }
 
 /* gdata_documents_presentation_download_document:
- * @self: a #GDataDocumentsPresentation
- * @service: a #GDataDocumentsService
- * @content_type: return location for the document's content type, or %NULL; free with g_free()
+ * @self : a #GDataDocumentsPresentation
+ * @service : a #GDataDocumentsService
+ * @content_type : return location for the document's content type, or %NULL; free with g_free()
+ * @export_format : a #GDataDocumentsPresentationFormat export format
  * @destination_folder: the destination folder
  * @cancellable: optional #GCancellable object, or %NULL
  * @error: a #GError, or %NULL
@@ -152,12 +104,12 @@ get_xml (GDataEntry *entry, GString *xml_string)
  * Return value: the document's data, or %NULL; free with g_free()
  **/
 GFile *
-gdata_documents_presentation_download_document (GDataDocumentsEntry *self, GDataDocumentsService *service, gchar **content_type,
-										gchar *export_format, gchar *destination_folder, gboolean replace_file_if_exist, GCancellable *cancellable, GError **error)
+gdata_documents_presentation_download_document (GDataDocumentsPresentation *self, GDataDocumentsService *service, gchar **content_type,
+										 GDataDocumentsPresentationFormat export_format, gchar *destination_folder, gboolean replace_file_if_exist, GCancellable *cancellable, GError **error)
 {
 	GString *link_href;
 	GFile *destination_file;
-	gchar *document_id;
+	gchar *document_id, *export_format_str;
 
 	/* TODO: async version */
 	g_return_val_if_fail (GDATA_IS_DOCUMENTS_PRESENTATION (self), NULL);
@@ -167,14 +119,24 @@ gdata_documents_presentation_download_document (GDataDocumentsEntry *self, GData
 	document_id = gdata_documents_entry_get_document_id (self);
 	g_return_val_if_fail (document_id != NULL, NULL);
 
+	if (export_format == GDATA_DOCUMENTS_PRESENTATION_PDF)
+		export_format_str = "pdf"; 
+	else if (export_format == GDATA_DOCUMENTS_PRESENTATION_PNG)
+		export_format_str = "png"; 
+	else if (export_format == GDATA_DOCUMENTS_PRESENTATION_PPT)
+		export_format_str = "ppt"; 
+	else if (export_format == GDATA_DOCUMENTS_PRESENTATION_SWF)
+		export_format_str = "swf"; 
+	else if (export_format == GDATA_DOCUMENTS_PRESENTATION_TXT)
+		export_format_str = "txt"; 
+	g_return_val_if_fail (export_format_str != NULL, NULL);
 
-	link_href = g_string_new ("http://docs.google.com/feeds/download/presentations/Export?exportFormat=");
-	g_string_append_printf (link_href, "%s&docID=%s", export_format, document_id);
+	link_href = g_strdup_printf ("http://docs.google.com/feeds/download/presentations/Export?exportFormat=%s&docID=%s", export_format_str, document_id);
 
 	/*Chain up to the parent class*/
-	destination_file = gdata_documents_entry_download_document (GDATA_DOCUMENTS_ENTRY (self), service, content_type, \
-			link_href->str, destination_folder, export_format, replace_file_if_exist, cancellable, error);
+	destination_file = _gdata_documents_entry_download_document (GDATA_DOCUMENTS_ENTRY (self), service, content_type, \
+			link_href, destination_folder, export_format_str, replace_file_if_exist, cancellable, error);
 
-	g_string_free (link_href, FALSE);
+	g_free (link_href);
 	return destination_file;
 }

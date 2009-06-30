@@ -25,7 +25,6 @@
 #include <glib-object.h>
 
 #include <gdata/services/documents/gdata-documents-entry.h>
-/*#include <gdata/gdata-gdata.h> FIXME*/
 #include <gdata/gdata-types.h>
 
 G_BEGIN_DECLS
@@ -38,6 +37,15 @@ G_BEGIN_DECLS
 #define GDATA_DOCUMENTS_SPREADSHEET_GET_CLASS(o)	(G_TYPE_INSTANCE_GET_CLASS ((o), GDATA_TYPE_DOCUMENTS_SPREADSHEET, GDataDocumentsSpreadsheetClass))
 
 typedef struct _GDataDocumentsSpreadsheetPrivate GDataDocumentsSpreadsheetPrivate;
+
+typedef enum {
+	        GDATA_DOCUMENTS_SPREADSHEET_XLS,
+			GDATA_DOCUMENTS_SPREADSHEET_CSV,
+			GDATA_DOCUMENTS_SPREADSHEET_PDF,
+			GDATA_DOCUMENTS_SPREADSHEET_ODS,
+			GDATA_DOCUMENTS_SPREADSHEET_TSV,
+			GDATA_DOCUMENTS_SPREADSHEET_HTML
+} GDataDocumentsSpreadsheetFormat;
 
 /* 
  * GDataDocumentsSpreadsheet:
@@ -59,9 +67,10 @@ GType gdata_documents_spreadsheet_get_type (void)G_GNUC_CONST;
 
 GDataDocumentsSpreadsheet *gdata_documents_spreadsheet_new (const gchar *id) G_GNUC_WARN_UNUSED_RESULT;
 GDataDocumentsSpreadsheet *gdata_documents_spreadsheet_new_from_xml (const gchar *xml, gint length, GError **error) G_GNUC_WARN_UNUSED_RESULT;
+GFile *gdata_documents_spreadsheet_download_document (GDataDocumentsEntry *self, GDataDocumentsService *service, gchar **content_type, gint gid,
+													  GDataDocumentsSpreadsheetFormat export_format, gchar *destination_folder,
+													  gboolean replace_file_if_exist, GCancellable *cancellable, GError **error) G_GNUC_WARN_UNUSED_RESULT;
 
-GFile *gdata_documents_spreadsheet_download_document (GDataDocumentsEntry *self, GDataDocumentsService *service, gchar **content_type,\
-										gchar *gid, gchar *fmcmd, gchar *destination_folder, gboolean replace_file_if_exist, GCancellable *cancellable, GError **error);
 G_END_DECLS
 
 #endif /* !GDATA_DOCUMENTS_SPREADSHEET_H */

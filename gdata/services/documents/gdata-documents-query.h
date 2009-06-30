@@ -1,7 +1,7 @@
 /* -*- Mode: C; indent-tabs-mode: t; c-basic-offset: 8; tab-width: 8 -*- */
 /*
  * GData Client
- * Copyright (C) Philip Withnall 2009 <philip@tecnocode.co.uk>
+ * Copyright (C) Thibault Saunier 2009 <saunierthibault@gmail.com>
  *
  * GData Client is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -61,28 +61,20 @@ GType gdata_documents_query_get_type (void)G_GNUC_CONST;
 
 GDataDocumentsQuery *gdata_documents_query_new (const gchar *q) G_GNUC_WARN_UNUSED_RESULT;
 GDataDocumentsQuery *gdata_documents_query_new_with_limits (const gchar *q, gint start_index, gint max_results) G_GNUC_WARN_UNUSED_RESULT;
-
-
 gboolean gdata_documents_query_get_show_deleted (GDataDocumentsQuery *self);
 void gdata_documents_query_set_show_deleted (GDataDocumentsQuery *self, gboolean show_deleted);
-
-gboolean gdata_documents_query_get_show_folder (GDataDocumentsQuery *self);
-void gdata_documents_query_set_show_folder (GDataDocumentsQuery *self, gboolean show_folder);
-
+gboolean gdata_documents_query_get_show_folders (GDataDocumentsQuery *self);
+void gdata_documents_query_set_show_folders (GDataDocumentsQuery *self, gboolean show_folders);
 gchar *gdata_documents_query_get_folder_id (GDataDocumentsQuery *self);
 void gdata_documents_query_set_folder_id (GDataDocumentsQuery *self, gchar *folder_id);
-
 gchar *gdata_documents_query_get_title (GDataDocumentsQuery *self);
-void gdata_documents_query_set_title (GDataDocumentsQuery *self, gchar *title);
-
+void gdata_documents_query_set_title (GDataDocumentsQuery *self, gchar *title, gboolean exact_title);
 gboolean gdata_documents_query_get_exact_title (GDataDocumentsQuery *self);
-void gdata_documents_query_set_exact_title (GDataDocumentsQuery *self, gboolean exact_title);
-
 GList *gdata_documents_query_get_types (GDataDocumentsQuery *self);
 void gdata_documents_query_set_types (GDataDocumentsQuery *self, GList *type);
-
-gchar *gdata_documents_query_get_emails (GDataDocumentsQuery *self);
-void gdata_documents_query_set_emails (GDataDocumentsQuery *self, gchar *emails);
+gchar *gdata_documents_query_get_collaborators_address (GDataDocumentsQuery *self);
+gchar *gdata_documents_query_get_readers_address (GDataDocumentsQuery *self);
+void gdata_documents_query_add_a_reader_email_address (GDataDocumentsQuery *self, const gchar *reader_address);
 
 G_END_DECLS
 

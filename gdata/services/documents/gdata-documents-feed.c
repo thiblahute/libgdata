@@ -1,7 +1,7 @@
 /* -*- Mode: C; indent-tabs-mode: t; c-basic-offset: 8; tab-width: 8 -*- */
 /*
  * GData Client
- * Copyright (C) Thibault Saunier <saunierthibault@gmail.com
+ * Copyright (C) Thibault Saunier 2009 <saunierthibault@gmail.com>
  *
  * GData Client is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -53,19 +53,13 @@ static gboolean is_spreadsheet_entry (xmlDoc *doc, xmlNode *node);
 static gboolean is_presentation_entry (xmlDoc *doc, xmlNode *node);
 static gboolean is_folder_entry (xmlDoc *doc, xmlNode *node);
 
-struct _GDataDocumentsFeedPrivate {
-	/**/;
-};
-
 G_DEFINE_TYPE (GDataDocumentsFeed, gdata_documents_feed, GDATA_TYPE_FEED)
 #define GDATA_DOCUMENTS_FEED_GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE ((obj), GDATA_TYPE_DOCUMENTS_FEED, GDataDocumentsFeedPrivate))
 
 static void
 gdata_documents_feed_class_init (GDataDocumentsFeedClass *klass)
 {
-	GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
 	GDataParsableClass *parsable_class = GDATA_PARSABLE_CLASS (klass);
-	GDataFeed *feed_class = GDATA_FEED_CLASS (klass);
 
 	parsable_class->parse_xml = parse_xml;
 
@@ -74,27 +68,7 @@ gdata_documents_feed_class_init (GDataDocumentsFeedClass *klass)
 static void
 gdata_documents_feed_init (GDataDocumentsFeed *self)
 {
-	/*Nothing to be here*/
-}
-
-GDataDocumentsFeed*
-_gdata_documents_feed_new_from_xml (GType feed_type, const gchar *xml, gint length, GType entry_type,\
-			  GDataQueryProgressCallback progress_callback, gpointer progress_user_data, GError **error)
-{
-	gpointer *data;
-	GDataDocumentsFeed *feed;
-
-	g_return_val_if_fail (g_type_is_a (feed_type, GDATA_TYPE_DOCUMENTS_FEED) == TRUE, FALSE);
-	g_return_val_if_fail (xml != NULL, NULL);
-	g_return_val_if_fail (g_type_is_a (entry_type, GDATA_TYPE_DOCUMENTS_ENTRY) == TRUE, FALSE);
-
-	data = _gdata_feed_parse_data_new(entry_type, progress_callback, progress_user_data);
-		
-	feed = GDATA_DOCUMENTS_FEED (_gdata_parsable_new_from_xml (feed_type, "feed", xml, length, data, error));
-
-	_gdata_feed_parse_data_free (data);
-	
-	return feed;
+	/*Why am I writing it?*/
 }
 
 static gboolean
@@ -113,10 +87,7 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 		GDataEntry *entry;
 		GDataAuthor *author;
 		if (is_spreadsheet_entry (doc, node))
-		{
 			entry = GDATA_DOCUMENTS_SPREADSHEET (_gdata_parsable_new_from_xml_node (GDATA_TYPE_DOCUMENTS_SPREADSHEET, "entry", doc, node, NULL, error));
-			
-		}
 		else if ( is_text_entry (doc, node))
 			entry = GDATA_ENTRY (_gdata_parsable_new_from_xml_node (GDATA_TYPE_DOCUMENTS_TEXT, "entry", doc, node, NULL, error));
 		else if (is_presentation_entry (doc, node))
@@ -129,8 +100,6 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 		/* Call the progress callback in the main thread */
 		_gdata_feed_call_progress_callback (self, user_data, entry);
 
-		/* TODO: call the callback function as parse_xml in gdata-feed.c does (may need new private API), and add the entry to the
-		 * GDataFeed's list of entries (does need new private API) */
 		_gdata_feed_add_entry (self, entry);
 
 	} else if (GDATA_PARSABLE_CLASS (gdata_documents_feed_parent_class)->parse_xml (parsable, doc, node, user_data, error) == FALSE) {
@@ -143,18 +112,16 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 static gboolean
 is_spreadsheet_entry (xmlDoc *doc, xmlNode *node)
 {
-	gchar *document_type;
-	xmlNodePtr entry_node;
+	xmlNode *entry_node;
 
-	g_return_val_if_fail (node != NULL, FALSE);
 	entry_node = node->children;	
 
 	while (entry_node != NULL) {
-		if ( strcmp ((gchar*) entry_node->name, "category") == 0){
-			const gchar *label= (const gchar*) (xmlGetProp (entry_node, (xmlChar*) "label"));
-			if (strcmp (label, "spreadsheet") == 0){
+		if (xmlStrcmp (entry_node->name, "category") == 0){
+			gchar *label = (gchar*) (xmlGetProp (entry_node, (xmlChar*) "label"));
+			if (strcmp (label, "spreadsheet") == 0)
 				return TRUE;
-			}
+			xmlFree (label);
 		}
 		entry_node= entry_node->next;
 	}
@@ -164,18 +131,16 @@ is_spreadsheet_entry (xmlDoc *doc, xmlNode *node)
 static gboolean
 is_text_entry (xmlDoc *doc, xmlNode *node)
 {
-	gchar *document_type;
-	xmlNodePtr entry_node;
+	xmlNode *entry_node;
 
-	g_return_val_if_fail (node != NULL, FALSE);
 	entry_node = node->children;	
 
 	while (entry_node != NULL) {
-		if ( strcmp ((gchar*) entry_node->name, "category") == 0){
-			const gchar *label= (const gchar*) (xmlGetProp (entry_node, (xmlChar*) "label"));
-			if (strcmp (label, "document") == 0){
+		if (xmlStrcmp (entry_node->name, "category") == 0){
+			gchar *label = (gchar*) (xmlGetProp (entry_node, (xmlChar*) "label"));
+			if (strcmp (label, "document") == 0)
 				return TRUE;
-			}
+			xmlFree (label);
 		}
 		entry_node= entry_node->next;
 	}
@@ -185,18 +150,16 @@ is_text_entry (xmlDoc *doc, xmlNode *node)
 static gboolean
 is_presentation_entry (xmlDoc *doc, xmlNode *node)
 {
-	gchar *document_type;
-	xmlNodePtr entry_node;
+	xmlNode *entry_node;
 
-	g_return_val_if_fail (node != NULL, FALSE);
 	entry_node = node->children;	
 
 	while (entry_node != NULL) {
-		if ( strcmp ((gchar*) entry_node->name, "category") == 0){
-			const gchar *label= (const gchar*) (xmlGetProp (entry_node, (xmlChar*) "label"));
-			if (strcmp (label, "presentation") == 0){
+		if (xmlStrcmp (entry_node->name, "category") == 0){
+			gchar *label = (gchar*) (xmlGetProp (entry_node, (xmlChar*) "label"));
+			if (strcmp (label, "presentation") == 0)
 				return TRUE;
-			}
+			xmlFree (label);
 		}
 		entry_node= entry_node->next;
 	}
@@ -206,18 +169,16 @@ is_presentation_entry (xmlDoc *doc, xmlNode *node)
 static gboolean
 is_folder_entry (xmlDoc *doc, xmlNode *node)
 {
-	gchar *document_type;
-	xmlNodePtr entry_node;
+	xmlNode *entry_node;
 
-	g_return_val_if_fail (node != NULL, FALSE);
 	entry_node = node->children;	
 
 	while (entry_node != NULL) {
-		if ( strcmp ((gchar*) entry_node->name, "category") == 0){
-			const gchar *label= (const gchar*) (xmlGetProp (entry_node, (xmlChar*) "label"));
-			if (strcmp (label, "folder") == 0){
+		if (xmlStrcmp (entry_node->name, "category") == 0){
+			gchar *label = (gchar*) (xmlGetProp (entry_node, (xmlChar*) "label"));
+			if (strcmp (label, "folder") == 0)
 				return TRUE;
-			}
+			xmlFree (label);
 		}
 		entry_node= entry_node->next;
 	}

@@ -26,7 +26,6 @@
 #include <glib-object.h>
 
 #include <gdata/services/documents/gdata-documents-entry.h>
-/*#include <gdata/gdata-gdata.h> FIXME*/
 #include <gdata/gdata-types.h>
 
 G_BEGIN_DECLS
@@ -39,6 +38,14 @@ G_BEGIN_DECLS
 #define GDATA_DOCUMENTS_PRESENTATION_GET_CLASS(o)	(G_TYPE_INSTANCE_GET_CLASS ((o), GDATA_TYPE_DOCUMENTS_PRESENTATION, GDataDocumentsPresentationClass))
 
 typedef struct _GDataDocumentsPresentationPrivate GDataDocumentsPresentationPrivate;
+
+typedef enum{
+	GDATA_DOCUMENTS_PRESENTATION_PDF = 1,
+	GDATA_DOCUMENTS_PRESENTATION_PNG,
+	GDATA_DOCUMENTS_PRESENTATION_PPT,
+	GDATA_DOCUMENTS_PRESENTATION_SWF,
+	GDATA_DOCUMENTS_PRESENTATION_TXT,
+} GDataDocumentsPresentationFormat;
 
 /* 
  * GDataDocumentsPresentation:
@@ -60,9 +67,9 @@ GType gdata_documents_presentation_get_type (void)G_GNUC_CONST;
 
 GDataDocumentsPresentation *gdata_documents_presentation_new (const gchar *id) G_GNUC_WARN_UNUSED_RESULT;
 GDataDocumentsPresentation *gdata_documents_presentation_new_from_xml (const gchar *xml, gint length, GError **error) G_GNUC_WARN_UNUSED_RESULT;
-GFile *gdata_documents_presentation_download_document (GDataDocumentsEntry *self, GDataDocumentsService *service, gchar **content_type,\
-										gchar *export_format, gchar *destination_folder, gboolean replace_file_if_exist,\
-									   	GCancellable *cancellable, GError **error);
+GFile *gdata_documents_presentation_download_document (GDataDocumentsPresentation *self, GDataDocumentsService *service, gchar **content_type,
+													   GDataDocumentsPresentationFormat export_format, gchar *destination_folder, gboolean replace_file_if_exist,
+			  									   	   GCancellable *cancellable, GError **error) G_GNUC_WARN_UNUSED_RESULT;
 
 
 G_END_DECLS

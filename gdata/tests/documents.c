@@ -28,7 +28,7 @@ static GDataService *service = NULL;
 static GMainLoop *main_loop = NULL;
 
 static GDataDocumentsEntry *
-get_documents (void)
+get_document (void)
 {
 	GDataDocumentsFeed *feed;
 	GDataEntry *entry;
@@ -39,14 +39,13 @@ get_documents (void)
 
 	g_assert (service != NULL);
 
-	feed = gdata_documents_service_query_documents (GDATA_DOCUMENTS_SERVICE (service), NULL, FALSE, NULL, NULL, NULL, &error);
+	feed = gdata_documents_service_query_documents (GDATA_DOCUMENTS_SERVICE (service), NULL, NULL, NULL, NULL, &error);
 	for (i = gdata_feed_get_entries (feed); i != NULL; i = i->next)
 	{
 		g_print ("Document Type: %s\n", G_OBJECT_TYPE_NAME (i->data));
 		if (GDATA_IS_DOCUMENTS_TEXT (i->data))
 				return GDATA_DOCUMENTS_TEXT (i->data);
 	}
-/*
 	g_assert_no_error (error);
 	g_assert (GDATA_IS_FEED (feed));
 	g_clear_error (&error);
@@ -54,13 +53,13 @@ get_documents (void)
 	entries = gdata_feed_get_entries (feed);
 	g_assert (entries != NULL);
 	entry = entries->data;
-	g_assert (GDATA_IS_DOCUMENTS_ENTRY (entry));
 
+	/*Test if evrything is fine*/
+	g_assert (GDATA_IS_DOCUMENTS_ENTRY (entry));
 	g_object_ref (entry);
 	g_object_unref (feed);
 
 	return GDATA_DOCUMENTS_ENTRY (entry);
-*/
 }
 
 static void
@@ -89,6 +88,32 @@ test_authentication (void)
 }
 
 static void
+test_remove_all_documents_and_folders (void)
+{
+	GDataDocumentsFeed *feed;
+	GDataDocumentsQuery *query;
+	GError *error = NULL;
+	GList *i;
+
+	g_assert (service != NULL);
+
+	query = gdata_documents_query_new (NULL);
+	gdata_documents_query_set_show_folders (query, TRUE);
+
+	feed = gdata_documents_service_query_documents (GDATA_DOCUMENTS_SERVICE (service), query, NULL, NULL, NULL, &error);
+	for (i = gdata_feed_get_entries (feed); i != NULL; i = i->next)
+	{
+		gdata_service_delete_entry (GDATA_SERVICE (service), GDATA_ENTRY (i->data), NULL, error);
+	}
+	g_assert_no_error (error);
+	g_assert (GDATA_IS_FEED (feed));
+	g_clear_error (&error);
+
+	/* TODO: check entries and feed properties */
+	g_object_unref (feed);
+}
+
+static void
 test_query_all_documents_with_folder (void)
 {
 	GDataDocumentsFeed *feed;
@@ -99,9 +124,9 @@ test_query_all_documents_with_folder (void)
 	g_assert (service != NULL);
 
 	query = gdata_documents_query_new (NULL);
-	gdata_documents_query_set_show_folder (query, TRUE);
+	gdata_documents_query_set_show_folders (query, TRUE);
 
-	feed = gdata_documents_service_query_documents (GDATA_DOCUMENTS_SERVICE (service), query, FALSE, NULL, NULL, NULL, &error);
+	feed = gdata_documents_service_query_documents (GDATA_DOCUMENTS_SERVICE (service), query, NULL, NULL, NULL, &error);
 	for (i = gdata_feed_get_entries (feed); i != NULL; i = i->next)
 	{
 		if (GDATA_IS_DOCUMENTS_PRESENTATION (i->data))
@@ -130,7 +155,7 @@ test_query_all_documents (void)
 
 	g_assert (service != NULL);
 
-	feed = gdata_documents_service_query_documents (GDATA_DOCUMENTS_SERVICE (service), FALSE, NULL, NULL, NULL, NULL, &error);
+	feed = gdata_documents_service_query_documents (GDATA_DOCUMENTS_SERVICE (service), NULL, NULL, NULL, NULL, &error);
 	for (i = gdata_feed_get_entries (feed); i != NULL; i = i->next)
 	{
 		if (GDATA_IS_DOCUMENTS_PRESENTATION (i->data))
@@ -212,16 +237,19 @@ test_upload_metadata_remove (void)
 
 	/* Insert the document */
 	new_document = gdata_documents_service_upload_document (GDATA_DOCUMENTS_SERVICE (service), document, NULL, NULL, TRUE, NULL, &error);
-	gdata_service_delete_entry (service, new_document, NULL, error);
 
+	/*Check evrything went fine*/
+	g_assert_no_error (error);
+	g_assert (GDATA_IS_DOCUMENTS_ENTRY (new_document));
+
+	/*Delete entry*/
+	gdata_service_delete_entry (service, new_document, NULL, error);
 	/*Check if evrything is as it should be*/
 	g_assert_no_error (error);
 	g_assert (GDATA_IS_DOCUMENTS_ENTRY (new_document));
 	g_clear_error (&error);
 	g_object_unref (document);
 	g_object_unref (new_document);
-
-	/* TODO: check entries and feed properties */
 }
 
 static void
@@ -243,11 +271,11 @@ test_upload_metadata_file (void)
 
 	/* Insert the document */
 	new_document = gdata_documents_service_upload_document (GDATA_DOCUMENTS_SERVICE (service), document, document_file, NULL, TRUE, NULL, &error);
+
+	/*Check if evrything was fine*/
 	g_assert_no_error (error);
 	g_assert (GDATA_IS_DOCUMENTS_ENTRY (new_document));
 	g_clear_error (&error);
-
-	/* TODO: check entries and feed properties */
 
 	g_object_unref (document);
 	g_object_unref (new_document);
@@ -256,7 +284,7 @@ test_upload_metadata_file (void)
 static void
 test_upload_file (void)
 {
-	GDataDocumentsSpreadsheet *document, *new_document;
+	GDataDocumentsSpreadsheet *new_document;
 	GFile *document_file;
 	GDataCategory *category;
 	GError *error = NULL;
@@ -265,21 +293,104 @@ test_upload_file (void)
 
 	document_file = g_file_new_for_path ( "/home/thibault/workspace/gsoc/libgdata/libgdata/gdata/tests/test.ppt");
 
-	document = gdata_documents_spreadsheet_new (NULL);
 	category = gdata_category_new ("http://schemas.google.com/docs/2007#presentation", "http://schemas.google.com/g/2005#kind", "presentation");
 
-	gdata_entry_set_title (GDATA_ENTRY (document), "testingDocument");
-	gdata_entry_add_category (GDATA_ENTRY (document), category);
-
 	/* Insert the document */
-	new_document = gdata_documents_service_upload_document (GDATA_DOCUMENTS_SERVICE (service), document, document_file, NULL, FALSE, NULL, &error);
+	new_document = gdata_documents_service_upload_document (GDATA_DOCUMENTS_SERVICE (service), NULL, document_file, NULL, FALSE, NULL, &error);
 	
 	/*Check is evrything is fine*/
 	g_assert_no_error (error);
 	g_assert (GDATA_IS_DOCUMENTS_ENTRY (new_document));
 	g_clear_error (&error);
+	g_object_unref (new_document);
+}
+
+static void
+test_add_remove_file_from_folder (void)
+{
+	GDataDocumentsFolder *folder, *new_folder;
+	GDataDocumentsSpreadsheet *document, *new_document;
+	GFile *document_file;
+	GDataCategory *folder_category, *document_category;
+	GError *error = NULL;
+
+	g_assert (service != NULL);
+
+	document_file = g_file_new_for_path ( "/home/thibault/workspace/gsoc/libgdata/libgdata/gdata/tests/test.ods");
+
+	folder = gdata_documents_folder_new (NULL);
+	folder_category = gdata_category_new ("http://schemas.google.com/docs/2007#folder", "http://schemas.google.com/g/2005#kind", "folder");
+	gdata_entry_set_title (GDATA_ENTRY (folder), "newFolder");
+	gdata_entry_add_category (GDATA_ENTRY (folder), folder_category);
+
+	document = gdata_documents_spreadsheet_new (NULL);
+	document_category = gdata_category_new ("http://schemas.google.com/docs/2007#document", "http://schemas.google.com/g/2005#kind", "document");
+	gdata_entry_set_title (GDATA_ENTRY (document), "testingDocument");
+	gdata_entry_add_category (GDATA_ENTRY (document), document_category);
+
+
+	/* Insert the folder */
+	new_folder = gdata_documents_service_upload_document (GDATA_DOCUMENTS_SERVICE (service), folder, NULL, NULL, TRUE, NULL, &error);
+	g_assert_no_error (error);
+	/* Insert the document in the new folder */
+	new_document = gdata_documents_service_upload_document (GDATA_DOCUMENTS_SERVICE (service), document, document_file, new_folder, TRUE, NULL, &error);
+	g_print ("\nNew document %d\n", new_document);
+	/*remove document from the folder*/
+	gdata_documents_service_remove_document_from_folder (GDATA_DOCUMENTS_SERVICE (service), new_document, new_folder, NULL, &error);
+
+	/*Check is evrything is fine*/
+	g_assert_no_error (error);
+	g_assert (GDATA_IS_DOCUMENTS_ENTRY (new_document));
+	g_assert (GDATA_IS_DOCUMENTS_ENTRY (new_folder));
+	g_clear_error (&error);
 	g_object_unref (document);
 	g_object_unref (new_document);
+	g_object_unref (folder);
+	g_object_unref (new_folder);
+}
+
+static void
+test_add_file_folder_and_move (void)
+{
+	GDataDocumentsFolder *folder, *new_folder;
+	GDataDocumentsSpreadsheet *document, *new_document;
+	GFile *document_file;
+	GDataCategory *folder_category, *document_category;
+	GError *error = NULL;
+
+	g_assert (service != NULL);
+
+	document_file = g_file_new_for_path ( "/home/thibault/workspace/gsoc/libgdata/libgdata/gdata/tests/test.ods");
+
+	folder = gdata_documents_folder_new (NULL);
+	folder_category = gdata_category_new ("http://schemas.google.com/docs/2007#folder", "http://schemas.google.com/g/2005#kind", "folder");
+	gdata_entry_set_title (GDATA_ENTRY (folder), "theFolder");
+	gdata_entry_add_category (GDATA_ENTRY (folder), folder_category);
+
+	document = gdata_documents_spreadsheet_new (NULL);
+	document_category = gdata_category_new ("http://schemas.google.com/docs/2007#document", "http://schemas.google.com/g/2005#kind", "document");
+	gdata_entry_set_title (GDATA_ENTRY (document), "theDocument");
+	gdata_entry_add_category (GDATA_ENTRY (document), document_category);
+
+
+	/* Insert the folder */
+	new_folder = gdata_documents_service_upload_document (GDATA_DOCUMENTS_SERVICE (service), folder, NULL, NULL, TRUE, NULL, &error);
+	g_assert_no_error (error);
+	/* Insert the document in the new folder */
+	new_document = gdata_documents_service_upload_document (GDATA_DOCUMENTS_SERVICE (service), document, document_file, NULL, TRUE, NULL, &error);
+	g_print ("\nNew document %d\n", new_document);
+	/*remove document from the folder*/
+	gdata_documents_service_move_document_to_folder (GDATA_DOCUMENTS_SERVICE (service), new_document, new_folder, NULL, &error);
+
+	/*Check is evrything is fine*/
+	g_assert_no_error (error);
+	g_assert (GDATA_IS_DOCUMENTS_ENTRY (new_document));
+	g_assert (GDATA_IS_DOCUMENTS_ENTRY (new_folder));
+	g_clear_error (&error);
+	g_object_unref (document);
+	g_object_unref (new_document);
+	g_object_unref (folder);
+	g_object_unref (new_folder);
 }
 
 static void
@@ -307,16 +418,17 @@ test_upload_file_metadata_in_new_folder (void)
 
 
 	/* Insert the folder */
-	new_folder = gdata_documents_service_upload_document (GDATA_DOCUMENTS_SERVICE (service), folder, NULL, NULL, TRUE, NULL, &error);
+	new_folder = gdata_documents_service_upload_document (GDATA_DOCUMENTS_SERVICE (service), GDATA_DOCUMENTS_FOLDER (folder), NULL, NULL, TRUE, NULL, &error);
 	g_assert_no_error (error);
+	g_assert (GDATA_IS_DOCUMENTS_FOLDER (new_folder));
+	g_clear_error (&error);
+
 	/* Insert the document in the new folder */
-//	gdata_documents_entry_get_document_id (GDATA_ENTRY (new_folder));
 	new_document = gdata_documents_service_upload_document (GDATA_DOCUMENTS_SERVICE (service), document, document_file, new_folder, TRUE, NULL, &error);
 
 	/*Check is evrything is fine*/
 	g_assert_no_error (error);
 	g_assert (GDATA_IS_DOCUMENTS_ENTRY (new_document));
-	g_assert (GDATA_IS_DOCUMENTS_ENTRY (new_folder));
 	g_clear_error (&error);
 	g_object_unref (document);
 	g_object_unref (new_document);
@@ -327,55 +439,39 @@ test_upload_file_metadata_in_new_folder (void)
 static void
 test_update_metadata (void)
 {
-	GDataDocumentsSpreadsheet *document;
+	GDataDocumentsText *document, *new_document, *updated_document;
 	GDataCategory *category;
 	GError *error = NULL;
 
 	g_assert (service != NULL);
 
-	document = get_documents();
-	gdata_entry_set_title (document, "MySuperTitle");
+	document = gdata_documents_spreadsheet_new (NULL);
+	category = gdata_category_new ("http://schemas.google.com/docs/2007#document", "http://schemas.google.com/g/2005#kind", "document");
+	gdata_entry_set_title (GDATA_ENTRY (document), "nexTextDoc");
+	gdata_entry_add_category (GDATA_ENTRY (document), category);
+
+	/* Insert the document */
+	new_document = gdata_documents_service_upload_document (GDATA_DOCUMENTS_SERVICE (service), document, NULL, NULL, TRUE, NULL, &error);
+
+	/*Check if evrything was fine*/
+	g_assert_no_error (error);
+	g_assert (GDATA_IS_DOCUMENTS_ENTRY (new_document));
 
 	/* Update the document */
-	g_print ("	New document title: %s\n", gdata_entry_get_title (document));
-	gdata_documents_service_update_document (GDATA_DOCUMENTS_SERVICE (service), document, NULL, TRUE, NULL, &error);
+	updated_document = gdata_documents_service_update_document (GDATA_DOCUMENTS_SERVICE (service), new_document, NULL, TRUE, NULL, &error);
+
+	/*Check the update went fine*/
 	g_assert_no_error (error);
 	g_clear_error (&error);
-
-	/* TODO: check entries and feed properties */
-
-	//g_object_unref (document);
+	g_object_unref (document);
+	g_object_unref (new_document);
+	g_object_unref (updated_document);
 }
 
 static void
 test_update_metadata_file (void)
 {
-	GDataDocumentsSpreadsheet *document, *new_document;
-	GFile *document_file;
-	GDataCategory *category;
-	GError *error = NULL;
-
-	g_assert (service != NULL);
-
-	document_file = g_file_new_for_path ( "/home/thibault/workspace/gsoc/libgdata/libgdata/gdata/tests/test.ods");
-	document = get_documents();
-
-	/* Update the document */
-	gdata_documents_service_update_document (GDATA_DOCUMENTS_SERVICE (service), document, document_file, TRUE, NULL, &error);
-	g_assert_no_error (error);
-	g_assert (GDATA_IS_DOCUMENTS_ENTRY (new_document));
-	g_clear_error (&error);
-
-	/* TODO: check entries and feed properties */
-
-	g_object_unref (document);
-	g_object_unref (new_document);
-}
-
-static void
-test_update_file (void)
-{
-	GDataDocumentsText *document, *new_document;
+	GDataDocumentsText *document, *new_document, *updated_document;
 	GFile *document_file;
 	GDataCategory *category;
 	GError *error = NULL;
@@ -384,19 +480,58 @@ test_update_file (void)
 
 	document_file = g_file_new_for_path ( "/home/thibault/workspace/gsoc/libgdata/libgdata/gdata/tests/test.odt");
 
-	g_print ("	Doc file %d\n", document_file);
-	document = get_documents();
+	document = gdata_documents_spreadsheet_new (NULL);
+	category = gdata_category_new ("http://schemas.google.com/docs/2007#document", "http://schemas.google.com/g/2005#kind", "document");
+	gdata_entry_set_title (GDATA_ENTRY (document), "nexTextDoc");
+	gdata_entry_add_category (GDATA_ENTRY (document), category);
+
+	/* Insert the document */
+	new_document = gdata_documents_service_upload_document (GDATA_DOCUMENTS_SERVICE (service), document, document_file, NULL, TRUE, NULL, &error);
+	/*Check that evrything was fine*/
+	g_assert_no_error (error);
+	g_assert (GDATA_IS_DOCUMENTS_ENTRY (new_document));
 
 	/* Update the document */
-	gdata_documents_service_update_document (GDATA_DOCUMENTS_SERVICE (service), document, document_file, FALSE, NULL, &error);
+	updated_document = gdata_documents_service_update_document (GDATA_DOCUMENTS_SERVICE (service), new_document, document_file, TRUE, NULL, &error);
+
+	/*Check that evrything was fine*/
 	g_assert_no_error (error);
 	g_assert (GDATA_IS_DOCUMENTS_ENTRY (new_document));
 	g_clear_error (&error);
 
-	/* TODO: check entries and feed properties */
-
 	g_object_unref (document);
 	g_object_unref (new_document);
+	g_object_unref (updated_document);
+}
+
+static void
+test_update_file (void)
+{
+	GDataDocumentsPresentation *new_document, *updated_document;
+	GFile *document_file;
+	GDataCategory *category;
+	GError *error = NULL;
+
+	g_assert (service != NULL);
+
+	document_file = g_file_new_for_path ( "/home/thibault/workspace/gsoc/libgdata/libgdata/gdata/tests/test.ppt");
+
+	/* Insert the document */
+	new_document = gdata_documents_service_upload_document (GDATA_DOCUMENTS_SERVICE (service), NULL, document_file, NULL, FALSE, NULL, &error);
+	/*Test if everything was fine with the upload*/
+	g_assert (GDATA_IS_DOCUMENTS_ENTRY (new_document));
+	g_assert_no_error (error);
+
+	/* Update the document */
+	updated_document = gdata_documents_service_update_document (GDATA_DOCUMENTS_SERVICE (service), new_document, document_file, FALSE, NULL, &error);
+
+	/*Test if everything was fine with the update*/
+	g_assert_no_error (error);
+	g_assert (GDATA_IS_DOCUMENTS_ENTRY (updated_document));
+	g_clear_error (&error);
+
+	g_object_unref (new_document);
+	g_object_unref (updated_document);
 }
 
 static void
@@ -409,29 +544,39 @@ test_download_all_documents (void)
 	GFile *destination_file;
 	GList *i;
 
-	feed = gdata_documents_service_query_documents (GDATA_DOCUMENTS_SERVICE (service), FALSE, NULL, NULL, NULL, NULL, &error);
+	feed = gdata_documents_service_query_documents (GDATA_DOCUMENTS_SERVICE (service), NULL, NULL, NULL, NULL, &error);
 	for (i = gdata_feed_get_entries (feed); i != NULL; i = i->next)
 	{
 		if (GDATA_IS_DOCUMENTS_PRESENTATION (i->data)){
-			destination_file = gdata_documents_presentation_download_document (i->data, GDATA_DOCUMENTS_SERVICE (service), &content_type, "ppt", destination_folder, TRUE, NULL, &error);
+			destination_file = gdata_documents_presentation_download_document (GDATA_DOCUMENTS_PRESENTATION (i->data), GDATA_DOCUMENTS_SERVICE (service),\
+					&content_type, GDATA_DOCUMENTS_PRESENTATION_PPT, destination_folder, TRUE, NULL, &error);
 			if ( destination_file != NULL)
 				g_print ("	Presentation destination: %s\n", g_file_get_uri (destination_file));
 		}else if (GDATA_IS_DOCUMENTS_SPREADSHEET (i->data)){
-			destination_file = gdata_documents_spreadsheet_download_document (i->data, GDATA_DOCUMENTS_SERVICE (service), &content_type, "-1", "102", destination_folder, TRUE, NULL, &error);
+			destination_file = gdata_documents_spreadsheet_download_document (i->data, GDATA_DOCUMENTS_SERVICE (service),\
+					&content_type, "-1", GDATA_DOCUMENTS_SPREADSHEET_ODS, destination_folder, TRUE, NULL, &error);
 			if ( destination_file != NULL)
 				g_print ("	Spreasheet destination: %s\n", g_file_get_uri (destination_file));
 		}else if (GDATA_IS_DOCUMENTS_TEXT (i->data)){
-			destination_file = gdata_documents_text_download_document (i->data, GDATA_DOCUMENTS_SERVICE (service), &content_type, "odt", destination_folder, TRUE, NULL, &error);
+			destination_file = gdata_documents_text_download_document (i->data, GDATA_DOCUMENTS_SERVICE (service), &content_type, GDATA_DOCUMENTS_TEXT_ODT,\
+				   	destination_folder, TRUE, NULL, &error);
 			if ( destination_file != NULL)
 				g_print ("	Document destination: %s\n", g_file_get_uri (destination_file));
 		}else if (GDATA_IS_DOCUMENTS_FOLDER (i->data))
 			g_print ("	Folder: %s Access Rules%d\n", gdata_entry_get_title (i->data), gdata_documents_entry_get_access_rules(i->data));
+		g_assert_no_error (error);
 	}
 	g_assert_no_error (error);
 	g_assert (GDATA_IS_FEED (feed));
 	g_object_unref (feed);
 	g_clear_error (&error);
 }
+
+static void
+test_add_collaborator_for_this_document(void)
+{
+}
+
 
 int
 main (int argc, char *argv[])
@@ -448,19 +593,23 @@ main (int argc, char *argv[])
 	g_test_add_func ("/documents/query/all_documents_with_folder", test_query_all_documents_with_folder);
 	g_test_add_func ("/documents/query/all_documents", test_query_all_documents);
 	g_test_add_func ("/documents/query/all_documents_async", test_query_all_documents_async);
-	
+
 	g_test_add_func ("/documents/upload/only_file", test_upload_file);
 	g_test_add_func ("/documents/upload/metadata_file", test_upload_metadata_file);
 	g_test_add_func ("/documents/upload/only_metadata_delete", test_upload_metadata_remove);
 	g_test_add_func ("/documents/upload/metadata_file_in_new_folder", test_upload_file_metadata_in_new_folder);
-*/
+
 	g_test_add_func ("/documents/update/only_metadata", test_update_metadata);
-/*
  	g_test_add_func ("/documents/update/only_file", test_update_file);
 	g_test_add_func ("/documents/update/metadata_file", test_update_metadata_file);
+	g_test_add_func ("/documents/download/download_all_documents", test_download_all_documents);
+
 */
-	g_test_add_func ("/documents/documenyts/download_all", test_download_all_documents);
-	
+	g_test_add_func ("/documents/move/remove_from_folder", test_add_remove_file_from_folder);
+	g_test_add_func ("/documents/move/move_to_folder", test_add_file_folder_and_move);
+
+	g_test_add_func ("/documents/remove/all", test_remove_all_documents_and_folders);
+
 	retval = g_test_run ();
 	if (service != NULL)
 		g_object_unref (service);
