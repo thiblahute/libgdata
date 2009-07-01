@@ -244,9 +244,9 @@ gdata_documents_service_upload_update_document (GDataDocumentsService *self, GDa
 	/* TODO: Async variant */
 	#define BOUNDARY_STRING "0003Z5W789RTE456KlemsnoZV"
 
-	GDataEntry *new_document;
+	GDataDocumentsEntry *new_document;
 	GDataServiceClass *klass;
-	GType *new_document_type;
+	GType new_document_type;
 	gchar *entry_xml, *second_chunk_header, *upload_data, *document_contents, *i;
 	const gchar *first_chunk_header, *footer;
 	GFileInfo *document_file_info;
@@ -430,7 +430,7 @@ gdata_documents_service_upload_document (GDataDocumentsService *self, GDataDocum
 						gboolean metadata, GCancellable *cancellable, GError **error)
 {
 
-	GDataEntry *new_document;
+	GDataDocumentsEntry *new_document;
 	SoupMessage *message;
 	gchar *upload_uri, *folder_id, *tmp_str=NULL;
 
@@ -447,10 +447,10 @@ gdata_documents_service_upload_document (GDataDocumentsService *self, GDataDocum
 	}
 
 	if ( folder != NULL){
-		folder_id = gdata_documents_entry_get_document_id (GDATA_ENTRY (folder));
+		folder_id = gdata_documents_entry_get_document_id (GDATA_DOCUMENTS_ENTRY (folder));
 		g_print ("Folder id: %s\n", folder_id);
 		g_assert (folder_id != NULL);
-		upload_uri = tmp_str = g_strconcat ("http://docs.google.com/feeds/folders/private/full/folder\%3A", folder_id, NULL);
+		upload_uri = tmp_str = g_strconcat ("http://docs.google.com/feeds/folders/private/full/folder%3A", folder_id, NULL);
 	}else
 		upload_uri = "http://docs.google.com/feeds/documents/private/full";
 	
@@ -491,17 +491,17 @@ GDataDocumentsEntry *
 gdata_documents_service_update_document (GDataDocumentsService *self, GDataDocumentsEntry *document, GFile *document_file,\
 						gboolean metadata, GCancellable *cancellable, GError **error)
 {
-	GDataEntry *updated_document;
+	GDataDocumentsEntry *updated_document;
 	SoupMessage *message;
 	gchar *update_uri;
 
-	g_return_if_fail (GDATA_IS_DOCUMENTS_SERVICE (self));
+	g_return_val_if_fail (GDATA_IS_DOCUMENTS_SERVICE (self), NULL);
 	g_return_val_if_fail (document == NULL || GDATA_IS_DOCUMENTS_ENTRY (document), NULL);
 
 	if (gdata_service_is_authenticated (GDATA_SERVICE (self)) == FALSE) {
 		g_set_error_literal (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_AUTHENTICATION_REQUIRED,
 				     _("You must be authenticated to query documents."));
-		return;
+		return NULL;
 	}
 
 	if (document_file == NULL)
@@ -509,11 +509,11 @@ gdata_documents_service_update_document (GDataDocumentsService *self, GDataDocum
 	else
 		update_uri = gdata_entry_look_up_link (GDATA_ENTRY (document), "edit-media");
 
-	g_return_if_fail (update_uri != NULL);
+	g_return_val_if_fail (update_uri != NULL, NULL);
 
-	g_print ("Adresse: %s\n", gdata_link_get_uri (update_uri));
+	g_print ("Adresse: %s\n", gdata_link_get_uri (GDATA_LINK (update_uri)));
 
-	message = soup_message_new (SOUP_METHOD_PUT, gdata_link_get_uri (update_uri));
+	message = soup_message_new (SOUP_METHOD_PUT, gdata_link_get_uri (GDATA_LINK (update_uri)));
 	g_object_unref (update_uri);
 
 	updated_document = gdata_documents_service_upload_update_document (self, document, document_file, message, metadata, cancellable, error);
@@ -540,7 +540,7 @@ gdata_documents_service_move_document_to_folder (GDataDocumentsService *self, GD
 						GCancellable *cancellable, GError **error)
 {
 	GDataServiceClass *klass;
-	GDataEntry *new_document;
+	GDataDocumentsEntry *new_document;
 	gchar *uri, *entry_xml, *upload_data, *folder_id;
 	SoupMessage *message;
 	guint status;
@@ -552,11 +552,11 @@ gdata_documents_service_move_document_to_folder (GDataDocumentsService *self, GD
 	if (gdata_service_is_authenticated (GDATA_SERVICE (self)) == FALSE) {
 		g_set_error_literal (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_AUTHENTICATION_REQUIRED,
 				     _("You must be authenticated to upload documents."));
-		return;
+		return NULL;
 	}
 
-	folder_id = gdata_documents_entry_get_document_id (GDATA_ENTRY (folder));
-	g_return_val_if_fail ( folder_id != NULL, NULL);
+	folder_id = gdata_documents_entry_get_document_id (GDATA_DOCUMENTS_ENTRY (folder));
+	g_return_val_if_fail (folder_id != NULL, NULL);
 	uri = g_strconcat ("http://docs.google.com/feeds/folders/private/full/folder%3A", folder_id, NULL);
 
 	g_print ("Moving uri: %s\n", uri);
@@ -575,7 +575,7 @@ gdata_documents_service_move_document_to_folder (GDataDocumentsService *self, GD
 	if (g_cancellable_set_error_if_cancelled (cancellable, error) == TRUE) {
 		g_object_unref (message);
 		g_free (entry_xml);
-		return;
+		return NULL;
 	}
 
 	upload_data = g_strconcat ("<?xml version='1.0' encoding='UTF-8'?>", entry_xml, NULL);
@@ -587,13 +587,13 @@ gdata_documents_service_move_document_to_folder (GDataDocumentsService *self, GD
 	status = _gdata_service_send_message ( GDATA_SERVICE (self), message, error);
 	if (status == SOUP_STATUS_NONE) {
 		g_object_unref (message);
-		return;
+		return NULL;
 	}
 
 	/* Check for cancellation */
 	if (g_cancellable_set_error_if_cancelled (cancellable, error) == TRUE) {
 		g_object_unref (message);
-		return;
+		return NULL;
 	}
 
 	if (status != 201) {
@@ -602,7 +602,7 @@ gdata_documents_service_move_document_to_folder (GDataDocumentsService *self, GD
 		klass->parse_error_response ( GDATA_SERVICE (self), GDATA_SERVICE_ERROR_WITH_INSERTION, status, message->reason_phrase, message->response_body->data,
 					     message->response_body->length, error);
 		g_object_unref (message);
-		return;
+		return NULL;
 	}
 
 	/* Build the updated entry */
@@ -611,6 +611,8 @@ gdata_documents_service_move_document_to_folder (GDataDocumentsService *self, GD
 	/* Parse the XML; and update the document*/
 	new_document = GDATA_DOCUMENTS_ENTRY (_gdata_entry_new_from_xml (G_OBJECT_TYPE (document), message->response_body->data, message->response_body->length, error));
 	g_object_unref (message);
+
+	return new_document;
 }
 
 /**
@@ -631,7 +633,7 @@ gdata_documents_service_remove_document_from_folder (GDataDocumentsService *self
 						GCancellable *cancellable, GError **error)
 {
 	GDataServiceClass *klass;
-	GDataEntry *new_document;
+	GDataDocumentsEntry *new_document;
 	gchar *entry_xml, *upload_data, *document_id, *uri, *folder_id;
 	SoupMessage *message;
 	guint status;
@@ -643,16 +645,17 @@ gdata_documents_service_remove_document_from_folder (GDataDocumentsService *self
 	if (gdata_service_is_authenticated (GDATA_SERVICE (self)) == FALSE) {
 		g_set_error_literal (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_AUTHENTICATION_REQUIRED,
 				     _("You must be authenticated to upload documents."));
-		return;
+		return NULL;
 	}
 
 	/*Get the document id*/
-	folder_id = gdata_documents_entry_get_document_id (GDATA_ENTRY (folder));
-	g_assert ( folder_id != NULL);
-	document_id = gdata_documents_entry_get_document_id (GDATA_ENTRY (document));
+	folder_id = gdata_documents_entry_get_document_id (GDATA_DOCUMENTS_ENTRY (folder));
+	document_id = gdata_documents_entry_get_document_id (GDATA_DOCUMENTS_ENTRY (document));
+	g_assert (folder_id != NULL);
 	g_assert (document_id != NULL);
 	uri = g_strdup_printf ("http://docs.google.com/feeds/folders/private/full/folder%%3A%s/document%%3A/%s", folder_id, document_id);
 
+	g_print ("Moving uri :%s\n", uri);
 	message = soup_message_new (SOUP_METHOD_DELETE, uri);
 	g_free (uri);
 
@@ -660,6 +663,9 @@ gdata_documents_service_remove_document_from_folder (GDataDocumentsService *self
 	klass = GDATA_SERVICE_GET_CLASS (self);
 	if (klass->append_query_headers != NULL)
 		klass->append_query_headers ( GDATA_SERVICE (self), message);
+
+	/*Get the xml content*/
+	entry_xml = gdata_entry_get_xml (GDATA_ENTRY (document));
 
 	/* Check for cancellation */
 	if (g_cancellable_set_error_if_cancelled (cancellable, error) == TRUE) {

@@ -246,24 +246,25 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 		xmlFree (last_viewed);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "writersCanInvite") ==  0) {
 		xmlChar *_writers_can_invite = xmlGetProp (node, (xmlChar*) "value");
-		if (xmlStrcmp ( _writers_can_invite, "true") == 0)
+		if (xmlStrcmp (_writers_can_invite, (xmlChar*) "true") == 0)
 			gdata_documents_entry_set_writers_can_invite (self, TRUE);
-		else if (xmlStrcmp ( _writers_can_invite, "false") == 0)
+		else if (xmlStrcmp ( _writers_can_invite, (xmlChar*) "false") == 0)
 			gdata_documents_entry_set_writers_can_invite (self, FALSE);
 		else
 			return gdata_parser_error_unknown_property_value (node, "value", (const gchar*) _writers_can_invite, error);
 		xmlFree (_writers_can_invite);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "resourceId") ==  0) {
-		gchar **document_id;
+		gchar **document_id, *document_id_str;
 		xmlChar *ressource_id;
 
 		ressource_id = xmlNodeListGetString (doc, node->children, TRUE);
-		g_return_val_if_fail (ressource_id != NULL, NULL);
-		document_id = g_strdup ((gchar*) ressource_id);
-		document_id = g_strsplit ((gchar*) document_id, ":", 2);
+		g_return_val_if_fail (ressource_id != NULL, FALSE);
+		document_id_str = g_strdup ((gchar*) ressource_id);
+		document_id = g_strsplit (document_id_str, ":", 2);
 		gdata_documents_entry_set_document_id  (self, document_id[1]);
 		xmlFree (ressource_id);
 		g_free (document_id);
+		g_free (document_id_str);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "feedLink") ==  0) {
 		GDataLink *link = GDATA_LINK (_gdata_parsable_new_from_xml_node (GDATA_TYPE_LINK, "feedLink", doc, node, NULL, error));
 		if (link == NULL)
@@ -374,7 +375,7 @@ get_xml (GDataParsable *parsable, GString *xml_string)
   gchar *title;
   GList *categories;
  
-  title = g_markup_escape_text (gdata_entry_get_title (parsable), -1);
+  title = g_markup_escape_text (gdata_entry_get_title (GDATA_ENTRY (parsable)), -1);
   g_string_append_printf (xml_string, "<title type='text'>%s</title>", title);
   g_free (title);
  
@@ -601,7 +602,7 @@ gdata_documents_entry_set_access_rules (GDataDocumentsEntry *self, GDataService 
 {
 	g_return_if_fail (GDATA_IS_DOCUMENTS_ENTRY (self));
 	/* TODO check how to cast self to GDATA_ACCESS_HANDLER*/
-	self->priv->access_rules = gdata_access_handler_get_rules (self, service, cancellable, progress_callback, progress_user_data, error);
+	self->priv->access_rules = gdata_access_handler_get_rules (GDATA_ACCESS_HANDLER (self), service, cancellable, progress_callback, progress_user_data, error);
 	g_object_notify (G_OBJECT (self), "access-rules");
 }
 

@@ -41,9 +41,6 @@ typedef struct _GDataDocumentsEntryPrivate GDataDocumentsEntryPrivate;
 /* 
  * GDataDocumentsEntry:
  *
- * @get_upload_xml: a function to get the XML file permiting to upload the document with content and metadata appending it to the provided
- * #GString
- *
  * All the fields in the #GDataDocumentsEntry structure are private and should never be accessed directly.
  */
 
