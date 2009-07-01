@@ -76,7 +76,7 @@ GDataDocumentsEntry *gdata_documents_service_upload_document (GDataDocumentsServ
 	   	GDataDocumentsEntry *folder, gboolean metadata, GCancellable *cancellable, GError **error);/*TODO use a GDataDocumentsFolder*/
 GDataService *gdata_documents_service_get_spreadsheet_service(GDataDocumentsService *self);
 GDataDocumentsEntry *gdata_documents_service_update_document (GDataDocumentsService *self, GDataDocumentsEntry *document,\
-	   	GFile *document_file, gboolean metadata, GCancellable *cancellable, GError **error);
+	   	GFile *document_file, gboolean metadata, gboolean none_match, gboolean match, GCancellable *cancellable, GError **error);
 GDataDocumentsEntry *gdata_documents_service_remove_document_from_folder (GDataDocumentsService *self, GDataDocumentsEntry *document, GDataDocumentsEntry *folder,
 						GCancellable *cancellable, GError **error);/*TODO use a GDataDocumentsFolder*/
 GDataDocumentsEntry *gdata_documents_service_move_document_to_folder (GDataDocumentsService *self, GDataDocumentsEntry *document, GDataDocumentsEntry *folder,

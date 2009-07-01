@@ -84,10 +84,9 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 	/*ParseData *data = user_data;*/
 
 	if (xmlStrcmp (node->name, (xmlChar*) "entry") == 0) {
-		GDataEntry *entry;
-		GDataAuthor *author;
+		GDataEntry *entry = NULL;
 		if (is_spreadsheet_entry (doc, node))
-			entry = GDATA_DOCUMENTS_SPREADSHEET (_gdata_parsable_new_from_xml_node (GDATA_TYPE_DOCUMENTS_SPREADSHEET, "entry", doc, node, NULL, error));
+			entry = GDATA_ENTRY (_gdata_parsable_new_from_xml_node (GDATA_TYPE_DOCUMENTS_SPREADSHEET, "entry", doc, node, NULL, error));
 		else if ( is_text_entry (doc, node))
 			entry = GDATA_ENTRY (_gdata_parsable_new_from_xml_node (GDATA_TYPE_DOCUMENTS_TEXT, "entry", doc, node, NULL, error));
 		else if (is_presentation_entry (doc, node))
@@ -98,9 +97,9 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 			return FALSE;
 
 		/* Call the progress callback in the main thread */
-		_gdata_feed_call_progress_callback (self, user_data, entry);
+		_gdata_feed_call_progress_callback (GDATA_FEED (self), user_data, entry);
 
-		_gdata_feed_add_entry (self, entry);
+		_gdata_feed_add_entry (GDATA_FEED (self), entry);
 
 	} else if (GDATA_PARSABLE_CLASS (gdata_documents_feed_parent_class)->parse_xml (parsable, doc, node, user_data, error) == FALSE) {
 		/* Error! */
@@ -117,7 +116,7 @@ is_spreadsheet_entry (xmlDoc *doc, xmlNode *node)
 	entry_node = node->children;	
 
 	while (entry_node != NULL) {
-		if (xmlStrcmp (entry_node->name, "category") == 0){
+		if (xmlStrcmp (entry_node->name, (xmlChar*) "category") == 0){
 			gchar *label = (gchar*) (xmlGetProp (entry_node, (xmlChar*) "label"));
 			if (strcmp (label, "spreadsheet") == 0)
 				return TRUE;
@@ -136,7 +135,7 @@ is_text_entry (xmlDoc *doc, xmlNode *node)
 	entry_node = node->children;	
 
 	while (entry_node != NULL) {
-		if (xmlStrcmp (entry_node->name, "category") == 0){
+		if (xmlStrcmp (entry_node->name, (xmlChar*) "category") == 0){
 			gchar *label = (gchar*) (xmlGetProp (entry_node, (xmlChar*) "label"));
 			if (strcmp (label, "document") == 0)
 				return TRUE;
@@ -155,7 +154,7 @@ is_presentation_entry (xmlDoc *doc, xmlNode *node)
 	entry_node = node->children;	
 
 	while (entry_node != NULL) {
-		if (xmlStrcmp (entry_node->name, "category") == 0){
+		if (xmlStrcmp (entry_node->name, (xmlChar*) "category") == 0){
 			gchar *label = (gchar*) (xmlGetProp (entry_node, (xmlChar*) "label"));
 			if (strcmp (label, "presentation") == 0)
 				return TRUE;
@@ -174,7 +173,7 @@ is_folder_entry (xmlDoc *doc, xmlNode *node)
 	entry_node = node->children;	
 
 	while (entry_node != NULL) {
-		if (xmlStrcmp (entry_node->name, "category") == 0){
+		if (xmlStrcmp (entry_node->name, (xmlChar*) "category") == 0){
 			gchar *label = (gchar*) (xmlGetProp (entry_node, (xmlChar*) "label"));
 			if (strcmp (label, "folder") == 0)
 				return TRUE;

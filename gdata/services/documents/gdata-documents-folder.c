@@ -40,8 +40,7 @@
 #include "gdata-types.h"
 #include "gdata-private.h"
 
-static void get_xml (GDataEntry *entry, GString *xml_string);
-
+static void get_xml (GDataParsable *parsable, GString *xml_string);
 
 G_DEFINE_TYPE (GDataDocumentsFolder, gdata_documents_folder, GDATA_TYPE_DOCUMENTS_ENTRY)
 #define GDATA_DOCUMENTS_FOLDER_GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE ((obj), GDATA_TYPE_DOCUMENTS_ENTRY, GDataDocumentsEntryPrivate))
@@ -50,8 +49,8 @@ static void
 gdata_documents_folder_class_init (GDataDocumentsFolderClass *klass)
 {
 	GDataParsableClass *parsable_class = GDATA_PARSABLE_CLASS (klass);
-	parsable_class->get_xml = get_xml;
 
+	parsable_class->get_xml = get_xml;
 }
 
 GDataDocumentsFolder*
@@ -73,12 +72,12 @@ gdata_documents_folder_init (GDataDocumentsFolder *self)
 }
 
 static void 
-get_xml (GDataEntry *entry, GString *xml_string)
+get_xml (GDataParsable *parsable, GString *xml_string)
 {
 	/*chain up to the parent class*/
-	GDATA_PARSABLE_CLASS (gdata_documents_folder_parent_class)->get_xml (entry, xml_string);
+	GDATA_PARSABLE_CLASS (gdata_documents_folder_parent_class)->get_xml (parsable, xml_string);
 
-	gchar *document_id = gdata_documents_entry_get_document_id (GDATA_DOCUMENTS_ENTRY (entry));
+	gchar *document_id = gdata_documents_entry_get_document_id (GDATA_DOCUMENTS_ENTRY (parsable));
 
 	if (document_id != NULL)
 		g_string_append_printf (xml_string, "<gd:resourceId>folder:%s</gd:resourceId>", document_id);

@@ -41,7 +41,7 @@
 #include "gdata-types.h"
 #include "gdata-private.h"
 
-static void get_xml (GDataEntry *entry, GString *xml_string);
+static void get_xml (GDataParsable *parsable, GString *xml_string);
 
 G_DEFINE_TYPE (GDataDocumentsPresentation, gdata_documents_presentation, GDATA_TYPE_DOCUMENTS_ENTRY)
 #define GDATA_DOCUMENTS_PRESENTATION_GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE ((obj), GDATA_TYPE_DOCUMENTS_PRESENTATION, GDataDocumentsPresentationPrivate))
@@ -73,12 +73,12 @@ gdata_documents_presentation_init (GDataDocumentsPresentation *self)
 }
 
 static void 
-get_xml (GDataEntry *entry, GString *xml_string)
+get_xml (GDataParsable *parsable, GString *xml_string)
 {
 	/*chain up to the parent class*/
-	GDATA_PARSABLE_CLASS (gdata_documents_presentation_parent_class)->get_xml (entry, xml_string);
+	GDATA_PARSABLE_CLASS (gdata_documents_presentation_parent_class)->get_xml (parsable, xml_string);
 
-	gchar *document_id = gdata_documents_entry_get_document_id (GDATA_DOCUMENTS_ENTRY (entry));
+	gchar *document_id = gdata_documents_entry_get_document_id (GDATA_DOCUMENTS_ENTRY (parsable));
 
 	if (document_id != NULL)
 		g_string_append_printf (xml_string, "<gd:resourceId>presentation:%s</gd:resourceId>", document_id);
@@ -107,16 +107,14 @@ GFile *
 gdata_documents_presentation_download_document (GDataDocumentsPresentation *self, GDataDocumentsService *service, gchar **content_type,
 										 GDataDocumentsPresentationFormat export_format, gchar *destination_folder, gboolean replace_file_if_exist, GCancellable *cancellable, GError **error)
 {
-	GString *link_href;
 	GFile *destination_file;
-	gchar *document_id, *export_format_str;
+	gchar *document_id, *export_format_str=NULL, *link_href;
 
 	/* TODO: async version */
 	g_return_val_if_fail (GDATA_IS_DOCUMENTS_PRESENTATION (self), NULL);
 	g_return_val_if_fail (GDATA_IS_DOCUMENTS_SERVICE (service), NULL);
-	g_return_val_if_fail (export_format != NULL, NULL);
 
-	document_id = gdata_documents_entry_get_document_id (self);
+	document_id = gdata_documents_entry_get_document_id (GDATA_DOCUMENTS_ENTRY (self));
 	g_return_val_if_fail (document_id != NULL, NULL);
 
 	if (export_format == GDATA_DOCUMENTS_PRESENTATION_PDF)
@@ -134,7 +132,7 @@ gdata_documents_presentation_download_document (GDataDocumentsPresentation *self
 	link_href = g_strdup_printf ("http://docs.google.com/feeds/download/presentations/Export?exportFormat=%s&docID=%s", export_format_str, document_id);
 
 	/*Chain up to the parent class*/
-	destination_file = _gdata_documents_entry_download_document (GDATA_DOCUMENTS_ENTRY (self), service, content_type, \
+	destination_file = _gdata_documents_entry_download_document (GDATA_DOCUMENTS_ENTRY (self), GDATA_SERVICE (service), content_type, \
 			link_href, destination_folder, export_format_str, replace_file_if_exist, cancellable, error);
 
 	g_free (link_href);

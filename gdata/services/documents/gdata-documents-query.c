@@ -210,7 +210,7 @@ gdata_documents_query_set_property (GObject *object, guint property_id, const GV
 			gdata_documents_query_set_show_folders (self, g_value_get_boolean (value));
 			break;
 		case PROP_FOLDER_ID:
-			gdata_documents_query_set_folder_id (self, g_value_get_string (value));
+			gdata_documents_query_set_folder_id (self, g_value_dup_string (value));
 			break;
 		/*case PROP_TITLE:
 			gdata_documents_query_set_title (self, g_value_get_string (value)); TODO 
@@ -297,7 +297,7 @@ get_query_uri (GDataQuery *self, const gchar *feed_uri, GString *query_uri, gboo
 	if (priv->title != NULL){
 		APPEND_SEP
 		g_string_append_printf (query_uri, "title=%s", priv->title);
-		if (priv->exact_title = TRUE) {
+		if (priv->exact_title == TRUE) {
 			APPEND_SEP
 			g_string_append (query_uri, "title-exact=true");
 		}
@@ -462,7 +462,7 @@ gdata_documents_query_get_exact_title (GDataDocumentsQuery *self)
  *
  * Return value: a list of #GDataGDEmailAddress of the collaborators concerned by the querry, or %NULL if it is unset.
  **/
-gchar * 
+GList * 
 gdata_documents_query_get_collaborators_address (GDataDocumentsQuery *self)
 {
 	g_return_val_if_fail (GDATA_IS_DOCUMENTS_QUERY (self), NULL);
@@ -477,7 +477,7 @@ gdata_documents_query_get_collaborators_address (GDataDocumentsQuery *self)
  *
  * Return value: a list of #GDataGDEmailAddress of the readers concerned by the querry, or %NULL if it is unset.
  **/
-gchar * 
+GList * 
 gdata_documents_query_get_readers_address (GDataDocumentsQuery *self)
 {
 	g_return_val_if_fail (GDATA_IS_DOCUMENTS_QUERY (self), NULL);
@@ -497,7 +497,7 @@ gdata_documents_query_add_a_reader_email_address (GDataDocumentsQuery *self, con
 	GDataGDEmailAddress *address;
 	g_return_if_fail (GDATA_IS_DOCUMENTS_QUERY (self));
 
-	address = gdata_gd_email_address_new (reader_address, "reader", NULL, NULL);
+	address = gdata_gd_email_address_new (reader_address, "reader", NULL, FALSE);
 	self->priv->readers_address = g_list_append (self->priv->readers_address, address);
 	g_object_notify (G_OBJECT (self), "readers-address");
 }
@@ -515,7 +515,7 @@ gdata_documents_query_add_a_collaborator_email_address (GDataDocumentsQuery *sel
 	GDataGDEmailAddress *address;
 	g_return_if_fail (GDATA_IS_DOCUMENTS_QUERY (self));
 
-	address = gdata_gd_email_address_new (collaborator_address, "collaborator", NULL, NULL);
+	address = gdata_gd_email_address_new (collaborator_address, "collaborator", NULL, FALSE);
 	self->priv->readers_address = g_list_append (self->priv->collaborators_address, address);
 	g_object_notify (G_OBJECT (self), "collaborators-address");
 }

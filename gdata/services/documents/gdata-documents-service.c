@@ -52,7 +52,7 @@ static void gdata_documents_service_get_property (GObject *object, guint propert
 static void notify_authenticated_cb (GObject *service, GParamSpec *pspec, GObject *self);
 static void notify_proxy_uri_cb (GObject *service, GParamSpec *pspec, GObject *self);
 GDataDocumentsEntry *gdata_documents_service_upload_update_document (GDataDocumentsService *self, GDataDocumentsEntry *document, GFile *document_file, 
-															 		 SoupMessage *message, gboolean metadata, GCancellable *cancellable, GError **error);
+															 		 SoupMessage *message, gboolean metadata, guint good_status_code, GCancellable *cancellable, GError **error);
 
 struct _GDataDocumentsServicePrivate {
 	GDataService *spreadsheet_service;
@@ -239,17 +239,17 @@ notify_proxy_uri_cb (GObject *service, GParamSpec *pspec, GObject *self)
 
 GDataDocumentsEntry *
 gdata_documents_service_upload_update_document (GDataDocumentsService *self, GDataDocumentsEntry *document, GFile *document_file, SoupMessage *message,
-										 gboolean metadata, GCancellable *cancellable, GError **error)
+										 gboolean metadata, guint good_status_code, GCancellable *cancellable, GError **error)
 {
 	/* TODO: Async variant */
 	#define BOUNDARY_STRING "0003Z5W789RTE456KlemsnoZV"
 
 	GDataDocumentsEntry *new_document;
 	GDataServiceClass *klass;
-	GType new_document_type;
+	GType new_document_type=GDATA_TYPE_DOCUMENTS_ENTRY; /*If the document type is wrong we get the server error anyway*/
 	gchar *entry_xml, *second_chunk_header, *upload_data, *document_contents, *i;
 	const gchar *first_chunk_header, *footer;
-	GFileInfo *document_file_info;
+	GFileInfo *document_file_info=NULL;
 	guint status;
 	gsize content_length, first_chunk_header_length, second_chunk_header_length, entry_xml_length, document_length, footer_length;
 
@@ -280,6 +280,7 @@ gdata_documents_service_upload_update_document (GDataDocumentsService *self, GDa
 
 		/* Add document-upload--specific headers */
 		soup_message_headers_append (message->request_headers, "Slug", g_file_info_get_display_name (document_file_info));
+		/*For sure the document is not null since the none-match parameter is only for update document*/
 		
 		if (metadata == FALSE){
 			const gchar *content_type = g_file_info_get_content_type (document_file_info);
@@ -308,8 +309,6 @@ gdata_documents_service_upload_update_document (GDataDocumentsService *self, GDa
 			else if (strcmp (content_type, "application/vnd.ms-powerpoint") == 0){
 				new_document_type = GDATA_TYPE_DOCUMENTS_PRESENTATION;
 			}
-			else
-				new_document_type = GDATA_TYPE_DOCUMENTS_ENTRY;	/* We let it to get the server error*/ 
 		}
 	}
 
@@ -390,7 +389,7 @@ gdata_documents_service_upload_update_document (GDataDocumentsService *self, GDa
 		return NULL;
 	}
 
-	if (status != 201) {
+	if (status != good_status_code) {
 		/* Error */
 		g_assert (klass->parse_error_response != NULL);
 		klass->parse_error_response ( GDATA_SERVICE (self), GDATA_SERVICE_ERROR_WITH_INSERTION, status, message->reason_phrase, message->response_body->data,
@@ -402,7 +401,7 @@ gdata_documents_service_upload_update_document (GDataDocumentsService *self, GDa
 	g_assert (message->response_body->data != NULL);
 
 	/* Parse the XML; create and return a new GDataEntry of the same type as @entry */
-	new_document = _gdata_entry_new_from_xml (new_document_type, message->response_body->data, message->response_body->length, error);
+	new_document = GDATA_DOCUMENTS_ENTRY (_gdata_entry_new_from_xml (new_document_type, message->response_body->data, message->response_body->length, error));
 
 	return new_document;
 }
@@ -448,12 +447,12 @@ gdata_documents_service_upload_document (GDataDocumentsService *self, GDataDocum
 
 	if ( folder != NULL){
 		folder_id = gdata_documents_entry_get_document_id (GDATA_DOCUMENTS_ENTRY (folder));
-		g_print ("Folder id: %s\n", folder_id);
 		g_assert (folder_id != NULL);
-		upload_uri = tmp_str = g_strconcat ("http://docs.google.com/feeds/folders/private/full/folder%3A", folder_id, NULL);
+		upload_uri = tmp_str = g_strdup_printf ("http://docs.google.com/feeds/folders/private/full/folder%%3A%s", folder_id);
 	}else
 		upload_uri = "http://docs.google.com/feeds/documents/private/full";
 	
+	g_print ("Upload uri: %s\n", upload_uri);
 	if (document != NULL){
 		if (gdata_entry_is_inserted (GDATA_ENTRY(document)) == TRUE) {
 			g_set_error_literal (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_ENTRY_ALREADY_INSERTED,
@@ -464,7 +463,7 @@ gdata_documents_service_upload_document (GDataDocumentsService *self, GDataDocum
 	message = soup_message_new (SOUP_METHOD_POST, upload_uri);
 	g_free (tmp_str);
 
-	new_document = gdata_documents_service_upload_update_document (self, document, document_file, message, metadata, cancellable, error);
+	new_document = gdata_documents_service_upload_update_document (self, document, document_file, message, metadata, 201, cancellable, error);
 	g_object_unref (message);
 
 	return new_document;
@@ -477,6 +476,8 @@ gdata_documents_service_upload_document (GDataDocumentsService *self, GDataDocum
  * @document : the document to update. 
  * @document_file: the local document file containing the new datas or %NULL if updating only metadata
  * @metadata: %TRUE if upload with metadata otherwise %FALSE
+ * @none_match : %TRUE if you want the "If-None-Match" HTTP header to be added, %FALSE otherwise
+ * @match: %TRUE if you want the "If-match" HTTP header to be added, %FALSE otherwise
  * @cancellable: optional #GCancellable object, or %NULL
  * @error: a #GError, or %NULL
  *
@@ -485,15 +486,18 @@ gdata_documents_service_upload_document (GDataDocumentsService *self, GDataDocum
  * If there is a problem reading @document_file, an error from g_file_load_contents() or g_file_query_info() will be returned. Other errors from
  * #GDataServiceError can be returned for other exceptional conditions, as determined by the server.
  *
+ * The value for the "If-None-Match" and "If-Match", "If-None-Match" HTTP headers will be the #GDataDocumentsEntry document's etag. If both are %TRUE,
+ * the "If-Match" header will be added.
+ *
  * For more details, see gdata_service_insert_entry().
  **/
 GDataDocumentsEntry *
 gdata_documents_service_update_document (GDataDocumentsService *self, GDataDocumentsEntry *document, GFile *document_file,\
-						gboolean metadata, GCancellable *cancellable, GError **error)
+						gboolean metadata, gboolean none_match, gboolean match, GCancellable *cancellable, GError **error)
 {
 	GDataDocumentsEntry *updated_document;
 	SoupMessage *message;
-	gchar *update_uri;
+	GDataLink *update_uri;
 
 	g_return_val_if_fail (GDATA_IS_DOCUMENTS_SERVICE (self), NULL);
 	g_return_val_if_fail (document == NULL || GDATA_IS_DOCUMENTS_ENTRY (document), NULL);
@@ -511,12 +515,17 @@ gdata_documents_service_update_document (GDataDocumentsService *self, GDataDocum
 
 	g_return_val_if_fail (update_uri != NULL, NULL);
 
-	g_print ("Adresse: %s\n", gdata_link_get_uri (GDATA_LINK (update_uri)));
+	g_print ("Adress: %s\n", gdata_link_get_uri (update_uri));
 
-	message = soup_message_new (SOUP_METHOD_PUT, gdata_link_get_uri (GDATA_LINK (update_uri)));
+	message = soup_message_new (SOUP_METHOD_PUT, gdata_link_get_uri (update_uri));
+	if (match == TRUE)
+		soup_message_headers_append (message->request_headers, "If-Match", gdata_entry_get_etag (GDATA_ENTRY (document)));
+	else if (none_match == TRUE)
+		soup_message_headers_append (message->request_headers, "If-None-Match", gdata_entry_get_etag (GDATA_ENTRY (document)));
+
 	g_object_unref (update_uri);
 
-	updated_document = gdata_documents_service_upload_update_document (self, document, document_file, message, metadata, cancellable, error);
+	updated_document = gdata_documents_service_upload_update_document (self, document, document_file, message, metadata, 200, cancellable, error);
 	g_object_unref (message);
 
 	return updated_document;
@@ -557,7 +566,7 @@ gdata_documents_service_move_document_to_folder (GDataDocumentsService *self, GD
 
 	folder_id = gdata_documents_entry_get_document_id (GDATA_DOCUMENTS_ENTRY (folder));
 	g_return_val_if_fail (folder_id != NULL, NULL);
-	uri = g_strconcat ("http://docs.google.com/feeds/folders/private/full/folder%3A", folder_id, NULL);
+	uri = g_strdup_printf ("http://docs.google.com/feeds/folders/private/full/folder%%3A%s", folder_id);
 
 	g_print ("Moving uri: %s\n", uri);
 	message = soup_message_new (SOUP_METHOD_POST, uri);
@@ -653,7 +662,7 @@ gdata_documents_service_remove_document_from_folder (GDataDocumentsService *self
 	document_id = gdata_documents_entry_get_document_id (GDATA_DOCUMENTS_ENTRY (document));
 	g_assert (folder_id != NULL);
 	g_assert (document_id != NULL);
-	uri = g_strdup_printf ("http://docs.google.com/feeds/folders/private/full/folder%%3A%s/document%%3A/%s", folder_id, document_id);
+	uri = g_strdup_printf ("http://docs.google.com/feeds/folders/private/full/folder%%3A%s/document%%3A%s", folder_id, document_id);
 
 	g_print ("Moving uri :%s\n", uri);
 	message = soup_message_new (SOUP_METHOD_DELETE, uri);
@@ -704,7 +713,7 @@ gdata_documents_service_remove_document_from_folder (GDataDocumentsService *self
 
 	/* Parse the XML; and update the document*/
 	g_object_unref (document);
-	new_document = _gdata_entry_new_from_xml (G_OBJECT_TYPE (document), message->response_body->data, message->response_body->length, error);
+	new_document = GDATA_DOCUMENTS_ENTRY (_gdata_entry_new_from_xml (G_OBJECT_TYPE (document), message->response_body->data, message->response_body->length, error));
 	g_object_unref (message);
 
 	return new_document;

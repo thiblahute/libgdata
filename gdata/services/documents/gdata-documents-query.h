@@ -72,9 +72,10 @@ void gdata_documents_query_set_title (GDataDocumentsQuery *self, gchar *title, g
 gboolean gdata_documents_query_get_exact_title (GDataDocumentsQuery *self);
 GList *gdata_documents_query_get_types (GDataDocumentsQuery *self);
 void gdata_documents_query_set_types (GDataDocumentsQuery *self, GList *type);
-gchar *gdata_documents_query_get_collaborators_address (GDataDocumentsQuery *self);
-gchar *gdata_documents_query_get_readers_address (GDataDocumentsQuery *self);
+GList *gdata_documents_query_get_collaborators_address (GDataDocumentsQuery *self);
+GList *gdata_documents_query_get_readers_address (GDataDocumentsQuery *self);
 void gdata_documents_query_add_a_reader_email_address (GDataDocumentsQuery *self, const gchar *reader_address);
+void gdata_documents_query_add_a_collaborator_email_address (GDataDocumentsQuery *self, const gchar *collaborator_address);
 
 G_END_DECLS
 

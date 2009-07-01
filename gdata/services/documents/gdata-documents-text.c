@@ -103,20 +103,17 @@ get_xml (GDataParsable *parsable, GString *xml_string)
  * Return value: the document's data, or %NULL; free with g_free()
  **/
 GFile *
-gdata_documents_text_download_document (GDataDocumentsEntry *self, GDataDocumentsService *service, gchar **content_type,
+gdata_documents_text_download_document (GDataDocumentsText *self, GDataDocumentsService *service, gchar **content_type,
 										GDataDocumentsTextFormat export_format, gchar *destination_folder, gboolean replace_file_if_exist, GCancellable *cancellable, GError **error)
 {
-	GString *link_href;
 	GFile *destination_file;
-	gchar *document_id, *export_format_str;
+	gchar *document_id, *export_format_str=NULL, *link_href;
 
 	/* TODO: async version */
 	g_return_val_if_fail (GDATA_IS_DOCUMENTS_TEXT (self), NULL);
 	g_return_val_if_fail (GDATA_IS_DOCUMENTS_SERVICE (service), NULL);
-	g_return_val_if_fail (export_format != NULL, NULL);
 
-	document_id = gdata_documents_entry_get_document_id (self);
-
+	document_id = gdata_documents_entry_get_document_id (GDATA_DOCUMENTS_ENTRY (self));
 	g_return_val_if_fail (document_id != NULL, NULL);
 
 	if (export_format == GDATA_DOCUMENTS_TEXT_DOC)
@@ -140,7 +137,7 @@ gdata_documents_text_download_document (GDataDocumentsEntry *self, GDataDocument
 	link_href = g_strdup_printf ("http://docs.google.com/feeds/download/presentations/Export?exportFormat=%s&docID=%s", export_format_str, document_id);
 
 	/*Chain up to the parent class*/
-	destination_file = _gdata_documents_entry_download_document (GDATA_DOCUMENTS_ENTRY (self), service, content_type, \
+	destination_file = _gdata_documents_entry_download_document (GDATA_DOCUMENTS_ENTRY (self), GDATA_SERVICE (service), content_type, \
 			link_href, destination_folder, export_format_str, replace_file_if_exist, cancellable, error);
 
 	g_free (link_href);

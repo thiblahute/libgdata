@@ -109,19 +109,19 @@ get_xml (GDataParsable *parsable, GString *xml_string)
  * Return value: the document's data, or %NULL; free with g_free()
  **/
 GFile *
-gdata_documents_spreadsheet_download_document (GDataDocumentsEntry *self, GDataDocumentsService *service, gchar **content_type, gint gid,\
+gdata_documents_spreadsheet_download_document (GDataDocumentsSpreadsheet *self, GDataDocumentsService *service, gchar **content_type, gint gid,\
 	   	GDataDocumentsSpreadsheetFormat export_format, gchar *destination_folder, gboolean replace_file_if_exist, GCancellable *cancellable, GError **error)
 {
 	GString *link_href;
 	GFile *destination_file;
-	gchar *data, *document_id, *document_title, *extension, *fmcmd;
+	gchar *document_id, *extension, *fmcmd;
 	GDataService *spreadsheet_service;
 
 	/* TODO: async version */
 	g_return_val_if_fail (GDATA_IS_DOCUMENTS_SPREADSHEET (self), NULL);
 	g_return_val_if_fail (GDATA_IS_DOCUMENTS_SERVICE (service), NULL);
 
-	document_id = gdata_documents_entry_get_document_id (self);
+	document_id = gdata_documents_entry_get_document_id (GDATA_DOCUMENTS_ENTRY (self));
 
 	if (export_format == GDATA_DOCUMENTS_SPREADSHEET_XLS){
 		extension = "xls";
@@ -153,7 +153,7 @@ gdata_documents_spreadsheet_download_document (GDataDocumentsEntry *self, GDataD
 	g_string_append_printf (link_href, "%s&fmcmd=%s", document_id, fmcmd);
 
 	if (gid != -1)
-		g_string_append_printf (link_href, "&gid=%d", GINT_TO_POINTER (gid));
+		g_string_append_printf (link_href, "&gid=%d", gid); /*TODO*/
 
 	/*Get the spreadsheet service*/
 	spreadsheet_service = gdata_documents_service_get_spreadsheet_service (service);
