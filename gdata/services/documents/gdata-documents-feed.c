@@ -87,7 +87,7 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 		GDataEntry *entry = NULL;
 		if (is_spreadsheet_entry (doc, node))
 			entry = GDATA_ENTRY (_gdata_parsable_new_from_xml_node (GDATA_TYPE_DOCUMENTS_SPREADSHEET, "entry", doc, node, NULL, error));
-		else if ( is_text_entry (doc, node))
+		else if (is_text_entry (doc, node))
 			entry = GDATA_ENTRY (_gdata_parsable_new_from_xml_node (GDATA_TYPE_DOCUMENTS_TEXT, "entry", doc, node, NULL, error));
 		else if (is_presentation_entry (doc, node))
 			entry = GDATA_ENTRY (_gdata_parsable_new_from_xml_node (GDATA_TYPE_DOCUMENTS_PRESENTATION, "entry", doc, node, NULL, error));
@@ -116,7 +116,7 @@ is_spreadsheet_entry (xmlDoc *doc, xmlNode *node)
 	entry_node = node->children;	
 
 	while (entry_node != NULL) {
-		if (xmlStrcmp (entry_node->name, (xmlChar*) "category") == 0){
+		if (xmlStrcmp (entry_node->name, (xmlChar*) "category") == 0) {
 			gchar *label = (gchar*) (xmlGetProp (entry_node, (xmlChar*) "label"));
 			if (strcmp (label, "spreadsheet") == 0)
 				return TRUE;
@@ -135,7 +135,7 @@ is_text_entry (xmlDoc *doc, xmlNode *node)
 	entry_node = node->children;	
 
 	while (entry_node != NULL) {
-		if (xmlStrcmp (entry_node->name, (xmlChar*) "category") == 0){
+		if (xmlStrcmp (entry_node->name, (xmlChar*) "category") == 0) {
 			gchar *label = (gchar*) (xmlGetProp (entry_node, (xmlChar*) "label"));
 			if (strcmp (label, "document") == 0)
 				return TRUE;
@@ -154,7 +154,7 @@ is_presentation_entry (xmlDoc *doc, xmlNode *node)
 	entry_node = node->children;	
 
 	while (entry_node != NULL) {
-		if (xmlStrcmp (entry_node->name, (xmlChar*) "category") == 0){
+		if (xmlStrcmp (entry_node->name, (xmlChar*) "category") == 0) {
 			gchar *label = (gchar*) (xmlGetProp (entry_node, (xmlChar*) "label"));
 			if (strcmp (label, "presentation") == 0)
 				return TRUE;
@@ -173,7 +173,7 @@ is_folder_entry (xmlDoc *doc, xmlNode *node)
 	entry_node = node->children;	
 
 	while (entry_node != NULL) {
-		if (xmlStrcmp (entry_node->name, (xmlChar*) "category") == 0){
+		if (xmlStrcmp (entry_node->name, (xmlChar*) "category") == 0) {
 			gchar *label = (gchar*) (xmlGetProp (entry_node, (xmlChar*) "label"));
 			if (strcmp (label, "folder") == 0)
 				return TRUE;

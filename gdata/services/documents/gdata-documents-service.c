@@ -51,7 +51,7 @@ static void gdata_documents_service_dispose (GObject *object);
 static void gdata_documents_service_get_property (GObject *object, guint property_id, GValue *value, GParamSpec *pspec);
 static void notify_authenticated_cb (GObject *service, GParamSpec *pspec, GObject *self);
 static void notify_proxy_uri_cb (GObject *service, GParamSpec *pspec, GObject *self);
-GDataDocumentsEntry *gdata_documents_service_upload_update_document (GDataDocumentsService *self, GDataDocumentsEntry *document, GFile *document_file, 
+GDataDocumentsEntry *_upload_update_document (GDataDocumentsService *self, GDataDocumentsEntry *document, GFile *document_file, 
 															 		 SoupMessage *message, gboolean metadata, guint good_status_code, GCancellable *cancellable, GError **error);
 
 struct _GDataDocumentsServicePrivate {
@@ -223,7 +223,7 @@ notify_authenticated_cb (GObject *service, GParamSpec *pspec, GObject *self)
 
 	GDataService *spreadsheet_service = g_object_new (GDATA_TYPE_SERVICE, "client-id", gdata_service_get_client_id (GDATA_SERVICE (service)), NULL);
 	GDATA_SERVICE_GET_CLASS (spreadsheet_service)->service_name = "wise";
-	gdata_service_authenticate (spreadsheet_service, gdata_service_get_username ( GDATA_SERVICE (service)), gdata_service_get_password (GDATA_SERVICE (service)), NULL, NULL);
+	gdata_service_authenticate (spreadsheet_service, gdata_service_get_username (GDATA_SERVICE (service)), gdata_service_get_password (GDATA_SERVICE (service)), NULL, NULL);
 	priv->spreadsheet_service = spreadsheet_service;
 }
 
@@ -238,7 +238,7 @@ notify_proxy_uri_cb (GObject *service, GParamSpec *pspec, GObject *self)
 }
 
 GDataDocumentsEntry *
-gdata_documents_service_upload_update_document (GDataDocumentsService *self, GDataDocumentsEntry *document, GFile *document_file, SoupMessage *message,
+_upload_update_document (GDataDocumentsService *self, GDataDocumentsEntry *document, GFile *document_file, SoupMessage *message,
 										 gboolean metadata, guint good_status_code, GCancellable *cancellable, GError **error)
 {
 	/* TODO: Async variant */
@@ -262,7 +262,7 @@ gdata_documents_service_upload_update_document (GDataDocumentsService *self, GDa
 		klass->append_query_headers (GDATA_SERVICE (self), message);
 
 	/*Gets document file informations*/
-	if ( document_file != NULL ){
+	if (document_file != NULL ) {
 		/* Get the data early so we can calculate the content length */
 		if (g_file_load_contents (document_file, NULL, &document_contents, &document_length, NULL, error) == FALSE) {
 			return NULL;
@@ -282,7 +282,7 @@ gdata_documents_service_upload_update_document (GDataDocumentsService *self, GDa
 		soup_message_headers_append (message->request_headers, "Slug", g_file_info_get_display_name (document_file_info));
 		/*For sure the document is not null since the none-match parameter is only for update document*/
 		
-		if (metadata == FALSE){
+		if (metadata == FALSE) {
 			const gchar *content_type = g_file_info_get_content_type (document_file_info);
 			/*Corrects a bug on spreadsheets mime types handling
 			 *The mimetype for odf spreasheets are "application/vnd.oasis.opendocument.spreadsheet" for my odf spreasheet
@@ -306,14 +306,14 @@ gdata_documents_service_upload_update_document (GDataDocumentsService *self, GDa
 				strcmp (content_type, "application/vnd.sun.xml.writer") == 0||
 				strcmp (content_type, "text/plain") == 0)
 					new_document_type = GDATA_TYPE_DOCUMENTS_TEXT;
-			else if (strcmp (content_type, "application/vnd.ms-powerpoint") == 0){
+			else if (strcmp (content_type, "application/vnd.ms-powerpoint") == 0) {
 				new_document_type = GDATA_TYPE_DOCUMENTS_PRESENTATION;
 			}
 		}
 	}
 
 	/*Prepare xml file to upload metadatas*/
-	if (metadata == TRUE){
+	if (metadata == TRUE) {
 		/* Test on the document entry*/	
 		g_return_val_if_fail (GDATA_IS_DOCUMENTS_ENTRY (document), NULL);
 		new_document_type = G_OBJECT_TYPE (document);
@@ -329,7 +329,7 @@ gdata_documents_service_upload_update_document (GDataDocumentsService *self, GDa
 			return NULL;
 		}
 		/* prepare the datas to upload containg both metadatas and document content*/
-		if (document_file != NULL){
+		if (document_file != NULL) {
 			const gchar *content_type = g_file_info_get_content_type (document_file_info);
 			
 			first_chunk_header = "--" BOUNDARY_STRING "\nContent-Type: application/atom+xml; charset=UTF-8\n\n<?xml version='1.0'?>";
@@ -379,7 +379,7 @@ gdata_documents_service_upload_update_document (GDataDocumentsService *self, GDa
 	}
 
 	/* Send the message */
-	status = _gdata_service_send_message ( GDATA_SERVICE (self), message, error);
+	status = _gdata_service_send_message (GDATA_SERVICE (self), message, error);
 	if (status == SOUP_STATUS_NONE) {
 		return NULL;
 	}
@@ -392,7 +392,7 @@ gdata_documents_service_upload_update_document (GDataDocumentsService *self, GDa
 	if (status != good_status_code) {
 		/* Error */
 		g_assert (klass->parse_error_response != NULL);
-		klass->parse_error_response ( GDATA_SERVICE (self), GDATA_SERVICE_ERROR_WITH_INSERTION, status, message->reason_phrase, message->response_body->data,
+		klass->parse_error_response (GDATA_SERVICE (self), GDATA_SERVICE_ERROR_WITH_INSERTION, status, message->reason_phrase, message->response_body->data,
 					     message->response_body->length, error);
 		return NULL;
 	}
@@ -445,7 +445,14 @@ gdata_documents_service_upload_document (GDataDocumentsService *self, GDataDocum
 		return NULL;
 	}
 
-	if ( folder != NULL){
+	if (document != NULL) {
+		if (gdata_entry_is_inserted (GDATA_ENTRY(document)) == TRUE) {
+			g_set_error_literal (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_ENTRY_ALREADY_INSERTED,
+				_("The document has already been uploaded."));
+		}
+	}
+
+	if (folder != NULL) {
 		folder_id = gdata_documents_entry_get_document_id (GDATA_DOCUMENTS_ENTRY (folder));
 		g_assert (folder_id != NULL);
 		upload_uri = tmp_str = g_strdup_printf ("http://docs.google.com/feeds/folders/private/full/folder%%3A%s", folder_id);
@@ -453,17 +460,11 @@ gdata_documents_service_upload_document (GDataDocumentsService *self, GDataDocum
 		upload_uri = "http://docs.google.com/feeds/documents/private/full";
 	
 	g_print ("Upload uri: %s\n", upload_uri);
-	if (document != NULL){
-		if (gdata_entry_is_inserted (GDATA_ENTRY(document)) == TRUE) {
-			g_set_error_literal (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_ENTRY_ALREADY_INSERTED,
-				_("The document has already been uploaded."));
-		}
-	}
 
 	message = soup_message_new (SOUP_METHOD_POST, upload_uri);
 	g_free (tmp_str);
 
-	new_document = gdata_documents_service_upload_update_document (self, document, document_file, message, metadata, 201, cancellable, error);
+	new_document = _upload_update_document (self, document, document_file, message, metadata, 201, cancellable, error);
 	g_object_unref (message);
 
 	return new_document;
@@ -525,7 +526,7 @@ gdata_documents_service_update_document (GDataDocumentsService *self, GDataDocum
 
 	g_object_unref (update_uri);
 
-	updated_document = gdata_documents_service_upload_update_document (self, document, document_file, message, metadata, 200, cancellable, error);
+	updated_document = _upload_update_document (self, document, document_file, message, metadata, 200, cancellable, error);
 	g_object_unref (message);
 
 	return updated_document;
@@ -575,7 +576,7 @@ gdata_documents_service_move_document_to_folder (GDataDocumentsService *self, GD
 	/* Make sure subclasses set their headers */
 	klass = GDATA_SERVICE_GET_CLASS (self);
 	if (klass->append_query_headers != NULL)
-		klass->append_query_headers ( GDATA_SERVICE (self), message);
+		klass->append_query_headers (GDATA_SERVICE (self), message);
 
 	/*Get the xml content*/
 	entry_xml = gdata_entry_get_xml (GDATA_ENTRY (document));
@@ -593,7 +594,7 @@ gdata_documents_service_move_document_to_folder (GDataDocumentsService *self, GD
 
 
 	/* Send the message */
-	status = _gdata_service_send_message ( GDATA_SERVICE (self), message, error);
+	status = _gdata_service_send_message (GDATA_SERVICE (self), message, error);
 	if (status == SOUP_STATUS_NONE) {
 		g_object_unref (message);
 		return NULL;
@@ -608,7 +609,7 @@ gdata_documents_service_move_document_to_folder (GDataDocumentsService *self, GD
 	if (status != 201) {
 		/* Error */
 		g_assert (klass->parse_error_response != NULL);
-		klass->parse_error_response ( GDATA_SERVICE (self), GDATA_SERVICE_ERROR_WITH_INSERTION, status, message->reason_phrase, message->response_body->data,
+		klass->parse_error_response (GDATA_SERVICE (self), GDATA_SERVICE_ERROR_WITH_INSERTION, status, message->reason_phrase, message->response_body->data,
 					     message->response_body->length, error);
 		g_object_unref (message);
 		return NULL;
@@ -671,7 +672,7 @@ gdata_documents_service_remove_document_from_folder (GDataDocumentsService *self
 	/* Make sure subclasses set their headers */
 	klass = GDATA_SERVICE_GET_CLASS (self);
 	if (klass->append_query_headers != NULL)
-		klass->append_query_headers ( GDATA_SERVICE (self), message);
+		klass->append_query_headers (GDATA_SERVICE (self), message);
 
 	/*Get the xml content*/
 	entry_xml = gdata_entry_get_xml (GDATA_ENTRY (document));
@@ -687,7 +688,7 @@ gdata_documents_service_remove_document_from_folder (GDataDocumentsService *self
 	soup_message_set_request (message, "application/atom+xml", SOUP_MEMORY_TAKE, upload_data, strlen (upload_data));
 
 	/* Send the message */
-	status = _gdata_service_send_message ( GDATA_SERVICE (self), message, error);
+	status = _gdata_service_send_message (GDATA_SERVICE (self), message, error);
 	if (status == SOUP_STATUS_NONE) {
 		g_object_unref (message);
 		return NULL;
@@ -702,7 +703,7 @@ gdata_documents_service_remove_document_from_folder (GDataDocumentsService *self
 	if (status != 201) {
 		/* Error */
 		g_assert (klass->parse_error_response != NULL);
-		klass->parse_error_response ( GDATA_SERVICE (self), GDATA_SERVICE_ERROR_WITH_INSERTION, status, message->reason_phrase, message->response_body->data,
+		klass->parse_error_response (GDATA_SERVICE (self), GDATA_SERVICE_ERROR_WITH_INSERTION, status, message->reason_phrase, message->response_body->data,
 					     message->response_body->length, error);
 		g_object_unref (message);
 		return NULL;

@@ -89,7 +89,7 @@ get_xml (GDataParsable *parsable, GString *xml_string)
  * @service: a #GDataDocumentsService
  * @content_type: return location for the document's content type, or %NULL; free with g_free()
  * @gid: Usefull for %GDATA_DOCUMENTS_SPREADSHEET_CSV and %GDATA_DOCUMENTS_SPREADSHEET_TSV, else set it to -1.
- * @destination_folder: the destination folder
+ * @destination_directory: the destination folder
  * @cancellable: optional #GCancellable object, or %NULL
  * @error: a #GError, or %NULL
  *
@@ -109,8 +109,8 @@ get_xml (GDataParsable *parsable, GString *xml_string)
  * Return value: the document's data, or %NULL; free with g_free()
  **/
 GFile *
-gdata_documents_spreadsheet_download_document (GDataDocumentsSpreadsheet *self, GDataDocumentsService *service, gchar **content_type, gint gid,\
-	   	GDataDocumentsSpreadsheetFormat export_format, gchar *destination_folder, gboolean replace_file_if_exist, GCancellable *cancellable, GError **error)
+gdata_documents_spreadsheet_download_document (GDataDocumentsSpreadsheet *self, GDataDocumentsService *service, gchar **content_type, gint gid,
+	   	GDataDocumentsSpreadsheetFormat export_format, GFile *destination_directory, gboolean replace_file_if_exist, GCancellable *cancellable, GError **error)
 {
 	GString *link_href;
 	GFile *destination_file;
@@ -123,22 +123,22 @@ gdata_documents_spreadsheet_download_document (GDataDocumentsSpreadsheet *self, 
 
 	document_id = gdata_documents_entry_get_document_id (GDATA_DOCUMENTS_ENTRY (self));
 
-	if (export_format == GDATA_DOCUMENTS_SPREADSHEET_XLS){
+	if (export_format == GDATA_DOCUMENTS_SPREADSHEET_XLS) {
 		extension = "xls";
 		fmcmd = "4";
-	}else if (export_format == GDATA_DOCUMENTS_SPREADSHEET_CSV){
+	}else if (export_format == GDATA_DOCUMENTS_SPREADSHEET_CSV) {
 		extension = "csv";
 		fmcmd = "5";
-	}else if (export_format == GDATA_DOCUMENTS_SPREADSHEET_PDF){
+	}else if (export_format == GDATA_DOCUMENTS_SPREADSHEET_PDF) {
 		extension = "pdf";
 		fmcmd = "12";
-	}else if (export_format == GDATA_DOCUMENTS_SPREADSHEET_ODS){
+	}else if (export_format == GDATA_DOCUMENTS_SPREADSHEET_ODS) {
 		extension = "ods";
 		fmcmd = "13";
-	}else if (export_format == GDATA_DOCUMENTS_SPREADSHEET_TSV){
+	}else if (export_format == GDATA_DOCUMENTS_SPREADSHEET_TSV) {
 		extension = "tsv";
 		fmcmd = "23";
-	}else if (export_format == GDATA_DOCUMENTS_SPREADSHEET_HTML){
+	}else if (export_format == GDATA_DOCUMENTS_SPREADSHEET_HTML) {
 		extension = "html";
 		fmcmd = "102";
 	}else{
@@ -158,7 +158,7 @@ gdata_documents_spreadsheet_download_document (GDataDocumentsSpreadsheet *self, 
 	/*Get the spreadsheet service*/
 	spreadsheet_service = gdata_documents_service_get_spreadsheet_service (service);
 	/*Chain up to the parent class*/
-	destination_file = _gdata_documents_entry_download_document (GDATA_DOCUMENTS_ENTRY (self), spreadsheet_service, content_type, link_href->str, destination_folder, extension, replace_file_if_exist, cancellable, error);
+	destination_file = _gdata_documents_entry_download_document (GDATA_DOCUMENTS_ENTRY (self), spreadsheet_service, content_type, link_href->str, destination_directory, extension, replace_file_if_exist, cancellable, error);
 
 	g_string_free (link_href, TRUE);
 	return destination_file;

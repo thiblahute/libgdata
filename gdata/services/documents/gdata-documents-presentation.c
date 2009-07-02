@@ -89,7 +89,7 @@ get_xml (GDataParsable *parsable, GString *xml_string)
  * @service : a #GDataDocumentsService
  * @content_type : return location for the document's content type, or %NULL; free with g_free()
  * @export_format : a #GDataDocumentsPresentationFormat export format
- * @destination_folder: the destination folder
+ * @destination_directory: the destination folder
  * @cancellable: optional #GCancellable object, or %NULL
  * @error: a #GError, or %NULL
  *
@@ -105,7 +105,8 @@ get_xml (GDataParsable *parsable, GString *xml_string)
  **/
 GFile *
 gdata_documents_presentation_download_document (GDataDocumentsPresentation *self, GDataDocumentsService *service, gchar **content_type,
-										 GDataDocumentsPresentationFormat export_format, gchar *destination_folder, gboolean replace_file_if_exist, GCancellable *cancellable, GError **error)
+											    GDataDocumentsPresentationFormat export_format, GFile *destination_directory,
+												gboolean replace_file_if_exist, GCancellable *cancellable, GError **error)
 {
 	GFile *destination_file;
 	gchar *document_id, *export_format_str=NULL, *link_href;
@@ -133,7 +134,7 @@ gdata_documents_presentation_download_document (GDataDocumentsPresentation *self
 
 	/*Chain up to the parent class*/
 	destination_file = _gdata_documents_entry_download_document (GDATA_DOCUMENTS_ENTRY (self), GDATA_SERVICE (service), content_type, \
-			link_href, destination_folder, export_format_str, replace_file_if_exist, cancellable, error);
+			link_href, destination_directory, export_format_str, replace_file_if_exist, cancellable, error);
 
 	g_free (link_href);
 	return destination_file;

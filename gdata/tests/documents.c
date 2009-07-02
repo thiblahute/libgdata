@@ -124,7 +124,7 @@ test_query_all_documents (void)
 	{
 		if (GDATA_IS_DOCUMENTS_PRESENTATION (i->data))
 			g_print ("	Presentation: %s \n", gdata_entry_get_title (i->data));
-		if (GDATA_IS_DOCUMENTS_SPREADSHEET (i->data)){
+		if (GDATA_IS_DOCUMENTS_SPREADSHEET (i->data)) {
 			g_print ("	Spreasheet: %s \n", gdata_entry_get_title (i->data));
 		}
 		if (GDATA_IS_DOCUMENTS_TEXT (i->data))
@@ -219,11 +219,11 @@ test_upload_metadata_file (void)
 
 	g_assert (service != NULL);
 
-	document_file = g_file_new_for_path ( "/home/thibault/workspace/gsoc/libgdata/libgdata/gdata/tests/test.odt");
+	document_file = g_file_new_for_path ("/home/thibault/workspace/gsoc/libgdata/libgdata/gdata/tests/test.odt");
 
 	document = GDATA_DOCUMENTS_ENTRY (gdata_documents_text_new (NULL));
 	category = gdata_category_new ("http://schemas.google.com/docs/2007#document", "http://schemas.google.com/g/2005#kind", "document");
-	gdata_entry_set_title (GDATA_ENTRY (document), "nexTextDoc");
+	gdata_entry_set_title (GDATA_ENTRY (document), "upload_metadata_file");
 	gdata_entry_add_category (GDATA_ENTRY (document), category);
 
 	/* Insert the document */
@@ -249,7 +249,7 @@ test_upload_file (void)
 
 	g_assert (service != NULL);
 
-	document_file = g_file_new_for_path ( "/home/thibault/workspace/gsoc/libgdata/libgdata/gdata/tests/test.ppt");
+	document_file = g_file_new_for_path ("/home/thibault/workspace/gsoc/libgdata/libgdata/gdata/tests/test.ppt");
 
 	category = gdata_category_new ("http://schemas.google.com/docs/2007#presentation", "http://schemas.google.com/g/2005#kind", "presentation");
 
@@ -274,16 +274,16 @@ test_add_remove_file_from_folder (void)
 
 	g_assert (service != NULL);
 
-	document_file = g_file_new_for_path ( "/home/thibault/workspace/gsoc/libgdata/libgdata/gdata/tests/test.ppt");
+	document_file = g_file_new_for_path ("/home/thibault/workspace/gsoc/libgdata/libgdata/gdata/tests/test.ppt");
 
 	folder = GDATA_DOCUMENTS_ENTRY (gdata_documents_folder_new (NULL));
 	folder_category = gdata_category_new ("http://schemas.google.com/docs/2007#folder", "http://schemas.google.com/g/2005#kind", "folder");
-	gdata_entry_set_title (GDATA_ENTRY (folder), "add_remove_from_folder");
+	gdata_entry_set_title (GDATA_ENTRY (folder), "add_remove_from_folder_folder");
 	gdata_entry_add_category (GDATA_ENTRY (folder), folder_category);
 
 	document = GDATA_DOCUMENTS_ENTRY (gdata_documents_presentation_new (NULL));
 	document_category = gdata_category_new ("http://schemas.google.com/docs/2007#presentation", "http://schemas.google.com/g/2005#kind", "presentation");
-	gdata_entry_set_title (GDATA_ENTRY (document), "testingPresentation");
+	gdata_entry_set_title (GDATA_ENTRY (document), "add_remove_from_folder_presentation");
 	gdata_entry_add_category (GDATA_ENTRY (document), document_category);
 
 
@@ -320,16 +320,16 @@ test_add_file_folder_and_move (void)
 
 	g_assert (service != NULL);
 
-	document_file = g_file_new_for_path ( "/home/thibault/workspace/gsoc/libgdata/libgdata/gdata/tests/test.ods");
+	document_file = g_file_new_for_path ("/home/thibault/workspace/gsoc/libgdata/libgdata/gdata/tests/test.ods");
 
 	folder = GDATA_DOCUMENTS_ENTRY (gdata_documents_folder_new (NULL));
 	folder_category = gdata_category_new ("http://schemas.google.com/docs/2007#folder", "http://schemas.google.com/g/2005#kind", "folder");
-	gdata_entry_set_title (GDATA_ENTRY (folder), "theFolder");
+	gdata_entry_set_title (GDATA_ENTRY (folder), "add_file_folder_move_folder");
 	gdata_entry_add_category (GDATA_ENTRY (folder), folder_category);
 
-	document = GDATA_DOCUMENTS_ENTRY (gdata_documents_spreadsheet_new (NULL));
+	document = GDATA_DOCUMENTS_ENTRY (gdata_documents_text_new (NULL));
 	document_category = gdata_category_new ("http://schemas.google.com/docs/2007#document", "http://schemas.google.com/g/2005#kind", "document");
-	gdata_entry_set_title (GDATA_ENTRY (document), "theDocument");
+	gdata_entry_set_title (GDATA_ENTRY (document), "add_file_folder_move_text");
 	gdata_entry_add_category (GDATA_ENTRY (document), document_category);
 
 
@@ -366,16 +366,16 @@ test_upload_file_metadata_in_new_folder (void)
 
 	g_assert (service != NULL);
 
-	document_file = g_file_new_for_path ( "/home/thibault/workspace/gsoc/libgdata/libgdata/gdata/tests/test.ods");
+	document_file = g_file_new_for_path ("/home/thibault/workspace/gsoc/libgdata/libgdata/gdata/tests/test.ods");
 
 	folder = GDATA_DOCUMENTS_ENTRY (gdata_documents_folder_new (NULL));
 	folder_category = gdata_category_new ("http://schemas.google.com/docs/2007#folder", "http://schemas.google.com/g/2005#kind", "folder");
-	gdata_entry_set_title (GDATA_ENTRY (folder), "upload_in_new_folder");
+	gdata_entry_set_title (GDATA_ENTRY (folder), "upload_file_metadata_in_new_folder_folder");
 	gdata_entry_add_category (GDATA_ENTRY (folder), folder_category);
 
 	document = GDATA_DOCUMENTS_ENTRY (gdata_documents_text_new (NULL));
 	document_category = gdata_category_new ("http://schemas.google.com/docs/2007#document", "http://schemas.google.com/g/2005#kind", "document");
-	gdata_entry_set_title (GDATA_ENTRY (document), "testingDocument");
+	gdata_entry_set_title (GDATA_ENTRY (document), "upload_file_metadata_in_new_folder_text");
 	gdata_entry_add_category (GDATA_ENTRY (document), document_category);
 
 
@@ -410,7 +410,7 @@ test_update_metadata (void)
 
 	document = GDATA_DOCUMENTS_ENTRY (gdata_documents_text_new (NULL));
 	category = gdata_category_new ("http://schemas.google.com/docs/2007#document", "http://schemas.google.com/g/2005#kind", "document");
-	gdata_entry_set_title (GDATA_ENTRY (document), "newTextDoc");
+	gdata_entry_set_title (GDATA_ENTRY (document), "update_metadata_first_title");
 	gdata_entry_add_category (GDATA_ENTRY (document), category);
 
 	/* Insert the document */
@@ -419,7 +419,7 @@ test_update_metadata (void)
 	g_assert (GDATA_IS_DOCUMENTS_ENTRY (new_document));
 
 	/*CHange the title*/
-	gdata_entry_set_title (GDATA_ENTRY (document), "Updated_text_document_metadata");
+	gdata_entry_set_title (GDATA_ENTRY (document), "update_metadata_updated_title");
 
 	/* Update the document */
 	updated_document = gdata_documents_service_update_document (GDATA_DOCUMENTS_SERVICE (service), new_document, NULL, TRUE, FALSE, FALSE, NULL, &error);
@@ -436,17 +436,18 @@ static void
 test_update_metadata_file (void)
 {
 	GDataDocumentsEntry *document, *new_document, *updated_document;
-	GFile *document_file;
+	GFile *document_file, *updated_document_file;
 	GDataCategory *category;
 	GError *error = NULL;
 
 	g_assert (service != NULL);
 
-	document_file = g_file_new_for_path ( "/home/thibault/workspace/gsoc/libgdata/libgdata/gdata/tests/test.odt");
+	document_file = g_file_new_for_path ("/home/thibault/workspace/gsoc/libgdata/libgdata/gdata/tests/test.odt");
+	updated_document_file = g_file_new_for_path ("/home/thibault/workspace/gsoc/libgdata/libgdata/gdata/tests/test_updated.odt");
 
 	document = GDATA_DOCUMENTS_ENTRY (gdata_documents_text_new (NULL));
 	category = gdata_category_new ("http://schemas.google.com/docs/2007#document", "http://schemas.google.com/g/2005#kind", "document");
-	gdata_entry_set_title (GDATA_ENTRY (document), "newTextDocFile");
+	gdata_entry_set_title (GDATA_ENTRY (document), "update_metadata_file_first_title");
 	gdata_entry_add_category (GDATA_ENTRY (document), category);
 
 	/* Insert the documents metadata*/
@@ -455,10 +456,12 @@ test_update_metadata_file (void)
 	g_assert_no_error (error);
 	g_assert (GDATA_IS_DOCUMENTS_TEXT (new_document));
 	/*Change the title of the document*/
-	gdata_entry_set_title (GDATA_ENTRY (document), "updated file and metadata");
+	gdata_entry_set_title (GDATA_ENTRY (document), "update_metadata_file_updated_title");
+
+	g_print ("Here we are=\n");
 
 	/* Update the document */
-	updated_document = gdata_documents_service_update_document (GDATA_DOCUMENTS_SERVICE (service), new_document, document_file, TRUE, FALSE, FALSE, NULL, &error);
+	updated_document = gdata_documents_service_update_document (GDATA_DOCUMENTS_SERVICE (service), new_document, updated_document_file, TRUE, FALSE, FALSE, NULL, &error);
 
 	/*Check that everything was fine*/
 	g_assert_no_error (error);
@@ -479,7 +482,8 @@ test_update_file (void)
 
 	g_assert (service != NULL);
 
-	document_file = g_file_new_for_path ( "/home/thibault/workspace/gsoc/libgdata/libgdata/gdata/tests/test.ppt");
+	document_file = g_file_new_for_path ("/home/thibault/workspace/gsoc/libgdata/libgdata/gdata/tests/test.ppt");
+	updated_document_file = g_file_new_for_path ("/home/thibault/workspace/gsoc/libgdata/libgdata/gdata/tests/test_updated_file.ppt");
 
 	/* Insert the document */
 	new_document = gdata_documents_service_upload_document (GDATA_DOCUMENTS_SERVICE (service), NULL, document_file, NULL, FALSE, NULL, &error);
@@ -487,7 +491,6 @@ test_update_file (void)
 	g_assert (GDATA_IS_DOCUMENTS_ENTRY (new_document));
 	g_assert_no_error (error);
 
-	updated_document_file = g_file_new_for_path ( "/home/thibault/workspace/gsoc/libgdata/libgdata/gdata/tests/test_updated_file.ppt");
 	/* Update the document */
 	updated_document = gdata_documents_service_update_document (GDATA_DOCUMENTS_SERVICE (service), new_document, document_file, FALSE, FALSE, TRUE, NULL, &error);
 
@@ -508,34 +511,37 @@ test_download_all_documents (void)
 	GDataDocumentsFeed *feed;
 	GError *error = NULL;
 	gchar *content_type = NULL;
-	gchar *destination_folder = "/tmp";
+	GFile *destination_directory; 
 	GFile *destination_file;
 	GList *i;
 
+	destination_directory = g_file_new_for_path ("/tmp");
 	feed = gdata_documents_service_query_documents (GDATA_DOCUMENTS_SERVICE (service), NULL, NULL, NULL, NULL, &error);
 	for (i = gdata_feed_get_entries (GDATA_FEED (feed)); i != NULL; i = i->next)
 	{
-		if (GDATA_IS_DOCUMENTS_PRESENTATION (i->data)){
+		if (GDATA_IS_DOCUMENTS_PRESENTATION (i->data)) {
 			destination_file = gdata_documents_presentation_download_document (GDATA_DOCUMENTS_PRESENTATION (i->data), GDATA_DOCUMENTS_SERVICE (service),\
-					&content_type, GDATA_DOCUMENTS_PRESENTATION_PPT, destination_folder, TRUE, NULL, &error);
-			if ( destination_file != NULL)
+					&content_type, GDATA_DOCUMENTS_PRESENTATION_PPT, destination_directory, TRUE, NULL, &error);
+			if (destination_file != NULL)
 				g_print ("	Presentation destination: %s\n", g_file_get_uri (destination_file));
-		}else if (GDATA_IS_DOCUMENTS_SPREADSHEET (i->data)){
+		}else if (GDATA_IS_DOCUMENTS_SPREADSHEET (i->data)) {
 			destination_file = gdata_documents_spreadsheet_download_document (i->data, GDATA_DOCUMENTS_SERVICE (service),\
-					&content_type, -1, GDATA_DOCUMENTS_SPREADSHEET_ODS, destination_folder, TRUE, NULL, &error);
-			if ( destination_file != NULL)
+					&content_type, -1, GDATA_DOCUMENTS_SPREADSHEET_ODS, destination_directory, TRUE, NULL, &error);
+			if (destination_file != NULL)
 				g_print ("	Spreasheet destination: %s\n", g_file_get_uri (destination_file));
-		}else if (GDATA_IS_DOCUMENTS_TEXT (i->data)){
+		}else if (GDATA_IS_DOCUMENTS_TEXT (i->data)) {
 			destination_file = gdata_documents_text_download_document (i->data, GDATA_DOCUMENTS_SERVICE (service), &content_type, GDATA_DOCUMENTS_TEXT_ODT,\
-				   	destination_folder, TRUE, NULL, &error);
-			if ( destination_file != NULL)
+				   	destination_directory, TRUE, NULL, &error);
+			if (destination_file != NULL)
 				g_print ("	Document destination: %s\n", g_file_get_uri (destination_file));
 		}else if (GDATA_IS_DOCUMENTS_FOLDER (i->data))
 			g_print ("	Folder: %s \n", gdata_entry_get_title (i->data));
 		g_assert_no_error (error);
+		g_object_unref (destination_file);
 	}
 	g_assert_no_error (error);
 	g_assert (GDATA_IS_FEED (feed));
+	g_object_unref (destination_directory);
 	g_object_unref (feed);
 	g_clear_error (&error);
 }
@@ -590,7 +596,7 @@ main (int argc, char *argv[])
 	g_test_bug_base ("http://bugzilla.gnome.org/show_bug.cgi?id=");
 
 	g_test_add_func ("/documents/authentication", test_authentication);
-/*
+
 	g_test_add_func ("/documents/upload/only_file", test_upload_file);
 	g_test_add_func ("/documents/upload/metadata_file", test_upload_metadata_file);
 	g_test_add_func ("/documents/upload/only_metadata", test_upload_metadata);
@@ -600,16 +606,15 @@ main (int argc, char *argv[])
 	g_test_add_func ("/documents/update/only_file", test_update_file);
 	g_test_add_func ("/documents/update/metadata_file", test_update_metadata_file);
 	g_test_add_func ("/documents/download/download_all_documents", test_download_all_documents);
-*/
 
-	g_test_add_func ("/documents/move/remove_from_folder", test_add_remove_file_from_folder);
-/*	g_test_add_func ("/documents/move/move_to_folder", test_add_file_folder_and_move);
+//	g_test_add_func ("/documents/move/remove_from_folder", test_add_remove_file_from_folder);
+	g_test_add_func ("/documents/move/move_to_folder", test_add_file_folder_and_move);
 	g_test_add_func ("/documents/access_rules/add_document_with_a_collaborator", test_new_document_with_collaborator);
 
 	g_test_add_func ("/documents/query/all_documents_with_folder", test_query_all_documents_with_folder);
 	g_test_add_func ("/documents/query/all_documents", test_query_all_documents);
 	g_test_add_func ("/documents/query/all_documents_async", test_query_all_documents_async);
-*/
+
 	g_test_add_func ("/documents/remove/all", test_remove_all_documents_and_folders);
 	retval = g_test_run ();
 	if (service != NULL)

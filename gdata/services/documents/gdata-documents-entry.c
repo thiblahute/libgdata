@@ -248,7 +248,7 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 		xmlChar *_writers_can_invite = xmlGetProp (node, (xmlChar*) "value");
 		if (xmlStrcmp (_writers_can_invite, (xmlChar*) "true") == 0)
 			gdata_documents_entry_set_writers_can_invite (self, TRUE);
-		else if (xmlStrcmp ( _writers_can_invite, (xmlChar*) "false") == 0)
+		else if (xmlStrcmp (_writers_can_invite, (xmlChar*) "false") == 0)
 			gdata_documents_entry_set_writers_can_invite (self, FALSE);
 		else
 			return gdata_parser_error_unknown_property_value (node, "value", (const gchar*) _writers_can_invite, error);
@@ -269,7 +269,7 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 		GDataLink *link = GDATA_LINK (_gdata_parsable_new_from_xml_node (GDATA_TYPE_LINK, "feedLink", doc, node, NULL, error));
 		if (link == NULL)
 			return FALSE;
-		gdata_entry_add_link ( GDATA_ENTRY (self), link); 
+		gdata_entry_add_link (GDATA_ENTRY (self), link); 
 	} else if (xmlStrcmp (node->name, (xmlChar*) "lastModifiedBy") ==  0) {
 		GDataAuthor *last_modified_by = GDATA_AUTHOR (_gdata_parsable_new_from_xml_node (GDATA_TYPE_AUTHOR, "lastModifiedBy", doc, node, NULL, error));
 		if (last_modified_by == NULL)
@@ -382,7 +382,7 @@ get_xml (GDataParsable *parsable, GString *xml_string)
   for (categories = gdata_entry_get_categories (GDATA_ENTRY (parsable)); categories != NULL; categories = categories->next) {
     GDataCategory *category = (GDataCategory*) categories->data;
  
-    if (strcmp (gdata_category_get_scheme (category), "http://schemas.google.com/g/2005#kind") == 0){
+    if (strcmp (gdata_category_get_scheme (category), "http://schemas.google.com/g/2005#kind") == 0) {
       g_string_append_printf (xml_string, "<category term='%s'", gdata_category_get_term (category));
  
       if (G_LIKELY (gdata_category_get_scheme (category) != NULL))
@@ -473,11 +473,11 @@ void
 gdata_documents_entry_set_path (GDataDocumentsEntry *self)
 {
 	GList *element, *parent_folders_list;
-	g_return_if_fail ( GDATA_IS_DOCUMENTS_ENTRY ( self ) );
+	g_return_if_fail (GDATA_IS_DOCUMENTS_ENTRY (self));
 
 	g_free (self->priv->path);
 	parent_folders_list = gdata_entry_look_up_links (GDATA_ENTRY (self), "http://schemas.google.com/docs/2007#parent");
-	for (element = parent_folders_list; element != NULL; element = element->next){
+	for (element = parent_folders_list; element != NULL; element = element->next) {
 		if (self->priv->path == NULL)
 			self->priv->path = g_strdup (gdata_link_get_title (((GDataLink*) element->data)));
 		else
@@ -497,7 +497,7 @@ gdata_documents_entry_set_path (GDataDocumentsEntry *self)
 gchar*
 gdata_documents_entry_get_document_id (GDataDocumentsEntry *self )
 {
-	g_return_val_if_fail ( GDATA_IS_DOCUMENTS_ENTRY ( self ), NULL );
+	g_return_val_if_fail (GDATA_IS_DOCUMENTS_ENTRY (self ), NULL);
 	return self->priv->document_id;
 }
 
@@ -511,8 +511,8 @@ gdata_documents_entry_get_document_id (GDataDocumentsEntry *self )
 void 
 gdata_documents_entry_set_document_id (GDataDocumentsEntry *self, const gchar *document_id )
 {
-	g_return_if_fail ( GDATA_IS_DOCUMENTS_ENTRY ( self ) );
-	self->priv->document_id = g_strdup ( document_id );
+	g_return_if_fail (GDATA_IS_DOCUMENTS_ENTRY (self ));
+	self->priv->document_id = g_strdup (document_id);
 	g_object_notify (G_OBJECT (self), "document-id");
 }
 
@@ -526,7 +526,7 @@ gdata_documents_entry_set_document_id (GDataDocumentsEntry *self, const gchar *d
 void 
 gdata_documents_entry_set_writers_can_invite(GDataDocumentsEntry *self, gboolean writers_can_invite)
 {
-	g_return_if_fail ( GDATA_IS_DOCUMENTS_ENTRY ( self ) );
+	g_return_if_fail (GDATA_IS_DOCUMENTS_ENTRY (self));
 	self->priv->writers_can_invite = writers_can_invite;
 	g_object_notify (G_OBJECT (self), "writers-can-invite");
 }
@@ -540,9 +540,9 @@ gdata_documents_entry_set_writers_can_invite(GDataDocumentsEntry *self, gboolean
  * Return value: %TRUE if writers can invite other persons to write on the document, %FALSE otherwise
  **/
 gboolean
-gdata_documents_entry_get_writers_can_invite ( GDataDocumentsEntry *self)
+gdata_documents_entry_get_writers_can_invite (GDataDocumentsEntry *self)
 {
-	g_return_val_if_fail ( GDATA_IS_DOCUMENTS_ENTRY ( self ), FALSE);
+	g_return_val_if_fail (GDATA_IS_DOCUMENTS_ENTRY (self ), FALSE);
 	return self->priv->writers_can_invite;
 }
 
@@ -556,7 +556,7 @@ gdata_documents_entry_get_writers_can_invite ( GDataDocumentsEntry *self)
 GDataAuthor *
 gdata_documents_entry_get_last_modified_by (GDataDocumentsEntry *self)
 {
-	g_return_val_if_fail ( GDATA_IS_DOCUMENTS_ENTRY (self), NULL );
+	g_return_val_if_fail (GDATA_IS_DOCUMENTS_ENTRY (self), NULL );
 	return self->priv->last_modified_by;
 }
 
@@ -617,7 +617,7 @@ got_chunk_cb (SoupMessage *message, SoupBuffer *chunk, gpointer user_data)
  * @service: an authenticated #GDataDocumentsService
  * @content_type: return location for the document's content type, or %NULL; free with g_free()
  * @link: The link to download the document;
- * @destination_folder: the destination file, if it's wrong an error will be set
+ * @destination_directory: the destination file, if it's wrong an error will be set
  * @file_extension: the extension of the downloading file
  * @replace_file_if_exist: %TRUE if you want to replace the file if it exists, %FALSE otherwise.
  * @cancellable: optional #GCancellable object, or %NULL
@@ -635,7 +635,7 @@ got_chunk_cb (SoupMessage *message, SoupBuffer *chunk, gpointer user_data)
  * Return value: the document's data, or %NULL; free with g_object_unref()
  **/
 GFile *
-_gdata_documents_entry_download_document (GDataDocumentsEntry *self, GDataService *service, gchar **content_type, gchar *link, gchar *destination_folder,\
+_gdata_documents_entry_download_document (GDataDocumentsEntry *self, GDataService *service, gchar **content_type, gchar *link, GFile *destination_directory,\
 						gchar *file_extension, gboolean replace_file_if_exist, GCancellable *cancellable, GError **error)
 {
 	GDataServiceClass *klass;
@@ -644,7 +644,7 @@ _gdata_documents_entry_download_document (GDataDocumentsEntry *self, GDataServic
 	SoupMessage *message;
 	guint status;
 	const gchar *document_title;
-	GString  *path;
+	gchar *filename;
 
 	/* TODO: async version */
 	g_return_val_if_fail (GDATA_IS_DOCUMENTS_ENTRY (self), NULL);
@@ -659,13 +659,12 @@ _gdata_documents_entry_download_document (GDataDocumentsEntry *self, GDataServic
 
 	/*prepare the GFile*/
 	document_title = gdata_entry_get_title (GDATA_ENTRY (self));
-	path = g_string_new (destination_folder);
-	g_string_append_printf (path, "/%s.%s", document_title, file_extension);
-	destination_file = g_file_new_for_path (path->str);
-	g_string_free (path, FALSE);
+	filename = g_strdup_printf ("%s.%s", document_title, file_extension);
+	destination_file = g_file_get_child (destination_directory, filename);
+	g_free (filename);
 	
 	/*Check if the file exists*/
-	if (g_file_query_exists (destination_file, cancellable) == TRUE){
+	if (g_file_query_exists (destination_file, cancellable) == TRUE) {
 		if (replace_file_if_exist == TRUE)
 			file_stream = g_file_replace (destination_file, NULL, TRUE, G_FILE_CREATE_NONE, cancellable, error);
 		else{

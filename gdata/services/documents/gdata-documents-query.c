@@ -278,7 +278,7 @@ get_query_uri (GDataQuery *self, const gchar *feed_uri, GString *query_uri, gboo
 	/* Chain up to the parent class */
 	GDATA_QUERY_CLASS (gdata_documents_query_parent_class)->get_query_uri (self, feed_uri, query_uri, params_started);
 
-	if  (priv->collaborators_address != NULL){
+	if  (priv->collaborators_address != NULL) {
 		GList *collaborator_address;
 		APPEND_SEP
 		collaborator_address = priv->collaborators_address;
@@ -286,7 +286,7 @@ get_query_uri (GDataQuery *self, const gchar *feed_uri, GString *query_uri, gboo
 		for (collaborator_address = collaborator_address->next; collaborator_address != NULL; collaborator_address = collaborator_address->next)
 			g_string_append_printf (query_uri, ";%s", gdata_gd_email_address_get_address (collaborator_address->data));
 	} 
-	if  (priv->readers_address != NULL){
+	if  (priv->readers_address != NULL) {
 		GList *reader_address;
 		APPEND_SEP
 		reader_address = priv->readers_address;
@@ -294,7 +294,7 @@ get_query_uri (GDataQuery *self, const gchar *feed_uri, GString *query_uri, gboo
 		for (reader_address = reader_address->next; reader_address != NULL; reader_address = reader_address->next)
 			g_string_append_printf (query_uri, ";%s", gdata_gd_email_address_get_address (reader_address->data));
 	} 
-	if (priv->title != NULL){
+	if (priv->title != NULL) {
 		APPEND_SEP
 		g_string_append_printf (query_uri, "title=%s", priv->title);
 		if (priv->exact_title == TRUE) {
