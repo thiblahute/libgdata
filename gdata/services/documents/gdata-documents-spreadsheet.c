@@ -60,12 +60,6 @@ gdata_documents_spreadsheet_new(const gchar *id)
 	return g_object_new (GDATA_TYPE_DOCUMENTS_SPREADSHEET, "id", id, NULL);
 }
 
-GDataDocumentsSpreadsheet *
-gdata_documents_spreadsheet_new_from_xml (const gchar *xml, gint length, GError **error)
-{
-	return GDATA_DOCUMENTS_SPREADSHEET (_gdata_entry_new_from_xml (GDATA_TYPE_DOCUMENTS_SPREADSHEET, xml, length, error));
-}
-
 static void
 gdata_documents_spreadsheet_init (GDataDocumentsSpreadsheet *self)
 {

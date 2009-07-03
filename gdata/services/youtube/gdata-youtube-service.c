@@ -648,7 +648,7 @@ gdata_youtube_service_upload_video (GDataYouTubeService *self, GDataYouTubeVideo
 		return NULL;
 	}
 
-	entry_xml = gdata_entry_get_xml (GDATA_ENTRY (video));
+	entry_xml = gdata_parsable_get_xml (GDATA_PARSABLE (video));
 
 	/* Check for cancellation */
 	if (g_cancellable_set_error_if_cancelled (cancellable, error) == TRUE) {
@@ -735,7 +735,8 @@ gdata_youtube_service_upload_video (GDataYouTubeService *self, GDataYouTubeVideo
 
 	g_assert (message->response_body->data != NULL);
 
-	return gdata_youtube_video_new_from_xml (message->response_body->data, (gint) message->response_body->length, error);
+	return GDATA_YOUTUBE_VIDEO (gdata_parsable_new_from_xml (GDATA_TYPE_YOUTUBE_VIDEO, message->response_body->data,
+								 (gint) message->response_body->length, error));
 }
 
 /**

@@ -306,7 +306,7 @@ gdata_picasaweb_service_upload_file (GDataPicasaWebService *self, GDataPicasaWeb
 		return NULL;
 	}
 
-	entry_xml = gdata_entry_get_xml (GDATA_ENTRY (file));
+	entry_xml = gdata_parsable_get_xml (GDATA_PARSABLE (file));
 
 	/* Check for cancellation */
 	if (g_cancellable_set_error_if_cancelled (cancellable, error) == TRUE) {
@@ -393,5 +393,6 @@ gdata_picasaweb_service_upload_file (GDataPicasaWebService *self, GDataPicasaWeb
 
 	g_assert (message->response_body->data != NULL);
 
-	return gdata_picasaweb_file_new_from_xml (message->response_body->data, (gint) message->response_body->length, error);
+	return GDATA_PICASAWEB_FILE (gdata_parsable_new_from_xml (GDATA_TYPE_PICASAWEB_FILE, message->response_body->data,
+								  (gint) message->response_body->length, error));
 }

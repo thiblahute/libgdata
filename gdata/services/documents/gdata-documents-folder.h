@@ -57,8 +57,6 @@ typedef struct {
 GType gdata_documents_folder_get_type (void)G_GNUC_CONST;
 
 GDataDocumentsFolder *gdata_documents_folder_new (const gchar *id) G_GNUC_WARN_UNUSED_RESULT;
-GDataDocumentsFolder *gdata_documents_folder_new_from_xml (const gchar *xml, gint length, GError **error) G_GNUC_WARN_UNUSED_RESULT;
-
 
 G_END_DECLS
 

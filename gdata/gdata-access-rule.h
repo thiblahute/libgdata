@@ -64,7 +64,6 @@ typedef struct {
 GType gdata_access_rule_get_type (void) G_GNUC_CONST;
 
 GDataAccessRule *gdata_access_rule_new (const gchar *id) G_GNUC_WARN_UNUSED_RESULT;
-GDataAccessRule *gdata_access_rule_new_from_xml (const gchar *xml, gint length, GError **error) G_GNUC_WARN_UNUSED_RESULT;
 
 const gchar *gdata_access_rule_get_role (GDataAccessRule *self);
 void gdata_access_rule_set_role (GDataAccessRule *self, const gchar *role);

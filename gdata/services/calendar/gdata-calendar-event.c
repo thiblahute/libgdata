@@ -444,25 +444,6 @@ gdata_calendar_event_new (const gchar *id)
 	return g_object_new (GDATA_TYPE_CALENDAR_EVENT, "id", id, NULL);
 }
 
-/**
- * gdata_calendar_event_new_from_xml:
- * @xml: an XML string
- * @length: the length in characters of @xml, or %-1
- * @error: a #GError, or %NULL
- *
- * Creates a new #GDataCalendarEvent from an XML string. If @length is %-1, the length of
- * the string will be calculated.
- *
- * Errors from #GDataParserError can be returned if problems are found in the XML.
- *
- * Return value: a new #GDataCalendarEvent, or %NULL; unref with g_object_unref()
- **/
-GDataCalendarEvent *
-gdata_calendar_event_new_from_xml (const gchar *xml, gint length, GError **error)
-{
-	return GDATA_CALENDAR_EVENT (_gdata_entry_new_from_xml (GDATA_TYPE_CALENDAR_EVENT, xml, length, error));
-}
-
 static gboolean
 parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_data, GError **error)
 {
@@ -553,7 +534,7 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 		gdata_calendar_event_set_sequence (self, value_uint);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "when") == 0) {
 		/* gd:when */
-		GDataGDWhen *when = GDATA_GD_WHEN (_gdata_parsable_new_from_xml_node (GDATA_TYPE_GD_WHEN, "when", doc, node, NULL, error));
+		GDataGDWhen *when = GDATA_GD_WHEN (_gdata_parsable_new_from_xml_node (GDATA_TYPE_GD_WHEN, doc, node, NULL, error));
 		if (when == NULL)
 			return FALSE;
 
@@ -588,14 +569,14 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 		xmlFree (value);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "who") == 0) {
 		/* gd:who */
-		GDataGDWho *who = GDATA_GD_WHO (_gdata_parsable_new_from_xml_node (GDATA_TYPE_GD_WHO, "who", doc, node, NULL, error));
+		GDataGDWho *who = GDATA_GD_WHO (_gdata_parsable_new_from_xml_node (GDATA_TYPE_GD_WHO, doc, node, NULL, error));
 		if (who == NULL)
 			return FALSE;
 
 		gdata_calendar_event_add_person (self, who);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "where") == 0) {
 		/* gd:where */
-		GDataGDWhere *where = GDATA_GD_WHERE (_gdata_parsable_new_from_xml_node (GDATA_TYPE_GD_WHERE, "where", doc, node, NULL, error));
+		GDataGDWhere *where = GDATA_GD_WHERE (_gdata_parsable_new_from_xml_node (GDATA_TYPE_GD_WHERE, doc, node, NULL, error));
 		if (where == NULL)
 			return FALSE;
 
@@ -622,10 +603,21 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 }
 
 static void
+get_child_xml (GList *list, GString *xml_string)
+{
+	GList *i;
+
+	for (i = list; i != NULL; i = i->next) {
+		gchar *xml = _gdata_parsable_get_xml (GDATA_PARSABLE (i->data), FALSE);
+		g_string_append (xml_string, xml);
+		g_free (xml);
+	}
+}
+
+static void
 get_xml (GDataParsable *parsable, GString *xml_string)
 {
 	GDataCalendarEventPrivate *priv = GDATA_CALENDAR_EVENT (parsable)->priv;
-	GList *i;
 
 	/* Chain up to the parent class */
 	GDATA_PARSABLE_CLASS (gdata_calendar_event_parent_class)->get_xml (parsable, xml_string);
@@ -672,14 +664,9 @@ get_xml (GDataParsable *parsable, GString *xml_string)
 	if (priv->recurrence != NULL)
 		g_string_append_printf (xml_string, "<gd:recurrence>%s</gd:recurrence>", priv->recurrence);
 
-	for (i = priv->times; i != NULL; i = i->next)
-		g_string_append (xml_string, _gdata_parsable_get_xml (GDATA_PARSABLE (i->data), "gd:when", FALSE));
-
-	for (i = priv->people; i != NULL; i = i->next)
-		g_string_append (xml_string, _gdata_parsable_get_xml (GDATA_PARSABLE (i->data), "gd:who", FALSE));
-
-	for (i = priv->places; i != NULL; i = i->next)
-		g_string_append (xml_string, _gdata_parsable_get_xml (GDATA_PARSABLE (i->data), "gd:where", FALSE));
+	get_child_xml (priv->times, xml_string);
+	get_child_xml (priv->people, xml_string);
+	get_child_xml (priv->places, xml_string);
 
 	/* TODO:
 	 * - Finish supporting all tags

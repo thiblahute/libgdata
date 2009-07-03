@@ -2,19 +2,19 @@
 /*
  * GData Client
  * Copyright (C) Philip Withnall 2009 <philip@tecnocode.co.uk>
- * 
- * GData Client is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ *
+ * GData Client is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
  * GData Client is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with GData Client.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with GData Client.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 /**
@@ -29,6 +29,7 @@
 
 #include <glib.h>
 #include <libxml/parser.h>
+#include <string.h>
 
 #include "gdata-link.h"
 #include "gdata-parsable.h"
@@ -75,6 +76,7 @@ gdata_link_class_init (GDataLinkClass *klass)
 
 	parsable_class->pre_parse_xml = pre_parse_xml;
 	parsable_class->pre_get_xml = pre_get_xml;
+	parsable_class->element_name = "link";
 
 	/**
 	 * GDataLink:uri:
@@ -105,7 +107,7 @@ gdata_link_class_init (GDataLinkClass *klass)
 	g_object_class_install_property (gobject_class, PROP_RELATION_TYPE,
 				g_param_spec_string ("relation-type",
 					"Relation type", "The link relation type.",
-					"alternate",
+					"http://www.iana.org/assignments/relation/alternate",
 					G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
 	/**
@@ -179,7 +181,7 @@ gdata_link_init (GDataLink *self)
 {
 	self->priv = G_TYPE_INSTANCE_GET_PRIVATE (self, GDATA_TYPE_LINK, GDataLinkPrivate);
 	self->priv->length = -1;
-	self->priv->relation_type = g_strdup ("alternate");
+	self->priv->relation_type = g_strdup ("http://www.iana.org/assignments/relation/alternate");
 }
 
 static void
@@ -274,26 +276,29 @@ pre_parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *root_node, gpointe
 
 	/* rel */
 	relation_type = xmlGetProp (root_node, (xmlChar*) "rel");
-	if (relation_type != NULL && *relation_type == '\0')
+	if (relation_type != NULL && *relation_type == '\0') {
+		xmlFree (relation_type);
 		return gdata_parser_error_required_property_missing (root_node, "rel", error);
+	}
 
-	if (relation_type == NULL)
-		self->priv->relation_type = g_strdup ("alternate");
-	else
-		self->priv->relation_type = g_strdup ((gchar*) relation_type);
+	gdata_link_set_relation_type (self, (const gchar*) relation_type);
 	xmlFree (relation_type);
 
 	/* type */
 	content_type = xmlGetProp (root_node, (xmlChar*) "type");
-	if (content_type != NULL && *content_type == '\0')
+	if (content_type != NULL && *content_type == '\0') {
+		xmlFree (content_type);
 		return gdata_parser_error_required_property_missing (root_node, "type", error);
+	}
 	self->priv->content_type = g_strdup ((gchar*) content_type);
 	xmlFree (content_type);
 
 	/* hreflang */
 	language = xmlGetProp (root_node, (xmlChar*) "hreflang");
-	if (language != NULL && *language == '\0')
+	if (language != NULL && *language == '\0') {
+		xmlFree (language);
 		return gdata_parser_error_required_property_missing (root_node, "hreflang", error);
+	}
 	self->priv->language = g_strdup ((gchar*) language);
 	xmlFree (language);
 
@@ -385,7 +390,12 @@ gdata_link_compare (const GDataLink *a, const GDataLink *b)
  * gdata_link_get_uri:
  * @self: a #GDataLink
  *
- * Gets the #GDataLink:uri property.
+ * Gets the #GDataLink:uri property. The return value is guaranteed to be a valid IRI, as
+ * specified by the Atom protocol. Common relationship values such as <literal>alternate</literal>
+ * are returned as <literal>http://www.iana.org/assignments/relation/alternate</literal>.
+ *
+ * For more information, see the <ulink type="http" uri="http://www.atomenabled.org/developers/syndication/atom-format-spec.php#rel_attribute">
+ * Atom specification</ulink>.
  *
  * Return value: the link's URI
  *
@@ -440,7 +450,8 @@ gdata_link_get_relation_type (GDataLink *self)
  * @self: a #GDataLink
  * @relation_type: the new relation type for the link, or %NULL
  *
- * Sets the #GDataLink:relation-type property to @relation_type.
+ * Sets the #GDataLink:relation-type property to @relation_type. If @relation_type is one of the standard Atom relation types,
+ * use one of the defined relation type values, instead of a static string. e.g. %GDATA_LINK_EDIT or %GDATA_LINK_SELF.
  *
  * Set @relation_type to %NULL to unset the property in the link.
  *
@@ -452,12 +463,18 @@ gdata_link_set_relation_type (GDataLink *self, const gchar *relation_type)
 	g_return_if_fail (GDATA_IS_LINK (self));
 	g_return_if_fail (relation_type == NULL || *relation_type != '\0');
 
-	/* "If the "rel" attribute is not present, the link element MUST be interpreted as if the link relation type is "alternate"." */
-	if (relation_type == NULL)
-		relation_type = "alternate";
-
+	/* If the relation type is unset, use the default "alternate" relation type. If it's set, and isn't an IRI, turn it into an IRI
+	 * by appending it to "http://www.iana.org/assignments/relation/". If it's set and is an IRI, just use the IRI.
+	 * See: http://www.atomenabled.org/developers/syndication/atom-format-spec.php#rel_attribute
+	 */
 	g_free (self->priv->relation_type);
-	self->priv->relation_type = g_strdup (relation_type);
+	if (relation_type == NULL)
+		self->priv->relation_type = g_strdup ("http://www.iana.org/assignments/relation/alternate");
+	else if (strchr ((char*) relation_type, ':') == NULL)
+		self->priv->relation_type = g_strconcat ("http://www.iana.org/assignments/relation/", (const gchar*) relation_type, NULL);
+	else
+		self->priv->relation_type = g_strdup ((gchar*) relation_type);
+
 	g_object_notify (G_OBJECT (self), "relation-type");
 }
 

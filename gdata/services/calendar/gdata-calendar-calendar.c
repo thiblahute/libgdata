@@ -279,25 +279,6 @@ gdata_calendar_calendar_new (const gchar *id)
 	return g_object_new (GDATA_TYPE_CALENDAR_CALENDAR, "id", id, NULL);
 }
 
-/**
- * gdata_calendar_calendar_new_from_xml:
- * @xml: an XML string
- * @length: the length in characters of @xml, or %-1
- * @error: a #GError, or %NULL
- *
- * Creates a new #GDataCalendarCalendar from an XML string. If @length is %-1, the length of
- * the string will be calculated.
- *
- * Errors from #GDataParserError can be returned if problems are found in the XML.
- *
- * Return value: a new #GDataCalendarCalendar, or %NULL; unref with g_object_unref()
- **/
-GDataCalendarCalendar *
-gdata_calendar_calendar_new_from_xml (const gchar *xml, gint length, GError **error)
-{
-	return GDATA_CALENDAR_CALENDAR (_gdata_entry_new_from_xml (GDATA_TYPE_CALENDAR_CALENDAR, xml, length, error));
-}
-
 static gboolean
 parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_data, GError **error)
 {

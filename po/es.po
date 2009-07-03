@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: libgdata.master\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?"
 "product=libgdata&component=general\n"
-"POT-Creation-Date: 2009-06-03 12:43+0000\n"
-"PO-Revision-Date: 2009-06-03 20:02+0200\n"
+"POT-Creation-Date: 2009-06-21 20:14+0000\n"
+"PO-Revision-Date: 2009-06-27 15:01+0200\n"
 "Last-Translator: Jorge González <jorgegonz@svn.gnome.org>\n"
 "Language-Team: Español <gnome-es-list@gnome.org>\n"
 "MIME-Version: 1.0\n"
@@ -25,13 +25,13 @@ msgid "The owner's rule may not be deleted."
 msgstr "La regla del propietario no se debe borrar."
 
 #. Translators: the parameter is an error message
-#: ../gdata/gdata-parsable.c:129 ../gdata/gdata-parsable.c:140
+#: ../gdata/gdata-parsable.c:135 ../gdata/gdata-parsable.c:146
 #, c-format
 msgid "Error parsing XML: %s"
 msgstr "Error al analizar el XML: %s"
 
 #. Translators: this is a dummy error message to be substituted into "Error parsing XML: %s".
-#: ../gdata/gdata-parsable.c:142
+#: ../gdata/gdata-parsable.c:148
 msgid "Empty document."
 msgstr "Documento vacío."
 
@@ -39,9 +39,8 @@ msgstr "Documento vacío."
 #. *
 #. * For example:
 #. *  A <title> element was missing required content.
-#: ../gdata/gdata-parser.c:72
+#: ../gdata/gdata-parser.c:65
 #, c-format
-#| msgid "A <%s> element was missing required content."
 msgid "A %s element was missing required content."
 msgstr "A un elemento %s le faltaba el contenido requerido."
 
@@ -50,40 +49,39 @@ msgstr "A un elemento %s le faltaba el contenido requerido."
 #. *
 #. * For example:
 #. *  The content of a <media:group/media:uploaded> element ("2009-05-06 26:30Z") was not in ISO 8601 format.
-#: ../gdata/gdata-parser.c:88
+#: ../gdata/gdata-parser.c:81
 #, c-format
-#| msgid "A <%s>'s <%s> element content (\"%s\") was not in ISO 8601 format."
 msgid "The content of a %s element (\"%s\") was not in ISO 8601 format."
 msgstr "El contenido del un elemento %s («%s») no está en formato ISO 8601."
-
-#. Translators: the parameter is the name of an XML element, including the angle brackets ("<" and ">").
-#. *
-#. * For example:
-#. *  Unhandled <entry/yt:aspectRatio> element.
-#: ../gdata/gdata-parser.c:103
-#, c-format
-#| msgid "Unhandled <%s:%s> element as a child of <%s>."
-msgid "Unhandled %s element."
-msgstr "Elemento %s no manejado."
 
 #. Translators: the first parameter is the name of an XML property, the second is the name of an XML element
 #. * (including the angle brackets ("<" and ">")) to which the property belongs, and the third is the unknown value.
 #. *
 #. * For example:
 #. *  The value of the @time property of a <media:group/media:thumbnail> element ("00:01:42.500") was unknown.
-#: ../gdata/gdata-parser.c:123
+#: ../gdata/gdata-parser.c:101
 #, c-format
 msgid "The value of the %s property of a %s element (\"%s\") was unknown."
 msgstr "Se desconoce el valor de la propiedad %s de un elemento %s («%s»)."
+
+#. Translators: the first parameter is the name of an XML element (including the angle brackets ("<" and ">")),
+#. * and the second parameter is the unknown content of that element.
+#. *
+#. * For example:
+#. *  The content of a <gphoto:access> element ("protected") was unknown.
+#: ../gdata/gdata-parser.c:119
+#, c-format
+#| msgid "The value of the %s property of a %s element (\"%s\") was unknown."
+msgid "The content of a %s element (\"%s\") was unknown."
+msgstr "Se desconocía el contenido del elemento %s («%s»)."
 
 #. Translators: the first parameter is the name of an XML element (including the angle brackets ("<" and ">")),
 #. * and the second is the name of an XML property which it should have contained.
 #. *
 #. * For example:
 #. *  A required property of a <entry/gAcl:role> element (@value) was not present.
-#: ../gdata/gdata-parser.c:144
+#: ../gdata/gdata-parser.c:139
 #, c-format
-#| msgid "A required @%s property of a <%s> was not present."
 msgid "A required property of a %s element (%s) was not present."
 msgstr "Una propiedad necesaria de un elemento %s («%s») no estaba presente."
 
@@ -91,9 +89,8 @@ msgstr "Una propiedad necesaria de un elemento %s («%s») no estaba presente."
 #. *
 #. * For example:
 #. *  A required element (<entry/title>) was not present.
-#: ../gdata/gdata-parser.c:161
+#: ../gdata/gdata-parser.c:156
 #, c-format
-#| msgid "A required <%s> element as a child of <%s> was not present."
 msgid "A required element (%s) was not present."
 msgstr "Un elemento necesario (%s) no estaba presente."
 
@@ -101,14 +98,13 @@ msgstr "Un elemento necesario (%s) no estaba presente."
 #. *
 #. * For example:
 #. *  A singleton element (<feed/title>) was duplicated.
-#: ../gdata/gdata-parser.c:176
+#: ../gdata/gdata-parser.c:171
 #, c-format
-#| msgid "A <%s> element as a child of <%s> was duplicated."
 msgid "A singleton element (%s) was duplicated."
 msgstr "Un elemento (%s) estaba duplicado."
 
 #: ../gdata/gdata-service.c:308 ../gdata/gdata-service.c:738
-#: ../gdata/services/youtube/gdata-youtube-service.c:201
+#: ../gdata/services/youtube/gdata-youtube-service.c:202
 msgid "The server returned a malformed response."
 msgstr "El servidor devolvió una respuesta mal formada."
 
@@ -211,8 +207,9 @@ msgstr "El servicio no está disponible por el momento. (%s)"
 msgid "Invalid redirect URI: %s"
 msgstr "URI de redirección no válida: %s"
 
-#: ../gdata/gdata-service.c:1206
-#: ../gdata/services/youtube/gdata-youtube-service.c:628
+#: ../gdata/gdata-service.c:1207
+#: ../gdata/services/picasaweb/gdata-picasaweb-service.c:277
+#: ../gdata/services/youtube/gdata-youtube-service.c:626
 msgid "The entry has already been inserted."
 msgstr "La entrada ya se ha introducido."
 
@@ -221,10 +218,8 @@ msgstr "La entrada ya se ha introducido."
 #. *
 #. * For example:
 #. *  The content of a <entry/gCal:color> element ("00FG56") was not in hexadecimal RGB format.
-#: ../gdata/services/calendar/gdata-calendar-calendar.c:352
+#: ../gdata/services/calendar/gdata-calendar-calendar.c:349
 #, c-format
-#| msgid ""
-#| "A <%s>'s <%s> element content (\"%s\") was not in hexadecimal RGB format."
 msgid "The content of a %s element (\"%s\") was not in hexadecimal RGB format."
 msgstr ""
 "El contenido del un elemento %s («%s») no está en formato RGB hexadecimal."
@@ -249,17 +244,35 @@ msgstr "El calendario no tenía una fuente de contenido."
 msgid "You must be authenticated to query contacts."
 msgstr "Debe estar autenticado para consultar sus contactos."
 
-#: ../gdata/services/youtube/gdata-youtube-service.c:305
+#: ../gdata/services/picasaweb/gdata-picasaweb-service.c:132
+#: ../gdata/services/picasaweb/gdata-picasaweb-service.c:179
+#| msgid "You must be authenticated to query all calendars."
+msgid "You must specify a username or be authenticated to query all albums."
+msgstr ""
+"Debe especificar un nombre de usuario o estar autenticado para consultar "
+"todos los álbumes."
+
+#: ../gdata/services/picasaweb/gdata-picasaweb-service.c:220
+#| msgid "The video did not have a related videos <link>."
+msgid "The album did not have a feed link."
+msgstr "El álbum no tenía ningún enlace para proveedor."
+
+#: ../gdata/services/picasaweb/gdata-picasaweb-service.c:283
+#| msgid "You must be authenticated to upload a video."
+msgid "You must be authenticated to upload a file."
+msgstr "Debe estar autenticado para cargar un archivo."
+
+#: ../gdata/services/youtube/gdata-youtube-service.c:303
 #, c-format
 msgid "This service is not available at the moment."
 msgstr "Este servicio no está disponible en este momento."
 
-#: ../gdata/services/youtube/gdata-youtube-service.c:310
+#: ../gdata/services/youtube/gdata-youtube-service.c:308
 #, c-format
 msgid "You must be authenticated to do this."
 msgstr "Debe estar autenticado para esto."
 
-#: ../gdata/services/youtube/gdata-youtube-service.c:315
+#: ../gdata/services/youtube/gdata-youtube-service.c:313
 #, c-format
 msgid ""
 "You have made too many API calls recently. Please wait a few minutes and try "
@@ -268,11 +281,8 @@ msgstr ""
 "Recientemente ha realizado demasiadas consultas a la API. Espere unos "
 "minutos e inténtelo de nuevo."
 
-#: ../gdata/services/youtube/gdata-youtube-service.c:318
+#: ../gdata/services/youtube/gdata-youtube-service.c:316
 #, c-format
-#| msgid ""
-#| "You have exceeded your entry quota with the entry \"%s\". Please delete "
-#| "some entries and try again."
 msgid ""
 "You have exceeded your entry quota. Please delete some entries and try again."
 msgstr ""
@@ -282,8 +292,8 @@ msgstr ""
 #. Translators: the first parameter is an error code, which is a coded string. The second parameter
 #. * is an error domain, which is another coded string. The third parameter is the location of the
 #. * error, which is either a URI or an XPath.
-#: ../gdata/services/youtube/gdata-youtube-service.c:325
-#: ../gdata/services/youtube/gdata-youtube-service.c:331
+#: ../gdata/services/youtube/gdata-youtube-service.c:323
+#: ../gdata/services/youtube/gdata-youtube-service.c:329
 #, c-format
 msgid ""
 "Unknown error code \"%s\" in domain \"%s\" received with location \"%s\"."
@@ -291,14 +301,18 @@ msgstr ""
 "Código de error «%s» desconocido en el dominio «%s», recibido con la ubicación "
 "«%s»."
 
-#: ../gdata/services/youtube/gdata-youtube-service.c:541
-#: ../gdata/services/youtube/gdata-youtube-service.c:582
+#: ../gdata/services/youtube/gdata-youtube-service.c:539
+#: ../gdata/services/youtube/gdata-youtube-service.c:580
 msgid "The video did not have a related videos <link>."
 msgstr "El vídeo no tenía ningún vídeo relacionado <link>."
 
-#: ../gdata/services/youtube/gdata-youtube-service.c:634
+#: ../gdata/services/youtube/gdata-youtube-service.c:632
 msgid "You must be authenticated to upload a video."
 msgstr "Debe estar autenticado para cargar un vídeo."
+
+#~| msgid "Unhandled <%s:%s> element as a child of <%s>."
+#~ msgid "Unhandled %s element."
+#~ msgstr "Elemento %s no manejado."
 
 #~ msgid "Unknown value \"%s\" of a <%s> @%s property."
 #~ msgstr "Valor «%s» desconocido de un <%s> de una propiedad @%s."

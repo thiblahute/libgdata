@@ -132,7 +132,6 @@ GDataFeedPrivate
 GDataEntry
 GDataEntryClass
 gdata_entry_new
-gdata_entry_new_from_xml
 gdata_entry_get_title
 gdata_entry_set_title
 gdata_entry_get_summary
@@ -149,7 +148,6 @@ gdata_entry_get_categories
 gdata_entry_add_link
 gdata_entry_look_up_link
 gdata_entry_is_inserted
-gdata_entry_get_xml
 <SUBSECTION Standard>
 gdata_entry_get_type
 GDATA_ENTRY
@@ -203,7 +201,6 @@ GDataYouTubeServicePrivate
 GDataYouTubeVideo
 GDataYouTubeVideoClass
 gdata_youtube_video_new
-gdata_youtube_video_new_from_xml
 gdata_youtube_video_look_up_content
 gdata_youtube_video_get_thumbnails
 gdata_youtube_video_get_category
@@ -300,7 +297,6 @@ GDataContactsQueryPrivate
 GDataContactsContact
 GDataContactsContactClass
 gdata_contacts_contact_new
-gdata_contacts_contact_new_from_xml
 gdata_contacts_contact_get_email_addresses
 gdata_contacts_contact_get_primary_email_address
 gdata_contacts_contact_add_email_address
@@ -407,7 +403,6 @@ GDataCalendarQueryPrivate
 GDataCalendarCalendar
 GDataCalendarCalendarClass
 gdata_calendar_calendar_new
-gdata_calendar_calendar_new_from_xml
 gdata_calendar_calendar_get_color
 gdata_calendar_calendar_set_color
 gdata_calendar_calendar_is_hidden
@@ -437,7 +432,6 @@ GDataCalendarCalendarPrivate
 GDataCalendarEvent
 GDataCalendarEventClass
 gdata_calendar_event_new
-gdata_calendar_event_new_from_xml
 gdata_calendar_event_get_people
 gdata_calendar_event_add_person
 gdata_calendar_event_get_places
@@ -568,7 +562,6 @@ GDATA_TYPE_ACCESS_HANDLER
 GDataAccessRule
 GDataAccessRuleClass
 gdata_access_rule_new
-gdata_access_rule_new_from_xml
 gdata_access_rule_get_role
 gdata_access_rule_set_role
 gdata_access_rule_get_scope
@@ -590,6 +583,8 @@ GDataAccessRulePrivate
 <TITLE>GDataParsable</TITLE>
 GDataParsable
 GDataParsableClass
+gdata_parsable_new_from_xml
+gdata_parsable_get_xml
 <SUBSECTION Standard>
 gdata_parsable_get_type
 GDATA_IS_PARSABLE
@@ -665,6 +660,13 @@ gdata_link_get_title
 gdata_link_set_title
 gdata_link_get_length
 gdata_link_set_length
+GDATA_LINK_ALTERNATE
+GDATA_LINK_EDIT
+GDATA_LINK_EDIT_MEDIA
+GDATA_LINK_ENCLOSURE
+GDATA_LINK_RELATED
+GDATA_LINK_SELF
+GDATA_LINK_VIA
 <SUBSECTION Standard>
 gdata_link_get_type
 GDATA_IS_LINK
@@ -1175,7 +1177,6 @@ GDataPicasaWebAlbum
 GDataPicasaWebAlbumClass
 GDataPicasaWebVisibility
 gdata_picasaweb_album_new
-gdata_picasaweb_album_new_from_xml
 gdata_picasaweb_album_get_user
 gdata_picasaweb_album_get_nickname
 gdata_picasaweb_album_get_edited
@@ -1216,7 +1217,6 @@ GDataPicasaWebAlbumPrivate
 GDataPicasaWebFile
 GDataPicasaWebFileClass
 gdata_picasaweb_file_new
-gdata_picasaweb_file_new_from_xml
 gdata_picasaweb_file_get_edited
 gdata_picasaweb_file_get_version
 gdata_picasaweb_file_get_position

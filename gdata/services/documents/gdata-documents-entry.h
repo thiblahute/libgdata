@@ -58,7 +58,6 @@ typedef struct {
 GType gdata_documents_entry_get_type (void)G_GNUC_CONST;
 
 GDataDocumentsEntry *gdata_documents_entry_new (const gchar *id) G_GNUC_WARN_UNUSED_RESULT;
-GDataDocumentsEntry *gdata_documents_entry_new_from_xml (const gchar *xml, gint length, GError **error) G_GNUC_WARN_UNUSED_RESULT;
 
 gchar *gdata_documents_entry_get_path (GDataDocumentsEntry *self );
 void gdata_documents_entry_set_path (GDataDocumentsEntry *self); 

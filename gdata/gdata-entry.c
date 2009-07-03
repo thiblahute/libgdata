@@ -99,6 +99,7 @@ gdata_entry_class_init (GDataEntryClass *klass)
 	parsable_class->pre_get_xml = pre_get_xml;
 	parsable_class->get_xml = get_xml;
 	parsable_class->get_namespaces = get_namespaces;
+	parsable_class->element_name = "entry";
 
 	g_object_class_install_property (gobject_class, PROP_TITLE,
 				g_param_spec_string ("title",
@@ -334,7 +335,7 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 		xmlFree (published);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "category") == 0) {
 		/* atom:category */
-		GDataCategory *category = GDATA_CATEGORY (_gdata_parsable_new_from_xml_node (GDATA_TYPE_CATEGORY, "category", doc, node, NULL, error));
+		GDataCategory *category = GDATA_CATEGORY (_gdata_parsable_new_from_xml_node (GDATA_TYPE_CATEGORY, doc, node, NULL, error));
 		if (category == NULL)
 			return FALSE;
 
@@ -348,14 +349,14 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 		xmlFree (content);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "link") == 0) {
 		/* atom:link */
-		GDataLink *link = GDATA_LINK (_gdata_parsable_new_from_xml_node (GDATA_TYPE_LINK, "link", doc, node, NULL, error));
+		GDataLink *link = GDATA_LINK (_gdata_parsable_new_from_xml_node (GDATA_TYPE_LINK, doc, node, NULL, error));
 		if (link == NULL)
 			return FALSE;
 
 		self->priv->links = g_list_prepend (self->priv->links, link);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "author") == 0) {
 		/* atom:author */
-		GDataAuthor *author = GDATA_AUTHOR (_gdata_parsable_new_from_xml_node (GDATA_TYPE_AUTHOR, "author", doc, node, NULL, error));
+		GDataAuthor *author = GDATA_AUTHOR (_gdata_parsable_new_from_xml_node (GDATA_TYPE_AUTHOR, doc, node, NULL, error));
 		if (author == NULL)
 			return FALSE;
 
@@ -393,15 +394,6 @@ post_parse_xml (GDataParsable *parsable, gpointer user_data, GError **error)
 	priv->authors = g_list_reverse (priv->authors);
 
 	return TRUE;
-}
-
-GDataEntry *
-_gdata_entry_new_from_xml (GType entry_type, const gchar *xml, gint length, GError **error)
-{
-	g_return_val_if_fail (xml != NULL, NULL);
-	g_return_val_if_fail (g_type_is_a (entry_type, GDATA_TYPE_ENTRY) == TRUE, FALSE);
-
-	return GDATA_ENTRY (_gdata_parsable_new_from_xml (entry_type, "entry", xml, length, NULL, error));
 }
 
 static void
@@ -452,14 +444,23 @@ get_xml (GDataParsable *parsable, GString *xml_string)
 		g_free (content);
 	}
 
-	for (categories = priv->categories; categories != NULL; categories = categories->next)
-		g_string_append (xml_string, _gdata_parsable_get_xml (GDATA_PARSABLE (categories->data), "category", FALSE));
+	for (categories = priv->categories; categories != NULL; categories = categories->next) {
+		gchar *xml = _gdata_parsable_get_xml (GDATA_PARSABLE (categories->data), FALSE);
+		g_string_append (xml_string, xml);
+		g_free (xml);
+	}
 
-	for (links = priv->links; links != NULL; links = links->next)
-		g_string_append (xml_string, _gdata_parsable_get_xml (GDATA_PARSABLE (links->data), "link", FALSE));
+	for (links = priv->links; links != NULL; links = links->next) {
+		gchar *xml = _gdata_parsable_get_xml (GDATA_PARSABLE (links->data), FALSE);
+		g_string_append (xml_string, xml);
+		g_free (xml);
+	}
 
-	for (authors = priv->authors; authors != NULL; authors = authors->next)
-		g_string_append (xml_string, _gdata_parsable_get_xml (GDATA_PARSABLE (authors->data), "author", FALSE));
+	for (authors = priv->authors; authors != NULL; authors = authors->next) {
+		gchar *xml = _gdata_parsable_get_xml (GDATA_PARSABLE (authors->data), FALSE);
+		g_string_append (xml_string, xml);
+		g_free (xml);
+	}
 }
 
 static void
@@ -480,26 +481,6 @@ GDataEntry *
 gdata_entry_new (const gchar *id)
 {
 	return g_object_new (GDATA_TYPE_ENTRY, "id", id, NULL);
-}
-
-/**
- * gdata_entry_new_from_xml:
- * @xml: the XML for just the entry, with full namespace declarations
- * @length: the length of @xml, or -1
- * @error: a #GError, or %NULL
- *
- * Creates a new #GDataEntry from the provided @xml.
- *
- * If @length is -1, @xml will be assumed to be nul-terminated.
- *
- * If an error occurs during parsing, a suitable error from #GDataParserError will be returned.
- *
- * Return value: a new #GDataEntry, or %NULL
- **/
-GDataEntry *
-gdata_entry_new_from_xml (const gchar *xml, gint length, GError **error)
-{
-	return GDATA_ENTRY (_gdata_parsable_new_from_xml (GDATA_TYPE_ENTRY, "entry", xml, length, NULL, error));
 }
 
 /**
@@ -730,7 +711,8 @@ link_compare_cb (const GDataLink *link, const gchar *rel)
  * @self: a #GDataEntry
  * @rel: the value of the <structfield>rel</structfield> attribute of the desired link
  *
- * Looks up a link by <structfield>rel</structfield> value from the list of links in the entry.
+ * Looks up a link by relation type from the list of links in the entry. If the link has one of the standard Atom relation types,
+ * use one of the defined @rel values, instead of a static string. e.g. %GDATA_LINK_EDIT or %GDATA_LINK_SELF.
  *
  * Return value: a #GDataLink, or %NULL if one was not found
  *
@@ -811,20 +793,4 @@ gdata_entry_is_inserted (GDataEntry *self)
 	    (self->priv->updated.tv_sec != 0 || self->priv->updated.tv_usec != 0))
 		return TRUE;
 	return FALSE;
-}
-
-/**
- * gdata_entry_get_xml:
- * @self: a #GDataEntry
- *
- * Builds an XML representation of the #GDataEntry in its current state, such that it could be inserted on the server.
- * The XML is guaranteed to have all its namespaces declared properly in a self-contained fashion. The root element is
- * guaranteed to be <literal>&lt;entry&gt;</literal>.
- *
- * Return value: the entry's XML; free with g_free()
- **/
-gchar *
-gdata_entry_get_xml (GDataEntry *self)
-{
-	return _gdata_parsable_get_xml (GDATA_PARSABLE (self), "entry", TRUE);
 }

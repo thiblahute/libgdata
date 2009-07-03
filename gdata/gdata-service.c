@@ -1216,7 +1216,7 @@ gdata_service_insert_entry (GDataService *self, const gchar *upload_uri, GDataEn
 		klass->append_query_headers (self, message);
 
 	/* Append the data */
-	upload_data = gdata_entry_get_xml (entry);
+	upload_data = gdata_parsable_get_xml (GDATA_PARSABLE (entry));
 	soup_message_set_request (message, "application/atom+xml", SOUP_MEMORY_TAKE, upload_data, strlen (upload_data));
 
 	/* Send the message */
@@ -1245,7 +1245,8 @@ gdata_service_insert_entry (GDataService *self, const gchar *upload_uri, GDataEn
 	g_assert (message->response_body->data != NULL);
 
 	/* Parse the XML; create and return a new GDataEntry of the same type as @entry */
-	updated_entry = _gdata_entry_new_from_xml (G_OBJECT_TYPE (entry), message->response_body->data, message->response_body->length, error);
+	updated_entry = GDATA_ENTRY (gdata_parsable_new_from_xml (G_OBJECT_TYPE (entry), message->response_body->data, message->response_body->length,
+								  error));
 	g_object_unref (message);
 
 	return updated_entry;
@@ -1378,7 +1379,7 @@ gdata_service_update_entry (GDataService *self, GDataEntry *entry, GCancellable 
 	g_return_val_if_fail (GDATA_IS_ENTRY (entry), NULL);
 
 	/* Get the edit URI */
-	link = gdata_entry_look_up_link (entry, "edit");
+	link = gdata_entry_look_up_link (entry, GDATA_LINK_EDIT);
 	g_assert (link != NULL);
 	message = soup_message_new (SOUP_METHOD_PUT, gdata_link_get_uri (link));
 
@@ -1392,7 +1393,7 @@ gdata_service_update_entry (GDataService *self, GDataEntry *entry, GCancellable 
 		soup_message_headers_append (message->request_headers, "If-Match", gdata_entry_get_etag (entry));
 
 	/* Append the data */
-	upload_data = gdata_entry_get_xml (entry);
+	upload_data = gdata_parsable_get_xml (GDATA_PARSABLE (entry));
 	soup_message_set_request (message, "application/atom+xml", SOUP_MEMORY_TAKE, upload_data, strlen (upload_data));
 
 	/* Send the message */
@@ -1421,7 +1422,8 @@ gdata_service_update_entry (GDataService *self, GDataEntry *entry, GCancellable 
 	g_assert (message->response_body->data != NULL);
 
 	/* Parse the XML; create and return a new GDataEntry of the same type as @entry */
-	updated_entry = _gdata_entry_new_from_xml (G_OBJECT_TYPE (entry), message->response_body->data, message->response_body->length, error);
+	updated_entry = GDATA_ENTRY (gdata_parsable_new_from_xml (G_OBJECT_TYPE (entry), message->response_body->data, message->response_body->length,
+								  error));
 	g_object_unref (message);
 
 	return updated_entry;
@@ -1545,7 +1547,7 @@ gdata_service_delete_entry (GDataService *self, GDataEntry *entry, GCancellable 
 	g_return_val_if_fail (GDATA_IS_ENTRY (entry), FALSE);
 
 	/* Get the edit URI */
-	link = gdata_entry_look_up_link (entry, "edit");
+	link = gdata_entry_look_up_link (entry, GDATA_LINK_EDIT);
 	g_assert (link != NULL);
 	message = soup_message_new (SOUP_METHOD_DELETE, gdata_link_get_uri (link));
 

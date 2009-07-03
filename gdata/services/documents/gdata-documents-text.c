@@ -66,12 +66,6 @@ gdata_documents_text_new(const gchar *id)
 	return g_object_new (GDATA_TYPE_DOCUMENTS_TEXT, "id", id, NULL);
 }
 
-GDataDocumentsText *
-gdata_documents_text_new_from_xml (const gchar *xml, gint length, GError **error)
-{
-	return GDATA_DOCUMENTS_TEXT (_gdata_entry_new_from_xml (GDATA_TYPE_DOCUMENTS_TEXT, xml, length, error));
-}
-
 static void 
 get_xml (GDataParsable *parsable, GString *xml_string)
 {

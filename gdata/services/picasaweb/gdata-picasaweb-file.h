@@ -65,7 +65,6 @@ typedef struct {
 GType gdata_picasaweb_file_get_type (void) G_GNUC_CONST;
 
 GDataPicasaWebFile *gdata_picasaweb_file_new (const gchar *id) G_GNUC_WARN_UNUSED_RESULT;
-GDataPicasaWebFile *gdata_picasaweb_file_new_from_xml (const gchar *xml, gint length, GError **error) G_GNUC_WARN_UNUSED_RESULT;
 
 void gdata_picasaweb_file_get_edited (GDataPicasaWebFile *self, GTimeVal *edited);
 const gchar *gdata_picasaweb_file_get_version (GDataPicasaWebFile *self);
@@ -75,7 +74,6 @@ const gchar *gdata_picasaweb_file_get_album_id (GDataPicasaWebFile *self);
 void gdata_picasaweb_file_set_album_id (GDataPicasaWebFile *self, const gchar *album_id); /* TODO should we have a more obvious _move() API too? nah */
 guint gdata_picasaweb_file_get_width (GDataPicasaWebFile *self);
 guint gdata_picasaweb_file_get_height (GDataPicasaWebFile *self);
-/*gulong gdata_picasaweb_file_get_size (GDataPicasaWebFile *self);*/
 gsize gdata_picasaweb_file_get_size (GDataPicasaWebFile *self);
 const gchar *gdata_picasaweb_file_get_client (GDataPicasaWebFile *self);
 void gdata_picasaweb_file_set_client (GDataPicasaWebFile *self, const gchar *client);

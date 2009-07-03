@@ -59,12 +59,6 @@ gdata_documents_folder_new(const gchar *id)
 	return g_object_new (GDATA_TYPE_DOCUMENTS_FOLDER, "id", id, NULL);
 }
 
-GDataDocumentsFolder*
-gdata_documents_folder_new_from_xml (const gchar *xml, gint length, GError **error)
-{
-	return GDATA_DOCUMENTS_FOLDER (_gdata_entry_new_from_xml (GDATA_TYPE_DOCUMENTS_FOLDER, xml, length, error));
-}
-
 static void
 gdata_documents_folder_init (GDataDocumentsFolder *self)
 {

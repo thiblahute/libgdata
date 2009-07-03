@@ -232,27 +232,6 @@ gdata_contacts_contact_new (const gchar *id)
 	return g_object_new (GDATA_TYPE_CONTACTS_CONTACT, "id", id, NULL);
 }
 
-/**
- * gdata_contacts_contact_new_from_xml:
- * @xml: an XML string
- * @length: the length in characters of @xml, or %-1
- * @error: a #GError, or %NULL
- *
- * Creates a new #GDataContactsContact from an XML string. If @length is %-1, the length of
- * the string will be calculated.
- *
- * Errors from #GDataParserError can be returned if problems are found in the XML.
- *
- * Return value: a new #GDataContactsContact, or %NULL; unref with g_object_unref()
- *
- * Since: 0.2.0
- **/
-GDataContactsContact *
-gdata_contacts_contact_new_from_xml (const gchar *xml, gint length, GError **error)
-{
-	return GDATA_CONTACTS_CONTACT (_gdata_entry_new_from_xml (GDATA_TYPE_CONTACTS_CONTACT, xml, length, error));
-}
-
 static gboolean
 parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_data, GError **error)
 {
@@ -277,7 +256,7 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 		xmlFree (edited);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "email") == 0) {
 		/* gd:email */
-		GDataGDEmailAddress *email = GDATA_GD_EMAIL_ADDRESS (_gdata_parsable_new_from_xml_node (GDATA_TYPE_GD_EMAIL_ADDRESS, "email", doc,
+		GDataGDEmailAddress *email = GDATA_GD_EMAIL_ADDRESS (_gdata_parsable_new_from_xml_node (GDATA_TYPE_GD_EMAIL_ADDRESS, doc,
 													node, NULL, error));
 		if (email == NULL)
 			return FALSE;
@@ -285,14 +264,14 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 		gdata_contacts_contact_add_email_address (self, email);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "im") == 0) {
 		/* gd:im */
-		GDataGDIMAddress *im = GDATA_GD_IM_ADDRESS (_gdata_parsable_new_from_xml_node (GDATA_TYPE_GD_IM_ADDRESS, "im", doc, node, NULL, error));
+		GDataGDIMAddress *im = GDATA_GD_IM_ADDRESS (_gdata_parsable_new_from_xml_node (GDATA_TYPE_GD_IM_ADDRESS, doc, node, NULL, error));
 		if (im == NULL)
 			return FALSE;
 
 		gdata_contacts_contact_add_im_address (self, im);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "phoneNumber") == 0) {
 		/* gd:phoneNumber */
-		GDataGDPhoneNumber *number = GDATA_GD_PHONE_NUMBER (_gdata_parsable_new_from_xml_node (GDATA_TYPE_GD_PHONE_NUMBER, "phoneNumber", doc,
+		GDataGDPhoneNumber *number = GDATA_GD_PHONE_NUMBER (_gdata_parsable_new_from_xml_node (GDATA_TYPE_GD_PHONE_NUMBER, doc,
 												       node, NULL, error));
 		if (number == NULL)
 			return FALSE;
@@ -301,7 +280,7 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 	} else if (xmlStrcmp (node->name, (xmlChar*) "postalAddress") == 0) {
 		/* gd:postalAddress */
 		GDataGDPostalAddress *address = GDATA_GD_POSTAL_ADDRESS (_gdata_parsable_new_from_xml_node (GDATA_TYPE_GD_POSTAL_ADDRESS,
-													    "postalAddress", doc, node, NULL, error));
+													    doc, node, NULL, error));
 		if (address == NULL)
 			return FALSE;
 
@@ -309,7 +288,7 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 	} else if (xmlStrcmp (node->name, (xmlChar*) "organization") == 0) {
 		/* gd:organization */
 		GDataGDOrganization *organization = GDATA_GD_ORGANIZATION (_gdata_parsable_new_from_xml_node (GDATA_TYPE_GD_ORGANIZATION,
-													      "organization", doc, node, NULL, error));
+													      doc, node, NULL, error));
 		if (organization == NULL)
 			return FALSE;
 
@@ -391,6 +370,18 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 }
 
 static void
+get_child_xml (GList *list, GString *xml_string)
+{
+	GList *i;
+
+	for (i = list; i != NULL; i = i->next) {
+		gchar *xml = _gdata_parsable_get_xml (GDATA_PARSABLE (i->data), FALSE);
+		g_string_append (xml_string, xml);
+		g_free (xml);
+	}
+}
+
+static void
 get_extended_property_xml_cb (const gchar *name, const gchar *value, GString *xml_string)
 {
 	g_string_append_printf (xml_string, "<gd:extendedProperty name='%s'>%s</gd:extendedProperty>", name, value);
@@ -406,30 +397,16 @@ static void
 get_xml (GDataParsable *parsable, GString *xml_string)
 {
 	GDataContactsContactPrivate *priv = GDATA_CONTACTS_CONTACT (parsable)->priv;
-	GList *i;
 
 	/* Chain up to the parent class */
 	GDATA_PARSABLE_CLASS (gdata_contacts_contact_parent_class)->get_xml (parsable, xml_string);
 
-	/* E-mail addresses */
-	for (i = priv->email_addresses; i != NULL; i = i->next)
-		g_string_append (xml_string, _gdata_parsable_get_xml (GDATA_PARSABLE (i->data), "gd:email", FALSE));
-
-	/* IM addresses */
-	for (i = priv->im_addresses; i != NULL; i = i->next)
-		g_string_append (xml_string, _gdata_parsable_get_xml (GDATA_PARSABLE (i->data), "gd:im", FALSE));
-
-	/* Phone numbers */
-	for (i = priv->phone_numbers; i != NULL; i = i->next)
-		g_string_append (xml_string, _gdata_parsable_get_xml (GDATA_PARSABLE (i->data), "gd:phoneNumber", FALSE));
-
-	/* Postal addresses */
-	for (i = priv->postal_addresses; i != NULL; i = i->next)
-		g_string_append (xml_string, _gdata_parsable_get_xml (GDATA_PARSABLE (i->data), "gd:postalAddress", FALSE));
-
-	/* Organisations */
-	for (i = priv->organizations; i != NULL; i = i->next)
-		g_string_append (xml_string, _gdata_parsable_get_xml (GDATA_PARSABLE (i->data), "gd:organization", FALSE));
+	/* Lists of stuff */
+	get_child_xml (priv->email_addresses, xml_string);
+	get_child_xml (priv->im_addresses, xml_string);
+	get_child_xml (priv->phone_numbers, xml_string);
+	get_child_xml (priv->postal_addresses, xml_string);
+	get_child_xml (priv->organizations, xml_string);
 
 	/* Extended properties */
 	g_hash_table_foreach (priv->extended_properties, (GHFunc) get_extended_property_xml_cb, xml_string);
@@ -874,7 +851,7 @@ gdata_contacts_contact_set_extended_property (GDataContactsContact *self, const 
 	g_return_val_if_fail (GDATA_IS_CONTACTS_CONTACT (self), FALSE);
 	g_return_val_if_fail (name != NULL, FALSE);
 
-	if (value == NULL) {
+	if (value == NULL || *value == '\0') {
 		/* Removing a property */
 		g_hash_table_remove (extended_properties, name);
 		return TRUE;

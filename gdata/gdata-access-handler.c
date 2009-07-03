@@ -2,19 +2,19 @@
 /*
  * GData Client
  * Copyright (C) Philip Withnall 2009 <philip@tecnocode.co.uk>
- * 
- * GData Client is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ *
+ * GData Client is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
  * GData Client is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with GData Client.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with GData Client.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 /**
@@ -188,7 +188,7 @@ gdata_access_handler_insert_rule (GDataAccessHandler *self, GDataService *servic
 		klass->append_query_headers (service, message);
 
 	/* Append the data */
-	upload_data = gdata_entry_get_xml (GDATA_ENTRY (rule));
+	upload_data = gdata_parsable_get_xml (GDATA_PARSABLE (rule));
 	soup_message_set_request (message, "application/atom+xml", SOUP_MEMORY_TAKE, upload_data, strlen (upload_data));
 
 	/* Send the message */
@@ -217,8 +217,8 @@ gdata_access_handler_insert_rule (GDataAccessHandler *self, GDataService *servic
 	g_assert (message->response_body->data != NULL);
 
 	/* Parse the XML; create and return a new GDataEntry of the same type as @entry */
-	updated_rule = GDATA_ACCESS_RULE (_gdata_entry_new_from_xml (G_OBJECT_TYPE (rule), message->response_body->data,
-					  message->response_body->length, error));
+	updated_rule = GDATA_ACCESS_RULE (gdata_parsable_new_from_xml (G_OBJECT_TYPE (rule), message->response_body->data,
+								       message->response_body->length, error));
 	g_object_unref (message);
 
 	return updated_rule;
@@ -234,7 +234,7 @@ get_soup_message (GDataAccessHandler *access_handler, GDataAccessRule *rule, con
 	const gchar *scope_type, *scope_value;
 
 	/* Get the edit URI */
-	link = gdata_entry_look_up_link (GDATA_ENTRY (rule), "edit");
+	link = gdata_entry_look_up_link (GDATA_ENTRY (rule), GDATA_LINK_EDIT);
 	if (link != NULL)
 		return soup_message_new (method, gdata_link_get_uri (link));
 
@@ -302,7 +302,7 @@ gdata_access_handler_update_rule (GDataAccessHandler *self, GDataService *servic
 	/* Looks like ACLs don't support ETags */
 
 	/* Append the data */
-	upload_data = gdata_entry_get_xml (GDATA_ENTRY (rule));
+	upload_data = gdata_parsable_get_xml (GDATA_PARSABLE (rule));
 	soup_message_set_request (message, "application/atom+xml", SOUP_MEMORY_TAKE, upload_data, strlen (upload_data));
 
 	/* Send the message */
@@ -331,8 +331,8 @@ gdata_access_handler_update_rule (GDataAccessHandler *self, GDataService *servic
 	g_assert (message->response_body->data != NULL);
 
 	/* Parse the XML; create and return a new GDataEntry of the same type as @entry */
-	updated_rule = GDATA_ACCESS_RULE (_gdata_entry_new_from_xml (G_OBJECT_TYPE (rule), message->response_body->data,
-								     message->response_body->length, error));
+	updated_rule = GDATA_ACCESS_RULE (gdata_parsable_new_from_xml (G_OBJECT_TYPE (rule), message->response_body->data,
+								       message->response_body->length, error));
 	g_object_unref (message);
 
 	return updated_rule;

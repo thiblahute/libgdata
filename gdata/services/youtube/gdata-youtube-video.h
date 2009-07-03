@@ -63,7 +63,6 @@ typedef struct {
 GType gdata_youtube_video_get_type (void) G_GNUC_CONST;
 
 GDataYouTubeVideo *gdata_youtube_video_new (const gchar *id) G_GNUC_WARN_UNUSED_RESULT;
-GDataYouTubeVideo *gdata_youtube_video_new_from_xml (const gchar *xml, gint length, GError **error) G_GNUC_WARN_UNUSED_RESULT;
 
 guint gdata_youtube_video_get_view_count (GDataYouTubeVideo *self);
 guint gdata_youtube_video_get_favorite_count (GDataYouTubeVideo *self);

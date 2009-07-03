@@ -2,19 +2,19 @@
 /*
  * GData Client
  * Copyright (C) Philip Withnall 2009 <philip@tecnocode.co.uk>
- * 
- * GData Client is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ *
+ * GData Client is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
  * GData Client is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with GData Client.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with GData Client.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 /**
@@ -67,6 +67,7 @@ gdata_generator_class_init (GDataGeneratorClass *klass)
 
 	parsable_class->pre_parse_xml = pre_parse_xml;
 	parsable_class->parse_xml = parse_xml;
+	parsable_class->element_name = "generator";
 
 	/**
 	 * GDataGenerator:name:
@@ -161,8 +162,16 @@ gdata_generator_get_property (GObject *object, guint property_id, GValue *value,
 static gboolean
 pre_parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *root_node, gpointer user_data, GError **error)
 {
+	xmlChar *name;
 	GDataGeneratorPrivate *priv = GDATA_GENERATOR (parsable)->priv;
 
+	name = xmlNodeListGetString (doc, root_node->children, TRUE);
+	if (name != NULL && *name == '\0') {
+		xmlFree (name);
+		return gdata_parser_error_required_content_missing (root_node, error);
+	}
+
+	priv->name = (gchar*) name;
 	priv->uri = (gchar*) xmlGetProp (root_node, (xmlChar*) "uri");
 	priv->version = (gchar*) xmlGetProp (root_node, (xmlChar*) "version");
 
@@ -172,13 +181,14 @@ pre_parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *root_node, gpointe
 static gboolean
 parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_data, GError **error)
 {
-	xmlChar *name = xmlNodeListGetString (doc, node->children, TRUE);
-	if (name != NULL && *name == '\0') {
-		xmlFree (name);
-		return gdata_parser_error_required_content_missing (node, error);
-	}
+	/* Textual content's handled in pre_parse_xml */
+	if (node->type != XML_ELEMENT_NODE)
+		return TRUE;
 
-	GDATA_GENERATOR (parsable)->priv->name = (gchar*) name;
+	if (GDATA_PARSABLE_CLASS (gdata_generator_parent_class)->parse_xml (parsable, doc, node, user_data, error) == FALSE) {
+		/* Error! */
+		return FALSE;
+	}
 
 	return TRUE;
 }

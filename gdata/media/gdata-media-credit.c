@@ -2,19 +2,19 @@
 /*
  * GData Client
  * Copyright (C) Philip Withnall 2009 <philip@tecnocode.co.uk>
- * 
- * GData Client is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ *
+ * GData Client is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
  * GData Client is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with GData Client.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with GData Client.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 /**
@@ -70,6 +70,8 @@ gdata_media_credit_class_init (GDataMediaCreditClass *klass)
 	parsable_class->pre_parse_xml = pre_parse_xml;
 	parsable_class->parse_xml = parse_xml;
 	parsable_class->get_namespaces = get_namespaces;
+	parsable_class->element_name = "credit";
+	parsable_class->element_namespace = "media";
 
 	/**
 	 * GDataMediaCredit:credit:

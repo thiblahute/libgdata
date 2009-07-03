@@ -202,25 +202,6 @@ gdata_documents_entry_new(const gchar *id)
 	return g_object_new (GDATA_TYPE_DOCUMENTS_ENTRY, "id", id, NULL);
 }
 
-/**
- * gdata_documents_entry_new_from_xml:
- * @xml: an XML string
- * @length: the length in characters of @xml, or %-1
- * @error: a #GError, or %NULL
- *
- * Creates a new #GDataDocumentsEntry from an XML string. If @length is %-1, the length of
- * the string will be calculated.
- *
- * Errors from #GDataParserError can be returned if problems are found in the XML.
- *
- * Return value: a new #GDataDocumentsEntry, or %NULL; unref with g_object_unref()
- **/
-GDataDocumentsEntry *
-gdata_documents_entry_new_from_xml (const gchar *xml, gint length, GError **error)
-{
-	return GDATA_DOCUMENTS_ENTRY (_gdata_entry_new_from_xml (GDATA_TYPE_DOCUMENTS_ENTRY, xml, length, error));
-}
-
 static gboolean
 parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_data, GError **error)
 {
@@ -266,12 +247,12 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 		g_free (document_id);
 		g_free (document_id_str);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "feedLink") ==  0) {
-		GDataLink *link = GDATA_LINK (_gdata_parsable_new_from_xml_node (GDATA_TYPE_LINK, "feedLink", doc, node, NULL, error));
+		GDataLink *link = GDATA_LINK (_gdata_parsable_new_from_xml_node (GDATA_TYPE_LINK, doc, node, NULL, error));
 		if (link == NULL)
 			return FALSE;
 		gdata_entry_add_link (GDATA_ENTRY (self), link); 
 	} else if (xmlStrcmp (node->name, (xmlChar*) "lastModifiedBy") ==  0) {
-		GDataAuthor *last_modified_by = GDATA_AUTHOR (_gdata_parsable_new_from_xml_node (GDATA_TYPE_AUTHOR, "lastModifiedBy", doc, node, NULL, error));
+		GDataAuthor *last_modified_by = GDATA_AUTHOR (_gdata_parsable_new_from_xml_node (GDATA_TYPE_AUTHOR, doc, node, NULL, error));
 		if (last_modified_by == NULL)
 			return FALSE;
 		self->priv->last_modified_by = last_modified_by;

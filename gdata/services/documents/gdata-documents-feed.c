@@ -86,13 +86,13 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 	if (xmlStrcmp (node->name, (xmlChar*) "entry") == 0) {
 		GDataEntry *entry = NULL;
 		if (is_spreadsheet_entry (doc, node))
-			entry = GDATA_ENTRY (_gdata_parsable_new_from_xml_node (GDATA_TYPE_DOCUMENTS_SPREADSHEET, "entry", doc, node, NULL, error));
+			entry = GDATA_ENTRY (_gdata_parsable_new_from_xml_node (GDATA_TYPE_DOCUMENTS_SPREADSHEET, doc, node, NULL, error));
 		else if (is_text_entry (doc, node))
-			entry = GDATA_ENTRY (_gdata_parsable_new_from_xml_node (GDATA_TYPE_DOCUMENTS_TEXT, "entry", doc, node, NULL, error));
+			entry = GDATA_ENTRY (_gdata_parsable_new_from_xml_node (GDATA_TYPE_DOCUMENTS_TEXT, doc, node, NULL, error));
 		else if (is_presentation_entry (doc, node))
-			entry = GDATA_ENTRY (_gdata_parsable_new_from_xml_node (GDATA_TYPE_DOCUMENTS_PRESENTATION, "entry", doc, node, NULL, error));
+			entry = GDATA_ENTRY (_gdata_parsable_new_from_xml_node (GDATA_TYPE_DOCUMENTS_PRESENTATION, doc, node, NULL, error));
 		else if (is_folder_entry (doc, node))
-			entry = GDATA_ENTRY (_gdata_parsable_new_from_xml_node (GDATA_TYPE_DOCUMENTS_FOLDER, "entry", doc, node, NULL, error));
+			entry = GDATA_ENTRY (_gdata_parsable_new_from_xml_node (GDATA_TYPE_DOCUMENTS_FOLDER, doc, node, NULL, error));
 		if (entry == NULL)
 			return FALSE;
 

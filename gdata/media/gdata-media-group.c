@@ -2,19 +2,19 @@
 /*
  * GData Client
  * Copyright (C) Philip Withnall 2009 <philip@tecnocode.co.uk>
- * 
- * GData Client is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ *
+ * GData Client is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
  * GData Client is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with GData Client.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with GData Client.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 /**
@@ -80,6 +80,8 @@ gdata_media_group_class_init (GDataMediaGroupClass *klass)
 	parsable_class->parse_xml = parse_xml;
 	parsable_class->get_xml = get_xml;
 	parsable_class->get_namespaces = get_namespaces;
+	parsable_class->element_name = "group";
+	parsable_class->element_namespace = "media";
 }
 
 static void
@@ -155,7 +157,7 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 		xmlFree (keywords);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "category") == 0) {
 		/* media:category */
-		GDataMediaCategory *category = GDATA_MEDIA_CATEGORY (_gdata_parsable_new_from_xml_node (GDATA_TYPE_MEDIA_CATEGORY, "category", doc,
+		GDataMediaCategory *category = GDATA_MEDIA_CATEGORY (_gdata_parsable_new_from_xml_node (GDATA_TYPE_MEDIA_CATEGORY, doc,
 													node, NULL, error));
 		if (category == NULL)
 			return FALSE;
@@ -163,16 +165,14 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 		gdata_media_group_set_category (self, category);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "content") == 0) {
 		/* media:content */
-		GDataMediaContent *content = GDATA_MEDIA_CONTENT (_gdata_parsable_new_from_xml_node (GDATA_TYPE_MEDIA_CONTENT, "content", doc,
-												     node, NULL, error));
+		GDataMediaContent *content = GDATA_MEDIA_CONTENT (_gdata_parsable_new_from_xml_node (GDATA_TYPE_MEDIA_CONTENT, doc, node, NULL, error));
 		if (content == NULL)
 			return FALSE;
 
 		_gdata_media_group_add_content (self, content);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "credit") == 0) {
 		/* media:credit */
-		GDataMediaCredit *credit = GDATA_MEDIA_CREDIT (_gdata_parsable_new_from_xml_node (GDATA_TYPE_MEDIA_CREDIT, "credit", doc,
-												  node, NULL, error));
+		GDataMediaCredit *credit = GDATA_MEDIA_CREDIT (_gdata_parsable_new_from_xml_node (GDATA_TYPE_MEDIA_CREDIT, doc, node, NULL, error));
 		if (credit == NULL)
 			return FALSE;
 
@@ -235,7 +235,7 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 		xmlFree (countries);
 
 		/* Add "all" to the table, since it's an exception table */
-		g_hash_table_insert (self->priv->restricted_countries, (gchar*) "all", GUINT_TO_POINTER (!relationship_bool));
+		g_hash_table_insert (self->priv->restricted_countries, g_strdup ("all"), GUINT_TO_POINTER (!relationship_bool));
 
 		/* Add all the listed countries to the restricted countries table */
 		for (country = country_list; *country != NULL; country++)
@@ -243,7 +243,7 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 		g_free (country_list);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "thumbnail") == 0) {
 		/* media:thumbnail */
-		GDataMediaThumbnail *thumb = GDATA_MEDIA_THUMBNAIL (_gdata_parsable_new_from_xml_node (GDATA_TYPE_MEDIA_THUMBNAIL, "thumbnail", doc,
+		GDataMediaThumbnail *thumb = GDATA_MEDIA_THUMBNAIL (_gdata_parsable_new_from_xml_node (GDATA_TYPE_MEDIA_THUMBNAIL, doc,
 												       node, NULL, error));
 		if (thumb == NULL)
 			return FALSE;
@@ -264,7 +264,7 @@ get_xml (GDataParsable *parsable, GString *xml_string)
 
 	/* Media category */
 	if (priv->category != NULL) {
-		gchar *xml = _gdata_parsable_get_xml (GDATA_PARSABLE (priv->category), "media:category", FALSE);
+		gchar *xml = _gdata_parsable_get_xml (GDATA_PARSABLE (priv->category), FALSE);
 		g_string_append (xml_string, xml);
 		g_free (xml);
 	}

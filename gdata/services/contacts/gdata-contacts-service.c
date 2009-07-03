@@ -170,9 +170,46 @@ gdata_contacts_service_insert_contact (GDataContactsService *self, GDataContacts
 	g_return_val_if_fail (GDATA_IS_CONTACTS_CONTACT (contact), NULL);
 
 	uri = g_strdup_printf ("http://www.google.com/m8/feeds/contacts/%s/full", gdata_service_get_username (GDATA_SERVICE (self)));
-
 	entry = gdata_service_insert_entry (GDATA_SERVICE (self), uri, GDATA_ENTRY (contact), cancellable, error);
 	g_free (uri);
 
 	return GDATA_CONTACTS_CONTACT (entry);
+}
+
+/**
+ * gdata_contacts_service_update_contact:
+ * @self: a #GDataContactsService
+ * @contact: the #GDataContactsContact to update
+ * @cancellable: optional #GCancellable object, or %NULL
+ * @error: a #GError, or %NULL
+ *
+ * Updates @contact on the online contacts service.
+ *
+ * For more details, see gdata_service_update_entry().
+ *
+ * Return value: an updated #GDataContactsContact, or %NULL
+ *
+ * Since: 0.4.0
+ **/
+GDataContactsContact *
+gdata_contacts_service_update_contact (GDataContactsService *self, GDataContactsContact *contact, GCancellable *cancellable, GError **error)
+{
+	/* TODO: Async variant */
+	const gchar *uri;
+	GDataLink *link;
+
+	g_return_val_if_fail (GDATA_IS_CONTACTS_SERVICE (self), NULL);
+	g_return_val_if_fail (GDATA_IS_CONTACTS_CONTACT (contact), NULL);
+
+	/* Can't trust the edit URI the contact gives us, as it has the wrong projection; it uses the base projection, which
+	 * doesn't allow for extended attributes to be set (for some weird reason). */
+	link = gdata_entry_look_up_link (GDATA_ENTRY (contact), GDATA_LINK_EDIT);
+	g_assert (link != NULL);
+	uri = gdata_link_get_uri (link);
+	g_assert (uri != NULL);
+	uri = strstr (uri, "/base/");
+	if (uri != NULL)
+		memcpy ((char*) uri, "/full/", 6);
+
+	return GDATA_CONTACTS_CONTACT (gdata_service_update_entry (GDATA_SERVICE (self), GDATA_ENTRY (contact), cancellable, error));
 }

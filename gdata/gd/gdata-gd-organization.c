@@ -2,19 +2,19 @@
 /*
  * GData Client
  * Copyright (C) Philip Withnall 2009 <philip@tecnocode.co.uk>
- * 
- * GData Client is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ *
+ * GData Client is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
  * GData Client is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with GData Client.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with GData Client.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 /**
@@ -79,6 +79,8 @@ gdata_gd_organization_class_init (GDataGDOrganizationClass *klass)
 	parsable_class->pre_get_xml = pre_get_xml;
 	parsable_class->get_xml = get_xml;
 	parsable_class->get_namespaces = get_namespaces;
+	parsable_class->element_name = "organization";
+	parsable_class->element_namespace = "gd";
 
 	/**
 	 * GDataGDOrganization:name:
@@ -318,8 +320,11 @@ pre_get_xml (GDataParsable *parsable, GString *xml_string)
 
 	if (priv->relation_type != NULL)
 		g_string_append_printf (xml_string, " rel='%s'", priv->relation_type);
-	if (priv->label != NULL)
-		g_string_append_printf (xml_string, " label='%s'", priv->label);
+	if (priv->label != NULL) {
+		gchar *label = g_markup_escape_text (priv->label, -1);
+		g_string_append_printf (xml_string, " label='%s'", label);
+		g_free (label);
+	}
 
 	if (priv->is_primary == TRUE)
 		g_string_append (xml_string, " primary='true'");
@@ -332,10 +337,17 @@ get_xml (GDataParsable *parsable, GString *xml_string)
 {
 	GDataGDOrganizationPrivate *priv = GDATA_GD_ORGANIZATION (parsable)->priv;
 
-	if (priv->name != NULL)
-		g_string_append_printf (xml_string, "<gd:orgName>%s</gd:orgName>", priv->name);
-	if (priv->title != NULL)
-		g_string_append_printf (xml_string, "<gd:orgTitle>%s</gd:orgTitle>", priv->title);
+	if (priv->name != NULL) {
+		gchar *name = g_markup_escape_text (priv->name, -1);
+		g_string_append_printf (xml_string, "<gd:orgName>%s</gd:orgName>", name);
+		g_free (name);
+	}
+
+	if (priv->title != NULL) {
+		gchar *title = g_markup_escape_text (priv->title, -1);
+		g_string_append_printf (xml_string, "<gd:orgTitle>%s</gd:orgTitle>", title);
+		g_free (title);
+	}
 }
 
 static void
@@ -391,7 +403,9 @@ gdata_gd_organization_compare (const GDataGDOrganization *a, const GDataGDOrgani
 
 	if (a == b)
 		return 0;
-	return g_strcmp0 (a->priv->name, b->priv->name);
+	if (g_strcmp0 (a->priv->name, b->priv->name) == 0 && g_strcmp0 (a->priv->title, b->priv->title) == 0)
+		return 0;
+	return 1;
 }
 
 /**

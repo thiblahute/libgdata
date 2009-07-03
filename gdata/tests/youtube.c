@@ -148,7 +148,7 @@ get_video_for_related (void)
 	GDataYouTubeVideo *video;
 	GError *error = NULL;
 
-	video = gdata_youtube_video_new_from_xml (
+	video = GDATA_YOUTUBE_VIDEO (gdata_parsable_new_from_xml (GDATA_TYPE_YOUTUBE_VIDEO,
 		"<entry xmlns='http://www.w3.org/2005/Atom' "
 			"xmlns:media='http://search.yahoo.com/mrss/' "
 			"xmlns:yt='http://gdata.youtube.com/schemas/2007' "
@@ -170,10 +170,10 @@ get_video_for_related (void)
 			"<category scheme='http://gdata.youtube.com/schemas/2007/keywords.cat' term='half-life'/>"
 			"<title type='text'>Escape From City 17 - Part One</title>"
 			"<content type='text'>Directed by The Purchase Brothers. *snip*</content>"
-			"<link rel='alternate' type='text/html' href='http://www.youtube.com/watch?v=q1UPMEmCqZo'/>"
+			"<link rel='http://www.iana.org/assignments/relation/alternate' type='text/html' href='http://www.youtube.com/watch?v=q1UPMEmCqZo'/>"
 			"<link rel='http://gdata.youtube.com/schemas/2007#video.related' type='application/atom+xml' href='http://gdata.youtube.com/feeds/api/videos/q1UPMEmCqZo/related'/>"
 			"<link rel='http://gdata.youtube.com/schemas/2007#mobile' type='text/html' href='http://m.youtube.com/details?v=q1UPMEmCqZo'/>"
-			"<link rel='self' type='application/atom+xml' href='http://gdata.youtube.com/feeds/api/standardfeeds/top_rated/v/q1UPMEmCqZo'/>"
+			"<link rel='http://www.iana.org/assignments/relation/self' type='application/atom+xml' href='http://gdata.youtube.com/feeds/api/standardfeeds/top_rated/v/q1UPMEmCqZo'/>"
 			"<author>"
 				"<name>PurchaseBrothers</name>"
 				"<uri>http://gdata.youtube.com/feeds/api/users/purchasebrothers</uri>"
@@ -203,7 +203,7 @@ get_video_for_related (void)
 			"<gd:comments>"
 				"<gd:feedLink href='http://gdata.youtube.com/feeds/api/videos/q1UPMEmCqZo/comments' countHint='13021'/>"
 			"</gd:comments>"
-		"</entry>", -1, &error);
+		"</entry>", -1, &error));
 	g_assert_no_error (error);
 	g_assert (GDATA_IS_YOUTUBE_VIDEO (video));
 	g_clear_error (&error);
@@ -288,7 +288,7 @@ test_upload_simple (void)
 	gdata_youtube_video_set_keywords (video, "toast, wedding");
 
 	/* Check the XML */
-	xml = gdata_entry_get_xml (GDATA_ENTRY (video));
+	xml = gdata_parsable_get_xml (GDATA_PARSABLE (video));
 	g_assert_cmpstr (xml, ==,
 			 "<entry xmlns='http://www.w3.org/2005/Atom' "
 				"xmlns:media='http://search.yahoo.com/mrss/' "
@@ -327,7 +327,7 @@ test_parsing_app_control (void)
 	GDataYouTubeState *state;
 	GError *error = NULL;
 
-	video = gdata_youtube_video_new_from_xml (
+	video = GDATA_YOUTUBE_VIDEO (gdata_parsable_new_from_xml (GDATA_TYPE_YOUTUBE_VIDEO,
 		"<entry xmlns='http://www.w3.org/2005/Atom' "
 			"xmlns:media='http://search.yahoo.com/mrss/' "
 			"xmlns:yt='http://gdata.youtube.com/schemas/2007' "
@@ -342,8 +342,8 @@ test_parsing_app_control (void)
 			"</app:control>"
 			"<category scheme='http://schemas.google.com/g/2005#kind' term='http://gdata.youtube.com/schemas/2007#video'/>"
 			"<title>Judas Priest - Painkiller</title>"
-			"<link rel='alternate' type='text/html' href='http://www.youtube.com/watch?v=JAagedeKdcQ'/>"
-			"<link rel='self' type='application/atom+xml' href='http://gdata.youtube.com/feeds/api/videos/JAagedeKdcQ?client=ytapi-google-jsdemo'/>"
+			"<link rel='http://www.iana.org/assignments/relation/alternate' type='text/html' href='http://www.youtube.com/watch?v=JAagedeKdcQ'/>"
+			"<link rel='http://www.iana.org/assignments/relation/self' type='application/atom+xml' href='http://gdata.youtube.com/feeds/api/videos/JAagedeKdcQ?client=ytapi-google-jsdemo'/>"
 			"<author>"
 				"<name>eluves</name>"
 				"<uri>http://gdata.youtube.com/feeds/api/users/eluves</uri>"
@@ -353,7 +353,7 @@ test_parsing_app_control (void)
 				"<media:credit role='uploader' scheme='urn:youtube'>eluves</media:credit>"
 				"<media:category label='Music' scheme='http://gdata.youtube.com/schemas/2007/categories.cat'>Music</media:category>"
 			"</media:group>"
-		"</entry>", -1, &error);
+		"</entry>", -1, &error));
 	g_assert_no_error (error);
 	g_assert (GDATA_IS_YOUTUBE_VIDEO (video));
 	g_clear_error (&error);
@@ -380,7 +380,7 @@ test_parsing_yt_recorded (void)
 	gchar *xml;
 	GError *error = NULL;
 
-	video = gdata_youtube_video_new_from_xml (
+	video = GDATA_YOUTUBE_VIDEO (gdata_parsable_new_from_xml (GDATA_TYPE_YOUTUBE_VIDEO,
 		"<entry xmlns='http://www.w3.org/2005/Atom' "
 			"xmlns:media='http://video.search.yahoo.com/mrss' "
 			"xmlns:yt='http://gdata.youtube.com/schemas/2007' "
@@ -391,8 +391,8 @@ test_parsing_yt_recorded (void)
 			"<updated>2009-03-23T12:46:58.000Z</updated>"
 			"<category scheme='http://schemas.google.com/g/2005#kind' term='http://gdata.youtube.com/schemas/2007#video'/>"
 			"<title>Judas Priest - Painkiller</title>"
-			"<link rel='alternate' type='text/html' href='http://www.youtube.com/watch?v=JAagedeKdcQ'/>"
-			"<link rel='self' type='application/atom+xml' href='http://gdata.youtube.com/feeds/api/videos/JAagedeKdcQ?client=ytapi-google-jsdemo'/>"
+			"<link rel='http://www.iana.org/assignments/relation/alternate' type='text/html' href='http://www.youtube.com/watch?v=JAagedeKdcQ'/>"
+			"<link rel='http://www.iana.org/assignments/relation/self' type='application/atom+xml' href='http://gdata.youtube.com/feeds/api/videos/JAagedeKdcQ?client=ytapi-google-jsdemo'/>"
 			"<author>"
 				"<name>eluves</name>"
 				"<uri>http://gdata.youtube.com/feeds/api/users/eluves</uri>"
@@ -403,7 +403,7 @@ test_parsing_yt_recorded (void)
 				"<media:category label='Music' scheme='http://gdata.youtube.com/schemas/2007/categories.cat'>Music</media:category>"
 			"</media:group>"
 			"<yt:recorded>2003-08-03</yt:recorded>"
-		"</entry>", -1, &error);
+		"</entry>", -1, &error));
 	g_assert_no_error (error);
 	g_assert (GDATA_IS_YOUTUBE_VIDEO (video));
 	g_clear_error (&error);
@@ -418,7 +418,7 @@ test_parsing_yt_recorded (void)
 	gdata_youtube_video_set_recorded (video, &recorded);
 
 	/* Check the XML */
-	xml = gdata_entry_get_xml (GDATA_ENTRY (video));
+	xml = gdata_parsable_get_xml (GDATA_PARSABLE (video));
 	g_assert_cmpstr (xml, ==,
 			 "<entry xmlns='http://www.w3.org/2005/Atom' "
 				"xmlns:media='http://video.search.yahoo.com/mrss' "
@@ -431,8 +431,8 @@ test_parsing_yt_recorded (void)
 				"<updated>2009-03-23T12:46:58Z</updated>"
 				"<published>2006-05-16T14:06:37Z</published>"
 				"<category term='http://gdata.youtube.com/schemas/2007#video' scheme='http://schemas.google.com/g/2005#kind'/>"
-				"<link href='http://www.youtube.com/watch?v=JAagedeKdcQ' rel='alternate' type='text/html'/>"
-				"<link href='http://gdata.youtube.com/feeds/api/videos/JAagedeKdcQ?client=ytapi-google-jsdemo' rel='self' type='application/atom+xml'/>"
+				"<link href='http://www.youtube.com/watch?v=JAagedeKdcQ' rel='http://www.iana.org/assignments/relation/alternate' type='text/html'/>"
+				"<link href='http://gdata.youtube.com/feeds/api/videos/JAagedeKdcQ?client=ytapi-google-jsdemo' rel='http://www.iana.org/assignments/relation/self' type='application/atom+xml'/>"
 				"<author>"
 					"<name>eluves</name>"
 					"<uri>http://gdata.youtube.com/feeds/api/users/eluves</uri>"
@@ -460,7 +460,7 @@ test_parsing_comments_feed_link (void)
 	GDataGDFeedLink *feed_link;
 	GError *error = NULL;
 
-	video = gdata_youtube_video_new_from_xml (
+	video = gdata_parsable_new_from_xml (GDATA_TYPE_YOUTUBE_VIDEO,
 		"<entry xmlns='http://www.w3.org/2005/Atom' "
 			"xmlns:media='http://search.yahoo.com/mrss/' "
 			"xmlns:yt='http://gdata.youtube.com/schemas/2007' "
@@ -471,8 +471,8 @@ test_parsing_comments_feed_link (void)
 			"<updated>2009-03-23T12:46:58.000Z</updated>"
 			"<category scheme='http://schemas.google.com/g/2005#kind' term='http://gdata.youtube.com/schemas/2007#video'/>"
 			"<title>Judas Priest - Painkiller</title>"
-			"<link rel='alternate' type='text/html' href='http://www.youtube.com/watch?v=JAagedeKdcQ'/>"
-			"<link rel='self' type='application/atom+xml' href='http://gdata.youtube.com/feeds/api/videos/JAagedeKdcQ?client=ytapi-google-jsdemo'/>"
+			"<link rel='http://www.iana.org/assignments/relation/alternate' type='text/html' href='http://www.youtube.com/watch?v=JAagedeKdcQ'/>"
+			"<link rel='http://www.iana.org/assignments/relation/self' type='application/atom+xml' href='http://gdata.youtube.com/feeds/api/videos/JAagedeKdcQ?client=ytapi-google-jsdemo'/>"
 			"<author>"
 				"<name>eluves</name>"
 				"<uri>http://gdata.youtube.com/feeds/api/users/eluves</uri>"

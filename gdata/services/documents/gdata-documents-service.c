@@ -319,7 +319,7 @@ _upload_update_document (GDataDocumentsService *self, GDataDocumentsEntry *docum
 		new_document_type = G_OBJECT_TYPE (document);
 
 		/*Get the xml content*/
-		entry_xml = gdata_entry_get_xml (GDATA_ENTRY (document));
+		entry_xml = gdata_parsable_get_xml (GDATA_PARSABLE (document));
 
 		/* Check for cancellation */
 		if (g_cancellable_set_error_if_cancelled (cancellable, error) == TRUE) {
@@ -401,7 +401,7 @@ _upload_update_document (GDataDocumentsService *self, GDataDocumentsEntry *docum
 	g_assert (message->response_body->data != NULL);
 
 	/* Parse the XML; create and return a new GDataEntry of the same type as @entry */
-	new_document = GDATA_DOCUMENTS_ENTRY (_gdata_entry_new_from_xml (new_document_type, message->response_body->data, message->response_body->length, error));
+	new_document = GDATA_DOCUMENTS_ENTRY (gdata_parsable_new_from_xml (new_document_type, message->response_body->data, (gint) message->response_body->length, error));
 
 	return new_document;
 }
@@ -508,9 +508,9 @@ gdata_documents_service_update_document (GDataDocumentsService *self, GDataDocum
 	}
 
 	if (document_file == NULL)
-		update_uri = gdata_entry_look_up_link (GDATA_ENTRY (document), "edit");
+		update_uri = gdata_entry_look_up_link (GDATA_ENTRY (document), GDATA_LINK_EDIT);
 	else
-		update_uri = gdata_entry_look_up_link (GDATA_ENTRY (document), "edit-media");
+		update_uri = gdata_entry_look_up_link (GDATA_ENTRY (document), GDATA_LINK_EDIT_MEDIA);
 
 	g_return_val_if_fail (update_uri != NULL, NULL);
 
@@ -574,7 +574,7 @@ gdata_documents_service_move_document_to_folder (GDataDocumentsService *self, GD
 		klass->append_query_headers (GDATA_SERVICE (self), message);
 
 	/*Get the xml content*/
-	entry_xml = gdata_entry_get_xml (GDATA_ENTRY (document));
+	entry_xml = gdata_parsable_get_xml (GDATA_PARSABLE (document));
 
 	/* Check for cancellation */
 	if (g_cancellable_set_error_if_cancelled (cancellable, error) == TRUE) {
@@ -614,7 +614,7 @@ gdata_documents_service_move_document_to_folder (GDataDocumentsService *self, GD
 	g_assert (message->response_body->data != NULL);
 
 	/* Parse the XML; and update the document*/
-	new_document = GDATA_DOCUMENTS_ENTRY (_gdata_entry_new_from_xml (G_OBJECT_TYPE (document), message->response_body->data, message->response_body->length, error));
+	new_document = GDATA_DOCUMENTS_ENTRY (gdata_parsable_new_from_xml (G_OBJECT_TYPE (document), message->response_body->data, message->response_body->length, error));
 	g_object_unref (message);
 
 	return new_document;

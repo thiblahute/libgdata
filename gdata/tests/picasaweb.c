@@ -116,7 +116,7 @@ test_upload_simple (void)
 	gdata_entry_add_category (GDATA_ENTRY (photo), category);
 
 	/* Check the XML */
-	xml = gdata_entry_get_xml (GDATA_ENTRY (photo));
+	xml = gdata_parsable_get_xml (GDATA_PARSABLE (photo));
 	g_assert_cmpstr (xml, ==,
 			 "<entry "
 				"xmlns='http://www.w3.org/2005/Atom' "
@@ -299,8 +299,8 @@ test_photo_feed_entry (void)
 
 	g_assert_cmpstr (gdata_entry_get_content (photo_entry), ==,
 			 "http://lh3.ggpht.com/_1kdcGyvOb8c/SfQFWPnuovI/AAAAAAAAAB0/MI0L4Sd11Eg/100_0269.jpg");
-	g_assert_cmpstr (gdata_entry_get_xml (photo_entry), !=, NULL);
-	g_assert_cmpuint (strlen (gdata_entry_get_xml (photo_entry)), >, 0);
+	g_assert_cmpstr (gdata_parsable_get_xml (GDATA_PARSABLE (photo_entry)), !=, NULL);
+	g_assert_cmpuint (strlen (gdata_parsable_get_xml (GDATA_PARSABLE (photo_entry))), >, 0);
 }
 
 static void
@@ -424,7 +424,7 @@ test_album_feed_entry (void)
 	// g_assert_cmpstr (gdata_entry_get_content (entry), !=, NULL);
 	/* TODO */
 	printf("** WARNING:%s:%d: gdata_entry_get_content(entry) returns null; valid?\n", __FILE__, __LINE__);
-	xml = gdata_entry_get_xml (entry);
+	xml = gdata_parsable_get_xml (GDATA_PARSABLE (entry));
 	g_assert_cmpstr (xml, !=, NULL);
 	g_assert_cmpuint (strlen (xml), >, 0);
 	g_free (xml);

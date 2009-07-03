@@ -267,7 +267,7 @@ test_insert_simple (void)
 	g_object_unref (when);
 
 	/* Check the XML */
-	xml = gdata_entry_get_xml (GDATA_ENTRY (event));
+	xml = gdata_parsable_get_xml (GDATA_PARSABLE (event));
 	g_assert_cmpstr (xml, ==,
 			 "<entry xmlns='http://www.w3.org/2005/Atom' "
 			 	"xmlns:gd='http://schemas.google.com/g/2005' "
@@ -312,7 +312,7 @@ test_xml_dates (void)
 	gchar *xml;
 	GError *error = NULL;
 
-	event = gdata_calendar_event_new_from_xml (
+	event = GDATA_CALENDAR_EVENT (gdata_parsable_new_from_xml (GDATA_TYPE_CALENDAR_EVENT,
 		"<entry xmlns='http://www.w3.org/2005/Atom' "
 		 	"xmlns:gd='http://schemas.google.com/g/2005' "
 		 	"xmlns:gCal='http://schemas.google.com/gCal/2005' "
@@ -323,7 +323,7 @@ test_xml_dates (void)
 		 	"<gd:when startTime='2009-04-17'/>"
 		 	"<gd:when startTime='2009-04-17T15:00:00Z'/>"
 		 	"<gd:when startTime='2009-04-27' endTime='20090506'/>"
-		 "</entry>", -1, &error);
+		 "</entry>", -1, &error));
 	g_assert_no_error (error);
 	g_assert (GDATA_IS_ENTRY (event));
 	g_clear_error (&error);
@@ -373,7 +373,7 @@ test_xml_dates (void)
 	g_assert (gdata_gd_when_get_reminders (when) == NULL);
 
 	/* Check the XML */
-	xml = gdata_entry_get_xml (GDATA_ENTRY (event));
+	xml = gdata_parsable_get_xml (GDATA_PARSABLE (event));
 	g_assert_cmpstr (xml, ==,
 			 "<entry xmlns='http://www.w3.org/2005/Atom' "
 			 	"xmlns:gd='http://schemas.google.com/g/2005' "
@@ -402,7 +402,7 @@ test_xml_recurrence (void)
 	GError *error = NULL;
 	gchar *id, *uri;
 
-	event = gdata_calendar_event_new_from_xml (
+	event = GDATA_CALENDAR_EVENT (gdata_parsable_new_from_xml (GDATA_TYPE_CALENDAR_EVENT,
 		"<entry xmlns='http://www.w3.org/2005/Atom' "
 		 	"xmlns:gd='http://schemas.google.com/g/2005' "
 		 	"xmlns:gCal='http://schemas.google.com/gCal/2005' "
@@ -414,9 +414,9 @@ test_xml_recurrence (void)
 			"<category scheme='http://schemas.google.com/g/2005#kind' term='http://schemas.google.com/g/2005#event'/>"
 			"<title>Test daily instance event</title>"
 			"<content></content>"
-			"<link rel='alternate' type='text/html' href='http://www.google.com/calendar/event?eid=ZzU5MjhlODJycmNoOTViMjVmOHVkMGRsc2dfMjAwOTA0MjlUMTUzMDAwWiBsaWJnZGF0YS50ZXN0QGdvb2dsZW1haWwuY29t' title='alternate'/>"
-			"<link rel='self' type='application/atom+xml' href='http://www.google.com/calendar/feeds/libgdata.test@googlemail.com/private/full/g5928e82rrch95b25f8ud0dlsg_20090429T153000Z'/>"
-			"<link rel='edit' type='application/atom+xml' href='http://www.google.com/calendar/feeds/libgdata.test@googlemail.com/private/full/g5928e82rrch95b25f8ud0dlsg_20090429T153000Z'/>"
+			"<link rel='http://www.iana.org/assignments/relation/alternate' type='text/html' href='http://www.google.com/calendar/event?eid=ZzU5MjhlODJycmNoOTViMjVmOHVkMGRsc2dfMjAwOTA0MjlUMTUzMDAwWiBsaWJnZGF0YS50ZXN0QGdvb2dsZW1haWwuY29t' title='alternate'/>"
+			"<link rel='http://www.iana.org/assignments/relation/self' type='application/atom+xml' href='http://www.google.com/calendar/feeds/libgdata.test@googlemail.com/private/full/g5928e82rrch95b25f8ud0dlsg_20090429T153000Z'/>"
+			"<link rel='http://www.iana.org/assignments/relation/edit' type='application/atom+xml' href='http://www.google.com/calendar/feeds/libgdata.test@googlemail.com/private/full/g5928e82rrch95b25f8ud0dlsg_20090429T153000Z'/>"
 			"<author>"
 				"<name>GData Test</name>"
 				"<email>libgdata.test@googlemail.com</email>"
@@ -442,7 +442,7 @@ test_xml_recurrence (void)
 			"</gd:when>"
 			"<gd:who rel='http://schemas.google.com/g/2005#event.organizer' valueString='GData Test' email='libgdata.test@googlemail.com'/>"
 			"<gd:where valueString=''/>"
-		"</entry>", -1, &error);
+		"</entry>", -1, &error));
 	g_assert_no_error (error);
 	g_assert (GDATA_IS_ENTRY (event));
 	g_clear_error (&error);
@@ -577,7 +577,7 @@ test_acls_insert_rule (void)
 	g_assert_cmpstr (scope_value, ==, "darcy@gmail.com");
 
 	/* Check the XML */
-	xml = gdata_entry_get_xml (GDATA_ENTRY (rule));
+	xml = gdata_parsable_get_xml (GDATA_PARSABLE (rule));
 	g_assert_cmpstr (xml, ==,
 			 "<entry xmlns='http://www.w3.org/2005/Atom' "
 			 	"xmlns:gd='http://schemas.google.com/g/2005' "

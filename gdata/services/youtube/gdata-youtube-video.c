@@ -590,25 +590,6 @@ gdata_youtube_video_new (const gchar *id)
 	return video;
 }
 
-/**
- * gdata_youtube_video_new_from_xml:
- * @xml: an XML string
- * @length: the length in characters of @xml, or %-1
- * @error: a #GError, or %NULL
- *
- * Creates a new #GDataYouTubeVideo from an XML string. If @length is %-1, the length of
- * the string will be calculated.
- *
- * Errors from #GDataParserError can be returned if problems are found in the XML.
- *
- * Return value: a new #GDataYouTubeVideo, or %NULL; unref with g_object_unref()
- **/
-GDataYouTubeVideo *
-gdata_youtube_video_new_from_xml (const gchar *xml, gint length, GError **error)
-{
-	return GDATA_YOUTUBE_VIDEO (_gdata_entry_new_from_xml (GDATA_TYPE_YOUTUBE_VIDEO, xml, length, error));
-}
-
 static gboolean
 parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_data, GError **error)
 {
@@ -616,8 +597,7 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 
 	if (xmlStrcmp (node->name, (xmlChar*) "group") == 0) {
 		/* media:group */
-		GDataMediaGroup *group = GDATA_MEDIA_GROUP (_gdata_parsable_new_from_xml_node (GDATA_TYPE_YOUTUBE_GROUP, "group", doc,
-											       node, NULL, error));
+		GDataMediaGroup *group = GDATA_MEDIA_GROUP (_gdata_parsable_new_from_xml_node (GDATA_TYPE_YOUTUBE_GROUP, doc, node, NULL, error));
 		if (group == NULL)
 			return FALSE;
 
@@ -742,7 +722,7 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 		gdata_youtube_video_set_recorded (self, &recorded_timeval);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "control") == 0) {
 		/* app:control */
-		GDataYouTubeControl *control = GDATA_YOUTUBE_CONTROL (_gdata_parsable_new_from_xml_node (GDATA_TYPE_YOUTUBE_CONTROL, "control", doc,
+		GDataYouTubeControl *control = GDATA_YOUTUBE_CONTROL (_gdata_parsable_new_from_xml_node (GDATA_TYPE_YOUTUBE_CONTROL, doc,
 													 node, NULL, error));
 		if (control == NULL)
 			return FALSE;
@@ -779,13 +759,16 @@ post_parse_xml (GDataParsable *parsable, gpointer user_data, GError **error)
 static void
 get_xml (GDataParsable *parsable, GString *xml_string)
 {
+	gchar *xml;
 	GDataYouTubeVideoPrivate *priv = GDATA_YOUTUBE_VIDEO (parsable)->priv;
 
 	/* Chain up to the parent class */
 	GDATA_PARSABLE_CLASS (gdata_youtube_video_parent_class)->get_xml (parsable, xml_string);
 
 	/* media:group */
-	g_string_append (xml_string, _gdata_parsable_get_xml (GDATA_PARSABLE (priv->media_group), "media:group", FALSE));
+	xml = _gdata_parsable_get_xml (GDATA_PARSABLE (priv->media_group), FALSE);
+	g_string_append (xml_string, xml);
+	g_free (xml);
 
 	if (priv->location != NULL) {
 		gchar *location = g_markup_escape_text (priv->location, -1);
@@ -803,7 +786,9 @@ get_xml (GDataParsable *parsable, GString *xml_string)
 		g_string_append (xml_string, "<yt:noembed/>");
 
 	/* app:control */
-	g_string_append (xml_string, _gdata_parsable_get_xml (GDATA_PARSABLE (priv->youtube_control), "app:control", FALSE));
+	xml = _gdata_parsable_get_xml (GDATA_PARSABLE (priv->youtube_control), FALSE);
+	g_string_append (xml_string, xml);
+	g_free (xml);
 
 	/* TODO:
 	 * - georss:where

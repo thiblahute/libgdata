@@ -16,6 +16,25 @@
 			data on the web, designed by Google.</para>
 
 		<refsect2>
+			<title>Protocol</title>
+			<para>The GData protocol is designed by Google to allow interaction with their web services. It is based on the Atom Publishing
+				protocol, with namespaced XML additions. Communication between the client and server is broadly achieved through HTTP
+				requests with query parameters, and Atom feeds being returned with result entries. Each <firstterm>service</firstterm>
+				has its own namespaced additions to the GData protocol; for example, the Google Calendar service's API has
+				specialisations for addresses and time periods.
+				<figure>
+					<mediaobject>
+						<imageobject><imagedata fileref="data-flow.png" format="PNG" align="center"/></imageobject>
+					</mediaobject>
+					<textobject><phrase>An overview of the data flow when making a request of a GData service.</phrase></textobject>
+				</figure>
+			</para>
+			<para>Results are always returned in the form of result <firstterm>feeds</firstterm>, containing multiple
+				<firstterm>entries</firstterm>. How the entries are interpreted depends on what was queried of the service, but when
+				using libgdata, this is all taken care of transparently.</para>
+		</refsect2>
+
+		<refsect2>
 			<title>Structure</title>
 			<para>The basic design of libgdata mirrors the protocol's structure quite closely:
 				<figure>

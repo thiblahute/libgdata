@@ -577,8 +577,7 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 
 	if (xmlStrcmp (node->name, (xmlChar*) "group") == 0) {
 		/* media:group */
-		GDataMediaGroup *group = GDATA_MEDIA_GROUP (_gdata_parsable_new_from_xml_node (GDATA_TYPE_MEDIA_GROUP, "group", doc,
-											       node, NULL, error));
+		GDataMediaGroup *group = GDATA_MEDIA_GROUP (_gdata_parsable_new_from_xml_node (GDATA_TYPE_MEDIA_GROUP, doc, node, NULL, error));
 		if (group == NULL)
 			return FALSE;
 
@@ -729,7 +728,7 @@ get_xml (GDataParsable *parsable, GString *xml_string)
 		g_string_append_printf (xml_string, "<gphoto:rotation>%u</gphoto:rotation>", priv->rotation);
 
 	/* media:group */
-	xml = _gdata_parsable_get_xml (GDATA_PARSABLE (priv->media_group), "media:group", FALSE);
+	xml = _gdata_parsable_get_xml (GDATA_PARSABLE (priv->media_group), FALSE);
 	g_string_append (xml_string, xml);
 	g_free (xml);
 
@@ -771,27 +770,6 @@ GDataPicasaWebFile *
 gdata_picasaweb_file_new (const gchar *id)
 {
 	return g_object_new (GDATA_TYPE_PICASAWEB_FILE, "id", id, NULL);
-}
-
-/**
- * gdata_picasaweb_file_new_from_xml:
- * @xml: an XML string
- * @length: the length in characters of @xml, or %-1
- * @error: a #GError, or %NULL
- *
- * Creates a new #GDataPicasaWebFile from an XML string. If @length is %-1, the length of
- * the string will be calculated.
- *
- * Errors from #GDataParserError can be returned if problems are found in the XML.
- *
- * Return value: a new #GDataPicasaWebFile, or %NULL; unref with g_object_unref()
- *
- * Since: 0.4.0
- **/
-GDataPicasaWebFile *
-gdata_picasaweb_file_new_from_xml (const gchar *xml, gint length, GError **error)
-{
-	return GDATA_PICASAWEB_FILE (_gdata_entry_new_from_xml (GDATA_TYPE_PICASAWEB_FILE, xml, length, error));
 }
 
 /**

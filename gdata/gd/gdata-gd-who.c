@@ -2,19 +2,19 @@
 /*
  * GData Client
  * Copyright (C) Philip Withnall 2009 <philip@tecnocode.co.uk>
- * 
- * GData Client is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ *
+ * GData Client is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
  * GData Client is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with GData Client.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with GData Client.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 /**
@@ -75,6 +75,8 @@ gdata_gd_who_class_init (GDataGDWhoClass *klass)
 	parsable_class->pre_get_xml = pre_get_xml;
 	parsable_class->get_xml = get_xml;
 	parsable_class->get_namespaces = get_namespaces;
+	parsable_class->element_name = "who";
+	parsable_class->element_namespace = "gd";
 
 	/**
 	 * GDataGDWho:relation-type:
@@ -238,8 +240,11 @@ pre_get_xml (GDataParsable *parsable, GString *xml_string)
 		g_string_append_printf (xml_string, " email='%s'", priv->email_address);
 	if (priv->relation_type != NULL)
 		g_string_append_printf (xml_string, " rel='%s'", priv->relation_type);
-	if (priv->value_string != NULL)
-		g_string_append_printf (xml_string, " valueString='%s'", priv->value_string);
+	if (priv->value_string != NULL) {
+		gchar *value_string = g_markup_escape_text (priv->value_string, -1);
+		g_string_append_printf (xml_string, " valueString='%s'", value_string);
+		g_free (value_string);
+	}
 }
 
 static void
@@ -294,8 +299,6 @@ gdata_gd_who_new (const gchar *relation_type, const gchar *value_string, const g
 gint
 gdata_gd_who_compare (const GDataGDWho *a, const GDataGDWho *b)
 {
-	gint value_string_cmp;
-
 	if (a == NULL && b != NULL)
 		return -1;
 	else if (b == NULL)
@@ -304,10 +307,9 @@ gdata_gd_who_compare (const GDataGDWho *a, const GDataGDWho *b)
 	if (a == b)
 		return 0;
 
-	value_string_cmp = g_strcmp0 (a->priv->value_string, b->priv->value_string);
-	if (value_string_cmp == 0 && g_strcmp0 (a->priv->email_address, b->priv->email_address))
+	if (g_strcmp0 (a->priv->value_string, b->priv->value_string) == 0 && g_strcmp0 (a->priv->email_address, b->priv->email_address) == 0)
 		return 0;
-	return value_string_cmp;
+	return 1;
 }
 
 /**

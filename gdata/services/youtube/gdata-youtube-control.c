@@ -2,19 +2,19 @@
 /*
  * GData Client
  * Copyright (C) Philip Withnall 2009 <philip@tecnocode.co.uk>
- * 
- * GData Client is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ *
+ * GData Client is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
  * GData Client is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with GData Client.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with GData Client.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 /**
@@ -70,6 +70,8 @@ gdata_youtube_control_class_init (GDataYouTubeControlClass *klass)
 	parsable_class->parse_xml = parse_xml;
 	parsable_class->get_xml = get_xml;
 	parsable_class->get_namespaces = get_namespaces;
+	parsable_class->element_name = "control";
+	parsable_class->element_namespace = "app";
 }
 
 static void
@@ -106,8 +108,7 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 		xmlFree (draft);
 	} else if (xmlStrcmp (node->name, (xmlChar*) "state") == 0) {
 		/* yt:state */
-		GDataYouTubeState *state = GDATA_YOUTUBE_STATE (_gdata_parsable_new_from_xml_node (GDATA_TYPE_YOUTUBE_STATE, "state", doc,
-												   node, NULL, error));
+		GDataYouTubeState *state = GDATA_YOUTUBE_STATE (_gdata_parsable_new_from_xml_node (GDATA_TYPE_YOUTUBE_STATE, doc, node, NULL, error));
 		if (state == NULL)
 			return FALSE;
 

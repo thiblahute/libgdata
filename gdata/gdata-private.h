@@ -37,11 +37,11 @@ void _gdata_query_set_next_uri (GDataQuery *self, const gchar *next_uri);
 void _gdata_query_set_previous_uri (GDataQuery *self, const gchar *previous_uri);
 
 #include "gdata-parsable.h"
-GDataParsable *_gdata_parsable_new_from_xml (GType parsable_type, const gchar *first_element, const gchar *xml, gint length, gpointer user_data,
+GDataParsable *_gdata_parsable_new_from_xml (GType parsable_type, const gchar *xml, gint length, gpointer user_data,
 					     GError **error) G_GNUC_WARN_UNUSED_RESULT;
-GDataParsable *_gdata_parsable_new_from_xml_node (GType parsable_type, const gchar *first_element, xmlDoc *doc, xmlNode *node, gpointer user_data,
+GDataParsable *_gdata_parsable_new_from_xml_node (GType parsable_type, xmlDoc *doc, xmlNode *node, gpointer user_data,
 						  GError **error) G_GNUC_WARN_UNUSED_RESULT;
-gchar *_gdata_parsable_get_xml (GDataParsable *self, const gchar *first_element, gboolean at_top_level) G_GNUC_WARN_UNUSED_RESULT;
+gchar *_gdata_parsable_get_xml (GDataParsable *self, gboolean at_top_level) G_GNUC_WARN_UNUSED_RESULT;
 
 #include "gdata-feed.h"
 GDataFeed *_gdata_feed_new_from_xml (GType feed_type, const gchar *xml, gint length, GType entry_type,
@@ -50,9 +50,6 @@ void _gdata_feed_add_entry (GDataFeed *self, GDataEntry *entry);
 gpointer _gdata_feed_parse_data_new(GType entry_type, GDataQueryProgressCallback progress_callback, gpointer progress_user_data);
 void _gdata_feed_parse_data_free (gpointer data);
 void _gdata_feed_call_progress_callback (GDataFeed *self, gpointer user_data, GDataEntry *entry);
-
-#include "gdata-entry.h"
-GDataEntry *_gdata_entry_new_from_xml (GType entry_type, const gchar *xml, gint length, GError **error) G_GNUC_WARN_UNUSED_RESULT;
 
 #include "gdata/services/documents/gdata-documents-entry.h"
 GFile *_gdata_documents_entry_download_document (GDataDocumentsEntry *self, GDataService *service, gchar **content_type, gchar *link, GFile *destination_directory,\

@@ -2,19 +2,19 @@
 /*
  * GData Client
  * Copyright (C) Philip Withnall 2009 <philip@tecnocode.co.uk>
- * 
- * GData Client is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ *
+ * GData Client is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
  * GData Client is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with GData Client.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with GData Client.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 /**
@@ -85,6 +85,8 @@ gdata_gd_when_class_init (GDataGDWhenClass *klass)
 	parsable_class->pre_get_xml = pre_get_xml;
 	parsable_class->get_xml = get_xml;
 	parsable_class->get_namespaces = get_namespaces;
+	parsable_class->element_name = "when";
+	parsable_class->element_namespace = "gd";
 
 	/**
 	 * GDataGDWhen:start-time:
@@ -276,7 +278,7 @@ pre_parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *root_node, gpointe
 		end_time_timeval.tv_sec = end_time_timeval.tv_usec = 0;
 	}
 
-	value_string = xmlGetProp (root_node, (xmlChar*) "value");
+	value_string = xmlGetProp (root_node, (xmlChar*) "valueString");
 
 	priv->start_time = start_time_timeval;
 	priv->end_time = end_time_timeval;
@@ -295,8 +297,7 @@ parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *node, gpointer user_da
 
 	if (xmlStrcmp (node->name, (xmlChar*) "reminder") == 0) {
 		/* gd:reminder */
-		GDataGDReminder *reminder = GDATA_GD_REMINDER (_gdata_parsable_new_from_xml_node (GDATA_TYPE_GD_REMINDER, "reminder", doc, node,
-												  NULL, error));
+		GDataGDReminder *reminder = GDATA_GD_REMINDER (_gdata_parsable_new_from_xml_node (GDATA_TYPE_GD_REMINDER, doc, node, NULL, error));
 		if (reminder == NULL)
 			return FALSE;
 
@@ -347,7 +348,7 @@ pre_get_xml (GDataParsable *parsable, GString *xml_string)
 	}
 
 	if (priv->value_string != NULL)
-		g_string_append_printf (xml_string, " value='%s'", priv->value_string);
+		g_string_append_printf (xml_string, " valueString='%s'", priv->value_string);
 }
 
 static void
@@ -356,8 +357,11 @@ get_xml (GDataParsable *parsable, GString *xml_string)
 	GList *reminders;
 	GDataGDWhenPrivate *priv = GDATA_GD_WHEN (parsable)->priv;
 
-	for (reminders = priv->reminders; reminders != NULL; reminders = reminders->next)
-		g_string_append (xml_string, _gdata_parsable_get_xml (GDATA_PARSABLE (reminders->data), "gd:reminder", FALSE));
+	for (reminders = priv->reminders; reminders != NULL; reminders = reminders->next) {
+		gchar *xml = _gdata_parsable_get_xml (GDATA_PARSABLE (reminders->data), FALSE);
+		g_string_append (xml_string, xml);
+		g_free (xml);
+	}
 }
 
 static void

@@ -64,7 +64,6 @@ typedef struct {
 GType gdata_contacts_contact_get_type (void) G_GNUC_CONST;
 
 GDataContactsContact *gdata_contacts_contact_new (const gchar *id) G_GNUC_WARN_UNUSED_RESULT;
-GDataContactsContact *gdata_contacts_contact_new_from_xml (const gchar *xml, gint length, GError **error) G_GNUC_WARN_UNUSED_RESULT;
 
 void gdata_contacts_contact_get_edited (GDataContactsContact *self, GTimeVal *edited);
 gboolean gdata_contacts_contact_is_deleted (GDataContactsContact *self);

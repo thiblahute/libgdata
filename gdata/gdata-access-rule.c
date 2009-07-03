@@ -134,27 +134,6 @@ gdata_access_rule_new (const gchar *id)
 	return g_object_new (GDATA_TYPE_ACCESS_RULE, "id", id, NULL);
 }
 
-/**
- * gdata_access_rule_new_from_xml:
- * @xml: an XML string
- * @length: the length in characters of @xml, or %-1
- * @error: a #GError, or %NULL
- *
- * Creates a new #GDataAccessRule from an XML string. If @length is %-1, the length of
- * the string will be calculated.
- *
- * Errors from #GDataParserError can be returned if problems are found in the XML.
- *
- * Return value: a new #GDataAccessRule, or %NULL; unref with g_object_unref()
- *
- * Since: 0.3.0
- **/
-GDataAccessRule *
-gdata_access_rule_new_from_xml (const gchar *xml, gint length, GError **error)
-{
-	return GDATA_ACCESS_RULE (_gdata_entry_new_from_xml (GDATA_TYPE_ACCESS_RULE, xml, length, error));
-}
-
 static void
 gdata_access_rule_set_property (GObject *object, guint property_id, const GValue *value, GParamSpec *pspec)
 {

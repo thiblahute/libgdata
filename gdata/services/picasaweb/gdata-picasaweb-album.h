@@ -79,7 +79,6 @@ typedef struct {
 GType gdata_picasaweb_album_get_type (void) G_GNUC_CONST;
 
 GDataPicasaWebAlbum *gdata_picasaweb_album_new (const gchar *id) G_GNUC_WARN_UNUSED_RESULT;
-GDataPicasaWebAlbum *gdata_picasaweb_album_new_from_xml (const gchar *xml, gint length, GError **error) G_GNUC_WARN_UNUSED_RESULT;
 
 const gchar *gdata_picasaweb_album_get_user (GDataPicasaWebAlbum *self);
 const gchar *gdata_picasaweb_album_get_nickname (GDataPicasaWebAlbum *self);

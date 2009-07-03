@@ -2,19 +2,19 @@
 /*
  * GData Client
  * Copyright (C) Philip Withnall 2009 <philip@tecnocode.co.uk>
- * 
- * GData Client is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ *
+ * GData Client is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
  * GData Client is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with GData Client.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with GData Client.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 /**
@@ -29,6 +29,7 @@
 
 #include <glib.h>
 #include <libxml/parser.h>
+#include <string.h>
 
 #include "gdata-gd-phone-number.h"
 #include "gdata-parsable.h"
@@ -79,6 +80,8 @@ gdata_gd_phone_number_class_init (GDataGDPhoneNumberClass *klass)
 	parsable_class->pre_get_xml = pre_get_xml;
 	parsable_class->get_xml = get_xml;
 	parsable_class->get_namespaces = get_namespaces;
+	parsable_class->element_name = "phoneNumber";
+	parsable_class->element_namespace = "gd";
 
 	/**
 	 * GDataGDPhoneNumber:number:
@@ -245,8 +248,10 @@ pre_parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *root_node, gpointe
 	GDataGDPhoneNumberPrivate *priv = GDATA_GD_PHONE_NUMBER (parsable)->priv;
 
 	number = xmlNodeListGetString (doc, root_node->children, TRUE);
-	if (number == NULL || *number == '\0')
+	if (number == NULL || *number == '\0') {
+		xmlFree (number);
 		return gdata_parser_error_required_content_missing (root_node, error);
+	}
 
 	rel = xmlGetProp (root_node, (xmlChar*) "rel");
 	if (rel != NULL && *rel == '\0') {
@@ -274,7 +279,7 @@ pre_parse_xml (GDataParsable *parsable, xmlDoc *doc, xmlNode *root_node, gpointe
 	label = xmlGetProp (root_node, (xmlChar*) "label");
 	uri = xmlGetProp (root_node, (xmlChar*) "uri");
 
-	priv->number = g_strdup ((gchar*) number);
+	gdata_gd_phone_number_set_number (GDATA_GD_PHONE_NUMBER (parsable), (gchar*) number);
 	priv->uri = g_strdup ((gchar*) uri);
 	priv->relation_type = g_strdup ((gchar*) rel);
 	priv->label = g_strdup ((gchar*) label);
@@ -312,8 +317,11 @@ pre_get_xml (GDataParsable *parsable, GString *xml_string)
 		g_string_append_printf (xml_string, " uri='%s'", priv->uri);
 	if (priv->relation_type != NULL)
 		g_string_append_printf (xml_string, " rel='%s'", priv->relation_type);
-	if (priv->label != NULL)
-		g_string_append_printf (xml_string, " label='%s'", priv->label);
+	if (priv->label != NULL) {
+		gchar *label = g_markup_escape_text (priv->label, -1);
+		g_string_append_printf (xml_string, " label='%s'", label);
+		g_free (label);
+	}
 
 	if (priv->is_primary == TRUE)
 		g_string_append (xml_string, " primary='true'");
@@ -324,9 +332,12 @@ pre_get_xml (GDataParsable *parsable, GString *xml_string)
 static void
 get_xml (GDataParsable *parsable, GString *xml_string)
 {
+	gchar *number;
 	GDataGDPhoneNumberPrivate *priv = GDATA_GD_PHONE_NUMBER (parsable)->priv;
 
-	g_string_append (xml_string, priv->number);
+	number = g_markup_escape_text (priv->number, -1);
+	g_string_append (xml_string, number);
+	g_free (number);
 }
 
 static void
@@ -415,10 +426,23 @@ gdata_gd_phone_number_get_number (GDataGDPhoneNumber *self)
 void
 gdata_gd_phone_number_set_number (GDataGDPhoneNumber *self, const gchar *number)
 {
+	gint len;
+
 	g_return_if_fail (GDATA_IS_GD_PHONE_NUMBER (self));
+	g_return_if_fail (number != NULL && *number != '\0');
 
 	g_free (self->priv->number);
-	self->priv->number = g_strdup (number);
+
+	/* Trim leading and trailing whitespace from the number.
+	 * See here: http://code.google.com/apis/gdata/docs/1.0/elements.html#gdPhoneNumber */
+	while (*number != '\0' && g_ascii_isspace (*number))
+		number++;
+
+	len = strlen (number);
+	while (len > 0 && g_ascii_isspace (number[len - 1]))
+		len--;
+
+	self->priv->number = g_strndup (number, len);
 	g_object_notify (G_OBJECT (self), "number");
 }
 
