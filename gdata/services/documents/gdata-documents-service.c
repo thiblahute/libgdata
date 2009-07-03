@@ -459,8 +459,6 @@ gdata_documents_service_upload_document (GDataDocumentsService *self, GDataDocum
 	}else
 		upload_uri = "http://docs.google.com/feeds/documents/private/full";
 	
-	g_print ("Upload uri: %s\n", upload_uri);
-
 	message = soup_message_new (SOUP_METHOD_POST, upload_uri);
 	g_free (tmp_str);
 
@@ -516,8 +514,6 @@ gdata_documents_service_update_document (GDataDocumentsService *self, GDataDocum
 
 	g_return_val_if_fail (update_uri != NULL, NULL);
 
-	g_print ("Adress: %s\n", gdata_link_get_uri (update_uri));
-
 	message = soup_message_new (SOUP_METHOD_PUT, gdata_link_get_uri (update_uri));
 	if (match == TRUE)
 		soup_message_headers_append (message->request_headers, "If-Match", gdata_entry_get_etag (GDATA_ENTRY (document)));
@@ -569,7 +565,6 @@ gdata_documents_service_move_document_to_folder (GDataDocumentsService *self, GD
 	g_return_val_if_fail (folder_id != NULL, NULL);
 	uri = g_strdup_printf ("http://docs.google.com/feeds/folders/private/full/folder%%3A%s", folder_id);
 
-	g_print ("Moving uri: %s\n", uri);
 	message = soup_message_new (SOUP_METHOD_POST, uri);
 	g_free (uri);
 
@@ -630,6 +625,7 @@ gdata_documents_service_move_document_to_folder (GDataDocumentsService *self, GD
  * @self: a #GDataDocumentsService
  * @document : the #GDataDocumentsEntry to remove
  * @folder : the #GDataDocumentsFolder from wich we should remove @document
+ * @match: %TRUE if you want the "If-match" HTTP header to be added, %FALSE if you want the "If-None-Match" header to be added
  * @cancellable: optional #GCancellable object, or %NULL
  * @error: a #GError, or %NULL
  *
@@ -638,24 +634,23 @@ gdata_documents_service_move_document_to_folder (GDataDocumentsService *self, GD
  *
  * Errors #GDataServiceError can be returned for other exceptional conditions, as determined by the server.
  **/
-GDataDocumentsEntry *
+void
 gdata_documents_service_remove_document_from_folder (GDataDocumentsService *self, GDataDocumentsEntry *document, GDataDocumentsEntry *folder,
-						GCancellable *cancellable, GError **error)
+												 	 gboolean match, GCancellable *cancellable, GError **error)
 {
 	GDataServiceClass *klass;
-	GDataDocumentsEntry *new_document;
-	gchar *entry_xml, *upload_data, *document_id, *uri, *folder_id;
+	gchar *entry_xml, *document_id, *uri, *folder_id;
 	SoupMessage *message;
 	guint status;
 
-	g_return_val_if_fail (GDATA_IS_DOCUMENTS_SERVICE (self), NULL);
-	g_return_val_if_fail (GDATA_IS_DOCUMENTS_ENTRY (document), NULL);
-	g_return_val_if_fail (GDATA_IS_DOCUMENTS_FOLDER (folder), NULL);
+	g_return_if_fail (GDATA_IS_DOCUMENTS_SERVICE (self));
+	g_return_if_fail (GDATA_IS_DOCUMENTS_ENTRY (document));
+	g_return_if_fail (GDATA_IS_DOCUMENTS_FOLDER (folder));
 
 	if (gdata_service_is_authenticated (GDATA_SERVICE (self)) == FALSE) {
 		g_set_error_literal (error, GDATA_SERVICE_ERROR, GDATA_SERVICE_ERROR_AUTHENTICATION_REQUIRED,
 				     _("You must be authenticated to upload documents."));
-		return NULL;
+		return;
 	}
 
 	/*Get the document id*/
@@ -663,9 +658,15 @@ gdata_documents_service_remove_document_from_folder (GDataDocumentsService *self
 	document_id = gdata_documents_entry_get_document_id (GDATA_DOCUMENTS_ENTRY (document));
 	g_assert (folder_id != NULL);
 	g_assert (document_id != NULL);
-	uri = g_strdup_printf ("http://docs.google.com/feeds/folders/private/full/folder%%3A%s/document%%3A%s", folder_id, document_id);
+	if (GDATA_IS_DOCUMENTS_PRESENTATION (document))
+		uri = g_strdup_printf ("http://docs.google.com/feeds/folders/private/full/folder%%3A%s/presentation%%3A%s", folder_id, document_id);
+	else if (GDATA_IS_DOCUMENTS_SPREADSHEET (document))
+		uri = g_strdup_printf ("http://docs.google.com/feeds/folders/private/full/folder%%3A%s/spreadsheet%%3A%s", folder_id, document_id);
+	else if (GDATA_IS_DOCUMENTS_TEXT (document))
+		uri = g_strdup_printf ("http://docs.google.com/feeds/folders/private/full/folder%%3A%s/document%%3A%s", folder_id, document_id);
+	else 
+		return;
 
-	g_print ("Moving uri :%s\n", uri);
 	message = soup_message_new (SOUP_METHOD_DELETE, uri);
 	g_free (uri);
 
@@ -674,50 +675,42 @@ gdata_documents_service_remove_document_from_folder (GDataDocumentsService *self
 	if (klass->append_query_headers != NULL)
 		klass->append_query_headers (GDATA_SERVICE (self), message);
 
-	/*Get the xml content*/
-	entry_xml = gdata_entry_get_xml (GDATA_ENTRY (document));
+	if (match == TRUE)
+		soup_message_headers_append (message->request_headers, "If-Match", gdata_entry_get_etag (GDATA_ENTRY (document)));
+	else
+		soup_message_headers_append (message->request_headers, "If-None-Match", gdata_entry_get_etag (GDATA_ENTRY (document)));
 
 	/* Check for cancellation */
 	if (g_cancellable_set_error_if_cancelled (cancellable, error) == TRUE) {
 		g_object_unref (message);
 		g_free (entry_xml);
-		return NULL;
+		return;
 	}
-	upload_data = g_strconcat ("<?xml version='1.0' encoding='UTF-8'?>", entry_xml, NULL);
-	g_free (entry_xml);
-	soup_message_set_request (message, "application/atom+xml", SOUP_MEMORY_TAKE, upload_data, strlen (upload_data));
 
 	/* Send the message */
 	status = _gdata_service_send_message (GDATA_SERVICE (self), message, error);
 	if (status == SOUP_STATUS_NONE) {
 		g_object_unref (message);
-		return NULL;
+		return;
 	}
 
 	/* Check for cancellation */
 	if (g_cancellable_set_error_if_cancelled (cancellable, error) == TRUE) {
 		g_object_unref (message);
-		return NULL;
+		return;
 	}
 
-	if (status != 201) {
+	if (status != 200) {
 		/* Error */
 		g_assert (klass->parse_error_response != NULL);
 		klass->parse_error_response (GDATA_SERVICE (self), GDATA_SERVICE_ERROR_WITH_INSERTION, status, message->reason_phrase, message->response_body->data,
 					     message->response_body->length, error);
 		g_object_unref (message);
-		return NULL;
+		return;
 	}
 
-	/* Build the updated entry */
-	g_assert (message->response_body->data != NULL);
-
 	/* Parse the XML; and update the document*/
-	g_object_unref (document);
-	new_document = GDATA_DOCUMENTS_ENTRY (_gdata_entry_new_from_xml (G_OBJECT_TYPE (document), message->response_body->data, message->response_body->length, error));
 	g_object_unref (message);
-
-	return new_document;
 }
 
 GDataService *
