@@ -66,6 +66,7 @@ typedef struct {
 GType gdata_documents_presentation_get_type (void)G_GNUC_CONST;
 
 GDataDocumentsPresentation *gdata_documents_presentation_new (const gchar *id) G_GNUC_WARN_UNUSED_RESULT;
+#include <gdata/services/documents/gdata-documents-service.h>
 GFile *gdata_documents_presentation_download_document (GDataDocumentsPresentation *self, GDataDocumentsService *service, gchar **content_type,
 													   GDataDocumentsPresentationFormat export_format, GFile *destination_directory, gboolean replace_file_if_exist,
 			  									   	   GCancellable *cancellable, GError **error) G_GNUC_WARN_UNUSED_RESULT;

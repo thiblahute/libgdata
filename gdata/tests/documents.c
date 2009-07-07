@@ -187,7 +187,7 @@ test_upload_metadata_file (void)
 
 	g_assert (service != NULL);
 
-	document_file = g_file_new_for_path ("/home/thibault/workspace/gsoc/libgdata/libgdata/gdata/tests/test.odt");
+	document_file = g_file_new_for_path ("test.odt");
 
 	document = GDATA_DOCUMENTS_ENTRY (gdata_documents_text_new (NULL));
 	category = gdata_category_new ("http://schemas.google.com/docs/2007#document", "http://schemas.google.com/g/2005#kind", "document");
@@ -217,7 +217,7 @@ test_upload_file (void)
 
 	g_assert (service != NULL);
 
-	document_file = g_file_new_for_path ("/home/thibault/workspace/gsoc/libgdata/libgdata/gdata/tests/test.ppt");
+	document_file = g_file_new_for_path ("test.ppt");
 
 	category = gdata_category_new ("http://schemas.google.com/docs/2007#presentation", "http://schemas.google.com/g/2005#kind", "presentation");
 
@@ -235,7 +235,8 @@ test_upload_file (void)
 static void
 test_add_remove_file_from_folder (void)
 {
-	GDataDocumentsEntry *folder, *new_folder, *document, *new_document;
+	GDataDocumentsEntry *document, *new_document;
+	GDataDocumentsFolder *folder, *new_folder;
 	GFile *document_file;
 	GDataCategory *folder_category, *document_category;
 	GError *error = NULL;
@@ -243,12 +244,12 @@ test_add_remove_file_from_folder (void)
 	g_assert (service != NULL);
 
 
-	folder = GDATA_DOCUMENTS_ENTRY (gdata_documents_folder_new (NULL));
+	folder = gdata_documents_folder_new (NULL);
 	folder_category = gdata_category_new ("http://schemas.google.com/docs/2007#folder", "http://schemas.google.com/g/2005#kind", "folder");
 	gdata_entry_set_title (GDATA_ENTRY (folder), "add_remove_from_folder_folder");
 	gdata_entry_add_category (GDATA_ENTRY (folder), folder_category);
 
-	document_file = g_file_new_for_path ("/home/thibault/workspace/gsoc/libgdata/libgdata/gdata/tests/test.ppt");
+	document_file = g_file_new_for_path ("test.ppt");
 	document = GDATA_DOCUMENTS_ENTRY (gdata_documents_presentation_new (NULL));
 	document_category = gdata_category_new ("http://schemas.google.com/docs/2007#presentation", "http://schemas.google.com/g/2005#kind", "presentation");
 	gdata_entry_set_title (GDATA_ENTRY (document), "add_remove_from_folder_presentation");
@@ -256,7 +257,7 @@ test_add_remove_file_from_folder (void)
 
 
 	/* Insert the folder */
-	new_folder = gdata_documents_service_upload_document (GDATA_DOCUMENTS_SERVICE (service), folder, NULL, NULL, TRUE, NULL, &error);
+	new_folder = GDATA_DOCUMENTS_FOLDER (gdata_documents_service_upload_document (GDATA_DOCUMENTS_SERVICE (service), folder, NULL, NULL, TRUE, NULL, &error));
 	g_assert (GDATA_IS_DOCUMENTS_FOLDER (new_folder));
 	g_assert_no_error (error);
 
@@ -282,16 +283,17 @@ test_add_remove_file_from_folder (void)
 static void
 test_add_file_folder_and_move (void)
 {
-	GDataDocumentsEntry *folder, *new_folder, *document, *new_document;
+	GDataDocumentsEntry *document, *new_document;
+	GDataDocumentsFolder *folder, *new_folder; 
 	GFile *document_file;
 	GDataCategory *folder_category, *document_category;
 	GError *error = NULL;
 
 	g_assert (service != NULL);
 
-	document_file = g_file_new_for_path ("/home/thibault/workspace/gsoc/libgdata/libgdata/gdata/tests/test.odt");
+	document_file = g_file_new_for_path ("test.odt");
 
-	folder = GDATA_DOCUMENTS_ENTRY (gdata_documents_folder_new (NULL));
+	folder = gdata_documents_folder_new (NULL);
 	folder_category = gdata_category_new ("http://schemas.google.com/docs/2007#folder", "http://schemas.google.com/g/2005#kind", "folder");
 	gdata_entry_set_title (GDATA_ENTRY (folder), "add_file_folder_move_folder");
 	gdata_entry_add_category (GDATA_ENTRY (folder), folder_category);
@@ -303,7 +305,7 @@ test_add_file_folder_and_move (void)
 
 
 	/* Insert the folder */
-	new_folder = gdata_documents_service_upload_document (GDATA_DOCUMENTS_SERVICE (service), folder, NULL, NULL, TRUE, NULL, &error);
+	new_folder = GDATA_DOCUMENTS_FOLDER (gdata_documents_service_upload_document (GDATA_DOCUMENTS_SERVICE (service), folder, NULL, NULL, TRUE, NULL, &error));
 	g_assert_no_error (error);
 	g_assert (GDATA_IS_DOCUMENTS_FOLDER (new_folder));
 
@@ -328,16 +330,17 @@ test_add_file_folder_and_move (void)
 static void
 test_upload_file_metadata_in_new_folder (void)
 {
-	GDataDocumentsEntry *folder, *new_folder, *document, *new_document;
+	GDataDocumentsEntry *document, *new_document;
+	GDataDocumentsFolder *folder, *new_folder;
 	GFile *document_file;
 	GDataCategory *folder_category, *document_category;
 	GError *error = NULL;
 
 	g_assert (service != NULL);
 
-	document_file = g_file_new_for_path ("/home/thibault/workspace/gsoc/libgdata/libgdata/gdata/tests/test.odt");
+	document_file = g_file_new_for_path ("test.odt");
 
-	folder = GDATA_DOCUMENTS_ENTRY (gdata_documents_folder_new (NULL));
+	folder = gdata_documents_folder_new (NULL);
 	folder_category = gdata_category_new ("http://schemas.google.com/docs/2007#folder", "http://schemas.google.com/g/2005#kind", "folder");
 	gdata_entry_set_title (GDATA_ENTRY (folder), "upload_file_metadata_in_new_folder_folder");
 	gdata_entry_add_category (GDATA_ENTRY (folder), folder_category);
@@ -349,7 +352,7 @@ test_upload_file_metadata_in_new_folder (void)
 
 
 	/* Insert the folder */
-	new_folder = gdata_documents_service_upload_document (GDATA_DOCUMENTS_SERVICE (service), folder, NULL, NULL, TRUE, NULL, &error);
+	new_folder = GDATA_DOCUMENTS_FOLDER (gdata_documents_service_upload_document (GDATA_DOCUMENTS_SERVICE (service), folder, NULL, NULL, TRUE, NULL, &error));
 	g_assert_no_error (error);
 	g_assert (GDATA_IS_DOCUMENTS_FOLDER (new_folder));
 	g_clear_error (&error);
@@ -411,8 +414,8 @@ test_update_metadata_file (void)
 
 	g_assert (service != NULL);
 
-	document_file = g_file_new_for_path ("/home/thibault/workspace/gsoc/libgdata/libgdata/gdata/tests/test.odt");
-	updated_document_file = g_file_new_for_path ("/home/thibault/workspace/gsoc/libgdata/libgdata/gdata/tests/test_updated.odt");
+	document_file = g_file_new_for_path ("test.odt");
+	updated_document_file = g_file_new_for_path ("test_updated.odt");
 
 	document = GDATA_DOCUMENTS_ENTRY (gdata_documents_text_new (NULL));
 	category = gdata_category_new ("http://schemas.google.com/docs/2007#document", "http://schemas.google.com/g/2005#kind", "document");
@@ -449,8 +452,8 @@ test_update_file (void)
 
 	g_assert (service != NULL);
 
-	document_file = g_file_new_for_path ("/home/thibault/workspace/gsoc/libgdata/libgdata/gdata/tests/test.ppt");
-	updated_document_file = g_file_new_for_path ("/home/thibault/workspace/gsoc/libgdata/libgdata/gdata/tests/test_updated_file.ppt");
+	document_file = g_file_new_for_path ("test.ppt");
+	updated_document_file = g_file_new_for_path ("test_updated_file.ppt");
 
 	/* Insert the document */
 	new_document = gdata_documents_service_upload_document (GDATA_DOCUMENTS_SERVICE (service), NULL, document_file, NULL, FALSE, NULL, &error);

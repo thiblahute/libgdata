@@ -290,3 +290,8 @@ msgstr "La vidéo n'a pas de vidéo connexe <link>."
 #: ../gdata/services/youtube/gdata-youtube-service.c:634
 msgid "You must be authenticated to upload a video."
 msgstr "Vous devez vous authentifier pour envoyer une vidéo."
+
+
+#: ../gdata/services/documents/gdata-documents-service.c:652
+msgid "You must be authenticated to upload documents."
+msgstr "Vous devez vous authentifier pour envoyer un document."

@@ -11,8 +11,6 @@ gdatadocumentsinclude_HEADERS = \
 
 noinst_LTLIBRARIES = libgdatadocuments.la
 
-libgdatadocuments_headers =
-
 libgdatadocuments_la_SOURCES = \
 	gdata-documents-service.c	\
 	gdata-documents-service.h	\

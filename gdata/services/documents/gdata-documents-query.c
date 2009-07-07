@@ -426,6 +426,7 @@ gdata_documents_query_get_title (GDataDocumentsQuery *self)
  * gdata_documents_query_set_title:
  * @self: a #GDataDocumentsQuery
  * @title: A part of the title of the document we are querying, or %NULL if it is unset
+ * @exact_title: %TRUE if the title is the extact title or %FALSE otherwise
  *
  * Sets the #GDataDocumentsQuery:title property to @title.
  **/

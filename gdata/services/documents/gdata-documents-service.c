@@ -148,7 +148,6 @@ gdata_documents_service_get_property (GObject *object, guint property_id, GValue
  * gdata_documents_service_query_all_documents:
  * @self: a #GDataDocumentsService
  * @query: a #GDataQuery with the query parameters, or %NULL
- * @set_access_rules: %TRUE to set access rules to the feed's @GDataDocumentsEntries otherwise %FALSE
  * @cancellable: optional #GCancellable object, or %NULL
  * @progress_callback: a #GDataQueryProgressCallback to call when an entry is loaded, or %NULL
  * @progress_user_data: data to pass to the @progress_callback function
@@ -425,7 +424,7 @@ _upload_update_document (GDataDocumentsService *self, GDataDocumentsEntry *docum
  * Return value: an updated #GDataDocumentsEntry, or %NULL
  **/
 GDataDocumentsEntry *
-gdata_documents_service_upload_document (GDataDocumentsService *self, GDataDocumentsEntry *document, GFile *document_file, GDataDocumentsEntry *folder,\
+gdata_documents_service_upload_document (GDataDocumentsService *self, GDataDocumentsEntry *document, GFile *document_file, GDataDocumentsFolder *folder,\
 						gboolean metadata, GCancellable *cancellable, GError **error)
 {
 
@@ -542,7 +541,7 @@ gdata_documents_service_update_document (GDataDocumentsService *self, GDataDocum
  * Errors #GDataServiceError can be returned for other exceptional conditions, as determined by the server.
  **/
 GDataDocumentsEntry *
-gdata_documents_service_move_document_to_folder (GDataDocumentsService *self, GDataDocumentsEntry *document, GDataDocumentsEntry *folder,
+gdata_documents_service_move_document_to_folder (GDataDocumentsService *self, GDataDocumentsEntry *document, GDataDocumentsFolder *folder,
 						GCancellable *cancellable, GError **error)
 {
 	GDataServiceClass *klass;
@@ -635,7 +634,7 @@ gdata_documents_service_move_document_to_folder (GDataDocumentsService *self, GD
  * Errors #GDataServiceError can be returned for other exceptional conditions, as determined by the server.
  **/
 void
-gdata_documents_service_remove_document_from_folder (GDataDocumentsService *self, GDataDocumentsEntry *document, GDataDocumentsEntry *folder,
+gdata_documents_service_remove_document_from_folder (GDataDocumentsService *self, GDataDocumentsEntry *document, GDataDocumentsFolder *folder,
 												 	 gboolean match, GCancellable *cancellable, GError **error)
 {
 	GDataServiceClass *klass;

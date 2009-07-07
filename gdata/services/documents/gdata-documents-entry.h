@@ -26,6 +26,7 @@
 
 #include <gdata/gdata-entry.h>
 #include <gdata/gdata-types.h>
+#include <gdata/gdata-service.h>
 
 G_BEGIN_DECLS
 
@@ -74,8 +75,6 @@ gboolean gdata_documents_entry_get_writers_can_invite (GDataDocumentsEntry *self
 GDataAuthor *gdata_documents_entry_get_last_modified_by (GDataDocumentsEntry *self);
 
 gchar *gdata_documents_entry_download_link (GDataDocumentsEntry *self, gchar *export_url);
-
-#include <gdata/services/documents/gdata-documents-service.h>
 
 void gdata_documents_entry_set_access_rules (GDataDocumentsEntry *self, GDataService *service, GCancellable *cancellable,\
 											 GDataQueryProgressCallback progress_callback,gpointer progress_user_data, GError **error);
