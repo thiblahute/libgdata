@@ -73,14 +73,14 @@ void gdata_documents_service_query_documents_async (GDataDocumentsService *self,
 #include <gdata/services/documents/gdata-documents-folder.h>
 
 GDataDocumentsEntry *gdata_documents_service_upload_document (GDataDocumentsService *self, GDataDocumentsEntry *document, GFile *document_file,\
-	   	GDataDocumentsFolder *folder, gboolean metadata, GCancellable *cancellable, GError **error);/*TODO use a GDataDocumentsFolder*/
+	   	GDataDocumentsFolder *folder, gboolean metadata, GCancellable *cancellable, GError **error);
 GDataService *gdata_documents_service_get_spreadsheet_service(GDataDocumentsService *self);
 GDataDocumentsEntry *gdata_documents_service_update_document (GDataDocumentsService *self, GDataDocumentsEntry *document,\
 	   	GFile *document_file, gboolean metadata, gboolean none_match, gboolean match, GCancellable *cancellable, GError **error);
 void gdata_documents_service_remove_document_from_folder (GDataDocumentsService *self, GDataDocumentsEntry *document, GDataDocumentsFolder *folder,
-						gboolean match, GCancellable *cancellable, GError **error);/*TODO use a GDataDocumentsFolder*/
+						gboolean match, GCancellable *cancellable, GError **error);
 GDataDocumentsEntry *gdata_documents_service_move_document_to_folder (GDataDocumentsService *self, GDataDocumentsEntry *document, GDataDocumentsFolder *folder,
-						GCancellable *cancellable, GError **error);/*TODO use a GDataDocumentsFolder*/
+						GCancellable *cancellable, GError **error);
 
 G_END_DECLS
 #endif
